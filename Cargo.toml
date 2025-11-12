@@ -13,7 +13,8 @@ members = [
    "mlang_lsp_definition",
    "mlang_lint",
    "psql_syntax",
-   "psql_factory"
+   "psql_factory",
+   "psql_parser"
 ]
 
 [workspace.package]
@@ -34,6 +35,7 @@ mlang_lint = { path = 'mlang_lint' }
 
 psql_syntax = { path = 'psql_syntax' }
 psql_factory = { path = 'psql_factory' }
+psql_parser = { path = 'psql_parser' }
 
 tokio = { version = "1.17.0", features = ["full"] }
 tower-lsp = { version = "0.20.0", features = ["proposed"] }
