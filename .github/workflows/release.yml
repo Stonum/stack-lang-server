@@ -44,11 +44,16 @@ jobs:
          - name: Build Rust server
            run: cargo build --release
 
+         - name: Prepare artifact
+           run: |
+              cp target/release/${{ matrix.artifact_name }} ./${{ matrix.asset_name }}
+           shell: bash
+
          - name: Upload binary artifact
            uses: actions/upload-artifact@v4
            with:
               name: ${{ matrix.asset_name }}
-              path: target/release/${{ matrix.artifact_name }}
+              path: ./${{ matrix.asset_name }}
 
    release:
       runs-on: ubuntu-latest
