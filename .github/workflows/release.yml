@@ -10,10 +10,10 @@ jobs:
             include:
                - os: ubuntu-22.04
                  artifact_name: stack-lang-server
-                 asset_name: stack-lang-server-linux-x86_64
+                 asset_name: stack-lang-server-linux-x64
                - os: windows-latest
                  artifact_name: stack-lang-server.exe
-                 asset_name: stack-lang-server-windows-x86_64.exe
+                 asset_name: stack-lang-server-win32-x64.exe
 
       steps:
          - name: Checkout code
