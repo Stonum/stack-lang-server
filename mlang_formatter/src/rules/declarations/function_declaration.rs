@@ -131,7 +131,7 @@ impl FormatFunction {
 
         write_with_custom_line_width(
             f,
-            f.options().function_declaration_line_width(),
+            f.options().pretty_line_width(),
             parameters.syntax(),
             format_parameters,
         )?;

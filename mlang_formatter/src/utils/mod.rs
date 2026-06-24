@@ -251,11 +251,19 @@ pub(crate) fn write_with_custom_line_width(
         biome_formatter::write!(f, [format_removed(&token)])?;
     }
 
-    write!(
-        f,
-        [dynamic_text(
-            formatted.print()?.as_code(),
-            node.text_range().start()
-        )]
-    )
+    let start = node.text_range().start();
+    let code = formatted.print()?.as_code().to_string();
+
+    // Write each line with hard_line_break() so the outer indentation context
+    // is applied to continuation lines (dynamic_text embeds raw newlines that
+    // would otherwise bypass the formatter's indent tracking).
+    let mut lines = code.lines();
+    if let Some(first) = lines.next() {
+        write!(f, [dynamic_text(first, start)])?;
+        for line in lines {
+            write!(f, [hard_line_break(), dynamic_text(line, start)])?;
+        }
+    }
+
+    Ok(())
 }

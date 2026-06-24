@@ -8,7 +8,7 @@ use tower_lsp::lsp_types::{Range, TextEdit};
 use crate::document::CurrentDocument;
 
 const FORMAT_LINE_WIDTH: u16 = 120;
-const FORMAT_FUNCTION_DECLARATION_LINE_WIDTH: u16 = 90;
+const FORMAT_PRETTY_LINE_WIDTH: u16 = 90;
 
 pub fn format(
     document: &CurrentDocument,
@@ -21,9 +21,7 @@ pub fn format(
             false => IndentStyle::Tab,
         })
         .with_line_width(LineWidth::try_from(FORMAT_LINE_WIDTH).unwrap())
-        .with_function_declaration_line_width(
-            LineWidth::try_from(FORMAT_FUNCTION_DECLARATION_LINE_WIDTH).unwrap(),
-        )
+        .with_pretty_line_width(LineWidth::try_from(FORMAT_PRETTY_LINE_WIDTH).unwrap())
         .with_indent_width(IndentWidth::from(options.tab_size as u8))
         .with_bracket_spacing(false.into());
 

@@ -15,7 +15,7 @@ macro_rules! assert_fmt {
         let options = MFormatOptions::new(syntax)
             .with_indent_style(IndentStyle::Space)
             .with_line_width(LineWidth::try_from(120).unwrap())
-            .with_function_declaration_line_width(LineWidth::try_from(90).unwrap())
+            .with_pretty_line_width(LineWidth::try_from(90).unwrap())
             .with_indent_width(IndentWidth::from(3))
             .with_bracket_spacing(false.into());
 
@@ -47,7 +47,7 @@ macro_rules! assert_fmt_range {
         let options = MFormatOptions::new(syntax)
             .with_indent_style(IndentStyle::Space)
             .with_line_width(LineWidth::try_from(120).unwrap())
-            .with_function_declaration_line_width(LineWidth::try_from(90).unwrap())
+            .with_pretty_line_width(LineWidth::try_from(90).unwrap())
             .with_indent_width(IndentWidth::from(3));
 
         let doc = format_range(

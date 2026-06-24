@@ -6,7 +6,9 @@ use crate::rules::declarations::function_declaration::FormatFunctionOptions;
 use crate::rules::lists::array_element_list::can_concisely_print_array_list;
 use crate::utils::function_body::FunctionBodyCacheMode;
 use crate::utils::member_chain::SimpleArgument;
-use crate::utils::{is_long_curried_call, write_arguments_multi_line};
+use crate::utils::{
+    is_long_curried_call, write_arguments_multi_line, write_with_custom_line_width,
+};
 use biome_formatter::{VecBuffer, format_args, format_element, write};
 use biome_rowan::{AstSeparatedElement, AstSeparatedList, SyntaxResult};
 use mlang_syntax::{
@@ -97,6 +99,30 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
             );
         }
 
+        // When the only argument is an object or array, hug it to the opening paren
+        // so @{ / [ appears on the same line as (.
+        let first_arg_is_obj_or_arr = arguments.first().is_some_and(|arg| {
+            arg.element().node().is_ok_and(|node| {
+                matches!(
+                    &node,
+                    AnyMCallArgument::AnyMExpression(
+                        AnyMExpression::MObjectExpression(_) | AnyMExpression::MArrayExpression(_)
+                    )
+                )
+            })
+        });
+
+        if first_arg_is_obj_or_arr && arguments.len() == 1 {
+            return write!(
+                f,
+                [
+                    l_paren_token.format(),
+                    &arguments[0],
+                    r_paren_token.format(),
+                ]
+            );
+        }
+
         if let Some(group_layout) = arguments_grouped_layout(&args, f.comments()) {
             write_grouped_arguments(node, arguments, group_layout, f)
         } else if is_long_curried_call(call_expression.as_ref()) {
@@ -111,14 +137,22 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                 ]
             )
         } else {
-            write!(
+            let custom_width = f.options().pretty_line_width();
+            write_with_custom_line_width(
                 f,
-                [FormatAllArgsBrokenOut {
-                    l_paren: &l_paren_token.format(),
-                    args: &arguments,
-                    r_paren: &r_paren_token.format(),
-                    expand: false,
-                }]
+                custom_width,
+                node.syntax(),
+                format_with(|f| {
+                    write!(
+                        f,
+                        [FormatAllArgsBrokenOut {
+                            l_paren: &l_paren_token.format(),
+                            args: &arguments,
+                            r_paren: &r_paren_token.format(),
+                            expand: false,
+                        }]
+                    )
+                }),
             )
         }
     }
@@ -635,29 +669,66 @@ struct FormatAllArgsBrokenOut<'a> {
 
 impl Format<MFormatContext> for FormatAllArgsBrokenOut<'_> {
     fn fmt(&self, f: &mut Formatter<MFormatContext>) -> FormatResult<()> {
+        if self.expand {
+            return write!(
+                f,
+                [group(&format_args![
+                    self.l_paren,
+                    soft_block_indent(&format_with(|f| {
+                        for (index, entry) in self.args.iter().enumerate() {
+                            if index > 0 {
+                                match entry.leading_lines() {
+                                    0 | 1 => write!(f, [soft_line_break_or_space()])?,
+                                    _ => write!(f, [empty_line()])?,
+                                }
+                            }
+                            write!(f, [entry])?;
+                        }
+                        write!(f, [FormatTrailingCommas::All])?;
+                        Ok(())
+                    })),
+                    self.r_paren,
+                ])
+                .should_expand(true)]
+            );
+        }
+
+        // Compact fill mode: simple args share lines, complex args go on their own line.
         write!(
             f,
             [group(&format_args![
                 self.l_paren,
                 soft_block_indent(&format_with(|f| {
-                    for (index, entry) in self.args.iter().enumerate() {
-                        if index > 0 {
-                            match entry.leading_lines() {
-                                0 | 1 => write!(f, [soft_line_break_or_space()])?,
-                                _ => write!(f, [empty_line()])?,
-                            }
-                        }
+                    let mut filler = f.fill();
 
-                        write!(f, [entry])?;
+                    for entry in self.args.iter() {
+                        let is_simple = entry
+                            .element()
+                            .node()
+                            .ok()
+                            .is_some_and(|arg| SimpleArgument::new(arg.clone()).is_simple());
+                        let lines_before = entry.leading_lines();
+
+                        filler.entry(
+                            &format_once(|f| {
+                                if lines_before > 1 {
+                                    write!(f, [empty_line()])
+                                } else if !is_simple {
+                                    write!(f, [hard_line_break()])
+                                } else {
+                                    write!(f, [soft_line_break_or_space()])
+                                }
+                            }),
+                            entry,
+                        );
                     }
 
-                    write!(f, [FormatTrailingCommas::All])?;
-
-                    Ok(())
+                    filler.finish()?;
+                    write!(f, [FormatTrailingCommas::All])
                 })),
                 self.r_paren,
             ])
-            .should_expand(self.expand)]
+            .should_expand(false)]
         )
     }
 }
@@ -692,26 +763,39 @@ fn should_group_first_argument(
     use AnyMExpression::*;
 
     let mut iter = list.iter();
-    match (iter.next(), iter.next()) {
-        (
-            Some(Ok(AnyMCallArgument::AnyMExpression(first))),
-            Some(Ok(AnyMCallArgument::AnyMExpression(second))),
-        ) if iter.next().is_none() => {
-            match &first {
-                MFunctionExpression(_) => {}
-                _ => return Ok(false),
-            };
+    let first = match iter.next() {
+        Some(Ok(AnyMCallArgument::AnyMExpression(first))) => first,
+        _ => return Ok(false),
+    };
 
-            if matches!(second, MFunctionExpression(_) | MConditionalExpression(_)) {
-                return Ok(false);
-            }
-
-            Ok(!comments.has_comments(first.syntax())
-                && !can_group_expression_argument(&second, comments)?
-                && is_relatively_short_argument(second))
-        }
-        _ => Ok(false),
+    // Object/array as first arg with additional args: hug @{/[ to ( and let
+    // best_fitting decide whether remaining args fit on the closing-brace line.
+    if matches!(&first, MObjectExpression(_) | MArrayExpression(_)) {
+        let has_more = iter.next().is_some();
+        return if has_more {
+            can_group_expression_argument(&first, comments)
+        } else {
+            Ok(false) // single-arg object is handled before this function is reached
+        };
     }
+
+    // Original logic: exactly 2 args, first is a function expression
+    let second = match iter.next() {
+        Some(Ok(AnyMCallArgument::AnyMExpression(second))) if iter.next().is_none() => second,
+        _ => return Ok(false),
+    };
+
+    if !matches!(&first, MFunctionExpression(_)) {
+        return Ok(false);
+    }
+
+    if matches!(second, MFunctionExpression(_) | MConditionalExpression(_)) {
+        return Ok(false);
+    }
+
+    Ok(!comments.has_comments(first.syntax())
+        && !can_group_expression_argument(&second, comments)?
+        && is_relatively_short_argument(second))
 }
 
 /// Checks if the last argument should be grouped.

@@ -147,8 +147,8 @@ pub struct MFormatOptions {
     /// What's the max width of a line. Defaults to 80.
     line_width: LineWidth,
 
-    // Max width for function declaration parameters
-    function_declaration_line_width: LineWidth,
+    // Max width for function declaration parameters or call arguments
+    pretty_line_width: LineWidth,
 
     /// The style for quotes. Defaults to double.
     quote_style: QuoteStyle,
@@ -190,7 +190,7 @@ impl MFormatOptions {
             bracket_spacing: BracketSpacing::default(),
             bracket_same_line: BracketSameLine::default(),
             attribute_position: AttributePosition::default(),
-            function_declaration_line_width: LineWidth::default(),
+            pretty_line_width: LineWidth::default(),
         }
     }
 
@@ -249,8 +249,8 @@ impl MFormatOptions {
         self
     }
 
-    pub fn with_function_declaration_line_width(mut self, line_width: LineWidth) -> Self {
-        self.function_declaration_line_width = line_width;
+    pub fn with_pretty_line_width(mut self, line_width: LineWidth) -> Self {
+        self.pretty_line_width = line_width;
         self
     }
 
@@ -297,8 +297,8 @@ impl MFormatOptions {
         self.semicolons = semicolons;
     }
 
-    pub fn set_function_declaration_line_width(&mut self, line_width: LineWidth) {
-        self.function_declaration_line_width = line_width;
+    pub fn set_pretty_line_width(&mut self, line_width: LineWidth) {
+        self.pretty_line_width = line_width;
     }
 
     pub fn bracket_spacing(&self) -> BracketSpacing {
@@ -337,8 +337,8 @@ impl MFormatOptions {
         self.attribute_position
     }
 
-    pub fn function_declaration_line_width(&self) -> LineWidth {
-        self.function_declaration_line_width
+    pub fn pretty_line_width(&self) -> LineWidth {
+        self.pretty_line_width
     }
 }
 
