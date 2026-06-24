@@ -974,7 +974,7 @@ fn is_query_like_call(expression: Option<&MCallExpression>) -> bool {
         };
         return matches!(
             callee_name.to_ascii_lowercase().as_ref(),
-            "query" | "command" | "bufferedreader" | "execute_command"
+            "query" | "command" | "bufferedreader" | "exec_command"
         );
     }
 
