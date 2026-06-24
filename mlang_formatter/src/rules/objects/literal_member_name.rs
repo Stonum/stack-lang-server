@@ -1,10 +1,12 @@
 use crate::prelude::*;
+use crate::utils::object::can_unquote_member_name;
 use crate::utils::{FormatLiteralStringToken, StringLiteralParentKind};
 
 use biome_formatter::token::number::format_number_token;
 use biome_formatter::write;
 use mlang_syntax::MLiteralMemberNameFields;
 use mlang_syntax::{MLiteralMemberName, MSyntaxKind};
+use std::borrow::Cow;
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatMLiteralMemberName;
@@ -18,6 +20,19 @@ impl FormatNodeRule<MLiteralMemberName> for FormatMLiteralMemberName {
 
         match value.kind() {
             MSyntaxKind::M_STRING_LITERAL => {
+                if let Some(inner) = can_unquote_member_name(value.text_trimmed()) {
+                    return write!(
+                        f,
+                        [format_replaced(
+                            &value,
+                            &syntax_token_cow_slice(
+                                Cow::Owned(inner.to_owned()),
+                                &value,
+                                value.text_trimmed_range().start(),
+                            )
+                        )]
+                    );
+                }
                 write![
                     f,
                     [FormatLiteralStringToken::new(

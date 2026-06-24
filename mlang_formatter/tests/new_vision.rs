@@ -62,3 +62,21 @@ fn pretty_format_query_call_with_object_and_comments() {
 "#
     );
 }
+
+#[test]
+fn format_object_key_unquoting() {
+    // latin key: quotes removed
+    assert_fmt_eq!(r#"var a = @{"x": 1};"#, r#"var a = @{x: 1};"#);
+    // cyrillic key: quotes removed
+    assert_fmt_eq!(r#"var a = @{"ключ": 1};"#, r#"var a = @{ключ: 1};"#);
+    // key with underscore and digits: quotes removed
+    assert_fmt_eq!(r#"var a = @{"my_key_1": 1};"#, r#"var a = @{my_key_1: 1};"#);
+    // reserved keyword: quotes preserved
+    assert_fmt_eq!(r#"var a = @{"if": 1};"#, r#"var a = @{"if": 1};"#);
+    // key with spaces: quotes preserved
+    assert_fmt_eq!(r#"var a = @{"my key": 1};"#, r#"var a = @{"my key": 1};"#);
+    // already unquoted latin key: unchanged
+    assert_fmt_eq!(r#"var a = @{x: 1};"#, r#"var a = @{x: 1};"#);
+    // already unquoted cyrillic key: unchanged
+    assert_fmt_eq!(r#"var a = @{ключ: 1};"#, r#"var a = @{ключ: 1};"#);
+}

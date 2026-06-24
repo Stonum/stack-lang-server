@@ -31,6 +31,40 @@ macro_rules! assert_fmt {
 }
 
 #[macro_export]
+macro_rules! assert_fmt_eq {
+    ($src:expr, $dest:expr) => {
+        assert_fmt_eq!($src, $dest, MFileSource::script());
+    };
+
+    ($src:expr, $dest:expr, $file_type:expr) => {{
+        use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+        use mlang_parser::parse;
+        use mlang_syntax::MFileSource;
+
+        let src: &str = $src;
+        let syntax = $file_type;
+        let tree = parse(src, syntax);
+
+        let options = MFormatOptions::new(syntax)
+            .with_indent_style(IndentStyle::Space)
+            .with_line_width(LineWidth::try_from(120).unwrap())
+            .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+            .with_indent_width(IndentWidth::from(3))
+            .with_bracket_spacing(false.into());
+
+        let doc = format_node(options, &tree.syntax()).unwrap();
+        let result = doc.print().unwrap();
+        assert_eq!(
+            $dest,
+            result.as_code().trim_end_matches('\n'),
+            "input: {}\nformatted:\n{}\n",
+            src,
+            result.as_code()
+        );
+    }};
+}
+
+#[macro_export]
 macro_rules! assert_fmt_range {
     ($src:expr, $dest:expr, $range:expr) => {
         assert_fmt_range!($src, $dest, $range, MFileSource::script());

@@ -976,6 +976,7 @@ version = "0.0.1"
 dependencies = [
  "biome_formatter",
  "biome_rowan",
+ "biome_unicode_table",
  "mlang_factory",
  "mlang_parser",
  "mlang_syntax",
