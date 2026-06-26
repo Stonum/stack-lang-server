@@ -345,6 +345,12 @@ impl AnyMAssignmentLike {
             return Ok(AssignmentLikeLayout::NeverBreakAfterOperator);
         }
 
+        // When an assignment value is a call expression, keep the callee on the
+        // same line as the operator and let the call arguments break independently.
+        if matches!(right_expression, Some(AnyMExpression::MCallExpression(_))) {
+            return Ok(AssignmentLikeLayout::NeverBreakAfterOperator);
+        }
+
         Ok(AssignmentLikeLayout::Fluid)
     }
 

@@ -15,7 +15,7 @@ use mlang_syntax::{
     AnyMCallArgument, AnyMExpression, MBinaryExpressionFields, MCallArgumentList, MCallArguments,
     MCallArgumentsFields, MCallExpression, MFunctionExpression, MLanguage,
     MLogicalExpressionFields, MLongStringLiteralExpression, MStringLiteralExpression,
-    MSyntaxKind::{M_LONG_STRING_LITERAL, M_STRING_LITERAL},
+    MSyntaxKind::{self, M_LONG_STRING_LITERAL, M_STRING_LITERAL},
 };
 
 use super::string_expression::FormatStringLiteralOptions;
@@ -137,23 +137,56 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                 ]
             )
         } else {
-            let custom_width = f.options().pretty_line_width();
-            write_with_custom_line_width(
-                f,
-                custom_width,
-                node.syntax(),
-                format_with(|f| {
-                    write!(
-                        f,
-                        [FormatAllArgsBrokenOut {
-                            l_paren: &l_paren_token.format(),
-                            args: &arguments,
-                            r_paren: &r_paren_token.format(),
-                            expand: false,
-                        }]
-                    )
-                }),
-            )
+            // When a call is the direct value of an assignment, use a context-aware GROUP
+            // so the callee stays on the operator's line and args break only when the full
+            // line > 120 chars.
+            // For M_INITIALIZER_CLAUSE: only use GROUP when the callee object is a new/call
+            // expression (complex prefix). Simple member calls like `a.method(args)` use fill
+            // mode so simple args are packed compactly.
+            let is_assignment_value = call_expression.as_ref().is_some_and(|call| {
+                call.syntax().parent().is_some_and(|p| match p.kind() {
+                    MSyntaxKind::M_PROPERTY_OBJECT_MEMBER
+                    | MSyntaxKind::M_ASSIGNMENT_EXPRESSION => true,
+                    MSyntaxKind::M_INITIALIZER_CLAUSE => is_chained_call_callee(call),
+                    _ => false,
+                })
+            });
+
+            if is_assignment_value {
+                write!(
+                    f,
+                    [group(&format_args![
+                        l_paren_token.format(),
+                        soft_block_indent(&format_with(|f| {
+                            let mut join = f.join_with(soft_line_break_or_space());
+                            for entry in arguments.iter() {
+                                join.entry(entry);
+                            }
+                            join.finish()?;
+                            write!(f, [FormatTrailingCommas::All])
+                        })),
+                        r_paren_token.format(),
+                    ])]
+                )
+            } else {
+                let custom_width = f.options().pretty_line_width();
+                write_with_custom_line_width(
+                    f,
+                    custom_width,
+                    node.syntax(),
+                    format_with(|f| {
+                        write!(
+                            f,
+                            [FormatAllArgsBrokenOut {
+                                l_paren: &l_paren_token.format(),
+                                args: &arguments,
+                                r_paren: &r_paren_token.format(),
+                                expand: false,
+                            }]
+                        )
+                    }),
+                )
+            }
         }
     }
 
@@ -1032,3 +1065,16 @@ fn is_query_like_call(expression: Option<&MCallExpression>) -> bool {
 //         }
 //     }
 // }
+
+fn is_chained_call_callee(call: &MCallExpression) -> bool {
+    let Ok(AnyMExpression::MStaticMemberExpression(member)) = call.callee() else {
+        return false;
+    };
+
+    member.object().ok().is_some_and(|obj| {
+        matches!(
+            obj,
+            AnyMExpression::MNewExpression(_) | AnyMExpression::MCallExpression(_)
+        )
+    })
+}

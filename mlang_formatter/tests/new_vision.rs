@@ -64,6 +64,75 @@ fn pretty_format_query_call_with_object_and_comments() {
 }
 
 #[test]
+fn pretty_format_object_property_short_call() {
+    // Short property value call: must stay on one line, not expand to (
+    //    value
+    // )
+    assert_fmt!(
+        r#"#
+перем запрос = @{
+   данные: список.количество(),
+   элемент: список.получить(0)
+};
+"#
+    );
+}
+
+#[test]
+fn pretty_format_object_declaration() {
+    assert_fmt!(
+        r#"#
+перем запрос = @{
+   метод: "GET",
+   ресурс: "/v6/GetMessage",
+   параметры: "boxId={}&messageId={}&entityId={}&injectEntityContent={}".format(
+      _мДанДок.boxId,
+      _мДанДок.messageId,
+      _мДанДок.entityId,
+      true
+   ),
+   тело: "boxId={}&messageId={}&entityId={}&injectEntityContent={}"
+      .replace("{}", "null")
+      .split("=")
+      .iterator()
+      .join("===========")
+};
+"#
+    );
+}
+
+#[test]
+fn pretty_format_method_chain() {
+    assert_fmt!(
+        r#"#
+перем документыДляПечати = new ДокументыДляПечати(_стр_дог, _датнач, _даткнц, true)
+   .дляАналитики(_аналитика)
+   .дляВидасчета(_флаги)
+   .дляРеестра(_типРеестра)
+   .дляТиповДокументов(_типыдокументов)
+   .дляТранспорта(_рассылка ? "рассылка" : "печать");
+"#
+    );
+
+    assert_fmt!(
+        r#"#
+"1 2 3 4".split(" ").iterator().join(",");
+"#
+    );
+}
+
+#[test]
+fn pretty_format_long_method_call() {
+    assert_fmt!(
+        r#"#
+перем документыДляПечати = new ДокументыДляПечати(_стр_дог, _датнач, _даткнц, true).дляТранспорта(
+   _рассылка ? "рассылка" : "печать"
+);
+"#
+    );
+}
+
+#[test]
 fn format_object_key_unquoting() {
     // latin key: quotes removed
     assert_fmt_eq!(r#"var a = @{"x": 1};"#, r#"var a = @{x: 1};"#);
