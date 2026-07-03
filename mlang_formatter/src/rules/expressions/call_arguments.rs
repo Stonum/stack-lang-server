@@ -94,7 +94,6 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                     l_paren: &l_paren_token.format(),
                     args: &arguments,
                     r_paren: &r_paren_token.format(),
-                    expand: true,
                 }]
             );
         }
@@ -113,6 +112,26 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
         });
 
         if first_arg_is_obj_or_arr && arguments.len() == 1 {
+            return write!(
+                f,
+                [
+                    l_paren_token.format(),
+                    &arguments[0],
+                    r_paren_token.format(),
+                ]
+            );
+        }
+
+        // Single arg that is a method call on a string literal (e.g. "str".format(…)):
+        // hug the arg to the opening paren and let the inner GROUP handle breaking,
+        // exactly as for assignment-value calls like `key: "str".format(…)`.
+        let single_string_method_arg = arguments.len() == 1
+            && arguments[0]
+                .element()
+                .node()
+                .is_ok_and(is_string_callee_call_arg);
+
+        if single_string_method_arg {
             return write!(
                 f,
                 [
@@ -148,6 +167,14 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                     MSyntaxKind::M_PROPERTY_OBJECT_MEMBER
                     | MSyntaxKind::M_ASSIGNMENT_EXPRESSION => true,
                     MSyntaxKind::M_INITIALIZER_CLAUSE => is_chained_call_callee(call),
+                    // A string-literal method call ("str".method(…)) inside another
+                    // call's arg list: use group-based layout so the outer GROUP can
+                    // measure the real column (including the callee text) and decide
+                    // whether to break, instead of starting at column 0 in a fresh
+                    // write_with_custom_line_width context.
+                    MSyntaxKind::M_CALL_ARGUMENT_LIST => {
+                        call.callee().is_ok_and(|c| is_string_member_callee(&c))
+                    }
                     _ => false,
                 })
             });
@@ -170,20 +197,126 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                 )
             } else {
                 let custom_width = f.options().pretty_line_width();
+                // RefCell so will_break() (needs &mut) can be called inside the Fn
+                // closure without a double-borrow conflict.
+                let args_cell = std::cell::RefCell::new(arguments);
                 write_with_custom_line_width(
                     f,
                     custom_width,
                     node.syntax(),
                     format_with(|f| {
-                        write!(
-                            f,
-                            [FormatAllArgsBrokenOut {
-                                l_paren: &l_paren_token.format(),
-                                args: &arguments,
-                                r_paren: &r_paren_token.format(),
-                                expand: false,
-                            }]
-                        )
+                        let breaks: Vec<bool> = args_cell
+                            .borrow_mut()
+                            .iter_mut()
+                            .map(|a| a.will_break(f))
+                            .collect();
+                        let args = args_cell.borrow();
+
+                        // Helper that writes the expanded fill: complex/breaking args
+                        // each on their own line, simple runs packed by fill.
+                        let write_expanded = |f: &mut MFormatter| -> FormatResult<()> {
+                            let mut filler = f.fill();
+                            let mut prev_was_complex = false;
+                            for (i, entry) in args.iter().enumerate() {
+                                let is_simple = entry.element().node().ok().is_some_and(|arg| {
+                                    SimpleArgument::new(arg.clone()).is_simple()
+                                });
+                                let will_break = breaks.get(i).copied().unwrap_or(false);
+                                let is_complex = !is_simple || will_break;
+                                let after_complex = prev_was_complex;
+                                let lines_before = entry.leading_lines();
+                                filler.entry(
+                                    &format_once(|f| {
+                                        if lines_before > 1 {
+                                            write!(f, [empty_line()])
+                                        } else if is_complex || after_complex {
+                                            write!(f, [hard_line_break()])
+                                        } else {
+                                            write!(f, [soft_line_break_or_space()])
+                                        }
+                                    }),
+                                    entry,
+                                );
+                                prev_was_complex = is_complex;
+                            }
+                            filler.finish()?;
+                            write!(f, [FormatTrailingCommas::All])
+                        };
+
+                        // If any argument is itself multi-line (will_break), printing
+                        // a flat attempt would produce malformed output because the
+                        // FitsMeasurer stops at the first hard break and wrongly declares
+                        // the flat variant "fits". Skip best_fitting and go straight to
+                        // the expanded layout.
+                        let any_breaks = breaks.iter().any(|&b| b);
+                        if any_breaks {
+                            return write!(
+                                f,
+                                [group(&format_args![
+                                    l_paren_token.format(),
+                                    soft_block_indent(&format_with(write_expanded)),
+                                    r_paren_token.format(),
+                                ])
+                                .should_expand(true)]
+                            );
+                        }
+
+                        // No arg is multi-line. Try the compact (all-on-one-line) layout
+                        // first; fall back to the expanded layout if the total width
+                        // exceeds the custom line width.
+                        //
+                        // hard_line_break() in the expanded variant is safe here because
+                        // BestFitting acts as an expand boundary — it cannot propagate
+                        // past it to force the caller's group to expand.
+                        let l_paren = l_paren_token.format().memoized();
+                        let r_paren = r_paren_token.format().memoized();
+
+                        let flat_slice = {
+                            let mut buffer = VecBuffer::new(f.state_mut());
+                            buffer.write_element(FormatElement::Tag(Tag::StartEntry))?;
+                            write!(
+                                buffer,
+                                [
+                                    l_paren,
+                                    soft_block_indent(&format_with(|f: &mut MFormatter| {
+                                        let mut filler = f.fill();
+                                        for entry in args.iter() {
+                                            filler.entry(&soft_line_break_or_space(), entry);
+                                        }
+                                        filler.finish()?;
+                                        write!(f, [FormatTrailingCommas::All])
+                                    })),
+                                    r_paren,
+                                ]
+                            )?;
+                            buffer.write_element(FormatElement::Tag(Tag::EndEntry))?;
+                            buffer.into_vec().into_boxed_slice()
+                        };
+
+                        let expanded_slice = {
+                            let mut buffer = VecBuffer::new(f.state_mut());
+                            buffer.write_element(FormatElement::Tag(Tag::StartEntry))?;
+                            write!(
+                                buffer,
+                                [group(&format_args![
+                                    l_paren,
+                                    soft_block_indent(&format_with(write_expanded)),
+                                    r_paren,
+                                ])
+                                .should_expand(true)]
+                            )?;
+                            buffer.write_element(FormatElement::Tag(Tag::EndEntry))?;
+                            buffer.into_vec().into_boxed_slice()
+                        };
+
+                        unsafe {
+                            f.write_element(FormatElement::BestFitting(
+                                format_element::BestFittingElement::from_vec_unchecked(vec![
+                                    flat_slice,
+                                    expanded_slice,
+                                ]),
+                            ))
+                        }
                     }),
                 )
             }
@@ -411,7 +544,6 @@ fn write_grouped_arguments(
                     l_paren: &l_paren_token.format(),
                     args: &arguments,
                     r_paren: &r_paren_token.format(),
-                    expand: true,
                 }]
             );
         }
@@ -449,7 +581,6 @@ fn write_grouped_arguments(
                 l_paren: &l_paren,
                 args: &arguments,
                 r_paren: &r_paren,
-                expand: true,
             }]
         )?;
         buffer.write_element(FormatElement::Tag(Tag::EndEntry))?;
@@ -697,71 +828,30 @@ struct FormatAllArgsBrokenOut<'a> {
     l_paren: &'a dyn Format<MFormatContext>,
     args: &'a [FormatCallArgument],
     r_paren: &'a dyn Format<MFormatContext>,
-    expand: bool,
 }
 
 impl Format<MFormatContext> for FormatAllArgsBrokenOut<'_> {
     fn fmt(&self, f: &mut Formatter<MFormatContext>) -> FormatResult<()> {
-        if self.expand {
-            return write!(
-                f,
-                [group(&format_args![
-                    self.l_paren,
-                    soft_block_indent(&format_with(|f| {
-                        for (index, entry) in self.args.iter().enumerate() {
-                            if index > 0 {
-                                match entry.leading_lines() {
-                                    0 | 1 => write!(f, [soft_line_break_or_space()])?,
-                                    _ => write!(f, [empty_line()])?,
-                                }
-                            }
-                            write!(f, [entry])?;
-                        }
-                        write!(f, [FormatTrailingCommas::All])?;
-                        Ok(())
-                    })),
-                    self.r_paren,
-                ])
-                .should_expand(true)]
-            );
-        }
-
-        // Compact fill mode: simple args share lines, complex args go on their own line.
         write!(
             f,
             [group(&format_args![
                 self.l_paren,
                 soft_block_indent(&format_with(|f| {
-                    let mut filler = f.fill();
-
-                    for entry in self.args.iter() {
-                        let is_simple = entry
-                            .element()
-                            .node()
-                            .ok()
-                            .is_some_and(|arg| SimpleArgument::new(arg.clone()).is_simple());
-                        let lines_before = entry.leading_lines();
-
-                        filler.entry(
-                            &format_once(|f| {
-                                if lines_before > 1 {
-                                    write!(f, [empty_line()])
-                                } else if !is_simple {
-                                    write!(f, [hard_line_break()])
-                                } else {
-                                    write!(f, [soft_line_break_or_space()])
-                                }
-                            }),
-                            entry,
-                        );
+                    for (index, entry) in self.args.iter().enumerate() {
+                        if index > 0 {
+                            match entry.leading_lines() {
+                                0 | 1 => write!(f, [soft_line_break_or_space()])?,
+                                _ => write!(f, [empty_line()])?,
+                            }
+                        }
+                        write!(f, [entry])?;
                     }
-
-                    filler.finish()?;
-                    write!(f, [FormatTrailingCommas::All])
+                    write!(f, [FormatTrailingCommas::All])?;
+                    Ok(())
                 })),
                 self.r_paren,
             ])
-            .should_expand(false)]
+            .should_expand(true)]
         )
     }
 }
@@ -1065,6 +1155,27 @@ fn is_query_like_call(expression: Option<&MCallExpression>) -> bool {
 //         }
 //     }
 // }
+
+/// Returns `true` when the callee is a static member expression whose object is a
+/// string literal (e.g. `"template {}".format` or `"text".split`).
+fn is_string_member_callee(callee: &AnyMExpression) -> bool {
+    let AnyMExpression::MStaticMemberExpression(member) = callee else {
+        return false;
+    };
+    member.object().is_ok_and(|obj| {
+        MLongStringLiteralExpression::cast_ref(obj.syntax()).is_some()
+            || MStringLiteralExpression::cast_ref(obj.syntax()).is_some()
+    })
+}
+
+/// Returns `true` when the argument is a call expression whose callee is a
+/// string-literal member expression (e.g. `"str".format(…)`).
+fn is_string_callee_call_arg(arg: &AnyMCallArgument) -> bool {
+    let AnyMCallArgument::AnyMExpression(AnyMExpression::MCallExpression(call)) = arg else {
+        return false;
+    };
+    call.callee().is_ok_and(|c| is_string_member_callee(&c))
+}
 
 fn is_chained_call_callee(call: &MCallExpression) -> bool {
     let Ok(AnyMExpression::MStaticMemberExpression(member)) = call.callee() else {

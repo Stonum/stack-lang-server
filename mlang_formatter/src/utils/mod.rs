@@ -240,6 +240,7 @@ pub(crate) fn write_with_custom_line_width(
 ) -> FormatResult<()> {
     let mut context = f.context().clone();
     context.set_line_width(width);
+    context.set_compact_fill_mode(true);
 
     let formatted = biome_formatter::format!(
         context,

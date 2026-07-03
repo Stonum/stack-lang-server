@@ -90,6 +90,10 @@ impl MFormatContext {
         self.options.line_width = line_width;
     }
 
+    pub(crate) fn set_compact_fill_mode(&mut self, value: bool) {
+        self.options.compact_fill_mode = value;
+    }
+
     pub fn with_source_map(mut self, source_map: Option<TransformSourceMap>) -> Self {
         self.source_map = source_map;
         self
@@ -165,6 +169,11 @@ pub struct MFormatOptions {
     /// Whether to insert spaces around brackets in object literals. Defaults to true.
     bracket_spacing: BracketSpacing,
 
+    /// When true, the compact fill uses only `will_break()` (not `is_simple`) to decide
+    /// hard-line separators. Set inside `write_with_custom_line_width` so that nested
+    /// fills don't force expansion from structural complexity alone.
+    compact_fill_mode: bool,
+
     /// Whether to hug the closing bracket of multiline HTML/MX tags to the end of the last line, rather than being alone on the following line. Defaults to false.
     bracket_same_line: BracketSameLine,
 
@@ -191,6 +200,7 @@ impl MFormatOptions {
             bracket_same_line: BracketSameLine::default(),
             attribute_position: AttributePosition::default(),
             pretty_line_width: LineWidth::default(),
+            compact_fill_mode: false,
         }
     }
 
@@ -339,6 +349,14 @@ impl MFormatOptions {
 
     pub fn pretty_line_width(&self) -> LineWidth {
         self.pretty_line_width
+    }
+
+    pub fn compact_fill_mode(&self) -> bool {
+        self.compact_fill_mode
+    }
+
+    pub fn set_compact_fill_mode(&mut self, value: bool) {
+        self.compact_fill_mode = value;
     }
 }
 
