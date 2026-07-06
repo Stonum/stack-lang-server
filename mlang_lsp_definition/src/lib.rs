@@ -75,6 +75,11 @@ pub trait CodeSymbolInformation: CodeSymbolDefinition {
             name = &name[1..name.len() - 1];
         }
 
+        // symbol name must not be falsy
+        if name.is_empty() {
+            return String::from(" ");
+        }
+
         name.to_string()
     }
 }
