@@ -3,17 +3,17 @@ use line_index::{LineColRange, LineIndex};
 
 use mlang_parser::{ParseDiagnostic, parse};
 use mlang_semantic::{AnyMDefinition, SemanticModel, semantics};
-use mlang_syntax::{MFileSource, MLanguage, MSyntaxNode, SendNode, SyntaxNode};
+use mlang_syntax::{MFileSource, MLanguage, MSyntaxNode, SendNode, SyntaxNode, TextRange};
 
 use std::{any::type_name, path::PathBuf};
-use tower_lsp::lsp_types::{Position, Range, Url};
+use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Url};
 
 pub struct CurrentDocument {
     uri: Url,
     root: SendNode,
     line_index: LineIndex,
     semantics: SemanticModel,
-    diagnostics: Vec<ParseDiagnostic>,
+    parse_diagnostics: Vec<ParseDiagnostic>,
 }
 
 impl CurrentDocument {
@@ -39,14 +39,14 @@ impl CurrentDocument {
             )
         });
         let line_index = LineIndex::new(text);
-        let diagnostics = diagnostics.to_vec();
+        let parse_diagnostics = diagnostics.to_vec();
 
         CurrentDocument {
             uri,
             root,
             semantics,
             line_index,
-            diagnostics,
+            parse_diagnostics,
         }
     }
 
@@ -75,20 +75,48 @@ impl CurrentDocument {
         &self.line_index
     }
 
-    pub fn diagnostics(&self) -> Vec<(Range, String)> {
+    pub fn diagnostics(&self, semantic_lint: &[mlang_lint::Diagnostic]) -> Vec<Diagnostic> {
         let line_index = &self.line_index;
-        self.diagnostics
-            .iter()
-            .filter_map(|error| {
-                let text_range = error.location().span?;
-                let LineColRange { start, end } = line_index.line_col_range(text_range)?;
-                let range = Range::new(
-                    Position::new(start.line, start.col),
-                    Position::new(end.line, end.col),
-                );
-                let error = error.message.to_string();
-                Some((range, error))
-            })
-            .collect::<Vec<_>>()
+
+        let from_parser = self.parse_diagnostics.iter().filter_map(|error| {
+            let text_range = error.location().span?;
+            let range = to_lsp_range(line_index, text_range)?;
+            Some(Diagnostic::new(
+                range,
+                Some(DiagnosticSeverity::ERROR),
+                None,
+                Some("mlang-parser".to_string()),
+                error.message.to_string(),
+                None,
+                None,
+            ))
+        });
+
+        let from_lint = semantic_lint.iter().filter_map(|diagnostic| {
+            let range = to_lsp_range(line_index, diagnostic.range)?;
+            let severity = match diagnostic.severity {
+                mlang_lint::Severity::Error => DiagnosticSeverity::ERROR,
+                mlang_lint::Severity::Warning => DiagnosticSeverity::WARNING,
+            };
+            Some(Diagnostic::new(
+                range,
+                Some(severity),
+                Some(NumberOrString::String(diagnostic.code.to_string())),
+                Some("mlang-lint".to_string()),
+                diagnostic.message.clone(),
+                None,
+                None,
+            ))
+        });
+
+        from_parser.chain(from_lint).collect()
     }
+}
+
+fn to_lsp_range(line_index: &LineIndex, text_range: TextRange) -> Option<Range> {
+    let LineColRange { start, end } = line_index.line_col_range(text_range)?;
+    Some(Range::new(
+        Position::new(start.line, start.col),
+        Position::new(end.line, end.col),
+    ))
 }

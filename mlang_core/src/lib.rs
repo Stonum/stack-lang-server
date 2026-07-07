@@ -3,7 +3,7 @@ mod yaml;
 
 use std::sync::{Arc, Weak};
 
-use mlang_lsp_definition::{CodeSymbolDefinition, MarkupDefinition};
+use mlang_lsp_definition::{Arity, CodeSymbolDefinition, MarkupDefinition};
 
 pub fn load_core_api() -> Vec<AnyMCoreDefinition> {
     let mut json_entities: Vec<AnyMCoreDefinition> = json::load().into();
@@ -63,8 +63,13 @@ impl CodeSymbolDefinition for AnyMCoreDefinition {
         core::cmp::Ordering::Equal
     }
 
-    fn can_be_called(&self, _count: usize) -> bool {
-        true
+    fn can_be_called(&self, count: usize) -> bool {
+        match self {
+            AnyMCoreDefinition::MCoreFunctionDefinition(f) => {
+                f.arity.is_none_or(|arity| arity.can_be_called(count))
+            }
+            _ => true,
+        }
     }
 }
 
@@ -90,6 +95,7 @@ impl MarkupDefinition for AnyMCoreDefinition {
 pub struct MCoreFunctionDefinition {
     id: String,
     description: String,
+    arity: Option<Arity>,
 }
 
 #[derive(Debug, Default, Eq, PartialEq)]
