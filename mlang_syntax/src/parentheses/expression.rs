@@ -12,8 +12,8 @@ use crate::{
     MLogicalExpression, MLongStringLiteralExpression, MNewExpression, MNullLiteralExpression,
     MNumberLiteralExpression, MObjectExpression, MParenthesizedExpression, MPostUpdateExpression,
     MPreUpdateExpression, MPreUpdateOperator, MSequenceExpression, MStaticMemberExpression,
-    MStringLiteralExpression, MSuperExpression, MSyntaxKind, MSyntaxNode, MThisExpression,
-    MTimeLiteralExpression, MUnaryExpression, MUnaryOperator,
+    MStringLiteralExpression, MSuperExpression, MSyntaxKind, MSyntaxNode, MTemplateExpression,
+    MThisExpression, MTimeLiteralExpression, MUnaryExpression, MUnaryOperator,
     binary_like_expression::{
         AnyMBinaryLikeExpression, AnyMBinaryLikeLeftExpression, should_flatten,
     },
@@ -49,6 +49,7 @@ impl NeedsParentheses for AnyMExpression {
             Self::MThisExpression(expr) => expr.needs_parentheses(),
             Self::MUnaryExpression(expr) => expr.needs_parentheses(),
             Self::MConstantExpression(expr) => expr.needs_parentheses(),
+            Self::MTemplateExpression(expr) => expr.needs_parentheses(),
             Self::MHashMapExpression(expr) => expr.needs_parentheses(),
             Self::MHashSetExpression(expr) => expr.needs_parentheses(),
             Self::MBogusExpression(_) => false,
@@ -229,6 +230,13 @@ impl NeedsParentheses for MIdentifierExpression {
 }
 
 impl NeedsParentheses for MConstantExpression {
+    #[inline]
+    fn needs_parentheses(&self) -> bool {
+        false
+    }
+}
+
+impl NeedsParentheses for MTemplateExpression {
     #[inline]
     fn needs_parentheses(&self) -> bool {
         false

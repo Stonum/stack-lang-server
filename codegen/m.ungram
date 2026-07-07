@@ -288,6 +288,7 @@ AnyMExpression =
 	| MComputedMemberExpression
 	| MConditionalExpression
    | MConstantExpression
+   | MTemplateExpression
 	| MFunctionExpression
 	| MIdentifierExpression
 	| MInExpression
@@ -425,6 +426,10 @@ MPostUpdateExpression =
 MConstantExpression =
    'к'
    constant: AnyMStringLiteralExpression
+
+MTemplateExpression =
+   'т'
+   template: AnyMStringLiteralExpression
 
 ///////////////
 // OBJECTS

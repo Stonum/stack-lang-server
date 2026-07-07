@@ -790,6 +790,7 @@ impl<'src> MLexer<'src> {
                 "while" | "пока" => WHILE_KW,
                 "var" | "перем" => VAR_KW,
                 "k" | "к" => K_KW,
+                "t" | "т" => T_KW,
                 _ => T![ident],
             },
             Err(_) => ERROR_TOKEN,

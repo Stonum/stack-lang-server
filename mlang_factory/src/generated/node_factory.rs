@@ -412,6 +412,18 @@ pub fn m_constant_expression(
         ],
     ))
 }
+pub fn m_template_expression(
+    token: SyntaxToken,
+    template: AnyMStringLiteralExpression,
+) -> MTemplateExpression {
+    MTemplateExpression::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_TEMPLATE_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(token)),
+            Some(SyntaxElement::Node(template.into_syntax())),
+        ],
+    ))
+}
 pub fn m_constructor_class_member(
     annotation: MAnnotationGroupList,
     name: MClassMemberName,
