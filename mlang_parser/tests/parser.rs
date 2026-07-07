@@ -228,21 +228,21 @@ fn test_parse_strings_with_keyword() {
 fn test_parse_doc_string() {
     let res = parse(
         r#"
-            func mega_func() 
+            func mega_func()
             `mega function documentation`
             {
                 return 123;
             }
 
-            class mega 
+            class mega
             `mega class documentation`
             {
-                constructor() 
-                `constructor 
-                 multiline 
+                constructor()
+                `constructor
+                 multiline
                  docs`
-                { 
-                    this.a = 1; 
+                {
+                    this.a = 1;
                 }
             }
         "#,
@@ -261,7 +261,7 @@ fn test_computed_fields() {
             f[a,b,c] = 30;
             f["a","b","c"] = 40;
             f["a", b, "c"] = f[a,b,c];
-            
+
         "#,
         MFileSource::script(),
     );
@@ -374,6 +374,23 @@ fn test_constant_expression() {
             перем стр = к;
             к++;
             к = к + 1;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_template_expression() {
+    let res = parse(
+        r#"
+            перем инд = 213;
+            перем стр = т"Строка ${инд}";
+            перем т = 1;
+            перем стр = т;
+            т++;
+            т = т + 1;
         "#,
         MFileSource::script(),
     );
@@ -499,7 +516,7 @@ fn test_parse_report_with_bogus() {
 print
 Ф12"Courier New"УП^ШС^;^Артикул^
 Ф16"Times New Roman"ЖЦ^ШС^;^НазваниеОтчета^ж
-Ф12"Times New Roman" 
+Ф12"Times New Roman"
 {
     var i = 1;
     while( i < 10 )
@@ -554,9 +571,9 @@ fn test_use_instanceof_keyword() {
           class S {}
           var si = new S()
 
-          si instanceof S 
+          si instanceof S
           @[] instanceof S
-          si instanceof @[] 
+          si instanceof @[]
 
         "#,
         MFileSource::script(),

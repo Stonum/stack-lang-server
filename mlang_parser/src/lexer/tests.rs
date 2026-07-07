@@ -663,7 +663,7 @@ fn labels_t() {
         WHITESPACE:1,
         THROW_KW:5,
         WHITESPACE:1,
-        IDENT:1
+        T_KW:1
     }
 
     assert_lex! {
@@ -1269,7 +1269,7 @@ fn keywords() {
         "var", "перем",
         "while", "пока",
         // contextual keywords
-        "constructor", 
+        "constructor",
         "get", "получить",
         "set", "установить",
         "k", "к",

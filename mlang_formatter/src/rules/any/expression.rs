@@ -34,6 +34,7 @@ impl FormatRule<AnyMExpression> for FormatAnyMExpression {
             AnyMExpression::MThisExpression(node) => node.format().fmt(f),
             AnyMExpression::MUnaryExpression(node) => node.format().fmt(f),
             AnyMExpression::MConstantExpression(node) => node.format().fmt(f),
+            AnyMExpression::MTemplateExpression(node) => node.format().fmt(f),
             AnyMExpression::MHashMapExpression(node) => node.format().fmt(f),
             AnyMExpression::MHashSetExpression(node) => node.format().fmt(f),
         }

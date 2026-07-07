@@ -789,6 +789,7 @@ pub(crate) fn is_nth_at_expression(p: &mut MParser, n: usize) -> bool {
             | T![/]
             | T![/=]
             | T![k]
+            | T![t]
             | TRUE_KW
             | FALSE_KW
             | M_NUMBER_LITERAL
@@ -845,6 +846,8 @@ fn parse_primary_expression(p: &mut MParser, context: ExpressionContext) -> Pars
 
         T![k] if p.nth_at_ts(1, STRING_TOKEN_SET) => parse_constant_expr(p).unwrap(),
 
+        T![t] if p.nth_at_ts(1, STRING_TOKEN_SET) => parse_template_expr(p).unwrap(),
+
         T![new] => parse_new_expr(p, context).unwrap(),
 
         ERROR_TOKEN => {
@@ -854,7 +857,7 @@ fn parse_primary_expression(p: &mut MParser, context: ExpressionContext) -> Pars
         }
         T![ident] => parse_identifier_expression(p).unwrap(),
 
-        T![in2] | T![set] | T![get] | T![k] => parse_identifier_expression(p).unwrap(),
+        T![in2] | T![set] | T![get] | T![k] | T![t] => parse_identifier_expression(p).unwrap(),
 
         T![.] => parse_global_identifier_expression(p).unwrap(),
 
@@ -910,6 +913,7 @@ pub(crate) fn is_nth_at_identifier(p: &mut MParser, n: usize) -> bool {
         || p.nth_at(n, T![set])
         || p.nth_at(n, T![get])
         || p.nth_at(n, T![k])
+        || p.nth_at(n, T![t])
 }
 
 struct ArrayElementsList;
@@ -1321,4 +1325,15 @@ fn parse_constant_expr(p: &mut MParser) -> ParsedSyntax {
     p.bump_any();
     parse_literal_expression(p).unwrap();
     Present(m.complete(p, M_CONSTANT_EXPRESSION))
+}
+
+fn parse_template_expr(p: &mut MParser) -> ParsedSyntax {
+    if !p.at(T![t]) || !p.nth_at_ts(1, STRING_TOKEN_SET) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any();
+    parse_literal_expression(p).unwrap();
+    Present(m.complete(p, M_TEMPLATE_EXPRESSION))
 }

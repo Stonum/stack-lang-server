@@ -373,6 +373,7 @@ impl AnyMExpression {
             | AnyMExpression::MFunctionExpression(_)
             | AnyMExpression::MIdentifierExpression(_)
             | AnyMExpression::MConstantExpression(_)
+            | AnyMExpression::MTemplateExpression(_)
             | AnyMExpression::MObjectExpression(_)
             | AnyMExpression::MHashMapExpression(_)
             | AnyMExpression::MHashSetExpression(_) => OperatorPrecedence::Primary,
