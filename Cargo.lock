@@ -984,6 +984,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mlang_lint"
+version = "0.1.0"
+dependencies = [
+ "biome_rowan",
+ "mlang_core",
+ "mlang_lsp_definition",
+ "mlang_parser",
+ "mlang_semantic",
+ "mlang_syntax",
+]
+
+[[package]]
 name = "mlang_lsp_definition"
 version = "0.1.0"
 dependencies = [
@@ -1512,6 +1524,7 @@ dependencies = [
  "log",
  "mlang_core",
  "mlang_formatter",
+ "mlang_lint",
  "mlang_lsp_definition",
  "mlang_parser",
  "mlang_semantic",

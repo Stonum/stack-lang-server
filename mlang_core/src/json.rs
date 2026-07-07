@@ -5,6 +5,8 @@ use std::{
 
 use serde::Deserialize;
 
+use mlang_lsp_definition::Arity;
+
 use crate::{
     AnyMCoreDefinition, MCoreEntityDefinition, MCoreEntityMemberDefinition, MCoreFunctionDefinition,
 };
@@ -30,16 +32,29 @@ pub(crate) struct FreeFunction {
     name: String,
     brief_description: String,
     detailed_description: DetailedDescription,
+    #[serde(default)]
+    args_count: Option<usize>,
+    #[serde(default)]
+    optional_args_count: usize,
+    #[serde(default)]
+    has_rest: bool,
 }
 
 impl From<FreeFunction> for AnyMCoreDefinition {
     fn from(val: FreeFunction) -> Self {
+        let arity = val.args_count.map(|total_count| Arity {
+            total_count,
+            optional_count: val.optional_args_count,
+            has_rest: val.has_rest,
+        });
+
         AnyMCoreDefinition::MCoreFunctionDefinition(MCoreFunctionDefinition {
             id: val.name,
             description: format!(
                 "```\n{}\n```  \n{}",
                 val.brief_description, val.detailed_description.text,
             ),
+            arity,
         })
     }
 }

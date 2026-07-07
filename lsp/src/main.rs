@@ -405,12 +405,7 @@ struct ServerSettings {
 }
 
 impl Backend {
-    async fn publish_diagnostics(&self, uri: Url, diagnostic: Vec<(Range, String)>) {
-        let diagnostics = diagnostic
-            .into_iter()
-            .map(|(range, message)| Diagnostic::new_simple(range, message))
-            .collect();
-
+    async fn publish_diagnostics(&self, uri: Url, diagnostics: Vec<Diagnostic>) {
         self.client
             .publish_diagnostics(uri, diagnostics, None)
             .await;

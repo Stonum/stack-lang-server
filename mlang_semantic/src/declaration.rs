@@ -5,7 +5,7 @@ use std::sync::{Arc, Weak};
 use line_index::{LineColRange, LineIndex};
 
 use mlang_lsp_definition::{
-    CodeSymbolDefinition, CodeSymbolInformation, LocationDefinition, MarkupDefinition,
+    Arity, CodeSymbolDefinition, CodeSymbolInformation, LocationDefinition, MarkupDefinition,
     SignatureParameters, SymbolKind,
 };
 use mlang_syntax::{
@@ -399,21 +399,16 @@ impl MParameters {
         self.total_count == another.total_count && self.has_rest == another.has_rest
     }
 
+    fn arity(&self) -> Arity {
+        Arity {
+            total_count: self.total_count,
+            optional_count: self.optional_count,
+            has_rest: self.has_rest,
+        }
+    }
+
     pub fn can_be_called(&self, count: usize) -> bool {
-        let strict_count = self.total_count - self.optional_count - self.has_rest as usize;
-
-        // (a, b, c) && count < 3
-        if count < strict_count {
-            return false;
-        }
-
-        // (a, ...) && count >= 1
-        if self.has_rest {
-            return true;
-        }
-
-        // (a, b, c, d = 1) && count == 3 || count == 4
-        count - strict_count <= self.optional_count
+        self.arity().can_be_called(count)
     }
 
     pub fn call_priority(&self, another: &Self, count: usize) -> core::cmp::Ordering {

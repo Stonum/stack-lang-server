@@ -15,8 +15,8 @@ use mlang_lsp_definition::{
 };
 use mlang_parser::parse;
 use mlang_semantic::{
-    SemanticModel, identifier_for_completion, identifier_for_offset, identifier_for_signature_help,
-    semantics,
+    AnyMDefinition, SemanticModel, identifier_for_completion, identifier_for_offset,
+    identifier_for_signature_help, semantics,
 };
 use mlang_syntax::MFileSource;
 
@@ -25,7 +25,7 @@ use tokio::sync::{OwnedRwLockReadGuard, RwLock, Semaphore};
 use tokio::task::JoinError;
 
 use tower_lsp::lsp_types::{
-    CodeLens, Command, CompletionItem, CompletionResponse, DocumentSymbolResponse,
+    CodeLens, Command, CompletionItem, CompletionResponse, Diagnostic, DocumentSymbolResponse,
     FormattingOptions, GotoDefinitionResponse, Hover, HoverContents, Location, Position, Range,
     SemanticTokens, SignatureHelp, SymbolInformation, TextDocumentItem, TextEdit, Url,
     WorkspaceFolder,
@@ -500,10 +500,35 @@ impl Workspace {
 }
 
 impl Workspace {
+    fn semantic_lint_for(&self, document: &CurrentDocument) -> Vec<mlang_lint::Diagnostic> {
+        let root = document.syntax();
+
+        let workspace_semantics: Vec<Arc<SemanticModel>> = self
+            .mlang_semantics
+            .iter()
+            .filter_map(|r| r.value().clone())
+            .collect();
+
+        let definitions: Vec<&AnyMDefinition> = document
+            .definitions()
+            .chain(workspace_semantics.iter().flat_map(|s| s.definitions()))
+            .collect();
+
+        let mut diagnostics = mlang_lint::syntax_diagnostics(&root);
+
+        diagnostics.extend(mlang_lint::semantic_diagnostics(
+            &root,
+            &self.core,
+            definitions.into_iter(),
+        ));
+
+        diagnostics
+    }
+
     pub async fn open_document(
         &self,
         document: TextDocumentItem,
-    ) -> Result<Vec<(Range, String)>, WorkspaceError> {
+    ) -> Result<Vec<Diagnostic>, WorkspaceError> {
         let uri = document.uri;
 
         let path = uri
@@ -517,7 +542,8 @@ impl Workspace {
         });
 
         let document = handle.await?;
-        let diagnostics = document.diagnostics();
+        let semantic_lint = self.semantic_lint_for(&document);
+        let diagnostics = document.diagnostics(&semantic_lint);
 
         self.opened_files
             .insert(uri, Arc::new(RwLock::new(document)));
@@ -532,7 +558,7 @@ impl Workspace {
     pub async fn change_document(
         &self,
         document: TextDocumentItem,
-    ) -> Result<Vec<(Range, String)>, WorkspaceError> {
+    ) -> Result<Vec<Diagnostic>, WorkspaceError> {
         let uri = document.uri;
 
         let path = uri
@@ -571,7 +597,8 @@ impl Workspace {
         }
 
         if let Some(mut opened_file) = opened_file {
-            let diagnostics = document.diagnostics();
+            let semantic_lint = self.semantic_lint_for(&document);
+            let diagnostics = document.diagnostics(&semantic_lint);
 
             *opened_file = document;
 

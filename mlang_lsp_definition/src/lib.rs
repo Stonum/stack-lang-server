@@ -156,6 +156,34 @@ pub trait SignatureParameters {
     fn has_rest(&self) -> bool;
 }
 
+/// Describes how many arguments a callable (function/method/constructor) accepts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Arity {
+    /// Total declared parameters, including a trailing rest parameter, if any.
+    pub total_count: usize,
+    pub optional_count: usize,
+    pub has_rest: bool,
+}
+
+impl Arity {
+    pub fn can_be_called(&self, count: usize) -> bool {
+        let strict_count = self.total_count - self.optional_count - self.has_rest as usize;
+
+        // (a, b, c) && count < 3
+        if count < strict_count {
+            return false;
+        }
+
+        // (a, ...) && count >= 1
+        if self.has_rest {
+            return true;
+        }
+
+        // (a, b, c, d = 1) && count == 3 || count == 4
+        count - strict_count <= self.optional_count
+    }
+}
+
 pub type Identifier = String;
 pub type Class = String;
 pub type ParametersCount = usize;
