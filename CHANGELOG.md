@@ -1,0 +1,255 @@
+**Changelog**
+===============
+**v0.4.3 - 2026-06-15**
+------------------------------------
+* **Fixed**:
+   + in some cases, there may be a crash, for example, when `var xxx = xxx()` is used
+* **Changed**:
+   + removed spaces between brackets in object literals
+
+**v0.4.2 - 2026-04-21**
+------------------------------------
+* **Fixed**:
+   + super class refs
+* **Changed**:
+   + format break and continue keywords
+
+**v0.4.1 - 2026-04-10**
+------------------------------------
+* **Added**:
+   + completion for class static variables
+   + semantic info for all class props ( hover, goto )
+   + command for mssql queries
+* **Changed**:
+   + formatting rules
+
+**v0.4.0 - 2026-03-23**
+------------------------------------
+* **Added**:
+   + class object members completion
+   + class object member  hover
+   + snippets for try\catch and database session
+   + analyze parameters count when going to definition
+* **Fixed**:
+   + allowed any characters in the report name
+* **Changed**:
+   + log format
+
+**v0.3.8 - 2026-02-13**
+------------------------------------
+* **Fixed**:
+   + format report section [#113](https://github.com/Stonum/stack-lang/issues/119)
+   + format short date literal like `00.00.00` [#119](https://github.com/Stonum/stack-lang/issues/119)
+   + syntax highlighting [#121](https://github.com/Stonum/stack-lang/issues/119)
+
+**v0.3.7 - 2025-12-11**
+------------------------------------
+* **Fixed**:
+   + init from settings file
+
+**v0.3.6 - 2025-12-11**
+------------------------------------
+* **Added**:
+   + added dollar when convert sql files from psql syntax
+* **Fixed**:
+   + formatting annotations
+   + excaped some characters in the definition description
+   + convert from\to mssql syntax
+* **Changed**:
+   + description of definitions. keywords are now displayed as in the code
+   + single format for code functions
+   + some optimizations when reading files in a directory
+
+**v0.3.5 - 2025-11-14**
+------------------------------------
+* **Fixed**:
+   + syntax highlighting for comments with quotes
+   + temporarily format the query arguments "as is"
+
+**v0.3.4 - 2025-10-15**
+------------------------------------
+* **Added**:
+   + handlers in workspace symbols
+   + code symbol for events in handler
+   + symbol references
+   + support keywords ( classof, instanceof, static )
+* **Fixed**:
+   + definition for class declaration
+   + parsing expressions with variable `k`. for example `k++`
+   + invalid syntax highlighting when document was changed
+
+**v0.3.3 - 2025-09-18**
+------------------------------------
+* **Added**:
+   + go to symbol in workspace ( `Ctrl` + `T` as default )
+* **Fixed**:
+   + syntax highlighting rules
+
+**v0.3.2 - 2025-09-16**
+------------------------------------
+* **Fixed**:
+   + format comments for `if`, `while`, `forall` statements
+   + format empty cache block statement
+   + syntax highlighting rules
+
+**v0.3.1 - 2025-08-22**
+------------------------------------
+* **Fixed**:
+   + returned the function backlight
+
+**v0.3.0 - 2025-08-22**
+------------------------------------
+* **Added**:
+   + core definitions
+   + support inline functions
+* **Fixed**:
+   + finding definition with incorrect case usage
+   + corrected syntax highlighting rules
+
+**v0.2.8 - 2025-08-04**
+------------------------------------
+* **Added**:
+   + little optimizations
+   + command to replace `[]` for ""
+   + goto and hover for super class
+* **Fixed**:
+   + support en version "к" keyword
+* **Changed**:
+   + workspace initialization and logs
+
+**v0.2.7 - 2025-07-09**
+------------------------------------
+* **Fixed**:
+   + crash where hovering element end of file
+* **Changed**:
+   + downgrade ubuntu version for linux binaries
+   + keybinding for psql toggle has been replaced with ctrl+shift+r
+
+
+**v0.2.6 - 2025-07-02**
+------------------------------------
+* **Added**:
+   + constructors for class information
+   + code lens for report sections (report name ) and class methods ( class name )
+* **Fixed**:
+   + convert to lowercase keywords: `ложь`, `истина` and `нуль`
+   + parsing nested folders from stack.ini path only with `**` pattern
+   + removed parsing `.hdl` files as startup
+
+
+**v0.2.5 - 2025-06-27**
+------------------------------------
+* **Added**:
+   + class information for class member definition
+* **Fixed**:
+   + insertion of  parentheses when formatting. for example `x & 2 == 0`
+
+
+**v0.2.4 - 2025-06-18**
+------------------------------------
+* **Added**:
+   + support report files ( parsing, formatting, etc )
+* **Fixed**:
+   + insertion of parentheses for the initializer has been removed. for exanple: `var x = x1 = x2 = x3 = 0;`
+   + search for an identifier that has leading comments
+
+
+**v0.2.3 - 2025-05-21**
+------------------------------------
+* **Fixed**:
+   + go to definition for functions and classes
+
+
+**v0.2.2 - 2025-05-20**
+------------------------------------
+* **Added**:
+   + some code snippets
+   + normlizing keyword cases when formatting
+   + go to definition for methods
+
+* **Changed**:
+   + change the line width from 120 to 150
+
+* **Fixed**:
+   + formatting comments
+
+
+**v0.2.0 - 2025-05-07**
+------------------------------------
+* **Added**:
+   + document and range formatting
+
+* **Changed**:
+   + moved status bar on left side
+
+* **Fixed**:
+   + parsing a time literal like `24:00`
+   + parsing a function declaration like `func Object.Subject_API() {}`
+
+
+**v0.1.5 - 2025-03-20**
+------------------------------------
+
+* **Fixed**:
+   + start linux server
+   + selection range for definition
+   + remove parsing for report files
+
+**v0.1.4 - 2025-03-18**
+------------------------------------
+
+* **Fixed**:
+   + go to some definitions
+   + styling documentation
+
+* **Feat**:
+   + add support "входитв" keyword
+
+**v0.1.2 - 2025-03-17**
+------------------------------------
+
+* **Fixed**:
+   + moving on to definitions
+   + hover description
+
+**v0.1.1 - 2025-03-14**
+------------------------------------
+
+* **Fixed**:
+   + fix server
+
+**v0.1.0 - 2025-03-14**
+------------------------------------
+
+* **Improved**:
+   + improve parsing performance
+* **Added**:
+   + displaying all diagnostics
+
+**v0.0.6 - 2024-10-30**
+------------------------------------
+
+* **Added**:
+   + linux support
+
+
+**v0.0.5 - 2024-10-28**
+------------------------------------
+
+* **Improved**:
+   + definitions parsing speed
+
+
+**v0.0.4 - 2024-10-17**
+------------------------------------
+
+* **Fixed**:
+   + `int~[]~` converted to `int[]`
+
+
+**v0.0.3 - 2024-10-02**
+------------------------------------
+
+* **Added**:
+   + show parameters functions
+   + added escape # for function descriptions
