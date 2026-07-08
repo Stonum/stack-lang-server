@@ -16,7 +16,7 @@ members = [
 
 [workspace.package]
 edition = "2024"
-version = "0.4.3"
+version = "0.5.0"
 
 [workspace.dependencies]
 lsp = { path = 'lsp' }
