@@ -3,8 +3,8 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    PsqlExpressionList, count_dotted_name_segments, parse_alias, parse_name, parse_shema_qualifier,
-    parse_table_name,
+    PsqlExpressionList, count_dotted_name_segments, parse_alias, parse_expression, parse_name,
+    parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
 use crate::PsqlParser;
@@ -18,7 +18,37 @@ pub(crate) fn parse_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![from]);
     parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
+    parse_join_clause_list(p);
     Present(m.complete(p, PSQL_FROM_CLAUSE))
+}
+
+fn parse_join_clause_list(p: &mut PsqlParser) -> CompletedMarker {
+    let m = p.start();
+    while is_at_join_clause(p) {
+        let _ = parse_join_clause(p);
+    }
+    m.complete(p, PSQL_JOIN_CLAUSE_LIST)
+}
+
+fn is_at_join_clause(p: &mut PsqlParser) -> bool {
+    p.at(T![join]) || p.at(T![inner]) || p.at(T![left]) || p.at(T![right]) || p.at(T![outer])
+}
+
+fn parse_join_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !is_at_join_clause(p) {
+        return Absent;
+    }
+
+    let m = p.start();
+    if p.at(T![inner]) || p.at(T![left]) || p.at(T![right]) {
+        p.bump_any();
+    }
+    p.eat(T![outer]);
+    p.expect(T![join]);
+    parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
+    p.expect(T![on]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_JOIN_CLAUSE))
 }
 
 /// A table or function binding, e.g. `table`, `schema.table t`, or
