@@ -25,7 +25,7 @@ pub(crate) fn parse_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
 /// A table or function binding, e.g. `table`, `schema.table t`, or
 /// `some_func(1, 2) as t`. Distinguishes the two by looking ahead past the
 /// qualified name for a `(`.
-fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
+pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![ident]) {
         return Absent;
     }
@@ -44,11 +44,24 @@ fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
     if is_function_call {
         parse_function_binding(p, segment_count)
     } else {
-        parse_table_binding(p, segment_count)
+        build_table_binding(p, segment_count)
     }
 }
 
-fn parse_table_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
+/// A plain table binding, e.g. `table` or `schema.table as t`. Unlike
+/// [parse_from_expression], never resolves to a function binding — used by
+/// statements whose grammar requires a `PsqlTableBinding` directly (e.g.
+/// `DELETE FROM`, `UPDATE`).
+pub(crate) fn parse_table_binding(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    let segment_count = count_dotted_name_segments(p).min(3);
+    build_table_binding(p, segment_count)
+}
+
+fn build_table_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
     let m = p.start();
     parse_table_name(p, segment_count);
     parse_alias(p);
