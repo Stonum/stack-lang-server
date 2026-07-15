@@ -89,6 +89,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlIsNullExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_LIKE_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlLikeExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_LIMIT_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlLimitClause::new_unchecked(node) };
                     $body

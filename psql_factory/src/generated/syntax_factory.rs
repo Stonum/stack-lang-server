@@ -701,6 +701,46 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_IS_NULL_EXPRESSION, children)
             }
+            PSQL_LIKE_EXPRESSION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![not]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![like] | T![ilike])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_LIKE_EXPRESSION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_LIKE_EXPRESSION, children)
+            }
             PSQL_LIMIT_CLAUSE => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();

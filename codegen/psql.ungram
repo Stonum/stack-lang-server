@@ -253,6 +253,7 @@ AnyPsqlExpression =
    | PsqlIsNullExpression
    | PsqlBetweenExpression
    | PsqlInExpression
+   | PsqlLikeExpression
    | PsqlParenthesizedExpression
    | PsqlCallExpression
    | AnyPsqlLiteralExpression
@@ -282,6 +283,12 @@ PsqlInExpression =
    '('
    items: PsqlExpressionList
    ')'
+
+PsqlLikeExpression =
+   expression: AnyPsqlExpression
+   'not'?
+   operator_token: ('like' | 'ilike')
+   pattern: AnyPsqlExpression
 
 PsqlCallExpression =
    schema: PsqlShemaName?

@@ -90,6 +90,32 @@ fn parse_binary_or_logical_expression_recursive(
             continue;
         }
 
+        let like_op = if at_not_prefixed_predicate(p, T![like]) {
+            Some(T![like])
+        } else if at_not_prefixed_predicate(p, T![ilike]) {
+            Some(T![ilike])
+        } else {
+            None
+        };
+
+        if let Some(like_op) = like_op {
+            if OperatorPrecedence::Predicate <= left_precedence {
+                break;
+            }
+
+            if left.is_absent() {
+                report_missing_left_operand(p);
+            }
+
+            let m = left.precede(p);
+            p.eat(T![not]);
+            p.bump(like_op);
+            parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
+                .or_add_diagnostic(p, expected_expression);
+            left = Present(m.complete(p, PSQL_LIKE_EXPRESSION));
+            continue;
+        }
+
         let op = p.cur();
 
         let new_precedence = match OperatorPrecedence::try_from_binary_operator(op) {

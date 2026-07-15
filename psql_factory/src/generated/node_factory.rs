@@ -450,6 +450,41 @@ impl PsqlIsNullExpressionBuilder {
         ))
     }
 }
+pub fn psql_like_expression(
+    expression: AnyPsqlExpression,
+    operator_token_token: SyntaxToken,
+    pattern: AnyPsqlExpression,
+) -> PsqlLikeExpressionBuilder {
+    PsqlLikeExpressionBuilder {
+        expression,
+        operator_token_token,
+        pattern,
+        not_token: None,
+    }
+}
+pub struct PsqlLikeExpressionBuilder {
+    expression: AnyPsqlExpression,
+    operator_token_token: SyntaxToken,
+    pattern: AnyPsqlExpression,
+    not_token: Option<SyntaxToken>,
+}
+impl PsqlLikeExpressionBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> PsqlLikeExpression {
+        PsqlLikeExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_LIKE_EXPRESSION,
+            [
+                Some(SyntaxElement::Node(self.expression.into_syntax())),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.operator_token_token)),
+                Some(SyntaxElement::Node(self.pattern.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_limit_clause(
     limit_token: SyntaxToken,
     limit_count: PsqlNumberLiteralExpression,
