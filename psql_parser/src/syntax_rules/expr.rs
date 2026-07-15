@@ -99,6 +99,18 @@ fn parse_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, literal_kind))
 }
 
+/// A bare number literal, used where the grammar requires a
+/// `PsqlNumberLiteralExpression` specifically (e.g. `LIMIT`/`OFFSET`)
+/// rather than any general expression.
+pub(crate) fn parse_number_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(PSQL_NUMBER_LITERAL) {
+        return Absent;
+    }
+    let m = p.start();
+    p.bump(PSQL_NUMBER_LITERAL);
+    Present(m.complete(p, PSQL_NUMBER_LITERAL_EXPRESSION))
+}
+
 fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T!['(']) {
         return Absent;
