@@ -82,9 +82,58 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     match p.cur() {
         T!['('] => parse_parenthesized_expression(p),
-        T![ident] => parse_col_reference(p),
+        T![ident] => parse_ident_expression(p),
+        T![*] => parse_star(p),
         _ => Absent,
     }
+}
+
+/// A bare `*`, mainly meant for call arguments like `count(*)`. The grammar
+/// allows it anywhere an expression is expected (see `psql.ungram`'s note
+/// that ambiguities/precedence are out of scope), matching how `PsqlName`
+/// is similarly reachable from `AnyPsqlExpression` without every position
+/// making semantic sense.
+fn parse_star(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![*]) {
+        return Absent;
+    }
+    let m = p.start();
+    p.bump(T![*]);
+    Present(m.complete(p, PSQL_STAR))
+}
+
+/// Dispatches a bare identifier to either a call expression (`func(...)`,
+/// `schema.func(...)`) or a column reference, by looking ahead past the
+/// qualified name for a `(`.
+fn parse_ident_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    let segment_count = count_dotted_name_segments(p).min(3);
+    let is_call = p.lookahead(|p| {
+        for i in 0..segment_count {
+            if i > 0 {
+                p.bump(T![.]);
+            }
+            p.bump(T![ident]);
+        }
+        p.at(T!['('])
+    });
+
+    if is_call {
+        parse_call_expression(p, segment_count)
+    } else {
+        parse_col_reference(p)
+    }
+}
+
+fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
+    let m = p.start();
+    parse_shema_qualifier(p, segment_count.saturating_sub(1));
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+
+    p.expect(T!['(']);
+    PsqlExpressionList.parse_list(p);
+    p.expect(T![')']);
+
+    Present(m.complete(p, PSQL_CALL_EXPRESSION))
 }
 
 fn parse_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {

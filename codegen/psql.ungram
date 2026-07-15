@@ -244,12 +244,21 @@ PsqlExpressionList = (AnyPsqlExpression (',' AnyPsqlExpression)* )
 
 AnyPsqlExpression =
    PsqlName
+   | PsqlStar
    | PsqlTableColReference
    | PsqlColReference
    | PsqlBinaryExpression
    | PsqlLogicalExpression
    | PsqlParenthesizedExpression
+   | PsqlCallExpression
    | AnyPsqlLiteralExpression
+
+PsqlCallExpression =
+   schema: PsqlShemaName?
+   name: PsqlName
+   '('
+   arguments: PsqlExpressionList
+   ')'
 
 PsqlBinaryExpression =
    left: AnyPsqlExpression
