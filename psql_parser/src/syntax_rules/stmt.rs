@@ -98,6 +98,7 @@ fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let _ = parse_order_by_clause(p);
     let _ = parse_limit_clause(p);
     let _ = parse_offset_clause(p);
+    p.eat(T![;]);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
 }
