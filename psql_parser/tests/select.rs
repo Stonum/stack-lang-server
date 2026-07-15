@@ -181,3 +181,27 @@ fn test_select_limit_offset_after_order_by() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_trailing_semicolon() {
+    let res = parse("select a from t;", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_multiple_select_statements() {
+    let res = parse(
+        "select a from t; select b from u where b > 1;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_multiple_select_statements_without_trailing_semicolon() {
+    let res = parse("select a from t; select b from u", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
