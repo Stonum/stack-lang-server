@@ -21,7 +21,7 @@ fn parse_binary_or_logical_expression(
     p: &mut PsqlParser,
     left_precedence: OperatorPrecedence,
 ) -> ParsedSyntax {
-    let left = parse_primary_expression(p);
+    let left = parse_unary_expression(p);
     parse_binary_or_logical_expression_recursive(p, left, left_precedence)
 }
 
@@ -72,6 +72,30 @@ fn parse_binary_or_logical_expression_recursive(
     }
 
     left
+}
+
+/// A unary expression. `-`/`+` (arithmetic sign) bind tighter than every
+/// binary operator, so their operand only recurses into further unary
+/// expressions. `not` is different: in SQL it binds looser than comparisons
+/// but tighter than `and`/`or`, so its operand recurses into the full
+/// binary/logical chain restricted to `OperatorPrecedence::Not` and above.
+fn parse_unary_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    match p.cur() {
+        T![-] | T![+] => {
+            let m = p.start();
+            p.bump_any();
+            parse_unary_expression(p).or_add_diagnostic(p, expected_expression);
+            Present(m.complete(p, PSQL_UNARY_EXPRESSION))
+        }
+        T![not] => {
+            let m = p.start();
+            p.bump(T![not]);
+            parse_binary_or_logical_expression(p, OperatorPrecedence::Not)
+                .or_add_diagnostic(p, expected_expression);
+            Present(m.complete(p, PSQL_UNARY_EXPRESSION))
+        }
+        _ => parse_primary_expression(p),
+    }
 }
 
 fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {

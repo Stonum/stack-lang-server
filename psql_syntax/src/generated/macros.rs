@@ -165,6 +165,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTableName::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_UNARY_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlUnaryExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_UPDATE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlUpdateStatement::new_unchecked(node) };
                     $body

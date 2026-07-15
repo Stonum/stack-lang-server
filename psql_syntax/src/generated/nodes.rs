@@ -1578,6 +1578,46 @@ pub struct PsqlTableNameFields {
     pub name: SyntaxResult<PsqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlUnaryExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlUnaryExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlUnaryExpressionFields {
+        PsqlUnaryExpressionFields {
+            operator_token: self.operator_token(),
+            expression: self.expression(),
+        }
+    }
+    pub fn operator_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn expression(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlUnaryExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlUnaryExpressionFields {
+    pub operator_token: SyntaxResult<SyntaxToken>,
+    pub expression: SyntaxResult<AnyPsqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlUpdateStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1683,6 +1723,7 @@ pub enum AnyPsqlExpression {
     PsqlParenthesizedExpression(PsqlParenthesizedExpression),
     PsqlStar(PsqlStar),
     PsqlTableColReference(PsqlTableColReference),
+    PsqlUnaryExpression(PsqlUnaryExpression),
 }
 impl AnyPsqlExpression {
     pub fn as_any_psql_literal_expression(&self) -> Option<&AnyPsqlLiteralExpression> {
@@ -1736,6 +1777,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_table_col_reference(&self) -> Option<&PsqlTableColReference> {
         match &self {
             Self::PsqlTableColReference(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_unary_expression(&self) -> Option<&PsqlUnaryExpression> {
+        match &self {
+            Self::PsqlUnaryExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -3738,6 +3785,57 @@ impl From<PsqlTableName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlUnaryExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_UNARY_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_UNARY_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlUnaryExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlUnaryExpression")
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlUnaryExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlUnaryExpression> for SyntaxNode {
+    fn from(n: PsqlUnaryExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlUnaryExpression> for SyntaxElement {
+    fn from(n: PsqlUnaryExpression) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlUpdateStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -3889,6 +3987,11 @@ impl From<PsqlTableColReference> for AnyPsqlExpression {
         Self::PsqlTableColReference(node)
     }
 }
+impl From<PsqlUnaryExpression> for AnyPsqlExpression {
+    fn from(node: PsqlUnaryExpression) -> Self {
+        Self::PsqlUnaryExpression(node)
+    }
+}
 impl AstNode for AnyPsqlExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnyPsqlLiteralExpression::KIND_SET
@@ -3899,7 +4002,8 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlName::KIND_SET)
         .union(PsqlParenthesizedExpression::KIND_SET)
         .union(PsqlStar::KIND_SET)
-        .union(PsqlTableColReference::KIND_SET);
+        .union(PsqlTableColReference::KIND_SET)
+        .union(PsqlUnaryExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
             PSQL_BINARY_EXPRESSION
@@ -3909,7 +4013,8 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_NAME
             | PSQL_PARENTHESIZED_EXPRESSION
             | PSQL_STAR
-            | PSQL_TABLE_COL_REFERENCE => true,
+            | PSQL_TABLE_COL_REFERENCE
+            | PSQL_UNARY_EXPRESSION => true,
             k if AnyPsqlLiteralExpression::can_cast(k) => true,
             _ => false,
         }
@@ -3930,6 +4035,7 @@ impl AstNode for AnyPsqlExpression {
             PSQL_TABLE_COL_REFERENCE => {
                 Self::PsqlTableColReference(PsqlTableColReference { syntax })
             }
+            PSQL_UNARY_EXPRESSION => Self::PsqlUnaryExpression(PsqlUnaryExpression { syntax }),
             _ => {
                 if let Some(any_psql_literal_expression) = AnyPsqlLiteralExpression::cast(syntax) {
                     return Some(Self::AnyPsqlLiteralExpression(any_psql_literal_expression));
@@ -3949,6 +4055,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlParenthesizedExpression(it) => &it.syntax,
             Self::PsqlStar(it) => &it.syntax,
             Self::PsqlTableColReference(it) => &it.syntax,
+            Self::PsqlUnaryExpression(it) => &it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.syntax(),
         }
     }
@@ -3962,6 +4069,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlParenthesizedExpression(it) => it.syntax,
             Self::PsqlStar(it) => it.syntax,
             Self::PsqlTableColReference(it) => it.syntax,
+            Self::PsqlUnaryExpression(it) => it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.into_syntax(),
         }
     }
@@ -3978,6 +4086,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlStar(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTableColReference(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -3993,6 +4102,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlParenthesizedExpression(it) => it.into(),
             AnyPsqlExpression::PsqlStar(it) => it.into(),
             AnyPsqlExpression::PsqlTableColReference(it) => it.into(),
+            AnyPsqlExpression::PsqlUnaryExpression(it) => it.into(),
         }
     }
 }
@@ -4572,6 +4682,11 @@ impl std::fmt::Display for PsqlTableColReference {
     }
 }
 impl std::fmt::Display for PsqlTableName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlUnaryExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
