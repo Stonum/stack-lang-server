@@ -17,3 +17,7 @@ pub fn expected_expression(p: &PsqlParser, range: TextRange) -> ParseDiagnostic 
 pub fn expected_identifier(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("identifier", range, p)
 }
+
+pub fn expected_from_expression(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("table or function binding", range, p)
+}
