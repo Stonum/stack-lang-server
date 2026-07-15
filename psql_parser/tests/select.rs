@@ -67,3 +67,40 @@ fn test_select_col_reference_with_implicit_alias() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_from_table() {
+    let res = parse("select a from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_from_qualified_table_with_alias() {
+    let res = parse(
+        "select t.a from mydb.myschema.mytable as t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_from_function_binding() {
+    let res = parse(
+        "select a from some_func(1, 2) as t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_from_qualified_function_binding() {
+    let res = parse(
+        "select a from myschema.some_func(1, x) t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

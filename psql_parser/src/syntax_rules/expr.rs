@@ -134,40 +134,45 @@ fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
         return Absent;
     }
 
-    match count_dotted_name_segments(p) {
-        1 => {
-            let m = p.start();
-            parse_name(p).unwrap();
-            Present(m.complete(p, PSQL_COL_REFERENCE))
-        }
-        2 => {
-            let table_col_reference = p.start();
-            let table_name = p.start();
-            parse_name(p).unwrap();
-            table_name.complete(p, PSQL_TABLE_NAME);
+    let total_segments = count_dotted_name_segments(p);
+    if total_segments <= 1 {
+        let m = p.start();
+        parse_name(p).unwrap();
+        return Present(m.complete(p, PSQL_COL_REFERENCE));
+    }
 
-            p.bump(T![.]);
-            parse_name(p).or_add_diagnostic(p, expected_identifier);
-            Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
-        }
-        3 => {
-            let table_col_reference = p.start();
-            let table_name = p.start();
+    let table_col_reference = p.start();
+    parse_table_name(p, (total_segments - 1).min(3));
+
+    p.bump(T![.]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
+}
+
+/// Parses a possibly schema/database-qualified table name: `table`,
+/// `schema.table` or `db.schema.table` (`segment_count` = 1, 2 or 3).
+/// Assumes the parser is currently at an `ident` and that at least
+/// `segment_count` dotted segments are ahead.
+pub(crate) fn parse_table_name(p: &mut PsqlParser, segment_count: usize) -> CompletedMarker {
+    let table_name = p.start();
+    parse_shema_qualifier(p, segment_count.saturating_sub(1));
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    table_name.complete(p, PSQL_TABLE_NAME)
+}
+
+/// Parses the leading `qualifier_count` dotted segments of a qualified name
+/// as an optional schema qualifier: 0 = nothing, 1 = `schema.`, 2 =
+/// `db.schema.`. Leaves the parser positioned at the final, unqualified name.
+pub(crate) fn parse_shema_qualifier(p: &mut PsqlParser, qualifier_count: usize) {
+    match qualifier_count {
+        0 => {}
+        1 => {
             let schema_name = p.start();
             parse_name(p).unwrap();
             p.bump(T![.]);
             schema_name.complete(p, PSQL_SHEMA_NAME);
-
-            parse_name(p).or_add_diagnostic(p, expected_identifier);
-            table_name.complete(p, PSQL_TABLE_NAME);
-
-            p.bump(T![.]);
-            parse_name(p).or_add_diagnostic(p, expected_identifier);
-            Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
         }
         _ => {
-            let table_col_reference = p.start();
-            let table_name = p.start();
             let schema_name = p.start();
             let database_name = p.start();
             parse_name(p).unwrap();
@@ -177,19 +182,12 @@ fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
             parse_name(p).or_add_diagnostic(p, expected_identifier);
             p.bump(T![.]);
             schema_name.complete(p, PSQL_SHEMA_NAME);
-
-            parse_name(p).or_add_diagnostic(p, expected_identifier);
-            table_name.complete(p, PSQL_TABLE_NAME);
-
-            p.bump(T![.]);
-            parse_name(p).or_add_diagnostic(p, expected_identifier);
-            Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
         }
     }
 }
 
 /// Counts the number of `ident (. ident)*` segments ahead without consuming them.
-fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
+pub(crate) fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
     p.lookahead(|p| {
         let mut count = 0;
         while p.at(T![ident]) {
@@ -204,7 +202,7 @@ fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
     })
 }
 
-fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
+pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![ident]) {
         return Absent;
     }

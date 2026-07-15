@@ -4,10 +4,10 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, parse_expression};
+use super::expr::{EXPR_RECOVERY_SET, parse_alias, parse_expression};
+use super::from::parse_from_clause;
 use super::parse_error::*;
 use crate::PsqlParser;
-use crate::syntax_rules::expr::parse_alias;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
 pub const STMT_RECOVERY_SET: TokenSet<PsqlSyntaxKind> = token_set![T![;]];
@@ -88,6 +88,8 @@ fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     p.expect(T![select]);
     PsqlSelectItemList.parse_list(p);
     select_clause.complete(p, PSQL_SELECT_CLAUSE);
+
+    let _ = parse_from_clause(p);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
 }
