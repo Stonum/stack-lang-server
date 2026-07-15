@@ -127,6 +127,13 @@ PsqlJoinClause =
 AnyPsqlFromExpression =
    PsqlTableBinding
    | PsqlFunctionBinding
+   | PsqlSubqueryBinding
+
+PsqlSubqueryBinding =
+   '('
+   query: PsqlSelectStatement
+   ')'
+   alias: PsqlAlias?
 
 PsqlWhereClause =
    'where'
@@ -272,8 +279,14 @@ AnyPsqlExpression =
    | PsqlLikeExpression
    | PsqlCaseExpression
    | PsqlParenthesizedExpression
+   | PsqlSubqueryExpression
    | PsqlCallExpression
    | AnyPsqlLiteralExpression
+
+PsqlSubqueryExpression =
+   '('
+   query: PsqlSelectStatement
+   ')'
 
 PsqlUnaryExpression =
    operator_token: ('not' | '-' | '+')
@@ -297,6 +310,13 @@ PsqlInExpression =
    expression: AnyPsqlExpression
    'not'?
    'in'
+   source: AnyPsqlInSource
+
+AnyPsqlInSource =
+   PsqlInValueList
+   | PsqlSubqueryExpression
+
+PsqlInValueList =
    '('
    items: PsqlExpressionList
    ')'

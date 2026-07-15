@@ -8,6 +8,7 @@ use super::expr::{
     parse_expression, parse_name, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
+use super::select::parse_select_statement;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -45,6 +46,9 @@ impl ParseSeparatedList for PsqlFromItemList {
             || p.at(T![limit])
             || p.at(T![offset])
             || p.at(T![;])
+            // A subquery's `from`/`using` list is wrapped in parens, e.g.
+            // `(select a from t)`, so it must also stop before `)`.
+            || p.at(T![')'])
     }
 
     fn recover(
@@ -65,7 +69,7 @@ impl ParseSeparatedList for PsqlFromItemList {
 }
 
 fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !p.at(T![ident]) && !p.at(T!['(']) {
         return Absent;
     }
 
@@ -104,10 +108,15 @@ fn parse_join_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_JOIN_CLAUSE))
 }
 
-/// A table or function binding, e.g. `table`, `schema.table t`, or
-/// `some_func(1, 2) as t`. Distinguishes the two by looking ahead past the
-/// qualified name for a `(`.
+/// A table binding, function binding, or subquery binding, e.g. `table`,
+/// `schema.table t`, `some_func(1, 2) as t`, or `(select ...) as t`.
+/// Distinguishes them by looking ahead past the qualified name for a `(`,
+/// or by checking for a leading `(select` for subqueries.
 pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if p.at(T!['(']) {
+        return parse_subquery_binding(p);
+    }
+
     if !p.at(T![ident]) {
         return Absent;
     }
@@ -161,4 +170,18 @@ fn parse_function_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyn
 
     parse_alias(p);
     Present(m.complete(p, PSQL_FUNCTION_BINDING))
+}
+
+/// A subquery used as a table source, e.g. `(select a from t) as sub`.
+fn parse_subquery_binding(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    parse_select_statement(p).or_add_diagnostic(p, expected_statement);
+    p.expect(T![')']);
+    parse_alias(p);
+    Present(m.complete(p, PSQL_SUBQUERY_BINDING))
 }

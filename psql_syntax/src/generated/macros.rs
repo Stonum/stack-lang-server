@@ -89,6 +89,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlInExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_IN_VALUE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlInValueList::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_INSERT_COLUMNS => {
                     let $pattern = unsafe { $crate::PsqlInsertColumns::new_unchecked(node) };
                     $body
@@ -187,6 +191,14 @@ macro_rules! map_syntax_node {
                 $crate::PsqlSyntaxKind::PSQL_STRING_LITERAL_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::PsqlStringLiteralExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_SUBQUERY_BINDING => {
+                    let $pattern = unsafe { $crate::PsqlSubqueryBinding::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_SUBQUERY_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlSubqueryExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_TABLE_BINDING => {

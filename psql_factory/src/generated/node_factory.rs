@@ -378,25 +378,19 @@ pub fn psql_having_clause(
 pub fn psql_in_expression(
     expression: AnyPsqlExpression,
     in_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    items: PsqlExpressionList,
-    r_paren_token: SyntaxToken,
+    source: AnyPsqlInSource,
 ) -> PsqlInExpressionBuilder {
     PsqlInExpressionBuilder {
         expression,
         in_token,
-        l_paren_token,
-        items,
-        r_paren_token,
+        source,
         not_token: None,
     }
 }
 pub struct PsqlInExpressionBuilder {
     expression: AnyPsqlExpression,
     in_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    items: PsqlExpressionList,
-    r_paren_token: SyntaxToken,
+    source: AnyPsqlInSource,
     not_token: Option<SyntaxToken>,
 }
 impl PsqlInExpressionBuilder {
@@ -411,12 +405,24 @@ impl PsqlInExpressionBuilder {
                 Some(SyntaxElement::Node(self.expression.into_syntax())),
                 self.not_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.in_token)),
-                Some(SyntaxElement::Token(self.l_paren_token)),
-                Some(SyntaxElement::Node(self.items.into_syntax())),
-                Some(SyntaxElement::Token(self.r_paren_token)),
+                Some(SyntaxElement::Node(self.source.into_syntax())),
             ],
         ))
     }
+}
+pub fn psql_in_value_list(
+    l_paren_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlInValueList {
+    PsqlInValueList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_IN_VALUE_LIST,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
 }
 pub fn psql_insert_columns(
     l_paren_token: SyntaxToken,
@@ -905,6 +911,56 @@ pub fn psql_string_literal_expression(value_token: SyntaxToken) -> PsqlStringLit
     PsqlStringLiteralExpression::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_STRING_LITERAL_EXPRESSION,
         [Some(SyntaxElement::Token(value_token))],
+    ))
+}
+pub fn psql_subquery_binding(
+    l_paren_token: SyntaxToken,
+    query: PsqlSelectStatement,
+    r_paren_token: SyntaxToken,
+) -> PsqlSubqueryBindingBuilder {
+    PsqlSubqueryBindingBuilder {
+        l_paren_token,
+        query,
+        r_paren_token,
+        alias: None,
+    }
+}
+pub struct PsqlSubqueryBindingBuilder {
+    l_paren_token: SyntaxToken,
+    query: PsqlSelectStatement,
+    r_paren_token: SyntaxToken,
+    alias: Option<PsqlAlias>,
+}
+impl PsqlSubqueryBindingBuilder {
+    pub fn with_alias(mut self, alias: PsqlAlias) -> Self {
+        self.alias = Some(alias);
+        self
+    }
+    pub fn build(self) -> PsqlSubqueryBinding {
+        PsqlSubqueryBinding::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_SUBQUERY_BINDING,
+            [
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.query.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.alias
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_subquery_expression(
+    l_paren_token: SyntaxToken,
+    query: PsqlSelectStatement,
+    r_paren_token: SyntaxToken,
+) -> PsqlSubqueryExpression {
+    PsqlSubqueryExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_SUBQUERY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(query.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
     ))
 }
 pub fn psql_table_binding(table: PsqlTableName) -> PsqlTableBindingBuilder {
