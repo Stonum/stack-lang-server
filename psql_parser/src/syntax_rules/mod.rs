@@ -5,4 +5,5 @@ mod parse_error;
 pub mod program;
 mod select;
 mod stmt;
+mod update;
 mod where_clause;
