@@ -3,9 +3,10 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
+use super::select::parse_select_statement;
 use crate::{
     PsqlParser,
-    syntax_rules::parse_error::{expected_expression, expected_identifier},
+    syntax_rules::parse_error::{expected_expression, expected_identifier, expected_statement},
 };
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -83,9 +84,7 @@ fn parse_binary_or_logical_expression_recursive(
             let m = left.precede(p);
             p.eat(T![not]);
             p.bump(T![in]);
-            p.expect(T!['(']);
-            PsqlExpressionList.parse_list(p);
-            p.expect(T![')']);
+            parse_in_source(p).or_add_diagnostic(p, expected_expression);
             left = Present(m.complete(p, PSQL_IN_EXPRESSION));
             continue;
         }
@@ -349,6 +348,10 @@ fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {
         return Absent;
     }
 
+    if at_subquery(p) {
+        return parse_subquery_expression(p);
+    }
+
     let m = p.start();
     p.bump(T!('('));
 
@@ -367,6 +370,47 @@ fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     p.expect(T![')']);
     Present(m.complete(p, PSQL_PARENTHESIZED_EXPRESSION))
+}
+
+/// Checks whether the parser is at `(` immediately followed by `select`,
+/// i.e. a subquery `(select ...)` rather than a plain parenthesized
+/// expression or value list.
+fn at_subquery(p: &mut PsqlParser) -> bool {
+    p.at(T!['('])
+        && p.lookahead(|p| {
+            p.bump(T!['(']);
+            p.at(T![select])
+        })
+}
+
+fn parse_subquery_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !at_subquery(p) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    parse_select_statement(p).or_add_diagnostic(p, expected_statement);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_SUBQUERY_EXPRESSION))
+}
+
+/// The source of an `in` predicate: either a parenthesized value list
+/// (`in (1, 2, 3)`) or a subquery (`in (select ...)`).
+fn parse_in_source(p: &mut PsqlParser) -> ParsedSyntax {
+    if at_subquery(p) {
+        return parse_subquery_expression(p);
+    }
+
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    PsqlExpressionList.parse_list(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_IN_VALUE_LIST))
 }
 
 /// A column reference such as `col`, `table.col`, `schema.table.col` or
