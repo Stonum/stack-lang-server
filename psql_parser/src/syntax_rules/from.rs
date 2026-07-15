@@ -1,15 +1,14 @@
 use biome_parser::parse_lists::ParseSeparatedList;
-use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, count_dotted_name_segments, parse_alias, parse_expression, parse_name,
-    parse_shema_qualifier, parse_table_name,
+    PsqlExpressionList, count_dotted_name_segments, parse_alias, parse_name, parse_shema_qualifier,
+    parse_table_name,
 };
 use super::parse_error::*;
 use crate::PsqlParser;
-use psql_syntax::{PsqlSyntaxKind::*, T, *};
+use psql_syntax::{PsqlSyntaxKind::*, T};
 
 pub(crate) fn parse_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![from]) {
@@ -79,36 +78,4 @@ fn parse_function_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyn
 
     parse_alias(p);
     Present(m.complete(p, PSQL_FUNCTION_BINDING))
-}
-
-struct PsqlExpressionList;
-
-impl ParseSeparatedList for PsqlExpressionList {
-    type Kind = PsqlSyntaxKind;
-    type Parser<'source> = PsqlParser<'source>;
-    const LIST_KIND: Self::Kind = PSQL_EXPRESSION_LIST;
-
-    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
-        parse_expression(p)
-    }
-
-    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![')'])
-    }
-
-    fn recover(
-        &mut self,
-        p: &mut Self::Parser<'_>,
-        parsed_element: ParsedSyntax,
-    ) -> RecoveryResult {
-        parsed_element.or_recover_with_token_set(
-            p,
-            &ParseRecoveryTokenSet::new(PSQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
-            expected_expression,
-        )
-    }
-
-    fn separating_element_kind(&mut self) -> Self::Kind {
-        T![,]
-    }
 }

@@ -29,3 +29,7 @@ pub fn expected_number_literal(p: &PsqlParser, range: TextRange) -> ParseDiagnos
 pub fn expected_table_binding(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("table", range, p)
 }
+
+pub fn expected_insert_source(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("values or select", range, p)
+}
