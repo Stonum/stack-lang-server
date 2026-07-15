@@ -90,8 +90,20 @@ fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     select_clause.complete(p, PSQL_SELECT_CLAUSE);
 
     let _ = parse_from_clause(p);
+    let _ = parse_where_clause(p);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
+}
+
+fn parse_where_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![where]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![where]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_WHERE_CLAUSE))
 }
 
 struct PsqlSelectItemList;
@@ -106,7 +118,7 @@ impl ParseSeparatedList for PsqlSelectItemList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![from])
+        p.at(EOF) || p.at(T![from]) || p.at(T![where])
     }
 
     fn recover(

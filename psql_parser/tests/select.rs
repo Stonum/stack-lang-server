@@ -104,3 +104,20 @@ fn test_select_from_qualified_function_binding() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_where_clause() {
+    let res = parse(
+        "select a from t where a = 1 and b > 2",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_where_clause_without_from() {
+    let res = parse("select 1 where true", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
