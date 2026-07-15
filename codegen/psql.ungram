@@ -106,7 +106,18 @@ PsqlSelectExpression =
 
 PsqlFromClause =
    'from'
-   clause: AnyPsqlFromExpression
+   source: AnyPsqlFromExpression
+   joins: PsqlJoinClauseList
+
+PsqlJoinClauseList = PsqlJoinClause*
+
+PsqlJoinClause =
+   join_type: ('inner' | 'left' | 'right')?
+   'outer'?
+   'join'
+   source: AnyPsqlFromExpression
+   'on'
+   condition: AnyPsqlExpression
 
 AnyPsqlFromExpression =
    PsqlTableBinding

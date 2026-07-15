@@ -147,6 +147,8 @@ pub enum PsqlSyntaxKind {
     PSQL_SELECT_ITEM,
     PSQL_SELECT_EXPRESSION,
     PSQL_FROM_CLAUSE,
+    PSQL_JOIN_CLAUSE_LIST,
+    PSQL_JOIN_CLAUSE,
     PSQL_WHERE_CLAUSE,
     PSQL_GROUP_BY_CLAUSE,
     PSQL_GROUP_BY_ITEM_LIST,
@@ -252,6 +254,7 @@ impl PsqlSyntaxKind {
             self,
             PSQL_STATEMENT_LIST
                 | PSQL_SELECT_ITEM_LIST
+                | PSQL_JOIN_CLAUSE_LIST
                 | PSQL_GROUP_BY_ITEM_LIST
                 | PSQL_ORDER_BY_EXPRESSION_LIST
                 | PSQL_INSERT_COLUMN_LIST

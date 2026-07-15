@@ -463,7 +463,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_FROM_CLAUSE => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![from]
@@ -474,6 +474,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && AnyPsqlFromExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlJoinClauseList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -813,6 +820,60 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_IS_NULL_EXPRESSION, children)
+            }
+            PSQL_JOIN_CLAUSE => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![inner] | T![left] | T![right])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![outer]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![join]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnyPsqlFromExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![on]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_JOIN_CLAUSE.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_JOIN_CLAUSE, children)
             }
             PSQL_LIKE_EXPRESSION => {
                 let mut elements = (&children).into_iter();
@@ -1567,6 +1628,9 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             ),
             PSQL_INSERT_COLUMN_LIST => {
                 Self::make_separated_list_syntax(kind, children, PsqlName::can_cast, T ! [,], false)
+            }
+            PSQL_JOIN_CLAUSE_LIST => {
+                Self::make_node_list_syntax(kind, children, PsqlJoinClause::can_cast)
             }
             PSQL_ORDER_BY_EXPRESSION_LIST => Self::make_separated_list_syntax(
                 kind,

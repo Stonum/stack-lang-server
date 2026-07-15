@@ -101,6 +101,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlIsNullExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_JOIN_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlJoinClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_LIKE_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlLikeExpression::new_unchecked(node) };
                     $body
@@ -247,6 +251,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_INSERT_COLUMN_LIST => {
                     let $pattern = unsafe { $crate::PsqlInsertColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_JOIN_CLAUSE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlJoinClauseList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_ORDER_BY_EXPRESSION_LIST => {
