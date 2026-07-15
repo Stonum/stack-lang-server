@@ -255,6 +255,151 @@ pub struct PsqlCallExpressionFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCaseElseClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCaseElseClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCaseElseClauseFields {
+        PsqlCaseElseClauseFields {
+            else_token: self.else_token(),
+            result: self.result(),
+        }
+    }
+    pub fn else_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn result(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlCaseElseClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCaseElseClauseFields {
+    pub else_token: SyntaxResult<SyntaxToken>,
+    pub result: SyntaxResult<AnyPsqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCaseExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCaseExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCaseExpressionFields {
+        PsqlCaseExpressionFields {
+            case_token: self.case_token(),
+            expression: self.expression(),
+            when_clauses: self.when_clauses(),
+            else_clause: self.else_clause(),
+            end_token: self.end_token(),
+        }
+    }
+    pub fn case_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn expression(&self) -> Option<AnyPsqlExpression> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn when_clauses(&self) -> PsqlCaseWhenClauseList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn else_clause(&self) -> Option<PsqlCaseElseClause> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn end_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlCaseExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCaseExpressionFields {
+    pub case_token: SyntaxResult<SyntaxToken>,
+    pub expression: Option<AnyPsqlExpression>,
+    pub when_clauses: PsqlCaseWhenClauseList,
+    pub else_clause: Option<PsqlCaseElseClause>,
+    pub end_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCaseWhenClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCaseWhenClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCaseWhenClauseFields {
+        PsqlCaseWhenClauseFields {
+            when_token: self.when_token(),
+            condition: self.condition(),
+            then_token: self.then_token(),
+            result: self.result(),
+        }
+    }
+    pub fn when_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn then_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn result(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlCaseWhenClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCaseWhenClauseFields {
+    pub when_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnyPsqlExpression>,
+    pub then_token: SyntaxResult<SyntaxToken>,
+    pub result: SyntaxResult<AnyPsqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlColReference {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1938,6 +2083,7 @@ pub enum AnyPsqlExpression {
     PsqlBetweenExpression(PsqlBetweenExpression),
     PsqlBinaryExpression(PsqlBinaryExpression),
     PsqlCallExpression(PsqlCallExpression),
+    PsqlCaseExpression(PsqlCaseExpression),
     PsqlColReference(PsqlColReference),
     PsqlInExpression(PsqlInExpression),
     PsqlIsNullExpression(PsqlIsNullExpression),
@@ -1971,6 +2117,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_call_expression(&self) -> Option<&PsqlCallExpression> {
         match &self {
             Self::PsqlCallExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_case_expression(&self) -> Option<&PsqlCaseExpression> {
+        match &self {
+            Self::PsqlCaseExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -2417,6 +2569,161 @@ impl From<PsqlCallExpression> for SyntaxNode {
 }
 impl From<PsqlCallExpression> for SyntaxElement {
     fn from(n: PsqlCallExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCaseElseClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CASE_ELSE_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CASE_ELSE_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCaseElseClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCaseElseClause")
+                .field("else_token", &support::DebugSyntaxResult(self.else_token()))
+                .field("result", &support::DebugSyntaxResult(self.result()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCaseElseClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCaseElseClause> for SyntaxNode {
+    fn from(n: PsqlCaseElseClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCaseElseClause> for SyntaxElement {
+    fn from(n: PsqlCaseElseClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCaseExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CASE_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CASE_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCaseExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCaseExpression")
+                .field("case_token", &support::DebugSyntaxResult(self.case_token()))
+                .field(
+                    "expression",
+                    &support::DebugOptionalElement(self.expression()),
+                )
+                .field("when_clauses", &self.when_clauses())
+                .field(
+                    "else_clause",
+                    &support::DebugOptionalElement(self.else_clause()),
+                )
+                .field("end_token", &support::DebugSyntaxResult(self.end_token()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCaseExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCaseExpression> for SyntaxNode {
+    fn from(n: PsqlCaseExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCaseExpression> for SyntaxElement {
+    fn from(n: PsqlCaseExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCaseWhenClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CASE_WHEN_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CASE_WHEN_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCaseWhenClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCaseWhenClause")
+                .field("when_token", &support::DebugSyntaxResult(self.when_token()))
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field("then_token", &support::DebugSyntaxResult(self.then_token()))
+                .field("result", &support::DebugSyntaxResult(self.result()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCaseWhenClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCaseWhenClause> for SyntaxNode {
+    fn from(n: PsqlCaseWhenClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCaseWhenClause> for SyntaxElement {
+    fn from(n: PsqlCaseWhenClause) -> Self {
         n.syntax.into()
     }
 }
@@ -4438,6 +4745,11 @@ impl From<PsqlCallExpression> for AnyPsqlExpression {
         Self::PsqlCallExpression(node)
     }
 }
+impl From<PsqlCaseExpression> for AnyPsqlExpression {
+    fn from(node: PsqlCaseExpression) -> Self {
+        Self::PsqlCaseExpression(node)
+    }
+}
 impl From<PsqlColReference> for AnyPsqlExpression {
     fn from(node: PsqlColReference) -> Self {
         Self::PsqlColReference(node)
@@ -4494,6 +4806,7 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlBetweenExpression::KIND_SET)
         .union(PsqlBinaryExpression::KIND_SET)
         .union(PsqlCallExpression::KIND_SET)
+        .union(PsqlCaseExpression::KIND_SET)
         .union(PsqlColReference::KIND_SET)
         .union(PsqlInExpression::KIND_SET)
         .union(PsqlIsNullExpression::KIND_SET)
@@ -4509,6 +4822,7 @@ impl AstNode for AnyPsqlExpression {
             PSQL_BETWEEN_EXPRESSION
             | PSQL_BINARY_EXPRESSION
             | PSQL_CALL_EXPRESSION
+            | PSQL_CASE_EXPRESSION
             | PSQL_COL_REFERENCE
             | PSQL_IN_EXPRESSION
             | PSQL_IS_NULL_EXPRESSION
@@ -4530,6 +4844,7 @@ impl AstNode for AnyPsqlExpression {
             }
             PSQL_BINARY_EXPRESSION => Self::PsqlBinaryExpression(PsqlBinaryExpression { syntax }),
             PSQL_CALL_EXPRESSION => Self::PsqlCallExpression(PsqlCallExpression { syntax }),
+            PSQL_CASE_EXPRESSION => Self::PsqlCaseExpression(PsqlCaseExpression { syntax }),
             PSQL_COL_REFERENCE => Self::PsqlColReference(PsqlColReference { syntax }),
             PSQL_IN_EXPRESSION => Self::PsqlInExpression(PsqlInExpression { syntax }),
             PSQL_IS_NULL_EXPRESSION => Self::PsqlIsNullExpression(PsqlIsNullExpression { syntax }),
@@ -4560,6 +4875,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlBetweenExpression(it) => &it.syntax,
             Self::PsqlBinaryExpression(it) => &it.syntax,
             Self::PsqlCallExpression(it) => &it.syntax,
+            Self::PsqlCaseExpression(it) => &it.syntax,
             Self::PsqlColReference(it) => &it.syntax,
             Self::PsqlInExpression(it) => &it.syntax,
             Self::PsqlIsNullExpression(it) => &it.syntax,
@@ -4578,6 +4894,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlBetweenExpression(it) => it.syntax,
             Self::PsqlBinaryExpression(it) => it.syntax,
             Self::PsqlCallExpression(it) => it.syntax,
+            Self::PsqlCaseExpression(it) => it.syntax,
             Self::PsqlColReference(it) => it.syntax,
             Self::PsqlInExpression(it) => it.syntax,
             Self::PsqlIsNullExpression(it) => it.syntax,
@@ -4599,6 +4916,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlBetweenExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCallExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCaseExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlColReference(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlInExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlIsNullExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -4619,6 +4937,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlBetweenExpression(it) => it.into(),
             AnyPsqlExpression::PsqlBinaryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlCallExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlCaseExpression(it) => it.into(),
             AnyPsqlExpression::PsqlColReference(it) => it.into(),
             AnyPsqlExpression::PsqlInExpression(it) => it.into(),
             AnyPsqlExpression::PsqlIsNullExpression(it) => it.into(),
@@ -5053,6 +5372,21 @@ impl std::fmt::Display for PsqlBooleanLiteralExpression {
     }
 }
 impl std::fmt::Display for PsqlCallExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCaseElseClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCaseExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCaseWhenClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -5640,6 +5974,88 @@ impl From<PsqlBogusStatement> for SyntaxElement {
     }
 }
 biome_rowan::declare_node_union! { pub AnyPsqlBogusNode = PsqlBogus | PsqlBogusAssignment | PsqlBogusBinding | PsqlBogusExpression | PsqlBogusMember | PsqlBogusParameter | PsqlBogusStatement }
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlCaseWhenClauseList {
+    syntax_list: SyntaxList,
+}
+impl PsqlCaseWhenClauseList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlCaseWhenClauseList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CASE_WHEN_CLAUSE_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CASE_WHEN_CLAUSE_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlCaseWhenClauseList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstNodeList for PsqlCaseWhenClauseList {
+    type Language = Language;
+    type Node = PsqlCaseWhenClause;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlCaseWhenClauseList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlCaseWhenClauseList ")?;
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+impl IntoIterator for &PsqlCaseWhenClauseList {
+    type Item = PsqlCaseWhenClause;
+    type IntoIter = AstNodeListIterator<Language, PsqlCaseWhenClause>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for PsqlCaseWhenClauseList {
+    type Item = PsqlCaseWhenClause;
+    type IntoIter = AstNodeListIterator<Language, PsqlCaseWhenClause>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct PsqlExpressionList {
     syntax_list: SyntaxList,

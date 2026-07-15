@@ -254,6 +254,7 @@ AnyPsqlExpression =
    | PsqlBetweenExpression
    | PsqlInExpression
    | PsqlLikeExpression
+   | PsqlCaseExpression
    | PsqlParenthesizedExpression
    | PsqlCallExpression
    | AnyPsqlLiteralExpression
@@ -289,6 +290,25 @@ PsqlLikeExpression =
    'not'?
    operator_token: ('like' | 'ilike')
    pattern: AnyPsqlExpression
+
+PsqlCaseExpression =
+   'case'
+   expression: AnyPsqlExpression?
+   when_clauses: PsqlCaseWhenClauseList
+   else_clause: PsqlCaseElseClause?
+   'end'
+
+PsqlCaseWhenClauseList = PsqlCaseWhenClause*
+
+PsqlCaseWhenClause =
+   'when'
+   condition: AnyPsqlExpression
+   'then'
+   result: AnyPsqlExpression
+
+PsqlCaseElseClause =
+   'else'
+   result: AnyPsqlExpression
 
 PsqlCallExpression =
    schema: PsqlShemaName?

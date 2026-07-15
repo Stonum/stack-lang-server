@@ -134,6 +134,78 @@ impl PsqlCallExpressionBuilder {
         ))
     }
 }
+pub fn psql_case_else_clause(
+    else_token: SyntaxToken,
+    result: AnyPsqlExpression,
+) -> PsqlCaseElseClause {
+    PsqlCaseElseClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_CASE_ELSE_CLAUSE,
+        [
+            Some(SyntaxElement::Token(else_token)),
+            Some(SyntaxElement::Node(result.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_case_expression(
+    case_token: SyntaxToken,
+    when_clauses: PsqlCaseWhenClauseList,
+    end_token: SyntaxToken,
+) -> PsqlCaseExpressionBuilder {
+    PsqlCaseExpressionBuilder {
+        case_token,
+        when_clauses,
+        end_token,
+        expression: None,
+        else_clause: None,
+    }
+}
+pub struct PsqlCaseExpressionBuilder {
+    case_token: SyntaxToken,
+    when_clauses: PsqlCaseWhenClauseList,
+    end_token: SyntaxToken,
+    expression: Option<AnyPsqlExpression>,
+    else_clause: Option<PsqlCaseElseClause>,
+}
+impl PsqlCaseExpressionBuilder {
+    pub fn with_expression(mut self, expression: AnyPsqlExpression) -> Self {
+        self.expression = Some(expression);
+        self
+    }
+    pub fn with_else_clause(mut self, else_clause: PsqlCaseElseClause) -> Self {
+        self.else_clause = Some(else_clause);
+        self
+    }
+    pub fn build(self) -> PsqlCaseExpression {
+        PsqlCaseExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CASE_EXPRESSION,
+            [
+                Some(SyntaxElement::Token(self.case_token)),
+                self.expression
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.when_clauses.into_syntax())),
+                self.else_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.end_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_case_when_clause(
+    when_token: SyntaxToken,
+    condition: AnyPsqlExpression,
+    then_token: SyntaxToken,
+    result: AnyPsqlExpression,
+) -> PsqlCaseWhenClause {
+    PsqlCaseWhenClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_CASE_WHEN_CLAUSE,
+        [
+            Some(SyntaxElement::Token(when_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(then_token)),
+            Some(SyntaxElement::Node(result.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_col_reference(name: PsqlName) -> PsqlColReference {
     PsqlColReference::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_COL_REFERENCE,
@@ -905,6 +977,18 @@ pub fn psql_where_clause(
             Some(SyntaxElement::Token(where_token)),
             Some(SyntaxElement::Node(condition.into_syntax())),
         ],
+    ))
+}
+pub fn psql_case_when_clause_list<I>(items: I) -> PsqlCaseWhenClauseList
+where
+    I: IntoIterator<Item = PsqlCaseWhenClause>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlCaseWhenClauseList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_CASE_WHEN_CLAUSE_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_expression_list<I, S>(items: I, separators: S) -> PsqlExpressionList

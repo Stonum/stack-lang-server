@@ -210,8 +210,64 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T!['('] => parse_parenthesized_expression(p),
         T![ident] => parse_ident_expression(p),
         T![*] => parse_star(p),
+        T![case] => parse_case_expression(p),
         _ => Absent,
     }
+}
+
+/// `case [expr] (when cond then result)+ [else default] end`. The optional
+/// leading expression is what distinguishes "simple" CASE (`case x when 1
+/// then ...`) from "searched" CASE (`case when x = 1 then ...`); both are
+/// represented by the same node.
+fn parse_case_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![case]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![case]);
+
+    if !p.at(T![when]) {
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+    }
+
+    parse_case_when_clause_list(p);
+    let _ = parse_case_else_clause(p);
+    p.expect(T![end]);
+
+    Present(m.complete(p, PSQL_CASE_EXPRESSION))
+}
+
+fn parse_case_when_clause_list(p: &mut PsqlParser) -> CompletedMarker {
+    let m = p.start();
+    while p.at(T![when]) {
+        let _ = parse_case_when_clause(p);
+    }
+    m.complete(p, PSQL_CASE_WHEN_CLAUSE_LIST)
+}
+
+fn parse_case_when_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![when]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![when]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![then]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_CASE_WHEN_CLAUSE))
+}
+
+fn parse_case_else_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![else]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![else]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_CASE_ELSE_CLAUSE))
 }
 
 /// A bare `*`, mainly meant for call arguments like `count(*)`. The grammar
