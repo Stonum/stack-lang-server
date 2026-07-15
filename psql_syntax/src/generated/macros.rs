@@ -37,6 +37,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCallExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CASE_ELSE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlCaseElseClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_CASE_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlCaseExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_CASE_WHEN_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlCaseWhenClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_COL_REFERENCE => {
                     let $pattern = unsafe { $crate::PsqlColReference::new_unchecked(node) };
                     $body
@@ -219,6 +231,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_BOGUS_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlBogusStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_CASE_WHEN_CLAUSE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlCaseWhenClauseList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_EXPRESSION_LIST => {

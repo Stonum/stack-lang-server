@@ -184,6 +184,10 @@ pub enum PsqlSyntaxKind {
     PSQL_BETWEEN_EXPRESSION,
     PSQL_IN_EXPRESSION,
     PSQL_LIKE_EXPRESSION,
+    PSQL_CASE_EXPRESSION,
+    PSQL_CASE_WHEN_CLAUSE_LIST,
+    PSQL_CASE_WHEN_CLAUSE,
+    PSQL_CASE_ELSE_CLAUSE,
     PSQL_PARENTHESIZED_EXPRESSION,
     PSQL_CALL_EXPRESSION,
     PSQL_NUMBER_LITERAL_EXPRESSION,
@@ -253,6 +257,7 @@ impl PsqlSyntaxKind {
                 | PSQL_INSERT_COLUMN_LIST
                 | PSQL_SET_ITEM_LIST
                 | PSQL_EXPRESSION_LIST
+                | PSQL_CASE_WHEN_CLAUSE_LIST
         )
     }
     pub fn from_keyword(ident: &str) -> Option<Self> {
