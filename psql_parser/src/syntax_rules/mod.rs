@@ -1,3 +1,4 @@
+mod delete;
 mod expr;
 mod from;
 mod parse_error;

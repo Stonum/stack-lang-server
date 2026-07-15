@@ -25,3 +25,7 @@ pub fn expected_from_expression(p: &PsqlParser, range: TextRange) -> ParseDiagno
 pub fn expected_number_literal(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("number literal", range, p)
 }
+
+pub fn expected_table_binding(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("table", range, p)
+}
