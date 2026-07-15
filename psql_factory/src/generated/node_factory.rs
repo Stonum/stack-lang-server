@@ -51,6 +51,46 @@ pub fn psql_boolean_literal_expression(value_token: SyntaxToken) -> PsqlBooleanL
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
+pub fn psql_call_expression(
+    name: PsqlName,
+    l_paren_token: SyntaxToken,
+    arguments: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlCallExpressionBuilder {
+    PsqlCallExpressionBuilder {
+        name,
+        l_paren_token,
+        arguments,
+        r_paren_token,
+        schema: None,
+    }
+}
+pub struct PsqlCallExpressionBuilder {
+    name: PsqlName,
+    l_paren_token: SyntaxToken,
+    arguments: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+    schema: Option<PsqlShemaName>,
+}
+impl PsqlCallExpressionBuilder {
+    pub fn with_schema(mut self, schema: PsqlShemaName) -> Self {
+        self.schema = Some(schema);
+        self
+    }
+    pub fn build(self) -> PsqlCallExpression {
+        PsqlCallExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CALL_EXPRESSION,
+            [
+                self.schema
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.arguments.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_col_reference(name: PsqlName) -> PsqlColReference {
     PsqlColReference::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_COL_REFERENCE,

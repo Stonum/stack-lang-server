@@ -29,6 +29,10 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlBooleanLiteralExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CALL_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlCallExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_COL_REFERENCE => {
                     let $pattern = unsafe { $crate::PsqlColReference::new_unchecked(node) };
                     $body

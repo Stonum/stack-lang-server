@@ -140,6 +140,61 @@ pub struct PsqlBooleanLiteralExpressionFields {
     pub value: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCallExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCallExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCallExpressionFields {
+        PsqlCallExpressionFields {
+            schema: self.schema(),
+            name: self.name(),
+            l_paren_token: self.l_paren_token(),
+            arguments: self.arguments(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn schema(&self) -> Option<PsqlShemaName> {
+        support::node(&self.syntax, 0usize)
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn arguments(&self) -> PsqlExpressionList {
+        support::list(&self.syntax, 3usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlCallExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCallExpressionFields {
+    pub schema: Option<PsqlShemaName>,
+    pub name: SyntaxResult<PsqlName>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub arguments: PsqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlColReference {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1621,10 +1676,12 @@ pub struct PsqlWhereClauseFields {
 pub enum AnyPsqlExpression {
     AnyPsqlLiteralExpression(AnyPsqlLiteralExpression),
     PsqlBinaryExpression(PsqlBinaryExpression),
+    PsqlCallExpression(PsqlCallExpression),
     PsqlColReference(PsqlColReference),
     PsqlLogicalExpression(PsqlLogicalExpression),
     PsqlName(PsqlName),
     PsqlParenthesizedExpression(PsqlParenthesizedExpression),
+    PsqlStar(PsqlStar),
     PsqlTableColReference(PsqlTableColReference),
 }
 impl AnyPsqlExpression {
@@ -1637,6 +1694,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_binary_expression(&self) -> Option<&PsqlBinaryExpression> {
         match &self {
             Self::PsqlBinaryExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_call_expression(&self) -> Option<&PsqlCallExpression> {
+        match &self {
+            Self::PsqlCallExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -1661,6 +1724,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_parenthesized_expression(&self) -> Option<&PsqlParenthesizedExpression> {
         match &self {
             Self::PsqlParenthesizedExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_star(&self) -> Option<&PsqlStar> {
+        match &self {
+            Self::PsqlStar(item) => Some(item),
             _ => None,
         }
     }
@@ -1938,6 +2007,63 @@ impl From<PsqlBooleanLiteralExpression> for SyntaxNode {
 }
 impl From<PsqlBooleanLiteralExpression> for SyntaxElement {
     fn from(n: PsqlBooleanLiteralExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCallExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CALL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CALL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCallExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCallExpression")
+                .field("schema", &support::DebugOptionalElement(self.schema()))
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("arguments", &self.arguments())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCallExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCallExpression> for SyntaxNode {
+    fn from(n: PsqlCallExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCallExpression> for SyntaxElement {
+    fn from(n: PsqlCallExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -3728,6 +3854,11 @@ impl From<PsqlBinaryExpression> for AnyPsqlExpression {
         Self::PsqlBinaryExpression(node)
     }
 }
+impl From<PsqlCallExpression> for AnyPsqlExpression {
+    fn from(node: PsqlCallExpression) -> Self {
+        Self::PsqlCallExpression(node)
+    }
+}
 impl From<PsqlColReference> for AnyPsqlExpression {
     fn from(node: PsqlColReference) -> Self {
         Self::PsqlColReference(node)
@@ -3748,6 +3879,11 @@ impl From<PsqlParenthesizedExpression> for AnyPsqlExpression {
         Self::PsqlParenthesizedExpression(node)
     }
 }
+impl From<PsqlStar> for AnyPsqlExpression {
+    fn from(node: PsqlStar) -> Self {
+        Self::PsqlStar(node)
+    }
+}
 impl From<PsqlTableColReference> for AnyPsqlExpression {
     fn from(node: PsqlTableColReference) -> Self {
         Self::PsqlTableColReference(node)
@@ -3757,18 +3893,22 @@ impl AstNode for AnyPsqlExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnyPsqlLiteralExpression::KIND_SET
         .union(PsqlBinaryExpression::KIND_SET)
+        .union(PsqlCallExpression::KIND_SET)
         .union(PsqlColReference::KIND_SET)
         .union(PsqlLogicalExpression::KIND_SET)
         .union(PsqlName::KIND_SET)
         .union(PsqlParenthesizedExpression::KIND_SET)
+        .union(PsqlStar::KIND_SET)
         .union(PsqlTableColReference::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
             PSQL_BINARY_EXPRESSION
+            | PSQL_CALL_EXPRESSION
             | PSQL_COL_REFERENCE
             | PSQL_LOGICAL_EXPRESSION
             | PSQL_NAME
             | PSQL_PARENTHESIZED_EXPRESSION
+            | PSQL_STAR
             | PSQL_TABLE_COL_REFERENCE => true,
             k if AnyPsqlLiteralExpression::can_cast(k) => true,
             _ => false,
@@ -3777,6 +3917,7 @@ impl AstNode for AnyPsqlExpression {
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             PSQL_BINARY_EXPRESSION => Self::PsqlBinaryExpression(PsqlBinaryExpression { syntax }),
+            PSQL_CALL_EXPRESSION => Self::PsqlCallExpression(PsqlCallExpression { syntax }),
             PSQL_COL_REFERENCE => Self::PsqlColReference(PsqlColReference { syntax }),
             PSQL_LOGICAL_EXPRESSION => {
                 Self::PsqlLogicalExpression(PsqlLogicalExpression { syntax })
@@ -3785,6 +3926,7 @@ impl AstNode for AnyPsqlExpression {
             PSQL_PARENTHESIZED_EXPRESSION => {
                 Self::PsqlParenthesizedExpression(PsqlParenthesizedExpression { syntax })
             }
+            PSQL_STAR => Self::PsqlStar(PsqlStar { syntax }),
             PSQL_TABLE_COL_REFERENCE => {
                 Self::PsqlTableColReference(PsqlTableColReference { syntax })
             }
@@ -3800,10 +3942,12 @@ impl AstNode for AnyPsqlExpression {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::PsqlBinaryExpression(it) => &it.syntax,
+            Self::PsqlCallExpression(it) => &it.syntax,
             Self::PsqlColReference(it) => &it.syntax,
             Self::PsqlLogicalExpression(it) => &it.syntax,
             Self::PsqlName(it) => &it.syntax,
             Self::PsqlParenthesizedExpression(it) => &it.syntax,
+            Self::PsqlStar(it) => &it.syntax,
             Self::PsqlTableColReference(it) => &it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.syntax(),
         }
@@ -3811,10 +3955,12 @@ impl AstNode for AnyPsqlExpression {
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::PsqlBinaryExpression(it) => it.syntax,
+            Self::PsqlCallExpression(it) => it.syntax,
             Self::PsqlColReference(it) => it.syntax,
             Self::PsqlLogicalExpression(it) => it.syntax,
             Self::PsqlName(it) => it.syntax,
             Self::PsqlParenthesizedExpression(it) => it.syntax,
+            Self::PsqlStar(it) => it.syntax,
             Self::PsqlTableColReference(it) => it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.into_syntax(),
         }
@@ -3825,10 +3971,12 @@ impl std::fmt::Debug for AnyPsqlExpression {
         match self {
             Self::AnyPsqlLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCallExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlColReference(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlLogicalExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlName(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlStar(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTableColReference(it) => std::fmt::Debug::fmt(it, f),
         }
     }
@@ -3838,10 +3986,12 @@ impl From<AnyPsqlExpression> for SyntaxNode {
         match n {
             AnyPsqlExpression::AnyPsqlLiteralExpression(it) => it.into(),
             AnyPsqlExpression::PsqlBinaryExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlCallExpression(it) => it.into(),
             AnyPsqlExpression::PsqlColReference(it) => it.into(),
             AnyPsqlExpression::PsqlLogicalExpression(it) => it.into(),
             AnyPsqlExpression::PsqlName(it) => it.into(),
             AnyPsqlExpression::PsqlParenthesizedExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlStar(it) => it.into(),
             AnyPsqlExpression::PsqlTableColReference(it) => it.into(),
         }
     }
@@ -4257,6 +4407,11 @@ impl std::fmt::Display for PsqlBinaryExpression {
     }
 }
 impl std::fmt::Display for PsqlBooleanLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCallExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
