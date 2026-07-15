@@ -48,6 +48,29 @@ fn parse_binary_or_logical_expression_recursive(
             continue;
         }
 
+        if at_not_prefixed_predicate(p, T![between]) {
+            if OperatorPrecedence::Predicate <= left_precedence {
+                break;
+            }
+
+            if left.is_absent() {
+                report_missing_left_operand(p);
+            }
+
+            let m = left.precede(p);
+            p.eat(T![not]);
+            p.bump(T![between]);
+            // `and` here is the literal keyword joining `low`/`high`, not a
+            // logical continuation, so `low` must stop right before it.
+            parse_binary_or_logical_expression(p, OperatorPrecedence::LogicalAnd)
+                .or_add_diagnostic(p, expected_expression);
+            p.expect(T![and]);
+            parse_binary_or_logical_expression(p, OperatorPrecedence::LogicalAnd)
+                .or_add_diagnostic(p, expected_expression);
+            left = Present(m.complete(p, PSQL_BETWEEN_EXPRESSION));
+            continue;
+        }
+
         let op = p.cur();
 
         let new_precedence = match OperatorPrecedence::try_from_binary_operator(op) {
@@ -79,6 +102,19 @@ fn parse_binary_or_logical_expression_recursive(
     }
 
     left
+}
+
+/// Checks whether the parser is at `keyword` or at `not` immediately
+/// followed by `keyword` (e.g. `between`/`not between`). `not` can only
+/// appear here as a predicate modifier, since a bare `not` is a prefix
+/// operator and never valid as an infix continuation token.
+fn at_not_prefixed_predicate(p: &mut PsqlParser, keyword: PsqlSyntaxKind) -> bool {
+    p.at(keyword)
+        || (p.at(T![not])
+            && p.lookahead(|p| {
+                p.bump(T![not]);
+                p.at(keyword)
+            }))
 }
 
 fn report_missing_left_operand(p: &mut PsqlParser) {

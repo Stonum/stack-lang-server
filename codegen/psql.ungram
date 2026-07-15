@@ -251,6 +251,7 @@ AnyPsqlExpression =
    | PsqlLogicalExpression
    | PsqlUnaryExpression
    | PsqlIsNullExpression
+   | PsqlBetweenExpression
    | PsqlParenthesizedExpression
    | PsqlCallExpression
    | AnyPsqlLiteralExpression
@@ -264,6 +265,14 @@ PsqlIsNullExpression =
    'is'
    'not'?
    'null'
+
+PsqlBetweenExpression =
+   expression: AnyPsqlExpression
+   'not'?
+   'between'
+   low: AnyPsqlExpression
+   'and'
+   high: AnyPsqlExpression
 
 PsqlCallExpression =
    schema: PsqlShemaName?
