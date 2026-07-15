@@ -91,6 +91,8 @@ fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
 
     let _ = parse_from_clause(p);
     let _ = parse_where_clause(p);
+    let _ = parse_group_by_clause(p);
+    let _ = parse_having_clause(p);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
 }
@@ -106,6 +108,64 @@ fn parse_where_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_WHERE_CLAUSE))
 }
 
+fn parse_group_by_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![group_by]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![group_by]);
+    PsqlGroupByItemList.parse_list(p);
+    Present(m.complete(p, PSQL_GROUP_BY_CLAUSE))
+}
+
+struct PsqlGroupByItemList;
+
+impl ParseSeparatedList for PsqlGroupByItemList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_GROUP_BY_ITEM_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![;]) || p.at(T![having])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+
+    fn allow_trailing_separating_element(&self) -> bool {
+        true
+    }
+}
+
+fn parse_having_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![having]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![having]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_HAVING_CLAUSE))
+}
+
 struct PsqlSelectItemList;
 
 impl ParseSeparatedList for PsqlSelectItemList {
@@ -118,7 +178,7 @@ impl ParseSeparatedList for PsqlSelectItemList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![from]) || p.at(T![where])
+        p.at(EOF) || p.at(T![from]) || p.at(T![where]) || p.at(T![group_by]) || p.at(T![having])
     }
 
     fn recover(

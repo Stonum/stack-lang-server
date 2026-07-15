@@ -121,3 +121,23 @@ fn test_select_where_clause_without_from() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_group_by_clause() {
+    let res = parse(
+        "select a, b from t group_by a, b,",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_having_clause() {
+    let res = parse(
+        "select a, b from t group_by a having b > 1",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
