@@ -161,3 +161,23 @@ fn test_select_order_by_after_having() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_limit_offset() {
+    let res = parse(
+        "select a from t limit 10 offset 20",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_limit_offset_after_order_by() {
+    let res = parse(
+        "select a from t order_by a limit 10 offset 20",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

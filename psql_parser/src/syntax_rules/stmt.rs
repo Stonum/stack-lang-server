@@ -4,7 +4,9 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, parse_alias, parse_expression};
+use super::expr::{
+    EXPR_RECOVERY_SET, parse_alias, parse_expression, parse_number_literal_expression,
+};
 use super::from::parse_from_clause;
 use super::parse_error::*;
 use crate::PsqlParser;
@@ -94,6 +96,8 @@ fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let _ = parse_group_by_clause(p);
     let _ = parse_having_clause(p);
     let _ = parse_order_by_clause(p);
+    let _ = parse_limit_clause(p);
+    let _ = parse_offset_clause(p);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
 }
@@ -132,7 +136,12 @@ impl ParseSeparatedList for PsqlGroupByItemList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![;]) || p.at(T![having]) || p.at(T![order_by])
+        p.at(EOF)
+            || p.at(T![;])
+            || p.at(T![having])
+            || p.at(T![order_by])
+            || p.at(T![limit])
+            || p.at(T![offset])
     }
 
     fn recover(
@@ -190,7 +199,7 @@ impl ParseSeparatedList for PsqlOrderByExpressionList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![;])
+        p.at(EOF) || p.at(T![;]) || p.at(T![limit]) || p.at(T![offset])
     }
 
     fn recover(
@@ -218,6 +227,28 @@ fn parse_order_by_expression(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_ORDER_BY_EXPRESSION))
 }
 
+fn parse_limit_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![limit]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![limit]);
+    parse_number_literal_expression(p).or_add_diagnostic(p, expected_number_literal);
+    Present(m.complete(p, PSQL_LIMIT_CLAUSE))
+}
+
+fn parse_offset_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![offset]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![offset]);
+    parse_number_literal_expression(p).or_add_diagnostic(p, expected_number_literal);
+    Present(m.complete(p, PSQL_OFFSET_CLAUSE))
+}
+
 struct PsqlSelectItemList;
 
 impl ParseSeparatedList for PsqlSelectItemList {
@@ -236,6 +267,8 @@ impl ParseSeparatedList for PsqlSelectItemList {
             || p.at(T![group_by])
             || p.at(T![having])
             || p.at(T![order_by])
+            || p.at(T![limit])
+            || p.at(T![offset])
     }
 
     fn recover(
