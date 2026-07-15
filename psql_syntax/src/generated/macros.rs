@@ -69,6 +69,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlFromClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_FROM_ITEM => {
+                    let $pattern = unsafe { $crate::PsqlFromItem::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_FUNCTION_BINDING => {
                     let $pattern = unsafe { $crate::PsqlFunctionBinding::new_unchecked(node) };
                     $body
@@ -243,6 +247,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_EXPRESSION_LIST => {
                     let $pattern = unsafe { $crate::PsqlExpressionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_FROM_ITEM_LIST => {
+                    let $pattern = unsafe { $crate::PsqlFromItemList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_GROUP_BY_ITEM_LIST => {

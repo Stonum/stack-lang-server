@@ -549,14 +549,14 @@ impl PsqlDeleteUsingClause {
     pub fn as_fields(&self) -> PsqlDeleteUsingClauseFields {
         PsqlDeleteUsingClauseFields {
             using_token: self.using_token(),
-            any_psql_from_expression: self.any_psql_from_expression(),
+            items: self.items(),
         }
     }
     pub fn using_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn any_psql_from_expression(&self) -> SyntaxResult<AnyPsqlFromExpression> {
-        support::required_node(&self.syntax, 1usize)
+    pub fn items(&self) -> PsqlFromItemList {
+        support::list(&self.syntax, 1usize)
     }
 }
 impl Serialize for PsqlDeleteUsingClause {
@@ -570,7 +570,7 @@ impl Serialize for PsqlDeleteUsingClause {
 #[derive(Serialize)]
 pub struct PsqlDeleteUsingClauseFields {
     pub using_token: SyntaxResult<SyntaxToken>,
-    pub any_psql_from_expression: SyntaxResult<AnyPsqlFromExpression>,
+    pub items: PsqlFromItemList,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlFromClause {
@@ -589,18 +589,14 @@ impl PsqlFromClause {
     pub fn as_fields(&self) -> PsqlFromClauseFields {
         PsqlFromClauseFields {
             from_token: self.from_token(),
-            source: self.source(),
-            joins: self.joins(),
+            items: self.items(),
         }
     }
     pub fn from_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn source(&self) -> SyntaxResult<AnyPsqlFromExpression> {
-        support::required_node(&self.syntax, 1usize)
-    }
-    pub fn joins(&self) -> PsqlJoinClauseList {
-        support::list(&self.syntax, 2usize)
+    pub fn items(&self) -> PsqlFromItemList {
+        support::list(&self.syntax, 1usize)
     }
 }
 impl Serialize for PsqlFromClause {
@@ -614,6 +610,45 @@ impl Serialize for PsqlFromClause {
 #[derive(Serialize)]
 pub struct PsqlFromClauseFields {
     pub from_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlFromItemList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlFromItem {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlFromItem {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlFromItemFields {
+        PsqlFromItemFields {
+            source: self.source(),
+            joins: self.joins(),
+        }
+    }
+    pub fn source(&self) -> SyntaxResult<AnyPsqlFromExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn joins(&self) -> PsqlJoinClauseList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlFromItem {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlFromItemFields {
     pub source: SyntaxResult<AnyPsqlFromExpression>,
     pub joins: PsqlJoinClauseList,
 }
@@ -2980,10 +3015,7 @@ impl std::fmt::Debug for PsqlDeleteUsingClause {
                     "using_token",
                     &support::DebugSyntaxResult(self.using_token()),
                 )
-                .field(
-                    "any_psql_from_expression",
-                    &support::DebugSyntaxResult(self.any_psql_from_expression()),
-                )
+                .field("items", &self.items())
                 .finish()
         } else {
             f.debug_struct("PsqlDeleteUsingClause").finish()
@@ -3031,8 +3063,7 @@ impl std::fmt::Debug for PsqlFromClause {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlFromClause")
                 .field("from_token", &support::DebugSyntaxResult(self.from_token()))
-                .field("source", &support::DebugSyntaxResult(self.source()))
-                .field("joins", &self.joins())
+                .field("items", &self.items())
                 .finish()
         } else {
             f.debug_struct("PsqlFromClause").finish()
@@ -3048,6 +3079,54 @@ impl From<PsqlFromClause> for SyntaxNode {
 }
 impl From<PsqlFromClause> for SyntaxElement {
     fn from(n: PsqlFromClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlFromItem {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FROM_ITEM as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FROM_ITEM
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlFromItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlFromItem")
+                .field("source", &support::DebugSyntaxResult(self.source()))
+                .field("joins", &self.joins())
+                .finish()
+        } else {
+            f.debug_struct("PsqlFromItem").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlFromItem> for SyntaxNode {
+    fn from(n: PsqlFromItem) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlFromItem> for SyntaxElement {
+    fn from(n: PsqlFromItem) -> Self {
         n.syntax.into()
     }
 }
@@ -5540,6 +5619,11 @@ impl std::fmt::Display for PsqlFromClause {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlFromItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlFunctionBinding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -6263,6 +6347,88 @@ impl IntoIterator for PsqlExpressionList {
 impl IntoIterator for &PsqlExpressionList {
     type Item = SyntaxResult<AnyPsqlExpression>;
     type IntoIter = AstSeparatedListNodesIterator<Language, AnyPsqlExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlFromItemList {
+    syntax_list: SyntaxList,
+}
+impl PsqlFromItemList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlFromItemList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FROM_ITEM_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FROM_ITEM_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlFromItemList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlFromItemList {
+    type Language = Language;
+    type Node = PsqlFromItem;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlFromItemList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlFromItemList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlFromItemList {
+    type Item = SyntaxResult<PsqlFromItem>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlFromItem>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlFromItemList {
+    type Item = SyntaxResult<PsqlFromItem>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlFromItem>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

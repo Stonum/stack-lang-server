@@ -275,25 +275,29 @@ impl PsqlDeleteStatementBuilder {
 }
 pub fn psql_delete_using_clause(
     using_token: SyntaxToken,
-    any_psql_from_expression: AnyPsqlFromExpression,
+    items: PsqlFromItemList,
 ) -> PsqlDeleteUsingClause {
     PsqlDeleteUsingClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_DELETE_USING_CLAUSE,
         [
             Some(SyntaxElement::Token(using_token)),
-            Some(SyntaxElement::Node(any_psql_from_expression.into_syntax())),
+            Some(SyntaxElement::Node(items.into_syntax())),
         ],
     ))
 }
-pub fn psql_from_clause(
-    from_token: SyntaxToken,
-    source: AnyPsqlFromExpression,
-    joins: PsqlJoinClauseList,
-) -> PsqlFromClause {
+pub fn psql_from_clause(from_token: SyntaxToken, items: PsqlFromItemList) -> PsqlFromClause {
     PsqlFromClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_FROM_CLAUSE,
         [
             Some(SyntaxElement::Token(from_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_from_item(source: AnyPsqlFromExpression, joins: PsqlJoinClauseList) -> PsqlFromItem {
+    PsqlFromItem::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FROM_ITEM,
+        [
             Some(SyntaxElement::Node(source.into_syntax())),
             Some(SyntaxElement::Node(joins.into_syntax())),
         ],
@@ -1055,6 +1059,27 @@ where
     let length = items.len() + separators.len();
     PsqlExpressionList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_EXPRESSION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_from_item_list<I, S>(items: I, separators: S) -> PsqlFromItemList
+where
+    I: IntoIterator<Item = PsqlFromItem>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlFromItemList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FROM_ITEM_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

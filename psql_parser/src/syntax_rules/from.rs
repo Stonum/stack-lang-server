@@ -1,14 +1,15 @@
 use biome_parser::parse_lists::ParseSeparatedList;
+use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    PsqlExpressionList, count_dotted_name_segments, parse_alias, parse_expression, parse_name,
-    parse_shema_qualifier, parse_table_name,
+    EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, parse_alias,
+    parse_expression, parse_name, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
 use crate::PsqlParser;
-use psql_syntax::{PsqlSyntaxKind::*, T};
+use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
 pub(crate) fn parse_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![from]) {
@@ -17,9 +18,61 @@ pub(crate) fn parse_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![from]);
+    PsqlFromItemList.parse_list(p);
+    Present(m.complete(p, PSQL_FROM_CLAUSE))
+}
+
+/// A comma-separated list of from-items, shared by `FROM` and `DELETE ...
+/// USING` (real Postgres allows the same "implicit cross join" list, each
+/// optionally followed by its own `JOIN`s, in both positions).
+pub(crate) struct PsqlFromItemList;
+
+impl ParseSeparatedList for PsqlFromItemList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_FROM_ITEM_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_from_item(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF)
+            || p.at(T![where])
+            || p.at(T![group_by])
+            || p.at(T![having])
+            || p.at(T![order_by])
+            || p.at(T![limit])
+            || p.at(T![offset])
+            || p.at(T![;])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, EXPR_RECOVERY_SET),
+            expected_from_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    let m = p.start();
     parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
     parse_join_clause_list(p);
-    Present(m.complete(p, PSQL_FROM_CLAUSE))
+    Present(m.complete(p, PSQL_FROM_ITEM))
 }
 
 fn parse_join_clause_list(p: &mut PsqlParser) -> CompletedMarker {
