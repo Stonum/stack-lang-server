@@ -122,15 +122,20 @@ pub enum OperatorPrecedence {
     BitwiseAnd = 11,
     Equality = 12,
     Relational = 13,
-    Shift = 14,
-    Additive = 15,
-    Multiplicative = 16,
-    Unary = 18,
-    Update = 19,
-    LeftHandSide = 21,
-    Member = 22,
-    Primary = 23,
-    Group = 24,
+    /// The shared precedence tier for the SQL "predicates" `[not] between`,
+    /// `[not] in` and `[not] like`/`ilike` — binds tighter than comparisons
+    /// but looser than arithmetic and the generic pattern-match operators
+    /// already folded into [OperatorPrecedence::Relational].
+    Predicate = 14,
+    Shift = 15,
+    Additive = 16,
+    Multiplicative = 17,
+    Unary = 19,
+    Update = 20,
+    LeftHandSide = 22,
+    Member = 23,
+    Primary = 24,
+    Group = 25,
 }
 
 impl OperatorPrecedence {

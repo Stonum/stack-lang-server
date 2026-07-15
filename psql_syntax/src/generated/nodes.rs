@@ -60,6 +60,66 @@ pub struct PsqlAliasFields {
     pub value: SyntaxResult<PsqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlBetweenExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlBetweenExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlBetweenExpressionFields {
+        PsqlBetweenExpressionFields {
+            expression: self.expression(),
+            not_token: self.not_token(),
+            between_token: self.between_token(),
+            low: self.low(),
+            and_token: self.and_token(),
+            high: self.high(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn between_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn low(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn and_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn high(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlBetweenExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlBetweenExpressionFields {
+    pub expression: SyntaxResult<AnyPsqlExpression>,
+    pub not_token: Option<SyntaxToken>,
+    pub between_token: SyntaxResult<SyntaxToken>,
+    pub low: SyntaxResult<AnyPsqlExpression>,
+    pub and_token: SyntaxResult<SyntaxToken>,
+    pub high: SyntaxResult<AnyPsqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlBinaryExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1765,6 +1825,7 @@ pub struct PsqlWhereClauseFields {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlExpression {
     AnyPsqlLiteralExpression(AnyPsqlLiteralExpression),
+    PsqlBetweenExpression(PsqlBetweenExpression),
     PsqlBinaryExpression(PsqlBinaryExpression),
     PsqlCallExpression(PsqlCallExpression),
     PsqlColReference(PsqlColReference),
@@ -1780,6 +1841,12 @@ impl AnyPsqlExpression {
     pub fn as_any_psql_literal_expression(&self) -> Option<&AnyPsqlLiteralExpression> {
         match &self {
             Self::AnyPsqlLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_between_expression(&self) -> Option<&PsqlBetweenExpression> {
+        match &self {
+            Self::PsqlBetweenExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -2012,6 +2079,64 @@ impl From<PsqlAlias> for SyntaxNode {
 }
 impl From<PsqlAlias> for SyntaxElement {
     fn from(n: PsqlAlias) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlBetweenExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_BETWEEN_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_BETWEEN_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlBetweenExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlBetweenExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field(
+                    "between_token",
+                    &support::DebugSyntaxResult(self.between_token()),
+                )
+                .field("low", &support::DebugSyntaxResult(self.low()))
+                .field("and_token", &support::DebugSyntaxResult(self.and_token()))
+                .field("high", &support::DebugSyntaxResult(self.high()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlBetweenExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlBetweenExpression> for SyntaxNode {
+    fn from(n: PsqlBetweenExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlBetweenExpression> for SyntaxElement {
+    fn from(n: PsqlBetweenExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -4057,6 +4182,11 @@ impl From<PsqlWhereClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl From<PsqlBetweenExpression> for AnyPsqlExpression {
+    fn from(node: PsqlBetweenExpression) -> Self {
+        Self::PsqlBetweenExpression(node)
+    }
+}
 impl From<PsqlBinaryExpression> for AnyPsqlExpression {
     fn from(node: PsqlBinaryExpression) -> Self {
         Self::PsqlBinaryExpression(node)
@@ -4110,6 +4240,7 @@ impl From<PsqlUnaryExpression> for AnyPsqlExpression {
 impl AstNode for AnyPsqlExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnyPsqlLiteralExpression::KIND_SET
+        .union(PsqlBetweenExpression::KIND_SET)
         .union(PsqlBinaryExpression::KIND_SET)
         .union(PsqlCallExpression::KIND_SET)
         .union(PsqlColReference::KIND_SET)
@@ -4122,7 +4253,8 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlUnaryExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
-            PSQL_BINARY_EXPRESSION
+            PSQL_BETWEEN_EXPRESSION
+            | PSQL_BINARY_EXPRESSION
             | PSQL_CALL_EXPRESSION
             | PSQL_COL_REFERENCE
             | PSQL_IS_NULL_EXPRESSION
@@ -4138,6 +4270,9 @@ impl AstNode for AnyPsqlExpression {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            PSQL_BETWEEN_EXPRESSION => {
+                Self::PsqlBetweenExpression(PsqlBetweenExpression { syntax })
+            }
             PSQL_BINARY_EXPRESSION => Self::PsqlBinaryExpression(PsqlBinaryExpression { syntax }),
             PSQL_CALL_EXPRESSION => Self::PsqlCallExpression(PsqlCallExpression { syntax }),
             PSQL_COL_REFERENCE => Self::PsqlColReference(PsqlColReference { syntax }),
@@ -4165,6 +4300,7 @@ impl AstNode for AnyPsqlExpression {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::PsqlBetweenExpression(it) => &it.syntax,
             Self::PsqlBinaryExpression(it) => &it.syntax,
             Self::PsqlCallExpression(it) => &it.syntax,
             Self::PsqlColReference(it) => &it.syntax,
@@ -4180,6 +4316,7 @@ impl AstNode for AnyPsqlExpression {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::PsqlBetweenExpression(it) => it.syntax,
             Self::PsqlBinaryExpression(it) => it.syntax,
             Self::PsqlCallExpression(it) => it.syntax,
             Self::PsqlColReference(it) => it.syntax,
@@ -4198,6 +4335,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AnyPsqlLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlBetweenExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCallExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlColReference(it) => std::fmt::Debug::fmt(it, f),
@@ -4215,6 +4353,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
     fn from(n: AnyPsqlExpression) -> Self {
         match n {
             AnyPsqlExpression::AnyPsqlLiteralExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlBetweenExpression(it) => it.into(),
             AnyPsqlExpression::PsqlBinaryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlCallExpression(it) => it.into(),
             AnyPsqlExpression::PsqlColReference(it) => it.into(),
@@ -4629,6 +4768,11 @@ impl std::fmt::Display for AnyPsqlStatement {
     }
 }
 impl std::fmt::Display for PsqlAlias {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlBetweenExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

@@ -31,6 +31,49 @@ impl PsqlAliasBuilder {
         ))
     }
 }
+pub fn psql_between_expression(
+    expression: AnyPsqlExpression,
+    between_token: SyntaxToken,
+    low: AnyPsqlExpression,
+    and_token: SyntaxToken,
+    high: AnyPsqlExpression,
+) -> PsqlBetweenExpressionBuilder {
+    PsqlBetweenExpressionBuilder {
+        expression,
+        between_token,
+        low,
+        and_token,
+        high,
+        not_token: None,
+    }
+}
+pub struct PsqlBetweenExpressionBuilder {
+    expression: AnyPsqlExpression,
+    between_token: SyntaxToken,
+    low: AnyPsqlExpression,
+    and_token: SyntaxToken,
+    high: AnyPsqlExpression,
+    not_token: Option<SyntaxToken>,
+}
+impl PsqlBetweenExpressionBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> PsqlBetweenExpression {
+        PsqlBetweenExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_BETWEEN_EXPRESSION,
+            [
+                Some(SyntaxElement::Node(self.expression.into_syntax())),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.between_token)),
+                Some(SyntaxElement::Node(self.low.into_syntax())),
+                Some(SyntaxElement::Token(self.and_token)),
+                Some(SyntaxElement::Node(self.high.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_binary_expression(
     left: AnyPsqlExpression,
     operator_token_token: SyntaxToken,
