@@ -254,7 +254,7 @@ impl PsqlDeleteUsingClause {
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
-    pub fn with_any_psql_from_expression(self, element: AnyPsqlFromExpression) -> Self {
+    pub fn with_items(self, element: PsqlFromItemList) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
@@ -268,16 +268,24 @@ impl PsqlFromClause {
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
-    pub fn with_source(self, element: AnyPsqlFromExpression) -> Self {
+    pub fn with_items(self, element: PsqlFromItemList) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
         )
     }
+}
+impl PsqlFromItem {
+    pub fn with_source(self, element: AnyPsqlFromExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into_syntax().into()))),
+        )
+    }
     pub fn with_joins(self, element: PsqlJoinClauseList) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
         )
     }
 }

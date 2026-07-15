@@ -447,7 +447,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && AnyPsqlFromExpression::can_cast(element.kind())
+                    && PsqlFromItemList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -463,7 +463,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_FROM_CLAUSE => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![from]
@@ -472,6 +472,25 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     current_element = elements.next();
                 }
                 slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlFromItemList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_FROM_CLAUSE.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_FROM_CLAUSE, children)
+            }
+            PSQL_FROM_ITEM => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && AnyPsqlFromExpression::can_cast(element.kind())
                 {
@@ -488,11 +507,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
-                        PSQL_FROM_CLAUSE.to_bogus(),
+                        PSQL_FROM_ITEM.to_bogus(),
                         children.into_iter().map(Some),
                     );
                 }
-                slots.into_node(PSQL_FROM_CLAUSE, children)
+                slots.into_node(PSQL_FROM_ITEM, children)
             }
             PSQL_FUNCTION_BINDING => {
                 let mut elements = (&children).into_iter();
@@ -1616,6 +1635,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 kind,
                 children,
                 AnyPsqlExpression::can_cast,
+                T ! [,],
+                false,
+            ),
+            PSQL_FROM_ITEM_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                PsqlFromItem::can_cast,
                 T ! [,],
                 false,
             ),
