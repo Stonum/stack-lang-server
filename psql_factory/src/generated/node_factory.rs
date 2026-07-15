@@ -683,6 +683,18 @@ impl PsqlTableNameBuilder {
         ))
     }
 }
+pub fn psql_unary_expression(
+    operator_token_token: SyntaxToken,
+    expression: AnyPsqlExpression,
+) -> PsqlUnaryExpression {
+    PsqlUnaryExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_UNARY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Node(expression.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_update_statement(
     update_token: SyntaxToken,
     table: PsqlTableBinding,

@@ -249,9 +249,14 @@ AnyPsqlExpression =
    | PsqlColReference
    | PsqlBinaryExpression
    | PsqlLogicalExpression
+   | PsqlUnaryExpression
    | PsqlParenthesizedExpression
    | PsqlCallExpression
    | AnyPsqlLiteralExpression
+
+PsqlUnaryExpression =
+   operator_token: ('not' | '-' | '+')
+   expression: AnyPsqlExpression
 
 PsqlCallExpression =
    schema: PsqlShemaName?
