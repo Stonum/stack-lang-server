@@ -33,7 +33,7 @@ impl<'l> PsqlTokenSource<'l> {
         let buffered = BufferedLexer::new(lexer);
         let mut source = PsqlTokenSource::new(buffered);
 
-        source.next_non_trivia_token(PsqlLexContext::default(), true);
+        source.next_non_trivia_token(PsqlLexContext, true);
         source
     }
 
