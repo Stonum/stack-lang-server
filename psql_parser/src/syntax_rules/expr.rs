@@ -80,7 +80,7 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     match p.cur() {
         T!['('] => parse_parenthesized_expression(p),
-        T![ident] => parse_name(p),
+        T![ident] => parse_col_reference(p),
         _ => Absent,
     }
 }
@@ -122,6 +122,86 @@ fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     p.expect(T![')']);
     Present(m.complete(p, PSQL_PARENTHESIZED_EXPRESSION))
+}
+
+/// A column reference such as `col`, `table.col`, `schema.table.col` or
+/// `db.schema.table.col`. The grammar only supports up to two levels of
+/// qualification (schema and database), so longer dotted chains are parsed
+/// as `db.schema.table.col` and anything past that is left for the caller
+/// to report as an unexpected token.
+fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    match count_dotted_name_segments(p) {
+        1 => {
+            let m = p.start();
+            parse_name(p).unwrap();
+            Present(m.complete(p, PSQL_COL_REFERENCE))
+        }
+        2 => {
+            let table_col_reference = p.start();
+            let table_name = p.start();
+            parse_name(p).unwrap();
+            table_name.complete(p, PSQL_TABLE_NAME);
+
+            p.bump(T![.]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
+        }
+        3 => {
+            let table_col_reference = p.start();
+            let table_name = p.start();
+            let schema_name = p.start();
+            parse_name(p).unwrap();
+            p.bump(T![.]);
+            schema_name.complete(p, PSQL_SHEMA_NAME);
+
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            table_name.complete(p, PSQL_TABLE_NAME);
+
+            p.bump(T![.]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
+        }
+        _ => {
+            let table_col_reference = p.start();
+            let table_name = p.start();
+            let schema_name = p.start();
+            let database_name = p.start();
+            parse_name(p).unwrap();
+            p.bump(T![.]);
+            database_name.complete(p, PSQL_DATA_BASE_NAME);
+
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            p.bump(T![.]);
+            schema_name.complete(p, PSQL_SHEMA_NAME);
+
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            table_name.complete(p, PSQL_TABLE_NAME);
+
+            p.bump(T![.]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
+        }
+    }
+}
+
+/// Counts the number of `ident (. ident)*` segments ahead without consuming them.
+fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
+    p.lookahead(|p| {
+        let mut count = 0;
+        while p.at(T![ident]) {
+            count += 1;
+            p.bump(T![ident]);
+            if !p.at(T![.]) {
+                break;
+            }
+            p.bump(T![.]);
+        }
+        count
+    })
 }
 
 fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
