@@ -25,19 +25,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![as] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![as] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -51,15 +49,14 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if matches!(
+                if let Some(element) = &current_element
+                    && matches!(
                         element.kind(),
                         T ! [<]
                             | T ! [>]
@@ -86,14 +83,12 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -107,12 +102,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if matches!(element.kind(), T![true] | T![false]) {
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![true] | T![false]) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -126,12 +120,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -145,19 +138,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [.] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [.] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -171,47 +162,41 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![delete] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![delete] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![from] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![from] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlTableBinding::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlTableBinding::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlDeleteUsingClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlDeleteUsingClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlWhereClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlWhereClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [;] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -225,19 +210,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![using] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![using] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlFromExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlFromExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -251,19 +234,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![from] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![from] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlFromExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlFromExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -277,47 +258,41 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlShemaName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlShemaName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T!['('] {
+                if let Some(element) = &current_element
+                    && element.kind() == T!['('] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlExpressionList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlExpressionList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![')'] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![')'] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlAlias::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlAlias::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -331,19 +306,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![group_by] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![group_by] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlGroupByItemList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlGroupByItemList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -357,19 +330,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![having] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![having] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -383,26 +354,23 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T!['('] {
+                if let Some(element) = &current_element
+                    && element.kind() == T!['('] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlInsertColumnList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlInsertColumnList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![')'] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![')'] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -416,47 +384,41 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![insert] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![insert] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![into] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![into] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlTableBinding::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlTableBinding::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlInsertColumns::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlInsertColumns::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlInsertSource::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlInsertSource::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [;] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -470,33 +432,29 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![values] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![values] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T!['('] {
+                if let Some(element) = &current_element
+                    && element.kind() == T!['('] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlExpressionList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlExpressionList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![')'] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![')'] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -510,19 +468,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![limit] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![limit] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlNumberLiteralExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlNumberLiteralExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -536,26 +492,23 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if matches!(element.kind(), T![and] | T![or]) {
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![and] | T![or]) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -569,12 +522,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == IDENT {
+                if let Some(element) = &current_element
+                    && element.kind() == IDENT {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -588,12 +540,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![null] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![null] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -607,12 +558,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == PSQL_NUMBER_LITERAL {
+                if let Some(element) = &current_element
+                    && element.kind() == PSQL_NUMBER_LITERAL {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -626,19 +576,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![offset] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![offset] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlNumberLiteralExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlNumberLiteralExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -652,19 +600,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![order_by] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![order_by] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlOrderByExpressionList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlOrderByExpressionList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -678,19 +624,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if matches!(element.kind(), T![asc] | T![desc]) {
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![asc] | T![desc]) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -704,26 +648,23 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T!['('] {
+                if let Some(element) = &current_element
+                    && element.kind() == T!['('] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![')'] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![')'] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -737,19 +678,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlStatementList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlStatementList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![EOF] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![EOF] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -763,19 +702,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![select] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![select] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlSelectItemList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlSelectItemList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -789,19 +726,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlAlias::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlAlias::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -815,68 +750,59 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<9usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlSelectClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlSelectClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlFromClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlFromClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlWhereClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlWhereClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlGroupByClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlGroupByClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlHavingClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlHavingClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlOrderByClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlOrderByClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlLimitClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlLimitClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlOffsetClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlOffsetClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [;] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -890,19 +816,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![set] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![set] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlSetItemList::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlSetItemList::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -916,26 +840,23 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [=] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [=] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -949,26 +870,23 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlDataBaseName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlDataBaseName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [.] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [.] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -982,12 +900,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [*] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [*] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -1001,12 +918,11 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == PSQL_STRING_LITERAL {
+                if let Some(element) = &current_element
+                    && element.kind() == PSQL_STRING_LITERAL {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -1020,19 +936,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlTableName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlTableName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlAlias::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlAlias::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -1046,26 +960,23 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlTableName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlTableName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [.] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [.] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -1079,19 +990,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if PsqlShemaName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlShemaName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlName::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -1105,40 +1014,35 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<5usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![update] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![update] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlTableBinding::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlTableBinding::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlSetClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlSetClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if PsqlWhereClause::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && PsqlWhereClause::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if element.kind() == T ! [;] {
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
@@ -1152,19 +1056,17 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
-                if let Some(element) = &current_element {
-                    if element.kind() == T![where] {
+                if let Some(element) = &current_element
+                    && element.kind() == T![where] {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
-                if let Some(element) = &current_element {
-                    if AnyPsqlExpression::can_cast(element.kind()) {
+                if let Some(element) = &current_element
+                    && AnyPsqlExpression::can_cast(element.kind()) {
                         slots.mark_present();
                         current_element = elements.next();
                     }
-                }
                 slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(

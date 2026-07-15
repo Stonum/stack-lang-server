@@ -33,7 +33,7 @@ pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
     statement_list.complete(p, PSQL_STATEMENT_LIST);
 }
 
-pub(crate) fn parse_statement(p: &mut PsqlParser, context: StatementContext) -> ParsedSyntax {
+pub(crate) fn parse_statement(p: &mut PsqlParser, _context: StatementContext) -> ParsedSyntax {
     match p.cur() {
         T![select] => parse_select_statement(p),
         // T![:] => parse_annotation_statement(p, context),
