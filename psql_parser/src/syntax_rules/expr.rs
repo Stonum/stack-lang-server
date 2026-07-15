@@ -31,6 +31,23 @@ fn parse_binary_or_logical_expression_recursive(
     left_precedence: OperatorPrecedence,
 ) -> ParsedSyntax {
     loop {
+        if p.at(T![is]) {
+            if OperatorPrecedence::IsNull <= left_precedence {
+                break;
+            }
+
+            if left.is_absent() {
+                report_missing_left_operand(p);
+            }
+
+            let m = left.precede(p);
+            p.bump(T![is]);
+            p.eat(T![not]);
+            p.expect(T![null]);
+            left = Present(m.complete(p, PSQL_IS_NULL_EXPRESSION));
+            continue;
+        }
+
         let op = p.cur();
 
         let new_precedence = match OperatorPrecedence::try_from_binary_operator(op) {
@@ -44,17 +61,7 @@ fn parse_binary_or_logical_expression_recursive(
         }
 
         if left.is_absent() {
-            let op_range = p.cur_range();
-            let err = p
-                .err_builder(
-                    format!(
-                        "Expected an expression for the left hand side of the `{}` operator.",
-                        p.text(op_range),
-                    ),
-                    op_range,
-                )
-                .with_hint("This operator requires a left hand side value");
-            p.error(err);
+            report_missing_left_operand(p);
         }
 
         let m = left.precede(p);
@@ -72,6 +79,20 @@ fn parse_binary_or_logical_expression_recursive(
     }
 
     left
+}
+
+fn report_missing_left_operand(p: &mut PsqlParser) {
+    let op_range = p.cur_range();
+    let err = p
+        .err_builder(
+            format!(
+                "Expected an expression for the left hand side of the `{}` operator.",
+                p.text(op_range),
+            ),
+            op_range,
+        )
+        .with_hint("This operator requires a left hand side value");
+    p.error(err);
 }
 
 /// A unary expression. `-`/`+` (arithmetic sign) bind tighter than every

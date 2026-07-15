@@ -329,6 +329,41 @@ pub fn psql_insert_values(
         ],
     ))
 }
+pub fn psql_is_null_expression(
+    expression: AnyPsqlExpression,
+    is_token: SyntaxToken,
+    null_token: SyntaxToken,
+) -> PsqlIsNullExpressionBuilder {
+    PsqlIsNullExpressionBuilder {
+        expression,
+        is_token,
+        null_token,
+        not_token: None,
+    }
+}
+pub struct PsqlIsNullExpressionBuilder {
+    expression: AnyPsqlExpression,
+    is_token: SyntaxToken,
+    null_token: SyntaxToken,
+    not_token: Option<SyntaxToken>,
+}
+impl PsqlIsNullExpressionBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> PsqlIsNullExpression {
+        PsqlIsNullExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_IS_NULL_EXPRESSION,
+            [
+                Some(SyntaxElement::Node(self.expression.into_syntax())),
+                Some(SyntaxElement::Token(self.is_token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.null_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_limit_clause(
     limit_token: SyntaxToken,
     limit_count: PsqlNumberLiteralExpression,
