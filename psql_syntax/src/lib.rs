@@ -114,20 +114,23 @@ pub enum OperatorPrecedence {
     /// `not x` — binds looser than every other operator (including
     /// comparisons) but tighter than `and`/`or`.
     Not = 7,
-    BitwiseOr = 8,
-    BitwiseXor = 9,
-    BitwiseAnd = 10,
-    Equality = 11,
-    Relational = 12,
-    Shift = 13,
-    Additive = 14,
-    Multiplicative = 15,
-    Unary = 17,
-    Update = 18,
-    LeftHandSide = 20,
-    Member = 21,
-    Primary = 22,
-    Group = 23,
+    /// `x is [not] null` — a postfix operator, binds looser than
+    /// comparisons but tighter than `not`/`and`/`or`.
+    IsNull = 8,
+    BitwiseOr = 9,
+    BitwiseXor = 10,
+    BitwiseAnd = 11,
+    Equality = 12,
+    Relational = 13,
+    Shift = 14,
+    Additive = 15,
+    Multiplicative = 16,
+    Unary = 18,
+    Update = 19,
+    LeftHandSide = 21,
+    Member = 22,
+    Primary = 23,
+    Group = 24,
 }
 
 impl OperatorPrecedence {

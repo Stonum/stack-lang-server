@@ -250,6 +250,7 @@ AnyPsqlExpression =
    | PsqlBinaryExpression
    | PsqlLogicalExpression
    | PsqlUnaryExpression
+   | PsqlIsNullExpression
    | PsqlParenthesizedExpression
    | PsqlCallExpression
    | AnyPsqlLiteralExpression
@@ -257,6 +258,12 @@ AnyPsqlExpression =
 PsqlUnaryExpression =
    operator_token: ('not' | '-' | '+')
    expression: AnyPsqlExpression
+
+PsqlIsNullExpression =
+   expression: AnyPsqlExpression
+   'is'
+   'not'?
+   'null'
 
 PsqlCallExpression =
    schema: PsqlShemaName?
