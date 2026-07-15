@@ -53,3 +53,17 @@ fn test_select_binary_expression_precedence() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_col_references() {
+    let res = parse("select a, t.a, s.t.a, d.s.t.a", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_col_reference_with_implicit_alias() {
+    let res = parse("select t.a b, t.a as b", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
