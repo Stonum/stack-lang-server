@@ -6,7 +6,6 @@ use psql_syntax::PsqlSyntaxKind::{self, EOF};
 use psql_syntax::T;
 
 use biome_parser::lexer::{BufferedLexer, Lexer};
-use biome_rowan::TextRange;
 use biome_rowan::TextSize;
 
 // Макрос для проверки лексирования
@@ -149,7 +148,7 @@ fn keywords() {
         });
 
         let mut lexer = PsqlLexer::from_str(keyword);
-        lexer.next_token(PsqlLexContext::default());
+        lexer.next_token(PsqlLexContext);
 
         let lexed_kind = lexer.current();
         assert_eq!(
@@ -166,7 +165,7 @@ fn keywords() {
             lexed_range.len()
         );
 
-        assert_eq!(lexer.next_token(PsqlLexContext::default()), EOF);
+        assert_eq!(lexer.next_token(PsqlLexContext), EOF);
     }
 }
 
@@ -393,7 +392,7 @@ fn lookahead_buffer() {
     let lexer = PsqlLexer::from_str("SELECT * FROM t");
     let mut buffered = BufferedLexer::new(lexer);
 
-    buffered.next_token(PsqlLexContext::default());
+    buffered.next_token(PsqlLexContext);
     assert_eq!(buffered.current(), T![select]);
     assert!(!buffered.has_preceding_line_break());
 
@@ -407,14 +406,14 @@ fn lookahead_buffer() {
         );
     }
 
-    buffered.next_token(PsqlLexContext::default()); // WHITESPACE
-    buffered.next_token(PsqlLexContext::default()); // STAR
-    buffered.next_token(PsqlLexContext::default()); // WHITESPACE
-    buffered.next_token(PsqlLexContext::default()); // FROM_KW
+    buffered.next_token(PsqlLexContext); // WHITESPACE
+    buffered.next_token(PsqlLexContext); // STAR
+    buffered.next_token(PsqlLexContext); // WHITESPACE
+    buffered.next_token(PsqlLexContext); // FROM_KW
     assert!(!buffered.has_preceding_line_break());
 
-    buffered.next_token(PsqlLexContext::default()); // WHITESPACE
-    buffered.next_token(PsqlLexContext::default()); // IDENT
-    buffered.next_token(PsqlLexContext::default()); // EOF
+    buffered.next_token(PsqlLexContext); // WHITESPACE
+    buffered.next_token(PsqlLexContext); // IDENT
+    buffered.next_token(PsqlLexContext); // EOF
     assert_eq!(buffered.current(), EOF);
 }

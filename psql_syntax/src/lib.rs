@@ -116,6 +116,7 @@ pub enum OperatorPrecedence {
     BitwiseAnd = 9,
     Equality = 10,
     Relational = 11,
+    Shift = 12,
     Additive = 13,
     Multiplicative = 14,
     Unary = 16,
@@ -151,10 +152,16 @@ impl OperatorPrecedence {
     /// Returns the precedence for a binary operator token or [None] if the token isn't a binary operator
     pub fn try_from_binary_operator(kind: PsqlSyntaxKind) -> Option<OperatorPrecedence> {
         Some(match kind {
+            T![or] => OperatorPrecedence::LogicalOr,
+            T![and] => OperatorPrecedence::LogicalAnd,
             T![|] => OperatorPrecedence::BitwiseOr,
             T![^] => OperatorPrecedence::BitwiseXor,
             T![&] => OperatorPrecedence::BitwiseAnd,
-            T![<] | T![>] | T![<=] | T![>=] => OperatorPrecedence::Relational,
+            T![=] | T![!=] | T![<>] => OperatorPrecedence::Equality,
+            T![<] | T![>] | T![<=] | T![>=] | T![~] | T![!~] | T![~*] | T![!~*] => {
+                OperatorPrecedence::Relational
+            }
+            T![<<] | T![>>] => OperatorPrecedence::Shift,
             T![+] | T![-] => OperatorPrecedence::Additive,
             T![*] | T![/] | T![%] => OperatorPrecedence::Multiplicative,
             _ => return None,
