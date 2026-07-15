@@ -1,6 +1,7 @@
 mod delete;
 mod expr;
 mod from;
+mod insert;
 mod parse_error;
 pub mod program;
 mod select;

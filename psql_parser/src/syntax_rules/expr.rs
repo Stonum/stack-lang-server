@@ -1,3 +1,5 @@
+use biome_parser::parse_lists::ParseSeparatedList;
+use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
@@ -236,4 +238,38 @@ pub(crate) fn parse_alias(p: &mut PsqlParser) {
         parse_name(p).unwrap();
     }
     m.complete(p, PSQL_ALIAS);
+}
+
+/// A parenthesized, comma-separated expression list with no trailing comma,
+/// e.g. function call arguments or `VALUES (...)` items.
+pub(crate) struct PsqlExpressionList;
+
+impl ParseSeparatedList for PsqlExpressionList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_EXPRESSION_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
 }
