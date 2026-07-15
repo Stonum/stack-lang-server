@@ -294,6 +294,49 @@ pub fn psql_having_clause(
         ],
     ))
 }
+pub fn psql_in_expression(
+    expression: AnyPsqlExpression,
+    in_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlInExpressionBuilder {
+    PsqlInExpressionBuilder {
+        expression,
+        in_token,
+        l_paren_token,
+        items,
+        r_paren_token,
+        not_token: None,
+    }
+}
+pub struct PsqlInExpressionBuilder {
+    expression: AnyPsqlExpression,
+    in_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+    not_token: Option<SyntaxToken>,
+}
+impl PsqlInExpressionBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> PsqlInExpression {
+        PsqlInExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_IN_EXPRESSION,
+            [
+                Some(SyntaxElement::Node(self.expression.into_syntax())),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.in_token)),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.items.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_insert_columns(
     l_paren_token: SyntaxToken,
     items: PsqlInsertColumnList,
