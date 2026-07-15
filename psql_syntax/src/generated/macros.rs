@@ -69,6 +69,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlHavingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_IN_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlInExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_INSERT_COLUMNS => {
                     let $pattern = unsafe { $crate::PsqlInsertColumns::new_unchecked(node) };
                     $body

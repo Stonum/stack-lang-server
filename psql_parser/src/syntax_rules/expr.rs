@@ -71,6 +71,25 @@ fn parse_binary_or_logical_expression_recursive(
             continue;
         }
 
+        if at_not_prefixed_predicate(p, T![in]) {
+            if OperatorPrecedence::Predicate <= left_precedence {
+                break;
+            }
+
+            if left.is_absent() {
+                report_missing_left_operand(p);
+            }
+
+            let m = left.precede(p);
+            p.eat(T![not]);
+            p.bump(T![in]);
+            p.expect(T!['(']);
+            PsqlExpressionList.parse_list(p);
+            p.expect(T![')']);
+            left = Present(m.complete(p, PSQL_IN_EXPRESSION));
+            continue;
+        }
+
         let op = p.cur();
 
         let new_precedence = match OperatorPrecedence::try_from_binary_operator(op) {

@@ -608,6 +608,66 @@ pub struct PsqlHavingClauseFields {
     pub condition: SyntaxResult<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlInExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlInExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlInExpressionFields {
+        PsqlInExpressionFields {
+            expression: self.expression(),
+            not_token: self.not_token(),
+            in_token: self.in_token(),
+            l_paren_token: self.l_paren_token(),
+            items: self.items(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn in_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn items(&self) -> PsqlExpressionList {
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlInExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlInExpressionFields {
+    pub expression: SyntaxResult<AnyPsqlExpression>,
+    pub not_token: Option<SyntaxToken>,
+    pub in_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlInsertColumns {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1829,6 +1889,7 @@ pub enum AnyPsqlExpression {
     PsqlBinaryExpression(PsqlBinaryExpression),
     PsqlCallExpression(PsqlCallExpression),
     PsqlColReference(PsqlColReference),
+    PsqlInExpression(PsqlInExpression),
     PsqlIsNullExpression(PsqlIsNullExpression),
     PsqlLogicalExpression(PsqlLogicalExpression),
     PsqlName(PsqlName),
@@ -1865,6 +1926,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_col_reference(&self) -> Option<&PsqlColReference> {
         match &self {
             Self::PsqlColReference(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_in_expression(&self) -> Option<&PsqlInExpression> {
+        match &self {
+            Self::PsqlInExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -2711,6 +2778,67 @@ impl From<PsqlHavingClause> for SyntaxNode {
 }
 impl From<PsqlHavingClause> for SyntaxElement {
     fn from(n: PsqlHavingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlInExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_IN_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_IN_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlInExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlInExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field("in_token", &support::DebugSyntaxResult(self.in_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlInExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlInExpression> for SyntaxNode {
+    fn from(n: PsqlInExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlInExpression> for SyntaxElement {
+    fn from(n: PsqlInExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -4202,6 +4330,11 @@ impl From<PsqlColReference> for AnyPsqlExpression {
         Self::PsqlColReference(node)
     }
 }
+impl From<PsqlInExpression> for AnyPsqlExpression {
+    fn from(node: PsqlInExpression) -> Self {
+        Self::PsqlInExpression(node)
+    }
+}
 impl From<PsqlIsNullExpression> for AnyPsqlExpression {
     fn from(node: PsqlIsNullExpression) -> Self {
         Self::PsqlIsNullExpression(node)
@@ -4244,6 +4377,7 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlBinaryExpression::KIND_SET)
         .union(PsqlCallExpression::KIND_SET)
         .union(PsqlColReference::KIND_SET)
+        .union(PsqlInExpression::KIND_SET)
         .union(PsqlIsNullExpression::KIND_SET)
         .union(PsqlLogicalExpression::KIND_SET)
         .union(PsqlName::KIND_SET)
@@ -4257,6 +4391,7 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_BINARY_EXPRESSION
             | PSQL_CALL_EXPRESSION
             | PSQL_COL_REFERENCE
+            | PSQL_IN_EXPRESSION
             | PSQL_IS_NULL_EXPRESSION
             | PSQL_LOGICAL_EXPRESSION
             | PSQL_NAME
@@ -4276,6 +4411,7 @@ impl AstNode for AnyPsqlExpression {
             PSQL_BINARY_EXPRESSION => Self::PsqlBinaryExpression(PsqlBinaryExpression { syntax }),
             PSQL_CALL_EXPRESSION => Self::PsqlCallExpression(PsqlCallExpression { syntax }),
             PSQL_COL_REFERENCE => Self::PsqlColReference(PsqlColReference { syntax }),
+            PSQL_IN_EXPRESSION => Self::PsqlInExpression(PsqlInExpression { syntax }),
             PSQL_IS_NULL_EXPRESSION => Self::PsqlIsNullExpression(PsqlIsNullExpression { syntax }),
             PSQL_LOGICAL_EXPRESSION => {
                 Self::PsqlLogicalExpression(PsqlLogicalExpression { syntax })
@@ -4304,6 +4440,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlBinaryExpression(it) => &it.syntax,
             Self::PsqlCallExpression(it) => &it.syntax,
             Self::PsqlColReference(it) => &it.syntax,
+            Self::PsqlInExpression(it) => &it.syntax,
             Self::PsqlIsNullExpression(it) => &it.syntax,
             Self::PsqlLogicalExpression(it) => &it.syntax,
             Self::PsqlName(it) => &it.syntax,
@@ -4320,6 +4457,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlBinaryExpression(it) => it.syntax,
             Self::PsqlCallExpression(it) => it.syntax,
             Self::PsqlColReference(it) => it.syntax,
+            Self::PsqlInExpression(it) => it.syntax,
             Self::PsqlIsNullExpression(it) => it.syntax,
             Self::PsqlLogicalExpression(it) => it.syntax,
             Self::PsqlName(it) => it.syntax,
@@ -4339,6 +4477,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCallExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlColReference(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlInExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlIsNullExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlLogicalExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlName(it) => std::fmt::Debug::fmt(it, f),
@@ -4357,6 +4496,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlBinaryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlCallExpression(it) => it.into(),
             AnyPsqlExpression::PsqlColReference(it) => it.into(),
+            AnyPsqlExpression::PsqlInExpression(it) => it.into(),
             AnyPsqlExpression::PsqlIsNullExpression(it) => it.into(),
             AnyPsqlExpression::PsqlLogicalExpression(it) => it.into(),
             AnyPsqlExpression::PsqlName(it) => it.into(),
@@ -4828,6 +4968,11 @@ impl std::fmt::Display for PsqlGroupByClause {
     }
 }
 impl std::fmt::Display for PsqlHavingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlInExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
