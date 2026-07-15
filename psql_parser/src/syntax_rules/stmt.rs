@@ -93,6 +93,7 @@ fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let _ = parse_where_clause(p);
     let _ = parse_group_by_clause(p);
     let _ = parse_having_clause(p);
+    let _ = parse_order_by_clause(p);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
 }
@@ -131,7 +132,7 @@ impl ParseSeparatedList for PsqlGroupByItemList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![;]) || p.at(T![having])
+        p.at(EOF) || p.at(T![;]) || p.at(T![having]) || p.at(T![order_by])
     }
 
     fn recover(
@@ -166,6 +167,57 @@ fn parse_having_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_HAVING_CLAUSE))
 }
 
+fn parse_order_by_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![order_by]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![order_by]);
+    PsqlOrderByExpressionList.parse_list(p);
+    Present(m.complete(p, PSQL_ORDER_BY_CLAUSE))
+}
+
+struct PsqlOrderByExpressionList;
+
+impl ParseSeparatedList for PsqlOrderByExpressionList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_ORDER_BY_EXPRESSION_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_order_by_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![;])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+fn parse_order_by_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    if parse_expression(p).is_present() && (p.at(T![asc]) || p.at(T![desc])) {
+        p.bump_any();
+    }
+    Present(m.complete(p, PSQL_ORDER_BY_EXPRESSION))
+}
+
 struct PsqlSelectItemList;
 
 impl ParseSeparatedList for PsqlSelectItemList {
@@ -178,7 +230,12 @@ impl ParseSeparatedList for PsqlSelectItemList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![from]) || p.at(T![where]) || p.at(T![group_by]) || p.at(T![having])
+        p.at(EOF)
+            || p.at(T![from])
+            || p.at(T![where])
+            || p.at(T![group_by])
+            || p.at(T![having])
+            || p.at(T![order_by])
     }
 
     fn recover(
