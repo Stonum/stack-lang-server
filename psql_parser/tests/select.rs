@@ -141,3 +141,23 @@ fn test_select_having_clause() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_order_by_clause() {
+    let res = parse(
+        "select a, b from t order_by a asc, b desc, a + b",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_order_by_after_having() {
+    let res = parse(
+        "select a, b from t group_by a having b > 1 order_by a desc",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
