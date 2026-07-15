@@ -50,3 +50,33 @@ fn test_multiple_insert_and_update_statements() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_insert_select() {
+    let res = parse(
+        "insert into t select a, b from u where a > 1",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_insert_select_with_columns_and_trailing_semicolon() {
+    let res = parse(
+        "insert into t (a, b) select a, b from u;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_multiple_insert_select_statements() {
+    let res = parse(
+        "insert into t select a from u; insert into t values (1);",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

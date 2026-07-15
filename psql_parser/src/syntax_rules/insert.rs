@@ -6,6 +6,7 @@ use biome_parser::prelude::*;
 use super::expr::{EXPR_RECOVERY_SET, PsqlExpressionList, parse_name};
 use super::from::parse_table_binding;
 use super::parse_error::*;
+use super::select::parse_select_statement;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -70,10 +71,14 @@ impl ParseSeparatedList for PsqlInsertColumnList {
     }
 }
 
-/// The source of the inserted rows. Currently only `VALUES (...)` is
-/// supported; `INSERT ... SELECT` is a separate follow-up step.
+/// The source of the inserted rows: either `VALUES (...)` or a `SELECT`
+/// statement (`INSERT INTO t SELECT ...`).
 fn parse_insert_source(p: &mut PsqlParser) -> ParsedSyntax {
-    parse_insert_values(p)
+    match p.cur() {
+        T![values] => parse_insert_values(p),
+        T![select] => parse_select_statement(p),
+        _ => Absent,
+    }
 }
 
 fn parse_insert_values(p: &mut PsqlParser) -> ParsedSyntax {
