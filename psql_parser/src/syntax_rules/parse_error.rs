@@ -41,3 +41,7 @@ pub fn expected_type_name(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
 pub fn expected_conflict_action(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("do nothing or do update", range, p)
 }
+
+pub fn expected_window_specification(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("window specification", range, p)
+}

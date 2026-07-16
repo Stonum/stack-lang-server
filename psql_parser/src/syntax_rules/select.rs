@@ -151,7 +151,7 @@ fn parse_having_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_HAVING_CLAUSE))
 }
 
-fn parse_order_by_clause(p: &mut PsqlParser) -> ParsedSyntax {
+pub(crate) fn parse_order_by_clause(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![order_by]) {
         return Absent;
     }

@@ -3038,6 +3038,141 @@ pub struct PsqlWhereClauseFields {
     pub condition: SyntaxResult<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlWindowFunctionExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlWindowFunctionExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlWindowFunctionExpressionFields {
+        PsqlWindowFunctionExpressionFields {
+            call: self.call(),
+            over_token: self.over_token(),
+            window: self.window(),
+        }
+    }
+    pub fn call(&self) -> SyntaxResult<PsqlCallExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn over_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn window(&self) -> SyntaxResult<PsqlWindowSpecification> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlWindowFunctionExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlWindowFunctionExpressionFields {
+    pub call: SyntaxResult<PsqlCallExpression>,
+    pub over_token: SyntaxResult<SyntaxToken>,
+    pub window: SyntaxResult<PsqlWindowSpecification>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlWindowPartitionByClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlWindowPartitionByClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlWindowPartitionByClauseFields {
+        PsqlWindowPartitionByClauseFields {
+            partition_by_token: self.partition_by_token(),
+            items: self.items(),
+        }
+    }
+    pub fn partition_by_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn items(&self) -> PsqlWindowPartitionByItemList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlWindowPartitionByClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlWindowPartitionByClauseFields {
+    pub partition_by_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlWindowPartitionByItemList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlWindowSpecification {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlWindowSpecification {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlWindowSpecificationFields {
+        PsqlWindowSpecificationFields {
+            l_paren_token: self.l_paren_token(),
+            partition_by_clause: self.partition_by_clause(),
+            order_by_clause: self.order_by_clause(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn partition_by_clause(&self) -> Option<PsqlWindowPartitionByClause> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn order_by_clause(&self) -> Option<PsqlOrderByClause> {
+        support::node(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlWindowSpecification {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlWindowSpecificationFields {
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub partition_by_clause: Option<PsqlWindowPartitionByClause>,
+    pub order_by_clause: Option<PsqlOrderByClause>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlWithClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3142,6 +3277,7 @@ pub enum AnyPsqlExpression {
     PsqlSubqueryExpression(PsqlSubqueryExpression),
     PsqlTableColReference(PsqlTableColReference),
     PsqlUnaryExpression(PsqlUnaryExpression),
+    PsqlWindowFunctionExpression(PsqlWindowFunctionExpression),
 }
 impl AnyPsqlExpression {
     pub fn as_any_psql_literal_expression(&self) -> Option<&AnyPsqlLiteralExpression> {
@@ -3261,6 +3397,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_unary_expression(&self) -> Option<&PsqlUnaryExpression> {
         match &self {
             Self::PsqlUnaryExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_window_function_expression(&self) -> Option<&PsqlWindowFunctionExpression> {
+        match &self {
+            Self::PsqlWindowFunctionExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -6912,6 +7054,168 @@ impl From<PsqlWhereClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlWindowFunctionExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_WINDOW_FUNCTION_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_WINDOW_FUNCTION_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlWindowFunctionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlWindowFunctionExpression")
+                .field("call", &support::DebugSyntaxResult(self.call()))
+                .field("over_token", &support::DebugSyntaxResult(self.over_token()))
+                .field("window", &support::DebugSyntaxResult(self.window()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlWindowFunctionExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlWindowFunctionExpression> for SyntaxNode {
+    fn from(n: PsqlWindowFunctionExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlWindowFunctionExpression> for SyntaxElement {
+    fn from(n: PsqlWindowFunctionExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlWindowPartitionByClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_WINDOW_PARTITION_BY_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_WINDOW_PARTITION_BY_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlWindowPartitionByClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlWindowPartitionByClause")
+                .field(
+                    "partition_by_token",
+                    &support::DebugSyntaxResult(self.partition_by_token()),
+                )
+                .field("items", &self.items())
+                .finish()
+        } else {
+            f.debug_struct("PsqlWindowPartitionByClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlWindowPartitionByClause> for SyntaxNode {
+    fn from(n: PsqlWindowPartitionByClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlWindowPartitionByClause> for SyntaxElement {
+    fn from(n: PsqlWindowPartitionByClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlWindowSpecification {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_WINDOW_SPECIFICATION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_WINDOW_SPECIFICATION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlWindowSpecification {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlWindowSpecification")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "partition_by_clause",
+                    &support::DebugOptionalElement(self.partition_by_clause()),
+                )
+                .field(
+                    "order_by_clause",
+                    &support::DebugOptionalElement(self.order_by_clause()),
+                )
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlWindowSpecification").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlWindowSpecification> for SyntaxNode {
+    fn from(n: PsqlWindowSpecification) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlWindowSpecification> for SyntaxElement {
+    fn from(n: PsqlWindowSpecification) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlWithClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -7181,6 +7485,11 @@ impl From<PsqlUnaryExpression> for AnyPsqlExpression {
         Self::PsqlUnaryExpression(node)
     }
 }
+impl From<PsqlWindowFunctionExpression> for AnyPsqlExpression {
+    fn from(node: PsqlWindowFunctionExpression) -> Self {
+        Self::PsqlWindowFunctionExpression(node)
+    }
+}
 impl AstNode for AnyPsqlExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnyPsqlLiteralExpression::KIND_SET
@@ -7202,7 +7511,8 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlStar::KIND_SET)
         .union(PsqlSubqueryExpression::KIND_SET)
         .union(PsqlTableColReference::KIND_SET)
-        .union(PsqlUnaryExpression::KIND_SET);
+        .union(PsqlUnaryExpression::KIND_SET)
+        .union(PsqlWindowFunctionExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
             PSQL_ARRAY_EXPRESSION
@@ -7223,7 +7533,8 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_STAR
             | PSQL_SUBQUERY_EXPRESSION
             | PSQL_TABLE_COL_REFERENCE
-            | PSQL_UNARY_EXPRESSION => true,
+            | PSQL_UNARY_EXPRESSION
+            | PSQL_WINDOW_FUNCTION_EXPRESSION => true,
             k if AnyPsqlLiteralExpression::can_cast(k) => true,
             _ => false,
         }
@@ -7263,6 +7574,9 @@ impl AstNode for AnyPsqlExpression {
                 Self::PsqlTableColReference(PsqlTableColReference { syntax })
             }
             PSQL_UNARY_EXPRESSION => Self::PsqlUnaryExpression(PsqlUnaryExpression { syntax }),
+            PSQL_WINDOW_FUNCTION_EXPRESSION => {
+                Self::PsqlWindowFunctionExpression(PsqlWindowFunctionExpression { syntax })
+            }
             _ => {
                 if let Some(any_psql_literal_expression) = AnyPsqlLiteralExpression::cast(syntax) {
                     return Some(Self::AnyPsqlLiteralExpression(any_psql_literal_expression));
@@ -7293,6 +7607,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlSubqueryExpression(it) => &it.syntax,
             Self::PsqlTableColReference(it) => &it.syntax,
             Self::PsqlUnaryExpression(it) => &it.syntax,
+            Self::PsqlWindowFunctionExpression(it) => &it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.syntax(),
         }
     }
@@ -7317,6 +7632,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlSubqueryExpression(it) => it.syntax,
             Self::PsqlTableColReference(it) => it.syntax,
             Self::PsqlUnaryExpression(it) => it.syntax,
+            Self::PsqlWindowFunctionExpression(it) => it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.into_syntax(),
         }
     }
@@ -7344,6 +7660,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTableColReference(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlWindowFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -7370,6 +7687,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlSubqueryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlTableColReference(it) => it.into(),
             AnyPsqlExpression::PsqlUnaryExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlWindowFunctionExpression(it) => it.into(),
         }
     }
 }
@@ -8185,6 +8503,21 @@ impl std::fmt::Display for PsqlUpdateStatement {
     }
 }
 impl std::fmt::Display for PsqlWhereClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlWindowFunctionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlWindowPartitionByClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlWindowSpecification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -9649,6 +9982,88 @@ impl IntoIterator for PsqlTypeArgumentList {
 impl IntoIterator for &PsqlTypeArgumentList {
     type Item = SyntaxResult<PsqlNumberLiteralExpression>;
     type IntoIter = AstSeparatedListNodesIterator<Language, PsqlNumberLiteralExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlWindowPartitionByItemList {
+    syntax_list: SyntaxList,
+}
+impl PsqlWindowPartitionByItemList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlWindowPartitionByItemList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_WINDOW_PARTITION_BY_ITEM_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_WINDOW_PARTITION_BY_ITEM_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlWindowPartitionByItemList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlWindowPartitionByItemList {
+    type Language = Language;
+    type Node = AnyPsqlExpression;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlWindowPartitionByItemList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlWindowPartitionByItemList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlWindowPartitionByItemList {
+    type Item = SyntaxResult<AnyPsqlExpression>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyPsqlExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlWindowPartitionByItemList {
+    type Item = SyntaxResult<AnyPsqlExpression>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyPsqlExpression>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

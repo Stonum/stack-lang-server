@@ -1512,6 +1512,75 @@ pub fn psql_where_clause(
         ],
     ))
 }
+pub fn psql_window_function_expression(
+    call: PsqlCallExpression,
+    over_token: SyntaxToken,
+    window: PsqlWindowSpecification,
+) -> PsqlWindowFunctionExpression {
+    PsqlWindowFunctionExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_WINDOW_FUNCTION_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(call.into_syntax())),
+            Some(SyntaxElement::Token(over_token)),
+            Some(SyntaxElement::Node(window.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_window_partition_by_clause(
+    partition_by_token: SyntaxToken,
+    items: PsqlWindowPartitionByItemList,
+) -> PsqlWindowPartitionByClause {
+    PsqlWindowPartitionByClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_WINDOW_PARTITION_BY_CLAUSE,
+        [
+            Some(SyntaxElement::Token(partition_by_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_window_specification(
+    l_paren_token: SyntaxToken,
+    r_paren_token: SyntaxToken,
+) -> PsqlWindowSpecificationBuilder {
+    PsqlWindowSpecificationBuilder {
+        l_paren_token,
+        r_paren_token,
+        partition_by_clause: None,
+        order_by_clause: None,
+    }
+}
+pub struct PsqlWindowSpecificationBuilder {
+    l_paren_token: SyntaxToken,
+    r_paren_token: SyntaxToken,
+    partition_by_clause: Option<PsqlWindowPartitionByClause>,
+    order_by_clause: Option<PsqlOrderByClause>,
+}
+impl PsqlWindowSpecificationBuilder {
+    pub fn with_partition_by_clause(
+        mut self,
+        partition_by_clause: PsqlWindowPartitionByClause,
+    ) -> Self {
+        self.partition_by_clause = Some(partition_by_clause);
+        self
+    }
+    pub fn with_order_by_clause(mut self, order_by_clause: PsqlOrderByClause) -> Self {
+        self.order_by_clause = Some(order_by_clause);
+        self
+    }
+    pub fn build(self) -> PsqlWindowSpecification {
+        PsqlWindowSpecification::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_WINDOW_SPECIFICATION,
+            [
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                self.partition_by_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.order_by_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_with_clause(
     with_token: SyntaxToken,
     ctes: PsqlCteDefinitionList,
@@ -1772,6 +1841,30 @@ where
     let length = items.len() + separators.len();
     PsqlTypeArgumentList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_window_partition_by_item_list<I, S>(
+    items: I,
+    separators: S,
+) -> PsqlWindowPartitionByItemList
+where
+    I: IntoIterator<Item = AnyPsqlExpression>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlWindowPartitionByItemList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_WINDOW_PARTITION_BY_ITEM_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

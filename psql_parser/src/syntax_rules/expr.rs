@@ -3,12 +3,13 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
+use super::select::parse_order_by_clause;
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{
     PsqlParser,
     syntax_rules::parse_error::{
         expected_expression, expected_identifier, expected_number_literal, expected_statement,
-        expected_type_name,
+        expected_type_name, expected_window_specification,
     },
 };
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
@@ -471,7 +472,8 @@ fn parse_ident_expression(p: &mut PsqlParser) -> ParsedSyntax {
     });
 
     if is_call {
-        parse_call_expression(p, segment_count)
+        let call = parse_call_expression(p, segment_count);
+        parse_window_function_tail(p, call)
     } else {
         parse_col_reference(p)
     }
@@ -487,6 +489,78 @@ fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) -> ParsedSynt
     p.expect(T![')']);
 
     Present(m.complete(p, PSQL_CALL_EXPRESSION))
+}
+
+/// Wraps a call expression in `OVER (...)`, turning it into a window
+/// function call (e.g. `row_number() over (partition_by dept order_by
+/// salary)`). Only a call can be a window function, so this is applied
+/// directly after [parse_call_expression] rather than through the general
+/// precedence-climbing chain.
+fn parse_window_function_tail(p: &mut PsqlParser, call: ParsedSyntax) -> ParsedSyntax {
+    if !p.at(T![over]) || call.is_absent() {
+        return call;
+    }
+
+    let m = call.precede(p);
+    p.bump(T![over]);
+    parse_window_specification(p).or_add_diagnostic(p, expected_window_specification);
+    Present(m.complete(p, PSQL_WINDOW_FUNCTION_EXPRESSION))
+}
+
+fn parse_window_specification(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    let _ = parse_window_partition_by_clause(p);
+    let _ = parse_order_by_clause(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_WINDOW_SPECIFICATION))
+}
+
+fn parse_window_partition_by_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![partition_by]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![partition_by]);
+    PsqlWindowPartitionByItemList.parse_list(p);
+    Present(m.complete(p, PSQL_WINDOW_PARTITION_BY_CLAUSE))
+}
+
+struct PsqlWindowPartitionByItemList;
+
+impl ParseSeparatedList for PsqlWindowPartitionByItemList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_WINDOW_PARTITION_BY_ITEM_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![order_by]) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
 }
 
 fn parse_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
