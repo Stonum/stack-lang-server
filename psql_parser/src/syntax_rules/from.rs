@@ -8,7 +8,7 @@ use super::expr::{
     parse_expression, parse_name, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
-use super::select::parse_select_statement;
+use super::with_clause::parse_with_prefixed_select_statement;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -181,7 +181,7 @@ fn parse_subquery_binding(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T!['(']);
-    parse_select_statement(p).or_add_diagnostic(p, expected_statement);
+    parse_with_prefixed_select_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
     parse_alias(p);
     Present(m.complete(p, PSQL_SUBQUERY_BINDING))
