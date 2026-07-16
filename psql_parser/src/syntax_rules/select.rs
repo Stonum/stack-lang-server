@@ -114,6 +114,8 @@ impl ParseSeparatedList for PsqlGroupByItemList {
             || p.at(T![limit])
             || p.at(T![offset])
             || p.at(T![returning])
+            // `insert into t select ... group by ... on conflict ...`
+            || p.at(T![on])
             || p.at(T![')'])
     }
 
@@ -251,6 +253,8 @@ impl ParseSeparatedList for PsqlSelectItemList {
             || p.at(T![limit])
             || p.at(T![offset])
             || p.at(T![returning])
+            // `insert into t select 1 on conflict ...` (no `from` clause)
+            || p.at(T![on])
             || p.at(T![')'])
     }
 

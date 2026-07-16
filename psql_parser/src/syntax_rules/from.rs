@@ -49,6 +49,8 @@ impl ParseSeparatedList for PsqlFromItemList {
             || p.at(T![limit])
             || p.at(T![offset])
             || p.at(T![returning])
+            // `insert into t select ... from ... on conflict ...`
+            || p.at(T![on])
             || p.at(T![;])
             // A subquery's `from`/`using` list is wrapped in parens, e.g.
             // `(select a from t)`, so it must also stop before `)`.

@@ -91,6 +91,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlDeleteUsingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_DO_NOTHING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDoNothingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_DO_UPDATE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDoUpdateClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_FROM_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlFromClause::new_unchecked(node) };
                     $body
@@ -163,6 +171,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_OFFSET_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlOffsetClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_ON_CONFLICT_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlOnConflictClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_ON_CONSTRAINT_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlOnConstraintClause::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_ORDER_BY_CLAUSE => {

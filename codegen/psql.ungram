@@ -201,6 +201,7 @@ PsqlInsertStatement =
    table: PsqlTableBinding
    columns: PsqlColumnList?
    source: AnyPsqlInsertSource
+   on_conflict_clause: PsqlOnConflictClause?
    returning_clause: PsqlReturningClause?
    ';'?
 
@@ -219,11 +220,40 @@ AnyPsqlInsertSource =
    PsqlInsertValues 
    | PsqlSelectStatement
 
-PsqlInsertValues = 
+PsqlInsertValues =
    'values'
    '('
    items: PsqlExpressionList
    ')'
+
+PsqlOnConflictClause =
+   'on'
+   'conflict'
+   target: AnyPsqlConflictTarget?
+   action: AnyPsqlConflictAction
+
+AnyPsqlConflictTarget =
+   PsqlColumnList
+   | PsqlOnConstraintClause
+
+PsqlOnConstraintClause =
+   'on'
+   'constraint'
+   name: PsqlName
+
+AnyPsqlConflictAction =
+   PsqlDoNothingClause
+   | PsqlDoUpdateClause
+
+PsqlDoNothingClause =
+   'do'
+   'nothing'
+
+PsqlDoUpdateClause =
+   'do'
+   'update'
+   set_clause: PsqlSetClause
+   where_clause: PsqlWhereClause?
 
 PsqlDeleteStatement =
    with_clause: PsqlWithClause?

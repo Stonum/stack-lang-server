@@ -34,7 +34,7 @@ pub(crate) fn parse_update_statement_body(p: &mut PsqlParser, update_stmt: Marke
     Present(update_stmt.complete(p, PSQL_UPDATE_STATEMENT))
 }
 
-fn parse_set_clause(p: &mut PsqlParser) -> CompletedMarker {
+pub(crate) fn parse_set_clause(p: &mut PsqlParser) -> CompletedMarker {
     let m = p.start();
     p.expect(T![set]);
     PsqlSetItemList.parse_list(p);
@@ -53,7 +53,7 @@ impl ParseSeparatedList for PsqlSetItemList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![;]) || p.at(T![where])
+        p.at(EOF) || p.at(T![;]) || p.at(T![where]) || p.at(T![returning]) || p.at(T![')'])
     }
 
     fn recover(
