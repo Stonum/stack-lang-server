@@ -25,6 +25,21 @@ pub(crate) fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
 /// `with` clause has already been parsed (or intentionally omitted) into
 /// `select_stmt` by the caller.
 pub(crate) fn parse_select_statement_body(p: &mut PsqlParser, select_stmt: Marker) -> ParsedSyntax {
+    parse_select_core(p);
+    parse_set_operation_list(p);
+    let _ = parse_order_by_clause(p);
+    let _ = parse_limit_clause(p);
+    let _ = parse_offset_clause(p);
+    p.eat(T![;]);
+
+    Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
+}
+
+/// `select ...` plus its `from`/`where`/`group by`/`having` clauses, i.e.
+/// everything that can appear on either side of a `union`/`intersect`/
+/// `except`. Shared between the leading branch (parsed directly into
+/// `select_stmt`) and every subsequent [PsqlSetOperation] branch.
+fn parse_select_core(p: &mut PsqlParser) {
     let select_clause = p.start();
     p.expect(T![select]);
     PsqlSelectItemList.parse_list(p);
@@ -34,12 +49,36 @@ pub(crate) fn parse_select_statement_body(p: &mut PsqlParser, select_stmt: Marke
     let _ = parse_where_clause(p);
     let _ = parse_group_by_clause(p);
     let _ = parse_having_clause(p);
-    let _ = parse_order_by_clause(p);
-    let _ = parse_limit_clause(p);
-    let _ = parse_offset_clause(p);
-    p.eat(T![;]);
+}
 
-    Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
+/// Zero or more `union`/`intersect`/`except` branches following the leading
+/// `select`. `order by`/`limit`/`offset` apply to the combined result of the
+/// whole chain, so they live outside this list, on `PsqlSelectStatement`
+/// itself, rather than on each branch.
+fn parse_set_operation_list(p: &mut PsqlParser) -> CompletedMarker {
+    let m = p.start();
+    while is_at_set_operator(p) {
+        let _ = parse_set_operation(p);
+    }
+    m.complete(p, PSQL_SET_OPERATION_LIST)
+}
+
+fn is_at_set_operator(p: &mut PsqlParser) -> bool {
+    p.at(T![union]) || p.at(T![intersect]) || p.at(T![except])
+}
+
+fn parse_set_operation(p: &mut PsqlParser) -> ParsedSyntax {
+    if !is_at_set_operator(p) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any();
+    if p.at(T![all]) || p.at(T![distinct]) {
+        p.bump_any();
+    }
+    parse_select_core(p);
+    Present(m.complete(p, PSQL_SET_OPERATION))
 }
 
 fn parse_group_by_clause(p: &mut PsqlParser) -> ParsedSyntax {
@@ -68,6 +107,9 @@ impl ParseSeparatedList for PsqlGroupByItemList {
         p.at(EOF)
             || p.at(T![;])
             || p.at(T![having])
+            || p.at(T![union])
+            || p.at(T![intersect])
+            || p.at(T![except])
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])
@@ -202,6 +244,9 @@ impl ParseSeparatedList for PsqlSelectItemList {
             || p.at(T![where])
             || p.at(T![group_by])
             || p.at(T![having])
+            || p.at(T![union])
+            || p.at(T![intersect])
+            || p.at(T![except])
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])

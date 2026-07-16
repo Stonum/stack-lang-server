@@ -2024,6 +2024,7 @@ impl PsqlSelectStatement {
             where_clause: self.where_clause(),
             group_by_clause: self.group_by_clause(),
             having_clause: self.having_clause(),
+            set_operations: self.set_operations(),
             order_by_clause: self.order_by_clause(),
             limit_clause: self.limit_clause(),
             offset_clause: self.offset_clause(),
@@ -2048,17 +2049,20 @@ impl PsqlSelectStatement {
     pub fn having_clause(&self) -> Option<PsqlHavingClause> {
         support::node(&self.syntax, 5usize)
     }
-    pub fn order_by_clause(&self) -> Option<PsqlOrderByClause> {
-        support::node(&self.syntax, 6usize)
+    pub fn set_operations(&self) -> PsqlSetOperationList {
+        support::list(&self.syntax, 6usize)
     }
-    pub fn limit_clause(&self) -> Option<PsqlLimitClause> {
+    pub fn order_by_clause(&self) -> Option<PsqlOrderByClause> {
         support::node(&self.syntax, 7usize)
     }
-    pub fn offset_clause(&self) -> Option<PsqlOffsetClause> {
+    pub fn limit_clause(&self) -> Option<PsqlLimitClause> {
         support::node(&self.syntax, 8usize)
     }
+    pub fn offset_clause(&self) -> Option<PsqlOffsetClause> {
+        support::node(&self.syntax, 9usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 9usize)
+        support::token(&self.syntax, 10usize)
     }
 }
 impl Serialize for PsqlSelectStatement {
@@ -2077,6 +2081,7 @@ pub struct PsqlSelectStatementFields {
     pub where_clause: Option<PsqlWhereClause>,
     pub group_by_clause: Option<PsqlGroupByClause>,
     pub having_clause: Option<PsqlHavingClause>,
+    pub set_operations: PsqlSetOperationList,
     pub order_by_clause: Option<PsqlOrderByClause>,
     pub limit_clause: Option<PsqlLimitClause>,
     pub offset_clause: Option<PsqlOffsetClause>,
@@ -2166,6 +2171,71 @@ pub struct PsqlSetItemFields {
     pub column: SyntaxResult<PsqlName>,
     pub eq_token: SyntaxResult<SyntaxToken>,
     pub expr: SyntaxResult<AnyPsqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlSetOperation {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlSetOperation {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlSetOperationFields {
+        PsqlSetOperationFields {
+            operator_token: self.operator_token(),
+            quantifier: self.quantifier(),
+            select_clause: self.select_clause(),
+            from_clause: self.from_clause(),
+            where_clause: self.where_clause(),
+            group_by_clause: self.group_by_clause(),
+            having_clause: self.having_clause(),
+        }
+    }
+    pub fn operator_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn quantifier(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn select_clause(&self) -> SyntaxResult<PsqlSelectClause> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn from_clause(&self) -> Option<PsqlFromClause> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn where_clause(&self) -> Option<PsqlWhereClause> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn group_by_clause(&self) -> Option<PsqlGroupByClause> {
+        support::node(&self.syntax, 5usize)
+    }
+    pub fn having_clause(&self) -> Option<PsqlHavingClause> {
+        support::node(&self.syntax, 6usize)
+    }
+}
+impl Serialize for PsqlSetOperation {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlSetOperationFields {
+    pub operator_token: SyntaxResult<SyntaxToken>,
+    pub quantifier: Option<SyntaxToken>,
+    pub select_clause: SyntaxResult<PsqlSelectClause>,
+    pub from_clause: Option<PsqlFromClause>,
+    pub where_clause: Option<PsqlWhereClause>,
+    pub group_by_clause: Option<PsqlGroupByClause>,
+    pub having_clause: Option<PsqlHavingClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlShemaName {
@@ -5456,6 +5526,7 @@ impl std::fmt::Debug for PsqlSelectStatement {
                     "having_clause",
                     &support::DebugOptionalElement(self.having_clause()),
                 )
+                .field("set_operations", &self.set_operations())
                 .field(
                     "order_by_clause",
                     &support::DebugOptionalElement(self.order_by_clause()),
@@ -5584,6 +5655,80 @@ impl From<PsqlSetItem> for SyntaxNode {
 }
 impl From<PsqlSetItem> for SyntaxElement {
     fn from(n: PsqlSetItem) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlSetOperation {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_SET_OPERATION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_SET_OPERATION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlSetOperation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlSetOperation")
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field(
+                    "quantifier",
+                    &support::DebugOptionalElement(self.quantifier()),
+                )
+                .field(
+                    "select_clause",
+                    &support::DebugSyntaxResult(self.select_clause()),
+                )
+                .field(
+                    "from_clause",
+                    &support::DebugOptionalElement(self.from_clause()),
+                )
+                .field(
+                    "where_clause",
+                    &support::DebugOptionalElement(self.where_clause()),
+                )
+                .field(
+                    "group_by_clause",
+                    &support::DebugOptionalElement(self.group_by_clause()),
+                )
+                .field(
+                    "having_clause",
+                    &support::DebugOptionalElement(self.having_clause()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlSetOperation").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlSetOperation> for SyntaxNode {
+    fn from(n: PsqlSetOperation) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlSetOperation> for SyntaxElement {
+    fn from(n: PsqlSetOperation) -> Self {
         n.syntax.into()
     }
 }
@@ -7373,6 +7518,11 @@ impl std::fmt::Display for PsqlSetItem {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlSetOperation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlShemaName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -8657,6 +8807,88 @@ impl IntoIterator for PsqlSetItemList {
 impl IntoIterator for &PsqlSetItemList {
     type Item = SyntaxResult<PsqlSetItem>;
     type IntoIter = AstSeparatedListNodesIterator<Language, PsqlSetItem>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlSetOperationList {
+    syntax_list: SyntaxList,
+}
+impl PsqlSetOperationList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlSetOperationList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_SET_OPERATION_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_SET_OPERATION_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlSetOperationList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstNodeList for PsqlSetOperationList {
+    type Language = Language;
+    type Node = PsqlSetOperation;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlSetOperationList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlSetOperationList ")?;
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+impl IntoIterator for &PsqlSetOperationList {
+    type Item = PsqlSetOperation;
+    type IntoIter = AstNodeListIterator<Language, PsqlSetOperation>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for PsqlSetOperationList {
+    type Item = PsqlSetOperation;
+    type IntoIter = AstNodeListIterator<Language, PsqlSetOperation>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

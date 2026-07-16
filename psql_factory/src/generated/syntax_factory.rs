@@ -1538,7 +1538,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_SELECT_STATEMENT => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<10usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<11usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && PsqlWithClause::can_cast(element.kind())
@@ -1577,6 +1577,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && PsqlHavingClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlSetOperationList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -1676,6 +1683,67 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_SET_ITEM, children)
+            }
+            PSQL_SET_OPERATION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![union] | T![intersect] | T![except])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![all] | T![distinct])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlSelectClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlFromClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlWhereClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlGroupByClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlHavingClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_SET_OPERATION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_SET_OPERATION, children)
             }
             PSQL_SHEMA_NAME => {
                 let mut elements = (&children).into_iter();
@@ -2225,6 +2293,9 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 T ! [,],
                 false,
             ),
+            PSQL_SET_OPERATION_LIST => {
+                Self::make_node_list_syntax(kind, children, PsqlSetOperation::can_cast)
+            }
             PSQL_STATEMENT_LIST => {
                 Self::make_node_list_syntax(kind, children, AnyPsqlStatement::can_cast)
             }
