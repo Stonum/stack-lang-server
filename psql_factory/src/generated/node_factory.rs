@@ -928,9 +928,13 @@ impl PsqlSelectExpressionBuilder {
         ))
     }
 }
-pub fn psql_select_statement(select_clause: PsqlSelectClause) -> PsqlSelectStatementBuilder {
+pub fn psql_select_statement(
+    select_clause: PsqlSelectClause,
+    set_operations: PsqlSetOperationList,
+) -> PsqlSelectStatementBuilder {
     PsqlSelectStatementBuilder {
         select_clause,
+        set_operations,
         with_clause: None,
         from_clause: None,
         where_clause: None,
@@ -944,6 +948,7 @@ pub fn psql_select_statement(select_clause: PsqlSelectClause) -> PsqlSelectState
 }
 pub struct PsqlSelectStatementBuilder {
     select_clause: PsqlSelectClause,
+    set_operations: PsqlSetOperationList,
     with_clause: Option<PsqlWithClause>,
     from_clause: Option<PsqlFromClause>,
     where_clause: Option<PsqlWhereClause>,
@@ -1006,6 +1011,7 @@ impl PsqlSelectStatementBuilder {
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.having_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.set_operations.into_syntax())),
                 self.order_by_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.limit_clause
@@ -1040,6 +1046,70 @@ pub fn psql_set_item(
             Some(SyntaxElement::Node(expr.into_syntax())),
         ],
     ))
+}
+pub fn psql_set_operation(
+    operator_token_token: SyntaxToken,
+    select_clause: PsqlSelectClause,
+) -> PsqlSetOperationBuilder {
+    PsqlSetOperationBuilder {
+        operator_token_token,
+        select_clause,
+        quantifier_token: None,
+        from_clause: None,
+        where_clause: None,
+        group_by_clause: None,
+        having_clause: None,
+    }
+}
+pub struct PsqlSetOperationBuilder {
+    operator_token_token: SyntaxToken,
+    select_clause: PsqlSelectClause,
+    quantifier_token: Option<SyntaxToken>,
+    from_clause: Option<PsqlFromClause>,
+    where_clause: Option<PsqlWhereClause>,
+    group_by_clause: Option<PsqlGroupByClause>,
+    having_clause: Option<PsqlHavingClause>,
+}
+impl PsqlSetOperationBuilder {
+    pub fn with_quantifier_token(mut self, quantifier_token: SyntaxToken) -> Self {
+        self.quantifier_token = Some(quantifier_token);
+        self
+    }
+    pub fn with_from_clause(mut self, from_clause: PsqlFromClause) -> Self {
+        self.from_clause = Some(from_clause);
+        self
+    }
+    pub fn with_where_clause(mut self, where_clause: PsqlWhereClause) -> Self {
+        self.where_clause = Some(where_clause);
+        self
+    }
+    pub fn with_group_by_clause(mut self, group_by_clause: PsqlGroupByClause) -> Self {
+        self.group_by_clause = Some(group_by_clause);
+        self
+    }
+    pub fn with_having_clause(mut self, having_clause: PsqlHavingClause) -> Self {
+        self.having_clause = Some(having_clause);
+        self
+    }
+    pub fn build(self) -> PsqlSetOperation {
+        PsqlSetOperation::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_SET_OPERATION,
+            [
+                Some(SyntaxElement::Token(self.operator_token_token)),
+                self.quantifier_token
+                    .map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.select_clause.into_syntax())),
+                self.from_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.where_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.group_by_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.having_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
 }
 pub fn psql_shema_name(name: PsqlName, dot_token: SyntaxToken) -> PsqlShemaNameBuilder {
     PsqlShemaNameBuilder {
@@ -1558,6 +1628,18 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_set_operation_list<I>(items: I) -> PsqlSetOperationList
+where
+    I: IntoIterator<Item = PsqlSetOperation>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlSetOperationList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_SET_OPERATION_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_statement_list<I>(items: I) -> PsqlStatementList

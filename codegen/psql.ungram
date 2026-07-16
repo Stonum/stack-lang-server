@@ -101,12 +101,24 @@ PsqlSelectStatement =
    where_clause: PsqlWhereClause?
    group_by_clause: PsqlGroupByClause?
    having_clause: PsqlHavingClause?
+   set_operations: PsqlSetOperationList
    order_by_clause: PsqlOrderByClause?
    limit_clause: PsqlLimitClause?
    offset_clause: PsqlOffsetClause?
    ';'?
 
-PsqlSelectClause = 
+PsqlSetOperationList = PsqlSetOperation*
+
+PsqlSetOperation =
+   operator_token: ('union' | 'intersect' | 'except')
+   quantifier: ('all' | 'distinct')?
+   select_clause: PsqlSelectClause
+   from_clause: PsqlFromClause?
+   where_clause: PsqlWhereClause?
+   group_by_clause: PsqlGroupByClause?
+   having_clause: PsqlHavingClause?
+
+PsqlSelectClause =
    'select'
    list: PsqlSelectItemList
 

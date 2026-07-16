@@ -960,29 +960,35 @@ impl PsqlSelectStatement {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_order_by_clause(self, element: Option<PsqlOrderByClause>) -> Self {
-        Self::unwrap_cast(self.syntax.splice_slots(
-            6usize..=6usize,
-            once(element.map(|element| element.into_syntax().into())),
-        ))
+    pub fn with_set_operations(self, element: PsqlSetOperationList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(6usize..=6usize, once(Some(element.into_syntax().into()))),
+        )
     }
-    pub fn with_limit_clause(self, element: Option<PsqlLimitClause>) -> Self {
+    pub fn with_order_by_clause(self, element: Option<PsqlOrderByClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             7usize..=7usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_offset_clause(self, element: Option<PsqlOffsetClause>) -> Self {
+    pub fn with_limit_clause(self, element: Option<PsqlLimitClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             8usize..=8usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
+    pub fn with_offset_clause(self, element: Option<PsqlOffsetClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            9usize..=9usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
     pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(9usize..=9usize, once(element.map(|element| element.into()))),
-        )
+        Self::unwrap_cast(self.syntax.splice_slots(
+            10usize..=10usize,
+            once(element.map(|element| element.into())),
+        ))
     }
 }
 impl PsqlSetClause {
@@ -1017,6 +1023,50 @@ impl PsqlSetItem {
             self.syntax
                 .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
         )
+    }
+}
+impl PsqlSetOperation {
+    pub fn with_operator_token_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_quantifier_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_select_clause(self, element: PsqlSelectClause) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_from_clause(self, element: Option<PsqlFromClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            3usize..=3usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_where_clause(self, element: Option<PsqlWhereClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            4usize..=4usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_group_by_clause(self, element: Option<PsqlGroupByClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            5usize..=5usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_having_clause(self, element: Option<PsqlHavingClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            6usize..=6usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
     }
 }
 impl PsqlShemaName {

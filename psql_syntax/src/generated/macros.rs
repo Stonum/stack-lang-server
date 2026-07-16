@@ -206,6 +206,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlSetItem::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_SET_OPERATION => {
+                    let $pattern = unsafe { $crate::PsqlSetOperation::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_SHEMA_NAME => {
                     let $pattern = unsafe { $crate::PsqlShemaName::new_unchecked(node) };
                     $body
@@ -334,6 +338,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_SET_ITEM_LIST => {
                     let $pattern = unsafe { $crate::PsqlSetItemList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_SET_OPERATION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlSetOperationList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_STATEMENT_LIST => {
