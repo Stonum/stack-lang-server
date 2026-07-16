@@ -201,10 +201,15 @@ impl ParseSeparatedList for PsqlOrderByExpressionList {
 
 fn parse_order_by_expression(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
-    if parse_expression(p).is_present() && (p.at(T![asc]) || p.at(T![desc])) {
-        p.bump_any();
+    if parse_expression(p).is_present() {
+        if p.at(T![asc]) || p.at(T![desc]) {
+            p.bump_any();
+        }
+        Present(m.complete(p, PSQL_ORDER_BY_EXPRESSION))
+    } else {
+        m.abandon(p);
+        Absent
     }
-    Present(m.complete(p, PSQL_ORDER_BY_EXPRESSION))
 }
 
 fn parse_limit_clause(p: &mut PsqlParser) -> ParsedSyntax {
@@ -280,10 +285,11 @@ pub(crate) fn parse_select_item(p: &mut PsqlParser) -> ParsedSyntax {
     if p.at(T![*]) {
         p.bump(T![*]);
         Present(m.complete(p, PSQL_STAR))
-    } else {
-        if parse_expression(p).is_present() {
-            parse_alias(p);
-        }
+    } else if parse_expression(p).is_present() {
+        parse_alias(p);
         Present(m.complete(p, PSQL_SELECT_EXPRESSION))
+    } else {
+        m.abandon(p);
+        Absent
     }
 }
