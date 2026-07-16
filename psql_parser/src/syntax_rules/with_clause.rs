@@ -5,6 +5,7 @@ use biome_parser::prelude::*;
 
 use super::expr::{EXPR_RECOVERY_SET, parse_column_name_list, parse_name};
 use super::parse_error::*;
+use super::select::parse_select_statement_body;
 use super::stmt::{StatementContext, parse_statement};
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
@@ -21,6 +22,18 @@ pub(crate) fn parse_with_clause(p: &mut PsqlParser) -> ParsedSyntax {
     p.eat(T![recursive]);
     PsqlCteDefinitionList.parse_list(p);
     Present(m.complete(p, PSQL_WITH_CLAUSE))
+}
+
+/// A `select` statement with an optional leading `with` clause, e.g. the
+/// contents of a subquery `(...)`. Unlike a top-level statement (which can
+/// dispatch to `select`/`insert`/`update`/`delete` after `with`), a
+/// subquery's body can only ever be a `select`, so no dispatch is needed
+/// here -- but parsing `with` still can't live inside `select.rs` itself,
+/// same as the top-level case in `stmt.rs`.
+pub(crate) fn parse_with_prefixed_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    let _ = parse_with_clause(p);
+    parse_select_statement_body(p, m)
 }
 
 struct PsqlCteDefinitionList;

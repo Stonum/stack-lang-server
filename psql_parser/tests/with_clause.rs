@@ -123,3 +123,33 @@ fn test_data_modifying_cte_delete() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_with_inside_subquery_in_from() {
+    let res = parse(
+        "select a from (with cte as (select a from t) select a from cte) as sub",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_inside_subquery_in_expression() {
+    let res = parse(
+        "select a from t where a in (with cte as (select id from u) select id from cte)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_inside_subquery_scalar() {
+    let res = parse(
+        "select (with cte as (select count(*) as c from t) select c from cte) as total",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

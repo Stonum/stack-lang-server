@@ -3,7 +3,7 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
-use super::select::parse_select_statement;
+use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{
     PsqlParser,
     syntax_rules::parse_error::{expected_expression, expected_identifier, expected_statement},
@@ -409,14 +409,14 @@ fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_PARENTHESIZED_EXPRESSION))
 }
 
-/// Checks whether the parser is at `(` immediately followed by `select`,
-/// i.e. a subquery `(select ...)` rather than a plain parenthesized
-/// expression or value list.
+/// Checks whether the parser is at `(` immediately followed by `select` or
+/// `with` (a `with`-prefixed subquery, e.g. `(with cte as (...) select ...)`),
+/// i.e. a subquery rather than a plain parenthesized expression or value list.
 fn at_subquery(p: &mut PsqlParser) -> bool {
     p.at(T!['('])
         && p.lookahead(|p| {
             p.bump(T!['(']);
-            p.at(T![select])
+            p.at(T![select]) || p.at(T![with])
         })
 }
 
@@ -427,7 +427,7 @@ fn parse_subquery_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T!['(']);
-    parse_select_statement(p).or_add_diagnostic(p, expected_statement);
+    parse_with_prefixed_select_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
     Present(m.complete(p, PSQL_SUBQUERY_EXPRESSION))
 }
