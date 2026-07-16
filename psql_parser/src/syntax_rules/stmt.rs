@@ -1,13 +1,14 @@
 use biome_parser::ParserProgress;
 use biome_parser::parse_recovery::ParseRecoveryTokenSet;
-use biome_parser::parsed_syntax::ParsedSyntax::Absent;
+use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::delete::parse_delete_statement;
-use super::insert::parse_insert_statement;
+use super::delete::{parse_delete_statement, parse_delete_statement_body};
+use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
-use super::select::parse_select_statement;
-use super::update::parse_update_statement;
+use super::select::{parse_select_statement, parse_select_statement_body};
+use super::update::{parse_update_statement, parse_update_statement_body};
+use super::with_clause::parse_with_clause;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -35,12 +36,43 @@ pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
 }
 
 pub(crate) fn parse_statement(p: &mut PsqlParser, _context: StatementContext) -> ParsedSyntax {
+    if p.at(T![with]) {
+        return parse_with_prefixed_statement(p);
+    }
+
     match p.cur() {
         T![select] => parse_select_statement(p),
         T![delete] => parse_delete_statement(p),
         T![update] => parse_update_statement(p),
         T![insert] => parse_insert_statement(p),
         _ => Absent,
+    }
+}
+
+/// Parses a leading `with [recursive] cte as (...), ...` clause once, then
+/// dispatches to whichever statement body follows it (`select`/`insert`/
+/// `update`/`delete`), handing over the marker so the `with` clause becomes
+/// that statement's first child.
+fn parse_with_prefixed_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    let _ = parse_with_clause(p);
+
+    match p.cur() {
+        T![select] => parse_select_statement_body(p, m),
+        T![insert] => parse_insert_statement_body(p, m),
+        T![update] => parse_update_statement_body(p, m),
+        T![delete] => parse_delete_statement_body(p, m),
+        _ => {
+            let range = p.cur_range();
+            let err = p
+                .err_builder(
+                    "Expected `select`, `insert`, `update` or `delete` after a `with` clause",
+                    range,
+                )
+                .with_hint("A `with` clause must be followed by a statement");
+            p.error(err);
+            Present(m.complete(p, PSQL_BOGUS_STATEMENT))
+        }
     }
 }
 

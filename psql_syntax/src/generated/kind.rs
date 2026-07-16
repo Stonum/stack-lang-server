@@ -104,6 +104,9 @@ pub enum PsqlSyntaxKind {
     OFFSET_KW,
     INTO_KW,
     DISTINCT_KW,
+    WITH_KW,
+    RECURSIVE_KW,
+    RETURNING_KW,
     CASE_KW,
     WHEN_KW,
     THEN_KW,
@@ -141,6 +144,9 @@ pub enum PsqlSyntaxKind {
     COMMENT,
     PSQL_ROOT,
     PSQL_STATEMENT_LIST,
+    PSQL_WITH_CLAUSE,
+    PSQL_CTE_DEFINITION_LIST,
+    PSQL_CTE_DEFINITION,
     PSQL_SELECT_STATEMENT,
     PSQL_SELECT_CLAUSE,
     PSQL_SELECT_ITEM_LIST,
@@ -161,8 +167,8 @@ pub enum PsqlSyntaxKind {
     PSQL_OFFSET_CLAUSE,
     PSQL_LIMIT_CLAUSE,
     PSQL_INSERT_STATEMENT,
-    PSQL_INSERT_COLUMNS,
-    PSQL_INSERT_COLUMN_LIST,
+    PSQL_COLUMN_LIST,
+    PSQL_COLUMN_NAME_LIST,
     PSQL_INSERT_VALUES,
     PSQL_DELETE_STATEMENT,
     PSQL_DELETE_USING_CLAUSE,
@@ -170,6 +176,7 @@ pub enum PsqlSyntaxKind {
     PSQL_SET_CLAUSE,
     PSQL_SET_ITEM_LIST,
     PSQL_SET_ITEM,
+    PSQL_RETURNING_CLAUSE,
     PSQL_DATA_BASE_NAME,
     PSQL_SHEMA_NAME,
     PSQL_TABLE_NAME,
@@ -258,12 +265,14 @@ impl PsqlSyntaxKind {
         matches!(
             self,
             PSQL_STATEMENT_LIST
+                | PSQL_CTE_DEFINITION_LIST
                 | PSQL_SELECT_ITEM_LIST
                 | PSQL_FROM_ITEM_LIST
                 | PSQL_JOIN_CLAUSE_LIST
                 | PSQL_GROUP_BY_ITEM_LIST
                 | PSQL_ORDER_BY_EXPRESSION_LIST
-                | PSQL_INSERT_COLUMN_LIST
+                | PSQL_COLUMN_LIST
+                | PSQL_COLUMN_NAME_LIST
                 | PSQL_SET_ITEM_LIST
                 | PSQL_EXPRESSION_LIST
                 | PSQL_IN_VALUE_LIST
@@ -331,6 +340,9 @@ impl PsqlSyntaxKind {
             "offset" => OFFSET_KW,
             "into" => INTO_KW,
             "distinct" => DISTINCT_KW,
+            "with" => WITH_KW,
+            "recursive" => RECURSIVE_KW,
+            "returning" => RETURNING_KW,
             "case" => CASE_KW,
             "when" => WHEN_KW,
             "then" => THEN_KW,
@@ -457,6 +469,9 @@ impl PsqlSyntaxKind {
             OFFSET_KW => "offset",
             INTO_KW => "into",
             DISTINCT_KW => "distinct",
+            WITH_KW => "with",
+            RECURSIVE_KW => "recursive",
+            RETURNING_KW => "returning",
             CASE_KW => "case",
             WHEN_KW => "when",
             THEN_KW => "then",
@@ -493,4 +508,4 @@ impl PsqlSyntaxKind {
 }
 #[doc = r" Utility macro for creating a SyntaxKind through simple macro syntax"]
 #[macro_export]
-macro_rules ! T { [;] => { $ crate :: PsqlSyntaxKind :: SEMICOLON } ; [,] => { $ crate :: PsqlSyntaxKind :: COMMA } ; ['('] => { $ crate :: PsqlSyntaxKind :: L_PAREN } ; [')'] => { $ crate :: PsqlSyntaxKind :: R_PAREN } ; ['{'] => { $ crate :: PsqlSyntaxKind :: L_CURLY } ; ['}'] => { $ crate :: PsqlSyntaxKind :: R_CURLY } ; ['['] => { $ crate :: PsqlSyntaxKind :: L_BRACK } ; [']'] => { $ crate :: PsqlSyntaxKind :: R_BRACK } ; [<] => { $ crate :: PsqlSyntaxKind :: L_ANGLE } ; [>] => { $ crate :: PsqlSyntaxKind :: R_ANGLE } ; [~] => { $ crate :: PsqlSyntaxKind :: TILDE } ; [?] => { $ crate :: PsqlSyntaxKind :: QUESTION } ; [&] => { $ crate :: PsqlSyntaxKind :: AMP } ; [|] => { $ crate :: PsqlSyntaxKind :: PIPE } ; [+] => { $ crate :: PsqlSyntaxKind :: PLUS } ; [*] => { $ crate :: PsqlSyntaxKind :: STAR } ; [/] => { $ crate :: PsqlSyntaxKind :: SLASH } ; [^] => { $ crate :: PsqlSyntaxKind :: CARET } ; [%] => { $ crate :: PsqlSyntaxKind :: PERCENT } ; [.] => { $ crate :: PsqlSyntaxKind :: DOT } ; [:] => { $ crate :: PsqlSyntaxKind :: COLON } ; [=] => { $ crate :: PsqlSyntaxKind :: EQ } ; [!] => { $ crate :: PsqlSyntaxKind :: BANG } ; [!=] => { $ crate :: PsqlSyntaxKind :: NEQ } ; [-] => { $ crate :: PsqlSyntaxKind :: MINUS } ; [<=] => { $ crate :: PsqlSyntaxKind :: LTEQ } ; [>=] => { $ crate :: PsqlSyntaxKind :: GTEQ } ; [<>] => { $ crate :: PsqlSyntaxKind :: LTGT } ; [<<] => { $ crate :: PsqlSyntaxKind :: SHL } ; [>>] => { $ crate :: PsqlSyntaxKind :: SHR } ; [~*] => { $ crate :: PsqlSyntaxKind :: RGX } ; [!~*] => { $ crate :: PsqlSyntaxKind :: NEG_RGX } ; [!~] => { $ crate :: PsqlSyntaxKind :: NEG_TILDE } ; [integer] => { $ crate :: PsqlSyntaxKind :: INTEGER_KW } ; [bigint] => { $ crate :: PsqlSyntaxKind :: BIGINT_KW } ; [varchar] => { $ crate :: PsqlSyntaxKind :: VARCHAR_KW } ; [char] => { $ crate :: PsqlSyntaxKind :: CHAR_KW } ; [text] => { $ crate :: PsqlSyntaxKind :: TEXT_KW } ; [boolean] => { $ crate :: PsqlSyntaxKind :: BOOLEAN_KW } ; [date] => { $ crate :: PsqlSyntaxKind :: DATE_KW } ; [time] => { $ crate :: PsqlSyntaxKind :: TIME_KW } ; [timestamp] => { $ crate :: PsqlSyntaxKind :: TIMESTAMP_KW } ; [interval] => { $ crate :: PsqlSyntaxKind :: INTERVAL_KW } ; [numeric] => { $ crate :: PsqlSyntaxKind :: NUMERIC_KW } ; [decimal] => { $ crate :: PsqlSyntaxKind :: DECIMAL_KW } ; [double] => { $ crate :: PsqlSyntaxKind :: DOUBLE_KW } ; [real] => { $ crate :: PsqlSyntaxKind :: REAL_KW } ; [json] => { $ crate :: PsqlSyntaxKind :: JSON_KW } ; [jsonb] => { $ crate :: PsqlSyntaxKind :: JSONB_KW } ; [uuid] => { $ crate :: PsqlSyntaxKind :: UUID_KW } ; [array] => { $ crate :: PsqlSyntaxKind :: ARRAY_KW } ; [bytea] => { $ crate :: PsqlSyntaxKind :: BYTEA_KW } ; [bit] => { $ crate :: PsqlSyntaxKind :: BIT_KW } ; [create] => { $ crate :: PsqlSyntaxKind :: CREATE_KW } ; [alter] => { $ crate :: PsqlSyntaxKind :: ALTER_KW } ; [drop] => { $ crate :: PsqlSyntaxKind :: DROP_KW } ; [table] => { $ crate :: PsqlSyntaxKind :: TABLE_KW } ; [view] => { $ crate :: PsqlSyntaxKind :: VIEW_KW } ; [index] => { $ crate :: PsqlSyntaxKind :: INDEX_KW } ; [sequence] => { $ crate :: PsqlSyntaxKind :: SEQUENCE_KW } ; [schema] => { $ crate :: PsqlSyntaxKind :: SCHEMA_KW } ; [database] => { $ crate :: PsqlSyntaxKind :: DATABASE_KW } ; [constraint] => { $ crate :: PsqlSyntaxKind :: CONSTRAINT_KW } ; [unique] => { $ crate :: PsqlSyntaxKind :: UNIQUE_KW } ; [primary] => { $ crate :: PsqlSyntaxKind :: PRIMARY_KW } ; [foreign] => { $ crate :: PsqlSyntaxKind :: FOREIGN_KW } ; [key] => { $ crate :: PsqlSyntaxKind :: KEY_KW } ; [check] => { $ crate :: PsqlSyntaxKind :: CHECK_KW } ; [default] => { $ crate :: PsqlSyntaxKind :: DEFAULT_KW } ; [insert] => { $ crate :: PsqlSyntaxKind :: INSERT_KW } ; [update] => { $ crate :: PsqlSyntaxKind :: UPDATE_KW } ; [delete] => { $ crate :: PsqlSyntaxKind :: DELETE_KW } ; [select] => { $ crate :: PsqlSyntaxKind :: SELECT_KW } ; [from] => { $ crate :: PsqlSyntaxKind :: FROM_KW } ; [where] => { $ crate :: PsqlSyntaxKind :: WHERE_KW } ; [group_by] => { $ crate :: PsqlSyntaxKind :: GROUP_BY_KW } ; [order_by] => { $ crate :: PsqlSyntaxKind :: ORDER_BY_KW } ; [having] => { $ crate :: PsqlSyntaxKind :: HAVING_KW } ; [values] => { $ crate :: PsqlSyntaxKind :: VALUES_KW } ; [set] => { $ crate :: PsqlSyntaxKind :: SET_KW } ; [inner] => { $ crate :: PsqlSyntaxKind :: INNER_KW } ; [outer] => { $ crate :: PsqlSyntaxKind :: OUTER_KW } ; [left] => { $ crate :: PsqlSyntaxKind :: LEFT_KW } ; [right] => { $ crate :: PsqlSyntaxKind :: RIGHT_KW } ; [join] => { $ crate :: PsqlSyntaxKind :: JOIN_KW } ; [on] => { $ crate :: PsqlSyntaxKind :: ON_KW } ; [using] => { $ crate :: PsqlSyntaxKind :: USING_KW } ; [as] => { $ crate :: PsqlSyntaxKind :: AS_KW } ; [limit] => { $ crate :: PsqlSyntaxKind :: LIMIT_KW } ; [offset] => { $ crate :: PsqlSyntaxKind :: OFFSET_KW } ; [into] => { $ crate :: PsqlSyntaxKind :: INTO_KW } ; [distinct] => { $ crate :: PsqlSyntaxKind :: DISTINCT_KW } ; [case] => { $ crate :: PsqlSyntaxKind :: CASE_KW } ; [when] => { $ crate :: PsqlSyntaxKind :: WHEN_KW } ; [then] => { $ crate :: PsqlSyntaxKind :: THEN_KW } ; [end] => { $ crate :: PsqlSyntaxKind :: END_KW } ; [if] => { $ crate :: PsqlSyntaxKind :: IF_KW } ; [else] => { $ crate :: PsqlSyntaxKind :: ELSE_KW } ; [and] => { $ crate :: PsqlSyntaxKind :: AND_KW } ; [or] => { $ crate :: PsqlSyntaxKind :: OR_KW } ; [not] => { $ crate :: PsqlSyntaxKind :: NOT_KW } ; [between] => { $ crate :: PsqlSyntaxKind :: BETWEEN_KW } ; [in] => { $ crate :: PsqlSyntaxKind :: IN_KW } ; [like] => { $ crate :: PsqlSyntaxKind :: LIKE_KW } ; [ilike] => { $ crate :: PsqlSyntaxKind :: ILIKE_KW } ; [is] => { $ crate :: PsqlSyntaxKind :: IS_KW } ; [asc] => { $ crate :: PsqlSyntaxKind :: ASC_KW } ; [desc] => { $ crate :: PsqlSyntaxKind :: DESC_KW } ; [union] => { $ crate :: PsqlSyntaxKind :: UNION_KW } ; [intersect] => { $ crate :: PsqlSyntaxKind :: INTERSECT_KW } ; [except] => { $ crate :: PsqlSyntaxKind :: EXCEPT_KW } ; [over] => { $ crate :: PsqlSyntaxKind :: OVER_KW } ; [partition] => { $ crate :: PsqlSyntaxKind :: PARTITION_KW } ; [begin] => { $ crate :: PsqlSyntaxKind :: BEGIN_KW } ; [commit] => { $ crate :: PsqlSyntaxKind :: COMMIT_KW } ; [rollback] => { $ crate :: PsqlSyntaxKind :: ROLLBACK_KW } ; [start] => { $ crate :: PsqlSyntaxKind :: START_KW } ; [null] => { $ crate :: PsqlSyntaxKind :: NULL_KW } ; [true] => { $ crate :: PsqlSyntaxKind :: TRUE_KW } ; [false] => { $ crate :: PsqlSyntaxKind :: FALSE_KW } ; [ident] => { $ crate :: PsqlSyntaxKind :: IDENT } ; [EOF] => { $ crate :: PsqlSyntaxKind :: EOF } ; [UNICODE_BOM] => { $ crate :: PsqlSyntaxKind :: UNICODE_BOM } ; [#] => { $ crate :: PsqlSyntaxKind :: HASH } ; }
+macro_rules ! T { [;] => { $ crate :: PsqlSyntaxKind :: SEMICOLON } ; [,] => { $ crate :: PsqlSyntaxKind :: COMMA } ; ['('] => { $ crate :: PsqlSyntaxKind :: L_PAREN } ; [')'] => { $ crate :: PsqlSyntaxKind :: R_PAREN } ; ['{'] => { $ crate :: PsqlSyntaxKind :: L_CURLY } ; ['}'] => { $ crate :: PsqlSyntaxKind :: R_CURLY } ; ['['] => { $ crate :: PsqlSyntaxKind :: L_BRACK } ; [']'] => { $ crate :: PsqlSyntaxKind :: R_BRACK } ; [<] => { $ crate :: PsqlSyntaxKind :: L_ANGLE } ; [>] => { $ crate :: PsqlSyntaxKind :: R_ANGLE } ; [~] => { $ crate :: PsqlSyntaxKind :: TILDE } ; [?] => { $ crate :: PsqlSyntaxKind :: QUESTION } ; [&] => { $ crate :: PsqlSyntaxKind :: AMP } ; [|] => { $ crate :: PsqlSyntaxKind :: PIPE } ; [+] => { $ crate :: PsqlSyntaxKind :: PLUS } ; [*] => { $ crate :: PsqlSyntaxKind :: STAR } ; [/] => { $ crate :: PsqlSyntaxKind :: SLASH } ; [^] => { $ crate :: PsqlSyntaxKind :: CARET } ; [%] => { $ crate :: PsqlSyntaxKind :: PERCENT } ; [.] => { $ crate :: PsqlSyntaxKind :: DOT } ; [:] => { $ crate :: PsqlSyntaxKind :: COLON } ; [=] => { $ crate :: PsqlSyntaxKind :: EQ } ; [!] => { $ crate :: PsqlSyntaxKind :: BANG } ; [!=] => { $ crate :: PsqlSyntaxKind :: NEQ } ; [-] => { $ crate :: PsqlSyntaxKind :: MINUS } ; [<=] => { $ crate :: PsqlSyntaxKind :: LTEQ } ; [>=] => { $ crate :: PsqlSyntaxKind :: GTEQ } ; [<>] => { $ crate :: PsqlSyntaxKind :: LTGT } ; [<<] => { $ crate :: PsqlSyntaxKind :: SHL } ; [>>] => { $ crate :: PsqlSyntaxKind :: SHR } ; [~*] => { $ crate :: PsqlSyntaxKind :: RGX } ; [!~*] => { $ crate :: PsqlSyntaxKind :: NEG_RGX } ; [!~] => { $ crate :: PsqlSyntaxKind :: NEG_TILDE } ; [integer] => { $ crate :: PsqlSyntaxKind :: INTEGER_KW } ; [bigint] => { $ crate :: PsqlSyntaxKind :: BIGINT_KW } ; [varchar] => { $ crate :: PsqlSyntaxKind :: VARCHAR_KW } ; [char] => { $ crate :: PsqlSyntaxKind :: CHAR_KW } ; [text] => { $ crate :: PsqlSyntaxKind :: TEXT_KW } ; [boolean] => { $ crate :: PsqlSyntaxKind :: BOOLEAN_KW } ; [date] => { $ crate :: PsqlSyntaxKind :: DATE_KW } ; [time] => { $ crate :: PsqlSyntaxKind :: TIME_KW } ; [timestamp] => { $ crate :: PsqlSyntaxKind :: TIMESTAMP_KW } ; [interval] => { $ crate :: PsqlSyntaxKind :: INTERVAL_KW } ; [numeric] => { $ crate :: PsqlSyntaxKind :: NUMERIC_KW } ; [decimal] => { $ crate :: PsqlSyntaxKind :: DECIMAL_KW } ; [double] => { $ crate :: PsqlSyntaxKind :: DOUBLE_KW } ; [real] => { $ crate :: PsqlSyntaxKind :: REAL_KW } ; [json] => { $ crate :: PsqlSyntaxKind :: JSON_KW } ; [jsonb] => { $ crate :: PsqlSyntaxKind :: JSONB_KW } ; [uuid] => { $ crate :: PsqlSyntaxKind :: UUID_KW } ; [array] => { $ crate :: PsqlSyntaxKind :: ARRAY_KW } ; [bytea] => { $ crate :: PsqlSyntaxKind :: BYTEA_KW } ; [bit] => { $ crate :: PsqlSyntaxKind :: BIT_KW } ; [create] => { $ crate :: PsqlSyntaxKind :: CREATE_KW } ; [alter] => { $ crate :: PsqlSyntaxKind :: ALTER_KW } ; [drop] => { $ crate :: PsqlSyntaxKind :: DROP_KW } ; [table] => { $ crate :: PsqlSyntaxKind :: TABLE_KW } ; [view] => { $ crate :: PsqlSyntaxKind :: VIEW_KW } ; [index] => { $ crate :: PsqlSyntaxKind :: INDEX_KW } ; [sequence] => { $ crate :: PsqlSyntaxKind :: SEQUENCE_KW } ; [schema] => { $ crate :: PsqlSyntaxKind :: SCHEMA_KW } ; [database] => { $ crate :: PsqlSyntaxKind :: DATABASE_KW } ; [constraint] => { $ crate :: PsqlSyntaxKind :: CONSTRAINT_KW } ; [unique] => { $ crate :: PsqlSyntaxKind :: UNIQUE_KW } ; [primary] => { $ crate :: PsqlSyntaxKind :: PRIMARY_KW } ; [foreign] => { $ crate :: PsqlSyntaxKind :: FOREIGN_KW } ; [key] => { $ crate :: PsqlSyntaxKind :: KEY_KW } ; [check] => { $ crate :: PsqlSyntaxKind :: CHECK_KW } ; [default] => { $ crate :: PsqlSyntaxKind :: DEFAULT_KW } ; [insert] => { $ crate :: PsqlSyntaxKind :: INSERT_KW } ; [update] => { $ crate :: PsqlSyntaxKind :: UPDATE_KW } ; [delete] => { $ crate :: PsqlSyntaxKind :: DELETE_KW } ; [select] => { $ crate :: PsqlSyntaxKind :: SELECT_KW } ; [from] => { $ crate :: PsqlSyntaxKind :: FROM_KW } ; [where] => { $ crate :: PsqlSyntaxKind :: WHERE_KW } ; [group_by] => { $ crate :: PsqlSyntaxKind :: GROUP_BY_KW } ; [order_by] => { $ crate :: PsqlSyntaxKind :: ORDER_BY_KW } ; [having] => { $ crate :: PsqlSyntaxKind :: HAVING_KW } ; [values] => { $ crate :: PsqlSyntaxKind :: VALUES_KW } ; [set] => { $ crate :: PsqlSyntaxKind :: SET_KW } ; [inner] => { $ crate :: PsqlSyntaxKind :: INNER_KW } ; [outer] => { $ crate :: PsqlSyntaxKind :: OUTER_KW } ; [left] => { $ crate :: PsqlSyntaxKind :: LEFT_KW } ; [right] => { $ crate :: PsqlSyntaxKind :: RIGHT_KW } ; [join] => { $ crate :: PsqlSyntaxKind :: JOIN_KW } ; [on] => { $ crate :: PsqlSyntaxKind :: ON_KW } ; [using] => { $ crate :: PsqlSyntaxKind :: USING_KW } ; [as] => { $ crate :: PsqlSyntaxKind :: AS_KW } ; [limit] => { $ crate :: PsqlSyntaxKind :: LIMIT_KW } ; [offset] => { $ crate :: PsqlSyntaxKind :: OFFSET_KW } ; [into] => { $ crate :: PsqlSyntaxKind :: INTO_KW } ; [distinct] => { $ crate :: PsqlSyntaxKind :: DISTINCT_KW } ; [with] => { $ crate :: PsqlSyntaxKind :: WITH_KW } ; [recursive] => { $ crate :: PsqlSyntaxKind :: RECURSIVE_KW } ; [returning] => { $ crate :: PsqlSyntaxKind :: RETURNING_KW } ; [case] => { $ crate :: PsqlSyntaxKind :: CASE_KW } ; [when] => { $ crate :: PsqlSyntaxKind :: WHEN_KW } ; [then] => { $ crate :: PsqlSyntaxKind :: THEN_KW } ; [end] => { $ crate :: PsqlSyntaxKind :: END_KW } ; [if] => { $ crate :: PsqlSyntaxKind :: IF_KW } ; [else] => { $ crate :: PsqlSyntaxKind :: ELSE_KW } ; [and] => { $ crate :: PsqlSyntaxKind :: AND_KW } ; [or] => { $ crate :: PsqlSyntaxKind :: OR_KW } ; [not] => { $ crate :: PsqlSyntaxKind :: NOT_KW } ; [between] => { $ crate :: PsqlSyntaxKind :: BETWEEN_KW } ; [in] => { $ crate :: PsqlSyntaxKind :: IN_KW } ; [like] => { $ crate :: PsqlSyntaxKind :: LIKE_KW } ; [ilike] => { $ crate :: PsqlSyntaxKind :: ILIKE_KW } ; [is] => { $ crate :: PsqlSyntaxKind :: IS_KW } ; [asc] => { $ crate :: PsqlSyntaxKind :: ASC_KW } ; [desc] => { $ crate :: PsqlSyntaxKind :: DESC_KW } ; [union] => { $ crate :: PsqlSyntaxKind :: UNION_KW } ; [intersect] => { $ crate :: PsqlSyntaxKind :: INTERSECT_KW } ; [except] => { $ crate :: PsqlSyntaxKind :: EXCEPT_KW } ; [over] => { $ crate :: PsqlSyntaxKind :: OVER_KW } ; [partition] => { $ crate :: PsqlSyntaxKind :: PARTITION_KW } ; [begin] => { $ crate :: PsqlSyntaxKind :: BEGIN_KW } ; [commit] => { $ crate :: PsqlSyntaxKind :: COMMIT_KW } ; [rollback] => { $ crate :: PsqlSyntaxKind :: ROLLBACK_KW } ; [start] => { $ crate :: PsqlSyntaxKind :: START_KW } ; [null] => { $ crate :: PsqlSyntaxKind :: NULL_KW } ; [true] => { $ crate :: PsqlSyntaxKind :: TRUE_KW } ; [false] => { $ crate :: PsqlSyntaxKind :: FALSE_KW } ; [ident] => { $ crate :: PsqlSyntaxKind :: IDENT } ; [EOF] => { $ crate :: PsqlSyntaxKind :: EOF } ; [UNICODE_BOM] => { $ crate :: PsqlSyntaxKind :: UNICODE_BOM } ; [#] => { $ crate :: PsqlSyntaxKind :: HASH } ; }
