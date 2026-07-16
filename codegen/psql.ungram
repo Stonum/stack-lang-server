@@ -348,6 +348,7 @@ AnyPsqlExpression =
    | PsqlParenthesizedExpression
    | PsqlSubqueryExpression
    | PsqlCallExpression
+   | PsqlWindowFunctionExpression
    | PsqlArrayExpression
    | PsqlArraySubscriptExpression
    | PsqlCastExpression
@@ -462,6 +463,23 @@ PsqlCallExpression =
    '('
    arguments: PsqlExpressionList
    ')'
+
+PsqlWindowFunctionExpression =
+   call: PsqlCallExpression
+   'over'
+   window: PsqlWindowSpecification
+
+PsqlWindowSpecification =
+   '('
+   partition_by_clause: PsqlWindowPartitionByClause?
+   order_by_clause: PsqlOrderByClause?
+   ')'
+
+PsqlWindowPartitionByClause =
+   'partition_by'
+   items: PsqlWindowPartitionByItemList
+
+PsqlWindowPartitionByItemList = (AnyPsqlExpression (',' AnyPsqlExpression)*)
 
 PsqlBinaryExpression =
    left: AnyPsqlExpression

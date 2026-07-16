@@ -283,6 +283,20 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlWhereClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_WINDOW_FUNCTION_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlWindowFunctionExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_WINDOW_PARTITION_BY_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlWindowPartitionByClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_WINDOW_SPECIFICATION => {
+                    let $pattern = unsafe { $crate::PsqlWindowSpecification::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_WITH_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlWithClause::new_unchecked(node) };
                     $body
@@ -366,6 +380,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST => {
                     let $pattern = unsafe { $crate::PsqlTypeArgumentList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_WINDOW_PARTITION_BY_ITEM_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlWindowPartitionByItemList::new_unchecked(node) };
                     $body
                 }
                 _ => unreachable!(),
