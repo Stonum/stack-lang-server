@@ -238,6 +238,40 @@ pub fn psql_case_when_clause(
         ],
     ))
 }
+pub fn psql_cast_expression(
+    expression: AnyPsqlExpression,
+    double_colon_token: SyntaxToken,
+    ty: PsqlTypeName,
+) -> PsqlCastExpression {
+    PsqlCastExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_CAST_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(double_colon_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_cast_function_expression(
+    cast_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    expression: AnyPsqlExpression,
+    as_token: SyntaxToken,
+    ty: PsqlTypeName,
+    r_paren_token: SyntaxToken,
+) -> PsqlCastFunctionExpression {
+    PsqlCastFunctionExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_CAST_FUNCTION_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(cast_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(as_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_col_reference(name: PsqlName) -> PsqlColReference {
     PsqlColReference::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_COL_REFERENCE,
@@ -1158,6 +1192,66 @@ impl PsqlTableNameBuilder {
         ))
     }
 }
+pub fn psql_type_arguments(
+    l_paren_token: SyntaxToken,
+    items: PsqlTypeArgumentList,
+    r_paren_token: SyntaxToken,
+) -> PsqlTypeArguments {
+    PsqlTypeArguments::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TYPE_ARGUMENTS,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_type_array_suffix(
+    l_brack_token: SyntaxToken,
+    r_brack_token: SyntaxToken,
+) -> PsqlTypeArraySuffix {
+    PsqlTypeArraySuffix::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TYPE_ARRAY_SUFFIX,
+        [
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
+pub fn psql_type_name(name_token: SyntaxToken) -> PsqlTypeNameBuilder {
+    PsqlTypeNameBuilder {
+        name_token,
+        args: None,
+        array_suffix: None,
+    }
+}
+pub struct PsqlTypeNameBuilder {
+    name_token: SyntaxToken,
+    args: Option<PsqlTypeArguments>,
+    array_suffix: Option<PsqlTypeArraySuffix>,
+}
+impl PsqlTypeNameBuilder {
+    pub fn with_args(mut self, args: PsqlTypeArguments) -> Self {
+        self.args = Some(args);
+        self
+    }
+    pub fn with_array_suffix(mut self, array_suffix: PsqlTypeArraySuffix) -> Self {
+        self.array_suffix = Some(array_suffix);
+        self
+    }
+    pub fn build(self) -> PsqlTypeName {
+        PsqlTypeName::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_TYPE_NAME,
+            [
+                Some(SyntaxElement::Token(self.name_token)),
+                self.args
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.array_suffix
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_unary_expression(
     operator_token_token: SyntaxToken,
     expression: AnyPsqlExpression,
@@ -1476,6 +1570,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_type_argument_list<I, S>(items: I, separators: S) -> PsqlTypeArgumentList
+where
+    I: IntoIterator<Item = PsqlNumberLiteralExpression>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlTypeArgumentList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_bogus<I>(slots: I) -> PsqlBogus

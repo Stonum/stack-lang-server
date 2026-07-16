@@ -33,3 +33,7 @@ pub fn expected_table_binding(p: &PsqlParser, range: TextRange) -> ParseDiagnost
 pub fn expected_insert_source(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("values or select", range, p)
 }
+
+pub fn expected_type_name(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("type name", range, p)
+}
