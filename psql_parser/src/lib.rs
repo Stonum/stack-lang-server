@@ -10,18 +10,15 @@ use psql_syntax::{PsqlFileSource, PsqlLanguage, PsqlRoot, PsqlSyntaxKind, PsqlSy
 
 use crate::{
     lexer::PsqlReLexContext,
-    state::{ChangeParserState, PsqlParserState, PsqlParserStateCheckpoint},
     token_source::{PsqlTokenSource, PsqlTokenSourceCheckpoint},
 };
 
 mod lexer;
-mod state;
 mod syntax_rules;
 mod token_source;
 
 pub type PsqlLosslessTreeSink<'source> = LosslessTreeSink<'source, PsqlLanguage, PsqlSyntaxFactory>;
 pub struct PsqlParser<'source> {
-    pub(self) state: PsqlParserState,
     pub source_type: PsqlFileSource,
     context: ParserContext<PsqlSyntaxKind>,
     source: PsqlTokenSource<'source>,
@@ -30,19 +27,10 @@ pub struct PsqlParser<'source> {
 impl<'source> PsqlParser<'source> {
     pub fn new(source: &'source str, source_type: PsqlFileSource) -> Self {
         Self {
-            state: PsqlParserState::new(),
             source_type,
             context: ParserContext::default(),
             source: PsqlTokenSource::from_str(source),
         }
-    }
-
-    pub(self) fn state(&self) -> &PsqlParserState {
-        &self.state
-    }
-
-    pub(self) fn state_mut(&mut self) -> &mut PsqlParserState {
-        &mut self.state
     }
 
     pub fn source_type(&self) -> PsqlFileSource {
@@ -72,38 +60,18 @@ impl<'source> PsqlParser<'source> {
         result
     }
 
-    /// Applies the passed in change to the parser state before applying the passed `func` and
-    /// restores the state to before the change before returning the result.
-    #[inline]
-    pub(self) fn with_state<C, F, R>(&mut self, change: C, func: F) -> R
-    where
-        C: ChangeParserState,
-        F: FnOnce(&mut PsqlParser) -> R,
-    {
-        let snapshot = change.apply(self.state_mut());
-        let result = func(self);
-        C::restore(self.state_mut(), snapshot);
-        result
-    }
-
     pub fn checkpoint(&self) -> PsqlParserCheckpoint {
         PsqlParserCheckpoint {
             context: self.context.checkpoint(),
             source: self.source.checkpoint(),
-            state: self.state.checkpoint(),
         }
     }
 
     pub fn rewind(&mut self, checkpoint: PsqlParserCheckpoint) {
-        let PsqlParserCheckpoint {
-            context,
-            source,
-            state,
-        } = checkpoint;
+        let PsqlParserCheckpoint { context, source } = checkpoint;
 
         self.context.rewind(context);
         self.source.rewind(source);
-        self.state.restore(state);
     }
 
     pub fn finish(
@@ -144,7 +112,6 @@ impl<'source> Parser for PsqlParser<'source> {
 pub struct PsqlParserCheckpoint {
     pub context: ParserContextCheckpoint,
     pub source: PsqlTokenSourceCheckpoint,
-    state: PsqlParserStateCheckpoint,
 }
 
 #[derive(Debug)]

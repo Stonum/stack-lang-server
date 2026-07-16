@@ -6,7 +6,7 @@ use biome_parser::prelude::*;
 use super::expr::{EXPR_RECOVERY_SET, parse_column_name_list, parse_name};
 use super::parse_error::*;
 use super::select::parse_select_statement_body;
-use super::stmt::{StatementContext, parse_statement};
+use super::stmt::parse_statement;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -85,7 +85,7 @@ fn parse_cte_definition(p: &mut PsqlParser) -> ParsedSyntax {
     // A CTE's body can be any statement, not just `select` -- Postgres
     // allows data-modifying CTEs (`insert`/`update`/`delete ... returning
     // ...`) whose output rows feed into the outer query.
-    parse_statement(p, StatementContext::StatementList).or_add_diagnostic(p, expected_statement);
+    parse_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
     Present(m.complete(p, PSQL_CTE_DEFINITION))
 }
