@@ -133,12 +133,11 @@ PsqlFromItem =
 PsqlJoinClauseList = PsqlJoinClause*
 
 PsqlJoinClause =
-   join_type: ('inner' | 'left' | 'right')?
+   join_type: ('inner' | 'left' | 'right' | 'full' | 'cross')?
    'outer'?
    'join'
    source: AnyPsqlFromExpression
-   'on'
-   condition: AnyPsqlExpression
+   ('on' condition: AnyPsqlExpression)?
 
 AnyPsqlFromExpression =
    PsqlTableBinding

@@ -648,25 +648,23 @@ impl PsqlIsNullExpressionBuilder {
 pub fn psql_join_clause(
     join_token: SyntaxToken,
     source: AnyPsqlFromExpression,
-    on_token: SyntaxToken,
-    condition: AnyPsqlExpression,
 ) -> PsqlJoinClauseBuilder {
     PsqlJoinClauseBuilder {
         join_token,
         source,
-        on_token,
-        condition,
         join_type_token: None,
         outer_token: None,
+        on_token: None,
+        condition: None,
     }
 }
 pub struct PsqlJoinClauseBuilder {
     join_token: SyntaxToken,
     source: AnyPsqlFromExpression,
-    on_token: SyntaxToken,
-    condition: AnyPsqlExpression,
     join_type_token: Option<SyntaxToken>,
     outer_token: Option<SyntaxToken>,
+    on_token: Option<SyntaxToken>,
+    condition: Option<AnyPsqlExpression>,
 }
 impl PsqlJoinClauseBuilder {
     pub fn with_join_type_token(mut self, join_type_token: SyntaxToken) -> Self {
@@ -675,6 +673,14 @@ impl PsqlJoinClauseBuilder {
     }
     pub fn with_outer_token(mut self, outer_token: SyntaxToken) -> Self {
         self.outer_token = Some(outer_token);
+        self
+    }
+    pub fn with_on_token(mut self, on_token: SyntaxToken) -> Self {
+        self.on_token = Some(on_token);
+        self
+    }
+    pub fn with_condition(mut self, condition: AnyPsqlExpression) -> Self {
+        self.condition = Some(condition);
         self
     }
     pub fn build(self) -> PsqlJoinClause {
@@ -686,8 +692,9 @@ impl PsqlJoinClauseBuilder {
                 self.outer_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.join_token)),
                 Some(SyntaxElement::Node(self.source.into_syntax())),
-                Some(SyntaxElement::Token(self.on_token)),
-                Some(SyntaxElement::Node(self.condition.into_syntax())),
+                self.on_token.map(|token| SyntaxElement::Token(token)),
+                self.condition
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }

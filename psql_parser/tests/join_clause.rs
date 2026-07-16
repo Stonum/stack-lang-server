@@ -83,3 +83,40 @@ fn test_join_function_binding() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_full_join() {
+    let res = parse(
+        "select a from t full join u on t.id = u.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_full_outer_join() {
+    let res = parse(
+        "select a from t full outer join u on t.id = u.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_cross_join() {
+    let res = parse("select a from t cross join u", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_cross_join_then_inner_join() {
+    let res = parse(
+        "select a from t cross join u join v on u.id = v.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

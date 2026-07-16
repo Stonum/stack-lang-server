@@ -1026,7 +1026,10 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
-                    && matches!(element.kind(), T![inner] | T![left] | T![right])
+                    && matches!(
+                        element.kind(),
+                        T![inner] | T![left] | T![right] | T![full] | T![cross]
+                    )
                 {
                     slots.mark_present();
                     current_element = elements.next();

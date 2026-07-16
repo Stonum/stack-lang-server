@@ -650,17 +650,17 @@ impl PsqlJoinClause {
                 .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
         )
     }
-    pub fn with_on_token(self, element: SyntaxToken) -> Self {
+    pub fn with_on_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(4usize..=4usize, once(Some(element.into()))),
+                .splice_slots(4usize..=4usize, once(element.map(|element| element.into()))),
         )
     }
-    pub fn with_condition(self, element: AnyPsqlExpression) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(5usize..=5usize, once(Some(element.into_syntax().into()))),
-        )
+    pub fn with_condition(self, element: Option<AnyPsqlExpression>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            5usize..=5usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
     }
 }
 impl PsqlLikeExpression {
