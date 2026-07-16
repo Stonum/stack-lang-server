@@ -1,4 +1,3 @@
-mod errors;
 mod tests;
 
 use psql_syntax::PsqlSyntaxKind;
