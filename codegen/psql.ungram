@@ -79,7 +79,23 @@ AnyPsqlStatement =
 // Statements
 ///////////////
 
+PsqlWithClause =
+   'with'
+   'recursive'?
+   ctes: PsqlCteDefinitionList
+
+PsqlCteDefinitionList = (PsqlCteDefinition (',' PsqlCteDefinition)* )
+
+PsqlCteDefinition =
+   name: PsqlName
+   columns: PsqlColumnList?
+   'as'
+   '('
+   query: AnyPsqlStatement
+   ')'
+
 PsqlSelectStatement =
+   with_clause: PsqlWithClause?
    select_clause: PsqlSelectClause
    from_clause: PsqlFromClause?
    where_clause: PsqlWhereClause?
@@ -168,19 +184,25 @@ PsqlOffsetClause =
    start: PsqlNumberLiteralExpression
 
 PsqlInsertStatement =
+   with_clause: PsqlWithClause?
    'insert'
    'into'
    table: PsqlTableBinding
-   columns: PsqlInsertColumns?
+   columns: PsqlColumnList?
    source: AnyPsqlInsertSource
+   returning_clause: PsqlReturningClause?
    ';'?
 
-PsqlInsertColumns = 
+PsqlReturningClause =
+   'returning'
+   items: PsqlSelectItemList
+
+PsqlColumnList =
    '('
-   items: PsqlInsertColumnList
+   items: PsqlColumnNameList
    ')'
 
-PsqlInsertColumnList = (PsqlName (',' PsqlName)*)
+PsqlColumnNameList = (PsqlName (',' PsqlName)*)
 
 AnyPsqlInsertSource =
    PsqlInsertValues 
@@ -192,23 +214,27 @@ PsqlInsertValues =
    items: PsqlExpressionList
    ')'
 
-PsqlDeleteStatement = 
+PsqlDeleteStatement =
+   with_clause: PsqlWithClause?
    'delete'
    'from'
    table: PsqlTableBinding
    using: PsqlDeleteUsingClause?
    where_clause: PsqlWhereClause?
+   returning_clause: PsqlReturningClause?
    ';'?
 
 PsqlDeleteUsingClause =
    'using'
    items: PsqlFromItemList
 
-PsqlUpdateStatement = 
+PsqlUpdateStatement =
+   with_clause: PsqlWithClause?
    'update'
    table: PsqlTableBinding
    set_clause: PsqlSetClause
    where_clause: PsqlWhereClause?
+   returning_clause: PsqlReturningClause?
    ';'?
 
 PsqlSetClause = 

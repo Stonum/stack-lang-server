@@ -6,6 +6,7 @@ use biome_parser::prelude::*;
 use super::expr::{EXPR_RECOVERY_SET, parse_expression, parse_name};
 use super::from::parse_table_binding;
 use super::parse_error::*;
+use super::returning_clause::parse_returning_clause;
 use super::where_clause::parse_where_clause;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
@@ -16,13 +17,21 @@ pub(crate) fn parse_update_statement(p: &mut PsqlParser) -> ParsedSyntax {
     }
 
     let m = p.start();
-    p.bump(T![update]);
+    parse_update_statement_body(p, m)
+}
+
+/// Parses the body of an `update` statement, assuming an optional leading
+/// `with` clause has already been parsed (or intentionally omitted) into
+/// `update_stmt` by the caller.
+pub(crate) fn parse_update_statement_body(p: &mut PsqlParser, update_stmt: Marker) -> ParsedSyntax {
+    p.expect(T![update]);
     parse_table_binding(p).or_add_diagnostic(p, expected_table_binding);
     parse_set_clause(p);
     let _ = parse_where_clause(p);
+    let _ = parse_returning_clause(p);
     p.eat(T![;]);
 
-    Present(m.complete(p, PSQL_UPDATE_STATEMENT))
+    Present(update_stmt.complete(p, PSQL_UPDATE_STATEMENT))
 }
 
 fn parse_set_clause(p: &mut PsqlParser) -> CompletedMarker {

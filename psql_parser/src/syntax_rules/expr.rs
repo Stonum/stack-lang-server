@@ -548,3 +548,50 @@ impl ParseSeparatedList for PsqlExpressionList {
         T![,]
     }
 }
+
+/// A parenthesized, comma-separated list of plain column names, e.g.
+/// `(a, b, c)` — shared by `INSERT`'s target columns and a CTE's column
+/// aliases.
+pub(crate) fn parse_column_name_list(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    PsqlColumnNameList.parse_list(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_COLUMN_LIST))
+}
+
+struct PsqlColumnNameList;
+
+impl ParseSeparatedList for PsqlColumnNameList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_COLUMN_NAME_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_name(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, EXPR_RECOVERY_SET),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}

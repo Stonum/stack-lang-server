@@ -18,7 +18,13 @@ pub(crate) fn parse_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     }
 
     let select_stmt = p.start();
+    parse_select_statement_body(p, select_stmt)
+}
 
+/// Parses the body of a `select` statement, assuming an optional leading
+/// `with` clause has already been parsed (or intentionally omitted) into
+/// `select_stmt` by the caller.
+pub(crate) fn parse_select_statement_body(p: &mut PsqlParser, select_stmt: Marker) -> ParsedSyntax {
     let select_clause = p.start();
     p.expect(T![select]);
     PsqlSelectItemList.parse_list(p);
@@ -65,6 +71,8 @@ impl ParseSeparatedList for PsqlGroupByItemList {
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])
+            || p.at(T![returning])
+            || p.at(T![')'])
     }
 
     fn recover(
@@ -122,7 +130,12 @@ impl ParseSeparatedList for PsqlOrderByExpressionList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![;]) || p.at(T![limit]) || p.at(T![offset])
+        p.at(EOF)
+            || p.at(T![;])
+            || p.at(T![limit])
+            || p.at(T![offset])
+            || p.at(T![returning])
+            || p.at(T![')'])
     }
 
     fn recover(
@@ -192,6 +205,8 @@ impl ParseSeparatedList for PsqlSelectItemList {
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])
+            || p.at(T![returning])
+            || p.at(T![')'])
     }
 
     fn recover(
@@ -211,7 +226,7 @@ impl ParseSeparatedList for PsqlSelectItemList {
     }
 }
 
-fn parse_select_item(p: &mut PsqlParser) -> ParsedSyntax {
+pub(crate) fn parse_select_item(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     if p.at(T![*]) {
         p.bump(T![*]);
