@@ -1308,11 +1308,11 @@ impl PsqlJoinClause {
     pub fn source(&self) -> SyntaxResult<AnyPsqlFromExpression> {
         support::required_node(&self.syntax, 3usize)
     }
-    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 4usize)
+    pub fn on_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
     }
-    pub fn condition(&self) -> SyntaxResult<AnyPsqlExpression> {
-        support::required_node(&self.syntax, 5usize)
+    pub fn condition(&self) -> Option<AnyPsqlExpression> {
+        support::node(&self.syntax, 5usize)
     }
 }
 impl Serialize for PsqlJoinClause {
@@ -1329,8 +1329,8 @@ pub struct PsqlJoinClauseFields {
     pub outer_token: Option<SyntaxToken>,
     pub join_token: SyntaxResult<SyntaxToken>,
     pub source: SyntaxResult<AnyPsqlFromExpression>,
-    pub on_token: SyntaxResult<SyntaxToken>,
-    pub condition: SyntaxResult<AnyPsqlExpression>,
+    pub on_token: Option<SyntaxToken>,
+    pub condition: Option<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlLikeExpression {
@@ -4307,8 +4307,11 @@ impl std::fmt::Debug for PsqlJoinClause {
                 )
                 .field("join_token", &support::DebugSyntaxResult(self.join_token()))
                 .field("source", &support::DebugSyntaxResult(self.source()))
-                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
-                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field("on_token", &support::DebugOptionalElement(self.on_token()))
+                .field(
+                    "condition",
+                    &support::DebugOptionalElement(self.condition()),
+                )
                 .finish()
         } else {
             f.debug_struct("PsqlJoinClause").finish()

@@ -89,7 +89,13 @@ fn parse_join_clause_list(p: &mut PsqlParser) -> CompletedMarker {
 }
 
 fn is_at_join_clause(p: &mut PsqlParser) -> bool {
-    p.at(T![join]) || p.at(T![inner]) || p.at(T![left]) || p.at(T![right]) || p.at(T![outer])
+    p.at(T![join])
+        || p.at(T![inner])
+        || p.at(T![left])
+        || p.at(T![right])
+        || p.at(T![full])
+        || p.at(T![cross])
+        || p.at(T![outer])
 }
 
 fn parse_join_clause(p: &mut PsqlParser) -> ParsedSyntax {
@@ -98,14 +104,18 @@ fn parse_join_clause(p: &mut PsqlParser) -> ParsedSyntax {
     }
 
     let m = p.start();
-    if p.at(T![inner]) || p.at(T![left]) || p.at(T![right]) {
+    let is_cross = p.at(T![cross]);
+    if p.at(T![inner]) || p.at(T![left]) || p.at(T![right]) || p.at(T![full]) || is_cross {
         p.bump_any();
     }
     p.eat(T![outer]);
     p.expect(T![join]);
     parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
-    p.expect(T![on]);
-    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    // `CROSS JOIN` has no `ON` condition -- unlike every other join kind.
+    if !is_cross {
+        p.expect(T![on]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+    }
     Present(m.complete(p, PSQL_JOIN_CLAUSE))
 }
 
