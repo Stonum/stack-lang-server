@@ -307,7 +307,21 @@ AnyPsqlExpression =
    | PsqlParenthesizedExpression
    | PsqlSubqueryExpression
    | PsqlCallExpression
+   | PsqlArrayExpression
+   | PsqlArraySubscriptExpression
    | AnyPsqlLiteralExpression
+
+PsqlArrayExpression =
+   'array'
+   '['
+   items: PsqlExpressionList
+   ']'
+
+PsqlArraySubscriptExpression =
+   expression: AnyPsqlExpression
+   '['
+   index: AnyPsqlExpression
+   ']'
 
 PsqlSubqueryExpression =
    '('

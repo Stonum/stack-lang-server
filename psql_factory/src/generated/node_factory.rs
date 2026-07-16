@@ -31,6 +31,38 @@ impl PsqlAliasBuilder {
         ))
     }
 }
+pub fn psql_array_expression(
+    array_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_brack_token: SyntaxToken,
+) -> PsqlArrayExpression {
+    PsqlArrayExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_ARRAY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(array_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
+pub fn psql_array_subscript_expression(
+    expression: AnyPsqlExpression,
+    l_brack_token: SyntaxToken,
+    index: AnyPsqlExpression,
+    r_brack_token: SyntaxToken,
+) -> PsqlArraySubscriptExpression {
+    PsqlArraySubscriptExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_ARRAY_SUBSCRIPT_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(index.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
 pub fn psql_between_expression(
     expression: AnyPsqlExpression,
     between_token: SyntaxToken,
