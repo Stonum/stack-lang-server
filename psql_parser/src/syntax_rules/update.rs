@@ -71,6 +71,10 @@ impl ParseSeparatedList for PsqlSetItemList {
     fn separating_element_kind(&mut self) -> Self::Kind {
         T![,]
     }
+
+    fn allow_empty(&self) -> bool {
+        false
+    }
 }
 
 fn parse_set_item(p: &mut PsqlParser) -> ParsedSyntax {

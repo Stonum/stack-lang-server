@@ -135,6 +135,10 @@ impl ParseSeparatedList for PsqlGroupByItemList {
         T![,]
     }
 
+    fn allow_empty(&self) -> bool {
+        false
+    }
+
     fn allow_trailing_separating_element(&self) -> bool {
         true
     }
@@ -196,6 +200,10 @@ impl ParseSeparatedList for PsqlOrderByExpressionList {
 
     fn separating_element_kind(&mut self) -> Self::Kind {
         T![,]
+    }
+
+    fn allow_empty(&self) -> bool {
+        false
     }
 }
 

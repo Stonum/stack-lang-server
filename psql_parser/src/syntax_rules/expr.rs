@@ -561,6 +561,10 @@ impl ParseSeparatedList for PsqlWindowPartitionByItemList {
     fn separating_element_kind(&mut self) -> Self::Kind {
         T![,]
     }
+
+    fn allow_empty(&self) -> bool {
+        false
+    }
 }
 
 fn parse_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
