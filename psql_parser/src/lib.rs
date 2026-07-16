@@ -29,7 +29,7 @@ impl<'source> PsqlParser<'source> {
         Self {
             source_type,
             context: ParserContext::default(),
-            source: PsqlTokenSource::from_str(source),
+            source: PsqlTokenSource::from_str(source, source_type.dialect()),
         }
     }
 

@@ -6,6 +6,7 @@ use biome_parser::token_source::{
 use biome_rowan::{TextRange, TextSize, TriviaPieceKind};
 
 use crate::lexer::{PsqlLexContext, PsqlLexer, PsqlReLexContext};
+use psql_syntax::PsqlDialect;
 use psql_syntax::PsqlSyntaxKind::{self, EOF};
 
 /// Token source for the parser that skips over any non-trivia token.
@@ -28,8 +29,8 @@ impl<'l> PsqlTokenSource<'l> {
     }
 
     /// Creates a new token source for the given string
-    pub fn from_str(source: &'l str) -> PsqlTokenSource<'l> {
-        let lexer = PsqlLexer::from_str(source);
+    pub fn from_str(source: &'l str, dialect: PsqlDialect) -> PsqlTokenSource<'l> {
+        let lexer = PsqlLexer::from_str(source, dialect);
         let buffered = BufferedLexer::new(lexer);
         let mut source = PsqlTokenSource::new(buffered);
 

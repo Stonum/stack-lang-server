@@ -2,6 +2,7 @@
 #![allow(unused_mut, unused_variables, unused_assignments)]
 
 use super::{PsqlLexContext, PsqlLexer};
+use psql_syntax::PsqlDialect;
 use psql_syntax::PsqlSyntaxKind::{self, EOF};
 use psql_syntax::T;
 
@@ -11,7 +12,7 @@ use biome_rowan::TextSize;
 // Макрос для проверки лексирования
 macro_rules! assert_lex {
     ($src:expr, $($kind:ident:$len:expr $(,)?)*) => {{
-        let mut lexer = PsqlLexer::from_str($src);
+        let mut lexer = PsqlLexer::from_str($src, PsqlDialect::Standard);
         let mut idx = 0;
         let mut new_str = String::with_capacity($src.len());
         let mut tokens = vec![];
@@ -73,6 +74,18 @@ fn identifiers() {
     assert_lex! { "_starts_with_underscore", IDENT:23 }
     assert_lex! { "\"quoted\"", IDENT:8 }
     assert_lex! { "\"quoted with space\"", IDENT:19 }
+}
+
+#[test]
+fn hash_identifier_only_in_mlang_dialect() {
+    let mut lexer = PsqlLexer::from_str("#tmptable", PsqlDialect::Mlang);
+    lexer.next_token(PsqlLexContext);
+    assert_eq!(lexer.current(), PsqlSyntaxKind::IDENT);
+    assert_eq!(lexer.current_range().len(), TextSize::from(9));
+
+    let mut lexer = PsqlLexer::from_str("#tmptable", PsqlDialect::Standard);
+    lexer.next_token(PsqlLexContext);
+    assert_eq!(lexer.current(), PsqlSyntaxKind::ERROR_TOKEN);
 }
 
 #[test]
@@ -147,7 +160,7 @@ fn keywords() {
             )
         });
 
-        let mut lexer = PsqlLexer::from_str(keyword);
+        let mut lexer = PsqlLexer::from_str(keyword, PsqlDialect::Standard);
         lexer.next_token(PsqlLexContext);
 
         let lexed_kind = lexer.current();
@@ -414,7 +427,7 @@ fn case_expression() {
 fn lookahead_buffer() {
     use psql_syntax::PsqlSyntaxKind::{FROM_KW, IDENT, STAR, WHITESPACE};
 
-    let lexer = PsqlLexer::from_str("SELECT * FROM t");
+    let lexer = PsqlLexer::from_str("SELECT * FROM t", PsqlDialect::Standard);
     let mut buffered = BufferedLexer::new(lexer);
 
     buffered.next_token(PsqlLexContext);

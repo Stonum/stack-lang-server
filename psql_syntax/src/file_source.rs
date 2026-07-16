@@ -18,9 +18,32 @@ impl PsqlModuleKind {
     }
 }
 
+/// Which SQL dialect to accept.
+///
+/// `Standard` accepts plain Postgres syntax. `Mlang` additionally accepts
+/// syntax specific to SQL embedded in mlang source (e.g. `query("...")`
+/// calls): `~name~`/`~$name~` table and function names, `#name` temp table
+/// names, and `~[]~` as an escaped array-type suffix. These aren't real
+/// Postgres syntax -- they're mlang's own conventions, presumably expanded
+/// by mlang's runtime before the query text reaches an actual database.
+#[derive(Debug, Clone, Default, Copy, Eq, PartialEq, Hash)]
+pub enum PsqlDialect {
+    #[default]
+    Standard,
+
+    Mlang,
+}
+
+impl PsqlDialect {
+    pub const fn is_mlang(&self) -> bool {
+        matches!(self, PsqlDialect::Mlang)
+    }
+}
+
 #[derive(Debug, Clone, Default, Copy, Eq, PartialEq, Hash)]
 pub struct PsqlFileSource {
     module_kind: PsqlModuleKind,
+    dialect: PsqlDialect,
 }
 
 impl PsqlFileSource {
@@ -51,6 +74,23 @@ impl PsqlFileSource {
 
     pub const fn is_script(&self) -> bool {
         self.module_kind.is_script()
+    }
+
+    pub const fn with_dialect(mut self, dialect: PsqlDialect) -> Self {
+        self.dialect = dialect;
+        self
+    }
+
+    pub fn set_dialect(&mut self, dialect: PsqlDialect) {
+        self.dialect = dialect;
+    }
+
+    pub const fn dialect(&self) -> PsqlDialect {
+        self.dialect
+    }
+
+    pub const fn is_mlang_dialect(&self) -> bool {
+        self.dialect.is_mlang()
     }
 
     pub fn file_extension(&self) -> &str {

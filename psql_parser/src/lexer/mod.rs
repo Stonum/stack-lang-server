@@ -1,5 +1,6 @@
 mod tests;
 
+use psql_syntax::PsqlDialect;
 use psql_syntax::PsqlSyntaxKind;
 use psql_syntax::PsqlSyntaxKind::*;
 use psql_syntax::T;
@@ -41,6 +42,7 @@ pub struct PsqlLexer<'src> {
     current_kind: PsqlSyntaxKind,
     current_flags: TokenFlags,
     diagnostics: Vec<ParseDiagnostic>,
+    dialect: PsqlDialect,
 }
 
 impl<'src> Lexer<'src> for PsqlLexer<'src> {
@@ -185,7 +187,7 @@ impl<'src> LexerWithCheckpoint<'src> for PsqlLexer<'src> {
 }
 
 impl<'src> PsqlLexer<'src> {
-    pub fn from_str(source: &'src str) -> Self {
+    pub fn from_str(source: &'src str, dialect: PsqlDialect) -> Self {
         Self {
             source,
             position: 0,
@@ -195,6 +197,7 @@ impl<'src> PsqlLexer<'src> {
             current_start: TextSize::from(0),
             current_flags: TokenFlags::empty(),
             diagnostics: vec![],
+            dialect,
         }
     }
 
@@ -245,6 +248,22 @@ impl<'src> PsqlLexer<'src> {
             Ok(s) => PsqlSyntaxKind::from_keyword(s.to_lowercase().as_str()).unwrap_or(T![ident]),
             Err(_) => ERROR_TOKEN,
         }
+    }
+
+    /// A `#`-prefixed identifier (e.g. `#tmptable`), valid in the mlang
+    /// dialect as a temp-table name -- not real Postgres syntax. Never
+    /// resolves to a keyword: `#` can't be part of any real keyword, so
+    /// unlike [Self::resolve_identifier] there's no ambiguity to check.
+    fn resolve_hash_identifier(&mut self) -> PsqlSyntaxKind {
+        self.advance(1); // '#'
+        while let Some(b) = self.current_byte() {
+            if is_id_continue(b as char) {
+                self.advance(1);
+            } else {
+                break;
+            }
+        }
+        T![ident]
     }
 
     fn consume_and_get_ident(&mut self, buf: &mut [u8]) -> usize {
@@ -495,6 +514,7 @@ impl<'src> PsqlLexer<'src> {
                 }
             }
             IDT => self.resolve_identifier(),
+            HAS if self.dialect.is_mlang() => self.resolve_hash_identifier(),
             DIG | ZER => self.resolve_number(),
             PNO => self.eat_byte(T!['(']),
             PNC => self.eat_byte(T![')']),
