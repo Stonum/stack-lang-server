@@ -500,6 +500,111 @@ pub struct PsqlCaseWhenClauseFields {
     pub result: SyntaxResult<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCastExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCastExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCastExpressionFields {
+        PsqlCastExpressionFields {
+            expression: self.expression(),
+            double_colon_token: self.double_colon_token(),
+            ty: self.ty(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn double_colon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn ty(&self) -> SyntaxResult<PsqlTypeName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlCastExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCastExpressionFields {
+    pub expression: SyntaxResult<AnyPsqlExpression>,
+    pub double_colon_token: SyntaxResult<SyntaxToken>,
+    pub ty: SyntaxResult<PsqlTypeName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCastFunctionExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCastFunctionExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCastFunctionExpressionFields {
+        PsqlCastFunctionExpressionFields {
+            cast_token: self.cast_token(),
+            l_paren_token: self.l_paren_token(),
+            expression: self.expression(),
+            as_token: self.as_token(),
+            ty: self.ty(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn cast_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn expression(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn ty(&self) -> SyntaxResult<PsqlTypeName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlCastFunctionExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCastFunctionExpressionFields {
+    pub cast_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub expression: SyntaxResult<AnyPsqlExpression>,
+    pub as_token: SyntaxResult<SyntaxToken>,
+    pub ty: SyntaxResult<PsqlTypeName>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlColReference {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2398,6 +2503,136 @@ pub struct PsqlTableNameFields {
     pub name: SyntaxResult<PsqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTypeArguments {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTypeArguments {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTypeArgumentsFields {
+        PsqlTypeArgumentsFields {
+            l_paren_token: self.l_paren_token(),
+            items: self.items(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn items(&self) -> PsqlTypeArgumentList {
+        support::list(&self.syntax, 1usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlTypeArguments {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTypeArgumentsFields {
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlTypeArgumentList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTypeArraySuffix {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTypeArraySuffix {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTypeArraySuffixFields {
+        PsqlTypeArraySuffixFields {
+            l_brack_token: self.l_brack_token(),
+            r_brack_token: self.r_brack_token(),
+        }
+    }
+    pub fn l_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn r_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlTypeArraySuffix {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTypeArraySuffixFields {
+    pub l_brack_token: SyntaxResult<SyntaxToken>,
+    pub r_brack_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTypeName {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTypeName {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTypeNameFields {
+        PsqlTypeNameFields {
+            name: self.name(),
+            args: self.args(),
+            array_suffix: self.array_suffix(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn args(&self) -> Option<PsqlTypeArguments> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn array_suffix(&self) -> Option<PsqlTypeArraySuffix> {
+        support::node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlTypeName {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTypeNameFields {
+    pub name: SyntaxResult<SyntaxToken>,
+    pub args: Option<PsqlTypeArguments>,
+    pub array_suffix: Option<PsqlTypeArraySuffix>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlUnaryExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2596,6 +2831,8 @@ pub enum AnyPsqlExpression {
     PsqlBinaryExpression(PsqlBinaryExpression),
     PsqlCallExpression(PsqlCallExpression),
     PsqlCaseExpression(PsqlCaseExpression),
+    PsqlCastExpression(PsqlCastExpression),
+    PsqlCastFunctionExpression(PsqlCastFunctionExpression),
     PsqlColReference(PsqlColReference),
     PsqlInExpression(PsqlInExpression),
     PsqlIsNullExpression(PsqlIsNullExpression),
@@ -2648,6 +2885,18 @@ impl AnyPsqlExpression {
     pub fn as_psql_case_expression(&self) -> Option<&PsqlCaseExpression> {
         match &self {
             Self::PsqlCaseExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_cast_expression(&self) -> Option<&PsqlCastExpression> {
+        match &self {
+            Self::PsqlCastExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_cast_function_expression(&self) -> Option<&PsqlCastFunctionExpression> {
+        match &self {
+            Self::PsqlCastFunctionExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -3396,6 +3645,116 @@ impl From<PsqlCaseWhenClause> for SyntaxNode {
 }
 impl From<PsqlCaseWhenClause> for SyntaxElement {
     fn from(n: PsqlCaseWhenClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCastExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CAST_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CAST_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCastExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCastExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "double_colon_token",
+                    &support::DebugSyntaxResult(self.double_colon_token()),
+                )
+                .field("ty", &support::DebugSyntaxResult(self.ty()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCastExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCastExpression> for SyntaxNode {
+    fn from(n: PsqlCastExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCastExpression> for SyntaxElement {
+    fn from(n: PsqlCastExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCastFunctionExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CAST_FUNCTION_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CAST_FUNCTION_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCastFunctionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCastFunctionExpression")
+                .field("cast_token", &support::DebugSyntaxResult(self.cast_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field("as_token", &support::DebugSyntaxResult(self.as_token()))
+                .field("ty", &support::DebugSyntaxResult(self.ty()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCastFunctionExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCastFunctionExpression> for SyntaxNode {
+    fn from(n: PsqlCastFunctionExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCastFunctionExpression> for SyntaxElement {
+    fn from(n: PsqlCastFunctionExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -5633,6 +5992,167 @@ impl From<PsqlTableName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTypeArguments {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TYPE_ARGUMENTS as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TYPE_ARGUMENTS
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTypeArguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTypeArguments")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTypeArguments").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTypeArguments> for SyntaxNode {
+    fn from(n: PsqlTypeArguments) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTypeArguments> for SyntaxElement {
+    fn from(n: PsqlTypeArguments) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTypeArraySuffix {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TYPE_ARRAY_SUFFIX as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TYPE_ARRAY_SUFFIX
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTypeArraySuffix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTypeArraySuffix")
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTypeArraySuffix").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTypeArraySuffix> for SyntaxNode {
+    fn from(n: PsqlTypeArraySuffix) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTypeArraySuffix> for SyntaxElement {
+    fn from(n: PsqlTypeArraySuffix) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTypeName {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TYPE_NAME as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TYPE_NAME
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTypeName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTypeName")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("args", &support::DebugOptionalElement(self.args()))
+                .field(
+                    "array_suffix",
+                    &support::DebugOptionalElement(self.array_suffix()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTypeName").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTypeName> for SyntaxNode {
+    fn from(n: PsqlTypeName) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTypeName> for SyntaxElement {
+    fn from(n: PsqlTypeName) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlUnaryExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -5885,6 +6405,16 @@ impl From<PsqlCaseExpression> for AnyPsqlExpression {
         Self::PsqlCaseExpression(node)
     }
 }
+impl From<PsqlCastExpression> for AnyPsqlExpression {
+    fn from(node: PsqlCastExpression) -> Self {
+        Self::PsqlCastExpression(node)
+    }
+}
+impl From<PsqlCastFunctionExpression> for AnyPsqlExpression {
+    fn from(node: PsqlCastFunctionExpression) -> Self {
+        Self::PsqlCastFunctionExpression(node)
+    }
+}
 impl From<PsqlColReference> for AnyPsqlExpression {
     fn from(node: PsqlColReference) -> Self {
         Self::PsqlColReference(node)
@@ -5949,6 +6479,8 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlBinaryExpression::KIND_SET)
         .union(PsqlCallExpression::KIND_SET)
         .union(PsqlCaseExpression::KIND_SET)
+        .union(PsqlCastExpression::KIND_SET)
+        .union(PsqlCastFunctionExpression::KIND_SET)
         .union(PsqlColReference::KIND_SET)
         .union(PsqlInExpression::KIND_SET)
         .union(PsqlIsNullExpression::KIND_SET)
@@ -5968,6 +6500,8 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_BINARY_EXPRESSION
             | PSQL_CALL_EXPRESSION
             | PSQL_CASE_EXPRESSION
+            | PSQL_CAST_EXPRESSION
+            | PSQL_CAST_FUNCTION_EXPRESSION
             | PSQL_COL_REFERENCE
             | PSQL_IN_EXPRESSION
             | PSQL_IS_NULL_EXPRESSION
@@ -5995,6 +6529,10 @@ impl AstNode for AnyPsqlExpression {
             PSQL_BINARY_EXPRESSION => Self::PsqlBinaryExpression(PsqlBinaryExpression { syntax }),
             PSQL_CALL_EXPRESSION => Self::PsqlCallExpression(PsqlCallExpression { syntax }),
             PSQL_CASE_EXPRESSION => Self::PsqlCaseExpression(PsqlCaseExpression { syntax }),
+            PSQL_CAST_EXPRESSION => Self::PsqlCastExpression(PsqlCastExpression { syntax }),
+            PSQL_CAST_FUNCTION_EXPRESSION => {
+                Self::PsqlCastFunctionExpression(PsqlCastFunctionExpression { syntax })
+            }
             PSQL_COL_REFERENCE => Self::PsqlColReference(PsqlColReference { syntax }),
             PSQL_IN_EXPRESSION => Self::PsqlInExpression(PsqlInExpression { syntax }),
             PSQL_IS_NULL_EXPRESSION => Self::PsqlIsNullExpression(PsqlIsNullExpression { syntax }),
@@ -6031,6 +6569,8 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlBinaryExpression(it) => &it.syntax,
             Self::PsqlCallExpression(it) => &it.syntax,
             Self::PsqlCaseExpression(it) => &it.syntax,
+            Self::PsqlCastExpression(it) => &it.syntax,
+            Self::PsqlCastFunctionExpression(it) => &it.syntax,
             Self::PsqlColReference(it) => &it.syntax,
             Self::PsqlInExpression(it) => &it.syntax,
             Self::PsqlIsNullExpression(it) => &it.syntax,
@@ -6053,6 +6593,8 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlBinaryExpression(it) => it.syntax,
             Self::PsqlCallExpression(it) => it.syntax,
             Self::PsqlCaseExpression(it) => it.syntax,
+            Self::PsqlCastExpression(it) => it.syntax,
+            Self::PsqlCastFunctionExpression(it) => it.syntax,
             Self::PsqlColReference(it) => it.syntax,
             Self::PsqlInExpression(it) => it.syntax,
             Self::PsqlIsNullExpression(it) => it.syntax,
@@ -6078,6 +6620,8 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCallExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCaseExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCastExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCastFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlColReference(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlInExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlIsNullExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -6102,6 +6646,8 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlBinaryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlCallExpression(it) => it.into(),
             AnyPsqlExpression::PsqlCaseExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlCastExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlCastFunctionExpression(it) => it.into(),
             AnyPsqlExpression::PsqlColReference(it) => it.into(),
             AnyPsqlExpression::PsqlInExpression(it) => it.into(),
             AnyPsqlExpression::PsqlIsNullExpression(it) => it.into(),
@@ -6647,6 +7193,16 @@ impl std::fmt::Display for PsqlCaseWhenClause {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlCastExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCastFunctionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlColReference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -6853,6 +7409,21 @@ impl std::fmt::Display for PsqlTableColReference {
     }
 }
 impl std::fmt::Display for PsqlTableName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTypeArguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTypeArraySuffix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTypeName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -8168,6 +8739,88 @@ impl IntoIterator for &PsqlStatementList {
 impl IntoIterator for PsqlStatementList {
     type Item = AnyPsqlStatement;
     type IntoIter = AstNodeListIterator<Language, AnyPsqlStatement>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlTypeArgumentList {
+    syntax_list: SyntaxList,
+}
+impl PsqlTypeArgumentList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlTypeArgumentList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TYPE_ARGUMENT_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TYPE_ARGUMENT_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlTypeArgumentList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlTypeArgumentList {
+    type Language = Language;
+    type Node = PsqlNumberLiteralExpression;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlTypeArgumentList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlTypeArgumentList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlTypeArgumentList {
+    type Item = SyntaxResult<PsqlNumberLiteralExpression>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlNumberLiteralExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlTypeArgumentList {
+    type Item = SyntaxResult<PsqlNumberLiteralExpression>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlNumberLiteralExpression>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

@@ -308,6 +308,8 @@ AnyPsqlExpression =
    | PsqlCallExpression
    | PsqlArrayExpression
    | PsqlArraySubscriptExpression
+   | PsqlCastExpression
+   | PsqlCastFunctionExpression
    | AnyPsqlLiteralExpression
 
 PsqlArrayExpression =
@@ -321,6 +323,33 @@ PsqlArraySubscriptExpression =
    '['
    index: AnyPsqlExpression
    ']'
+
+PsqlCastExpression =
+   expression: AnyPsqlExpression
+   '::'
+   type: PsqlTypeName
+
+PsqlCastFunctionExpression =
+   'cast'
+   '('
+   expression: AnyPsqlExpression
+   'as'
+   type: PsqlTypeName
+   ')'
+
+PsqlTypeName =
+   name: ('ident' | 'integer' | 'bigint' | 'varchar' | 'char' | 'text' | 'boolean' | 'date' | 'time' | 'timestamp' | 'interval' | 'numeric' | 'decimal' | 'double' | 'real' | 'json' | 'jsonb' | 'uuid' | 'array' | 'bytea' | 'bit')
+   args: PsqlTypeArguments?
+   array_suffix: PsqlTypeArraySuffix?
+
+PsqlTypeArguments =
+   '('
+   items: PsqlTypeArgumentList
+   ')'
+
+PsqlTypeArgumentList = (PsqlNumberLiteralExpression (',' PsqlNumberLiteralExpression)*)
+
+PsqlTypeArraySuffix = '[' ']'
 
 PsqlSubqueryExpression =
    '('

@@ -58,6 +58,15 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCaseWhenClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CAST_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlCastExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_CAST_FUNCTION_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCastFunctionExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_COL_REFERENCE => {
                     let $pattern = unsafe { $crate::PsqlColReference::new_unchecked(node) };
                     $body
@@ -230,6 +239,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTableName::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENTS => {
+                    let $pattern = unsafe { $crate::PsqlTypeArguments::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TYPE_ARRAY_SUFFIX => {
+                    let $pattern = unsafe { $crate::PsqlTypeArraySuffix::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TYPE_NAME => {
+                    let $pattern = unsafe { $crate::PsqlTypeName::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_UNARY_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlUnaryExpression::new_unchecked(node) };
                     $body
@@ -317,6 +338,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_STATEMENT_LIST => {
                     let $pattern = unsafe { $crate::PsqlStatementList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTypeArgumentList::new_unchecked(node) };
                     $body
                 }
                 _ => unreachable!(),

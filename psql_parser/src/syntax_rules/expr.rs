@@ -6,7 +6,10 @@ use biome_parser::prelude::*;
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{
     PsqlParser,
-    syntax_rules::parse_error::{expected_expression, expected_identifier, expected_statement},
+    syntax_rules::parse_error::{
+        expected_expression, expected_identifier, expected_number_literal, expected_statement,
+        expected_type_name,
+    },
 };
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -202,7 +205,8 @@ fn parse_unary_expression(p: &mut PsqlParser) -> ParsedSyntax {
 fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
     let literal_expression = parse_literal_expression(p);
     if literal_expression.is_present() {
-        return parse_array_subscript_tail(p, literal_expression);
+        let expression = parse_array_subscript_tail(p, literal_expression);
+        return parse_cast_tail(p, expression);
     }
 
     let expression = match p.cur() {
@@ -211,10 +215,12 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![*] => parse_star(p),
         T![case] => parse_case_expression(p),
         T![array] => parse_array_expression(p),
+        T![cast] => parse_cast_function_expression(p),
         _ => Absent,
     };
 
-    parse_array_subscript_tail(p, expression)
+    let expression = parse_array_subscript_tail(p, expression);
+    parse_cast_tail(p, expression)
 }
 
 /// `array[1, 2, 3]`.
@@ -249,6 +255,135 @@ fn parse_array_subscript_tail(p: &mut PsqlParser, mut expression: ParsedSyntax) 
     }
 
     expression
+}
+
+/// `CAST(expr AS type)`, the SQL-standard function-like spelling of a type
+/// cast (equivalent to the postfix `expr::type` operator below).
+fn parse_cast_function_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![cast]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![cast]);
+    p.expect(T!['(']);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![as]);
+    parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_CAST_FUNCTION_EXPRESSION))
+}
+
+/// Wraps `expression` in zero or more `::type` casts (e.g. `1::text`,
+/// `a::int::text`). Like array subscripting, `::` binds tighter than every
+/// other operator, so it's applied directly around the primary expression
+/// rather than through the binary/logical precedence-climbing chain.
+fn parse_cast_tail(p: &mut PsqlParser, mut expression: ParsedSyntax) -> ParsedSyntax {
+    while p.at(T![::]) {
+        if expression.is_absent() {
+            break;
+        }
+
+        let m = expression.precede(p);
+        p.bump(T![::]);
+        parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+        expression = Present(m.complete(p, PSQL_CAST_EXPRESSION));
+    }
+
+    expression
+}
+
+const TYPE_NAME_TOKEN_SET: TokenSet<PsqlSyntaxKind> = token_set![
+    T![ident],
+    T![integer],
+    T![bigint],
+    T![varchar],
+    T![char],
+    T![text],
+    T![boolean],
+    T![date],
+    T![time],
+    T![timestamp],
+    T![interval],
+    T![numeric],
+    T![decimal],
+    T![double],
+    T![real],
+    T![json],
+    T![jsonb],
+    T![uuid],
+    T![array],
+    T![bytea],
+    T![bit]
+];
+
+/// A type name such as `text`, `numeric(10, 2)` or `int[]`, used as the
+/// target of a `::` or `CAST(... AS ...)` type cast.
+fn parse_type_name(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at_ts(TYPE_NAME_TOKEN_SET) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any();
+    let _ = parse_type_arguments(p);
+    let _ = parse_type_array_suffix(p);
+    Present(m.complete(p, PSQL_TYPE_NAME))
+}
+
+fn parse_type_arguments(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    PsqlTypeArgumentList.parse_list(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_TYPE_ARGUMENTS))
+}
+
+fn parse_type_array_suffix(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T!['[']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['[']);
+    p.expect(T![']']);
+    Present(m.complete(p, PSQL_TYPE_ARRAY_SUFFIX))
+}
+
+struct PsqlTypeArgumentList;
+
+impl ParseSeparatedList for PsqlTypeArgumentList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_TYPE_ARGUMENT_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_number_literal_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_number_literal,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
 }
 
 /// `case [expr] (when cond then result)+ [else default] end`. The optional
