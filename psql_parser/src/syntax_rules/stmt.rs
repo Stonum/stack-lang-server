@@ -33,7 +33,7 @@ pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
             continue;
         }
 
-        if parse_statement(p, StatementContext::StatementList)
+        if parse_statement(p)
             .or_recover_with_token_set(
                 p,
                 &ParseRecoveryTokenSet::new(PSQL_BOGUS_STATEMENT, STMT_RECOVERY_SET),
@@ -48,7 +48,7 @@ pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
     statement_list.complete(p, PSQL_STATEMENT_LIST);
 }
 
-pub(crate) fn parse_statement(p: &mut PsqlParser, _context: StatementContext) -> ParsedSyntax {
+pub(crate) fn parse_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if p.at(T![with]) {
         return parse_with_prefixed_statement(p);
     }
@@ -86,16 +86,5 @@ fn parse_with_prefixed_statement(p: &mut PsqlParser) -> ParsedSyntax {
             p.error(err);
             Present(m.complete(p, PSQL_BOGUS_STATEMENT))
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub(crate) enum StatementContext {
-    StatementList,
-}
-
-impl StatementContext {
-    pub(crate) fn is_single_statement(&self) -> bool {
-        !matches!(self, StatementContext::StatementList)
     }
 }
