@@ -425,6 +425,54 @@ pub fn psql_delete_using_clause(
         ],
     ))
 }
+pub fn psql_do_nothing_clause(
+    do_token: SyntaxToken,
+    nothing_token: SyntaxToken,
+) -> PsqlDoNothingClause {
+    PsqlDoNothingClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_DO_NOTHING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(do_token)),
+            Some(SyntaxElement::Token(nothing_token)),
+        ],
+    ))
+}
+pub fn psql_do_update_clause(
+    do_token: SyntaxToken,
+    update_token: SyntaxToken,
+    set_clause: PsqlSetClause,
+) -> PsqlDoUpdateClauseBuilder {
+    PsqlDoUpdateClauseBuilder {
+        do_token,
+        update_token,
+        set_clause,
+        where_clause: None,
+    }
+}
+pub struct PsqlDoUpdateClauseBuilder {
+    do_token: SyntaxToken,
+    update_token: SyntaxToken,
+    set_clause: PsqlSetClause,
+    where_clause: Option<PsqlWhereClause>,
+}
+impl PsqlDoUpdateClauseBuilder {
+    pub fn with_where_clause(mut self, where_clause: PsqlWhereClause) -> Self {
+        self.where_clause = Some(where_clause);
+        self
+    }
+    pub fn build(self) -> PsqlDoUpdateClause {
+        PsqlDoUpdateClause::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_DO_UPDATE_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.do_token)),
+                Some(SyntaxElement::Token(self.update_token)),
+                Some(SyntaxElement::Node(self.set_clause.into_syntax())),
+                self.where_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_from_clause(from_token: SyntaxToken, items: PsqlFromItemList) -> PsqlFromClause {
     PsqlFromClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_FROM_CLAUSE,
@@ -577,6 +625,7 @@ pub fn psql_insert_statement(
         source,
         with_clause: None,
         columns: None,
+        on_conflict_clause: None,
         returning_clause: None,
         semicolon_token: None,
     }
@@ -588,6 +637,7 @@ pub struct PsqlInsertStatementBuilder {
     source: AnyPsqlInsertSource,
     with_clause: Option<PsqlWithClause>,
     columns: Option<PsqlColumnList>,
+    on_conflict_clause: Option<PsqlOnConflictClause>,
     returning_clause: Option<PsqlReturningClause>,
     semicolon_token: Option<SyntaxToken>,
 }
@@ -598,6 +648,10 @@ impl PsqlInsertStatementBuilder {
     }
     pub fn with_columns(mut self, columns: PsqlColumnList) -> Self {
         self.columns = Some(columns);
+        self
+    }
+    pub fn with_on_conflict_clause(mut self, on_conflict_clause: PsqlOnConflictClause) -> Self {
+        self.on_conflict_clause = Some(on_conflict_clause);
         self
     }
     pub fn with_returning_clause(mut self, returning_clause: PsqlReturningClause) -> Self {
@@ -620,6 +674,8 @@ impl PsqlInsertStatementBuilder {
                 self.columns
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.source.into_syntax())),
+                self.on_conflict_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.returning_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
@@ -821,6 +877,56 @@ pub fn psql_offset_clause(
         [
             Some(SyntaxElement::Token(offset_token)),
             Some(SyntaxElement::Node(start.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_on_conflict_clause(
+    on_token: SyntaxToken,
+    conflict_token: SyntaxToken,
+    action: AnyPsqlConflictAction,
+) -> PsqlOnConflictClauseBuilder {
+    PsqlOnConflictClauseBuilder {
+        on_token,
+        conflict_token,
+        action,
+        target: None,
+    }
+}
+pub struct PsqlOnConflictClauseBuilder {
+    on_token: SyntaxToken,
+    conflict_token: SyntaxToken,
+    action: AnyPsqlConflictAction,
+    target: Option<AnyPsqlConflictTarget>,
+}
+impl PsqlOnConflictClauseBuilder {
+    pub fn with_target(mut self, target: AnyPsqlConflictTarget) -> Self {
+        self.target = Some(target);
+        self
+    }
+    pub fn build(self) -> PsqlOnConflictClause {
+        PsqlOnConflictClause::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_ON_CONFLICT_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Token(self.conflict_token)),
+                self.target
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.action.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_on_constraint_clause(
+    on_token: SyntaxToken,
+    constraint_token: SyntaxToken,
+    name: PsqlName,
+) -> PsqlOnConstraintClause {
+    PsqlOnConstraintClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_ON_CONSTRAINT_CLAUSE,
+        [
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(constraint_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
         ],
     ))
 }

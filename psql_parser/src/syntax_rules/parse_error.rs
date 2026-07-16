@@ -37,3 +37,7 @@ pub fn expected_insert_source(p: &PsqlParser, range: TextRange) -> ParseDiagnost
 pub fn expected_type_name(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("type name", range, p)
 }
+
+pub fn expected_conflict_action(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("do nothing or do update", range, p)
+}
