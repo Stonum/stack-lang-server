@@ -452,6 +452,8 @@ impl<'src> PsqlLexer<'src> {
             DIG | ZER => self.resolve_number(),
             PNO => self.eat_byte(T!['(']),
             PNC => self.eat_byte(T![')']),
+            BTO => self.eat_byte(T!['[']),
+            BTC => self.eat_byte(T![']']),
             COM => self.eat_byte(T![,]),
             SEM => self.eat_byte(T![;]),
             PRD => self.eat_byte(T![.]),

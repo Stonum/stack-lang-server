@@ -202,16 +202,53 @@ fn parse_unary_expression(p: &mut PsqlParser) -> ParsedSyntax {
 fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
     let literal_expression = parse_literal_expression(p);
     if literal_expression.is_present() {
-        return literal_expression;
+        return parse_array_subscript_tail(p, literal_expression);
     }
 
-    match p.cur() {
+    let expression = match p.cur() {
         T!['('] => parse_parenthesized_expression(p),
         T![ident] => parse_ident_expression(p),
         T![*] => parse_star(p),
         T![case] => parse_case_expression(p),
+        T![array] => parse_array_expression(p),
         _ => Absent,
+    };
+
+    parse_array_subscript_tail(p, expression)
+}
+
+/// `array[1, 2, 3]`.
+fn parse_array_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![array]) {
+        return Absent;
     }
+
+    let m = p.start();
+    p.bump(T![array]);
+    p.expect(T!['[']);
+    PsqlExpressionList.parse_list(p);
+    p.expect(T![']']);
+    Present(m.complete(p, PSQL_ARRAY_EXPRESSION))
+}
+
+/// Wraps `expression` in zero or more `[index]` subscripts (e.g. `a[0]`,
+/// `matrix[0][1]`). Array subscripting binds tighter than every other
+/// operator, so it's applied directly around the primary expression rather
+/// than through the binary/logical precedence-climbing chain.
+fn parse_array_subscript_tail(p: &mut PsqlParser, mut expression: ParsedSyntax) -> ParsedSyntax {
+    while p.at(T!['[']) {
+        if expression.is_absent() {
+            break;
+        }
+
+        let m = expression.precede(p);
+        p.bump(T!['[']);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        p.expect(T![']']);
+        expression = Present(m.complete(p, PSQL_ARRAY_SUBSCRIPT_EXPRESSION));
+    }
+
+    expression
 }
 
 /// `case [expr] (when cond then result)+ [else default] end`. The optional
@@ -529,7 +566,9 @@ impl ParseSeparatedList for PsqlExpressionList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![')'])
+        // `)` closes call/values/in-list arguments; `]` closes an
+        // `array[...]` literal's items.
+        p.at(EOF) || p.at(T![')']) || p.at(T![']'])
     }
 
     fn recover(
