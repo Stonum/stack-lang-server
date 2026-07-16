@@ -235,6 +235,31 @@ fn numbers() {
     assert_lex! { "2.5e10", PSQL_NUMBER_LITERAL:6 }
     assert_lex! { ".5", DOT:1, PSQL_NUMBER_LITERAL:1 }
     assert_lex! { "1.", PSQL_NUMBER_LITERAL:2 }
+    assert_lex! { "1e+5", PSQL_NUMBER_LITERAL:4 }
+    assert_lex! { "1e-5", PSQL_NUMBER_LITERAL:4 }
+    assert_lex! { "1E5", PSQL_NUMBER_LITERAL:3 }
+}
+
+#[test]
+fn numbers_do_not_swallow_adjacent_operators() {
+    // A number must not greedily consume a following `+`/`-`/`.` that isn't
+    // part of a well-formed exponent -- those are separate operator tokens
+    // handled by the expression parser, not part of the numeric literal.
+    assert_lex! { "1-2", PSQL_NUMBER_LITERAL:1, MINUS:1, PSQL_NUMBER_LITERAL:1 }
+    assert_lex! { "1+2", PSQL_NUMBER_LITERAL:1, PLUS:1, PSQL_NUMBER_LITERAL:1 }
+    assert_lex! { "1.2.3", PSQL_NUMBER_LITERAL:3, DOT:1, PSQL_NUMBER_LITERAL:1 }
+    assert_lex! { "2.5e10-1", PSQL_NUMBER_LITERAL:6, MINUS:1, PSQL_NUMBER_LITERAL:1 }
+}
+
+#[test]
+fn numbers_with_incomplete_exponent_backtrack() {
+    // An `e`/`E` not followed by a valid exponent (optional sign + at
+    // least one digit) is not part of the number -- it re-lexes as the
+    // start of an identifier instead of being swallowed into a malformed
+    // number token.
+    assert_lex! { "1e", PSQL_NUMBER_LITERAL:1, IDENT:1 }
+    assert_lex! { "1e+", PSQL_NUMBER_LITERAL:1, IDENT:1, PLUS:1 }
+    assert_lex! { "1e+a", PSQL_NUMBER_LITERAL:1, IDENT:1, PLUS:1, IDENT:1 }
 }
 
 #[test]

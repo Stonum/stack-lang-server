@@ -309,14 +309,50 @@ impl<'src> PsqlLexer<'src> {
         }
     }
 
+    /// `digit+ ('.' digit*)? (('e'|'E') ('+'|'-')? digit+)?`. Unlike the
+    /// previous implementation, this does not greedily swallow `+`/`-`
+    /// outside of a well-formed exponent -- those are separate operator
+    /// tokens handled by the expression parser (e.g. `1-2` must lex as
+    /// `1`, `-`, `2`, not a single `"1-2"` token; negative literals are
+    /// `PSQL_UNARY_EXPRESSION`, not part of the lexer).
     fn resolve_number(&mut self) -> PsqlSyntaxKind {
-        while let Some(b) = self.current_byte() {
-            match b {
-                b'0'..=b'9' | b'.' | b'e' | b'E' | b'+' | b'-' => self.advance(1),
-                _ => break,
-            }
+        self.consume_digits();
+
+        if self.current_byte() == Some(b'.') {
+            self.advance(1);
+            self.consume_digits();
         }
+
+        if matches!(self.current_byte(), Some(b'e' | b'E')) {
+            self.consume_exponent();
+        }
+
         PSQL_NUMBER_LITERAL
+    }
+
+    fn consume_digits(&mut self) {
+        while matches!(self.current_byte(), Some(b'0'..=b'9')) {
+            self.advance(1);
+        }
+    }
+
+    /// Consumes `('e'|'E') ('+'|'-')? digit+`. If there's no digit after the
+    /// `e`/sign, backtracks so the `e`/`E` is re-lexed as the start of an
+    /// identifier instead of being silently swallowed into an incomplete
+    /// exponent (e.g. `1e` lexes as the number `1` followed by the
+    /// identifier `e`, not as a single malformed number token).
+    fn consume_exponent(&mut self) {
+        let start = self.position;
+        self.advance(1); // 'e'/'E'
+        if matches!(self.current_byte(), Some(b'+' | b'-')) {
+            self.advance(1);
+        }
+
+        if matches!(self.current_byte(), Some(b'0'..=b'9')) {
+            self.consume_digits();
+        } else {
+            self.position = start;
+        }
     }
 
     #[inline]
