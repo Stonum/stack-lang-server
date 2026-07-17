@@ -7,6 +7,7 @@ use super::select::parse_order_by_clause;
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{
     PsqlParser,
+    lexer::PsqlReLexContext,
     syntax_rules::parse_error::{
         expected_expression, expected_identifier, expected_number_literal, expected_statement,
         expected_type_name, expected_window_specification,
@@ -207,6 +208,17 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
     let literal_expression = parse_literal_expression(p);
     if literal_expression.is_present() {
         let expression = parse_array_subscript_tail(p, literal_expression);
+        return parse_cast_tail(p, expression);
+    }
+
+    // A tilde name in expression position is either a call
+    // (`~uspSomeFunc~(a, b)`) or a table-qualified column reference
+    // (`~Свойства~.row_id`) -- never a bare column-like reference on its
+    // own, unlike a plain identifier.
+    if is_at_tilde_name_start(p) {
+        let reference_or_call = parse_tilde_reference_or_call(p);
+        let expression = parse_window_function_tail(p, reference_or_call);
+        let expression = parse_array_subscript_tail(p, expression);
         return parse_cast_tail(p, expression);
     }
 
@@ -482,7 +494,7 @@ fn parse_ident_expression(p: &mut PsqlParser) -> ParsedSyntax {
 fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
     let m = p.start();
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
-    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    parse_any_name(p).or_add_diagnostic(p, expected_identifier);
 
     p.expect(T!['(']);
     PsqlExpressionList.parse_list(p);
@@ -688,6 +700,30 @@ fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
     Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
 }
 
+/// A tilde name in expression position: `~name~.col` (table-qualified
+/// column reference, e.g. `~Свойства~.row_id`) if a `.` follows, otherwise
+/// `~name~(...)` (call expression). Mirrors how a plain identifier's `.`
+/// vs `(` decides between [parse_col_reference] and [parse_call_expression],
+/// but a tilde name is never a *bare* column-like reference on its own.
+fn parse_tilde_reference_or_call(p: &mut PsqlParser) -> ParsedSyntax {
+    let is_table_col_reference = p.lookahead(|p| {
+        p.re_lex(PsqlReLexContext::TildeName) == PSQL_TILDE_NAME_LITERAL && {
+            p.bump(PSQL_TILDE_NAME_LITERAL);
+            p.at(T![.])
+        }
+    });
+
+    if is_table_col_reference {
+        let table_col_reference = p.start();
+        parse_table_name(p, 0);
+        p.bump(T![.]);
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
+    } else {
+        parse_call_expression(p, 0)
+    }
+}
+
 /// Parses a possibly schema/database-qualified table name: `table`,
 /// `schema.table` or `db.schema.table` (`segment_count` = 1, 2 or 3).
 /// Assumes the parser is currently at an `ident` and that at least
@@ -695,7 +731,7 @@ fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
 pub(crate) fn parse_table_name(p: &mut PsqlParser, segment_count: usize) -> CompletedMarker {
     let table_name = p.start();
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
-    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    parse_any_name(p).or_add_diagnostic(p, expected_identifier);
     table_name.complete(p, PSQL_TABLE_NAME)
 }
 
@@ -748,6 +784,40 @@ pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![ident]);
     Present(m.complete(p, PSQL_NAME))
+}
+
+/// `true` if the parser is at a `~` that could be the start of a
+/// mlang-dialect tilde name -- i.e. only in the mlang dialect at all. A bare
+/// `~` never legitimately starts a table/function name/primary expression
+/// in standard Postgres, so this can't misfire there. Actually attempts the
+/// re-lex (inside a lookahead, so nothing is consumed) rather than just
+/// checking `p.at(T![~])`: a `~` with no matching closing `~` ahead (e.g. a
+/// lone regex-operator `~` with nothing after it) must *not* count as a
+/// tilde-name start, or callers that commit to the tilde-name path on the
+/// strength of this check alone would recurse back into themselves without
+/// ever consuming a token, since nothing else stops them from retrying.
+pub(crate) fn is_at_tilde_name_start(p: &mut PsqlParser) -> bool {
+    if !p.source_type().is_mlang_dialect() || !p.at(T![~]) {
+        return false;
+    }
+
+    p.lookahead(|p| p.re_lex(PsqlReLexContext::TildeName) == PSQL_TILDE_NAME_LITERAL)
+}
+
+/// A `PsqlName` (`ident`) or, in the mlang dialect, a `~name~`/`~$name~`
+/// tilde name -- used specifically in table/function-name position, never
+/// for columns/aliases/CTEs (see `PsqlReLexContext::TildeName`).
+pub(crate) fn parse_any_name(p: &mut PsqlParser) -> ParsedSyntax {
+    if is_at_tilde_name_start(p) {
+        let kind = p.re_lex(PsqlReLexContext::TildeName);
+        if kind == PSQL_TILDE_NAME_LITERAL {
+            let m = p.start();
+            p.bump(PSQL_TILDE_NAME_LITERAL);
+            return Present(m.complete(p, PSQL_TILDE_NAME));
+        }
+    }
+
+    parse_name(p)
 }
 
 pub(crate) fn parse_alias(p: &mut PsqlParser) {

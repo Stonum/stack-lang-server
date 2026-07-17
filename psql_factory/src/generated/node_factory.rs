@@ -127,7 +127,7 @@ pub fn psql_boolean_literal_expression(value_token: SyntaxToken) -> PsqlBooleanL
     ))
 }
 pub fn psql_call_expression(
-    name: PsqlName,
+    name: AnyPsqlName,
     l_paren_token: SyntaxToken,
     arguments: PsqlExpressionList,
     r_paren_token: SyntaxToken,
@@ -141,7 +141,7 @@ pub fn psql_call_expression(
     }
 }
 pub struct PsqlCallExpressionBuilder {
-    name: PsqlName,
+    name: AnyPsqlName,
     l_paren_token: SyntaxToken,
     arguments: PsqlExpressionList,
     r_paren_token: SyntaxToken,
@@ -1351,11 +1351,11 @@ pub fn psql_table_col_reference(
         ],
     ))
 }
-pub fn psql_table_name(name: PsqlName) -> PsqlTableNameBuilder {
+pub fn psql_table_name(name: AnyPsqlName) -> PsqlTableNameBuilder {
     PsqlTableNameBuilder { name, schema: None }
 }
 pub struct PsqlTableNameBuilder {
-    name: PsqlName,
+    name: AnyPsqlName,
     schema: Option<PsqlShemaName>,
 }
 impl PsqlTableNameBuilder {
@@ -1373,6 +1373,12 @@ impl PsqlTableNameBuilder {
             ],
         ))
     }
+}
+pub fn psql_tilde_name(value_token: SyntaxToken) -> PsqlTildeName {
+    PsqlTildeName::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TILDE_NAME,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
 }
 pub fn psql_type_arguments(
     l_paren_token: SyntaxToken,

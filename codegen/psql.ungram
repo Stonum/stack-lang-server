@@ -63,6 +63,17 @@ PsqlNullLiteralExpression = value: 'null'
 PsqlName = value: 'ident'
 PsqlStar = value: '*'
 
+// `~name~`/`~$name~`, a table or function name written in the mlang
+// dialect's own convention rather than plain Postgres syntax -- not part of
+// real Postgres, presumably expanded by mlang's runtime before the query
+// reaches an actual database. Distinct from `PsqlName` since it's only
+// valid in table/function-name position, never for columns/aliases/CTEs.
+PsqlTildeName = value: 'Psql_tilde_name_literal'
+
+AnyPsqlName =
+   PsqlName
+   | PsqlTildeName
+
 PsqlRoot = 
    stmt: PsqlStatementList
    eof: 'EOF'
@@ -323,7 +334,7 @@ PsqlShemaName =
 
 PsqlTableName =
    schema: PsqlShemaName?
-   name: PsqlName
+   name: AnyPsqlName
 
 PsqlTableBinding = 
    table: PsqlTableName
@@ -466,7 +477,7 @@ PsqlCaseElseClause =
 
 PsqlCallExpression =
    schema: PsqlShemaName?
-   name: PsqlName
+   name: AnyPsqlName
    '('
    arguments: PsqlExpressionList
    ')'
@@ -494,6 +505,7 @@ PsqlBinaryExpression =
    '<' | '>' | '<=' | '>=' | '=' | '!=' | '<>'
    | '+' | '-' | '*' | '/' | '%' | '~'  | '!~'
    | '&' | '|' | '^' | '>>' | '<<' | '~*' | '!~*'
+   | '~~' | '~~*' | '!~~' | '!~~*'
    )
    right: AnyPsqlExpression
 

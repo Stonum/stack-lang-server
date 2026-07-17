@@ -263,6 +263,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTableName::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_TILDE_NAME => {
+                    let $pattern = unsafe { $crate::PsqlTildeName::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENTS => {
                     let $pattern = unsafe { $crate::PsqlTypeArguments::new_unchecked(node) };
                     $body

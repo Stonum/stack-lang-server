@@ -216,6 +216,10 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                             | T ! [<<]
                             | T ! [~*]
                             | T ! [!~*]
+                            | T ! [~~]
+                            | T ! [~~*]
+                            | T ! [!~~]
+                            | T ! [!~~*]
                     )
                 {
                     slots.mark_present();
@@ -268,7 +272,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && PsqlName::can_cast(element.kind())
+                    && AnyPsqlName::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -2125,7 +2129,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && PsqlName::can_cast(element.kind())
+                    && AnyPsqlName::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -2138,6 +2142,25 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_TABLE_NAME, children)
+            }
+            PSQL_TILDE_NAME => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == PSQL_TILDE_NAME_LITERAL
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_TILDE_NAME.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_TILDE_NAME, children)
             }
             PSQL_TYPE_ARGUMENTS => {
                 let mut elements = (&children).into_iter();

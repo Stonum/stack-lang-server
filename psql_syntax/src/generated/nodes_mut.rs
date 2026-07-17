@@ -142,7 +142,7 @@ impl PsqlCallExpression {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_name(self, element: PsqlName) -> Self {
+    pub fn with_name(self, element: AnyPsqlName) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
@@ -1292,10 +1292,18 @@ impl PsqlTableName {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_name(self, element: PsqlName) -> Self {
+    pub fn with_name(self, element: AnyPsqlName) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl PsqlTildeName {
+    pub fn with_value_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
 }

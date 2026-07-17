@@ -4,8 +4,8 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, parse_alias,
-    parse_expression, parse_name, parse_shema_qualifier, parse_table_name,
+    EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, is_at_tilde_name_start,
+    parse_alias, parse_expression, parse_name, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -79,7 +79,7 @@ impl ParseSeparatedList for PsqlFromItemList {
 }
 
 fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) && !p.at(T!['(']) {
+    if !p.at(T![ident]) && !p.at(T!['(']) && !is_at_tilde_name_start(p) {
         return Absent;
     }
 
@@ -137,6 +137,13 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
         return parse_subquery_binding(p);
     }
 
+    // A tilde name is never schema-qualified and never a table-valued
+    // function in FROM position (only seen as a plain table name in real
+    // usage) -- always a table binding, segment count 0.
+    if is_at_tilde_name_start(p) {
+        return build_table_binding(p, 0);
+    }
+
     if !p.at(T![ident]) {
         return Absent;
     }
@@ -164,6 +171,10 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
 /// statements whose grammar requires a `PsqlTableBinding` directly (e.g.
 /// `DELETE FROM`, `UPDATE`).
 pub(crate) fn parse_table_binding(p: &mut PsqlParser) -> ParsedSyntax {
+    if is_at_tilde_name_start(p) {
+        return build_table_binding(p, 0);
+    }
+
     if !p.at(T![ident]) {
         return Absent;
     }
