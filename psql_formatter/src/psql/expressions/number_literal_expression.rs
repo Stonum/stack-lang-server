@@ -1,6 +1,7 @@
 use crate::prelude::*;
-use biome_rowan::AstNode;
+use biome_formatter::write;
 use psql_syntax::PsqlNumberLiteralExpression;
+use psql_syntax::PsqlNumberLiteralExpressionFields;
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatPsqlNumberLiteralExpression;
 impl FormatNodeRule<PsqlNumberLiteralExpression> for FormatPsqlNumberLiteralExpression {
@@ -9,6 +10,8 @@ impl FormatNodeRule<PsqlNumberLiteralExpression> for FormatPsqlNumberLiteralExpr
         node: &PsqlNumberLiteralExpression,
         f: &mut PsqlFormatter,
     ) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let PsqlNumberLiteralExpressionFields { value_token } = node.as_fields();
+
+        write!(f, [value_token.format()])
     }
 }
