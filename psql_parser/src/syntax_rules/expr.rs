@@ -357,14 +357,49 @@ fn parse_type_arguments(p: &mut PsqlParser) -> ParsedSyntax {
 }
 
 fn parse_type_array_suffix(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T!['[']) {
-        return Absent;
+    if p.at(T!['[']) {
+        let m = p.start();
+        p.bump(T!['[']);
+        p.expect(T![']']);
+        return Present(m.complete(p, PSQL_TYPE_ARRAY_SUFFIX));
     }
 
-    let m = p.start();
-    p.bump(T!['[']);
-    p.expect(T![']']);
-    Present(m.complete(p, PSQL_TYPE_ARRAY_SUFFIX))
+    if is_at_tilde_array_suffix_start(p) {
+        let m = p.start();
+        p.bump(T![~]);
+        p.expect(T!['[']);
+        p.expect(T![']']);
+        p.expect(T![~]);
+        return Present(m.complete(p, PSQL_TILDE_ARRAY_SUFFIX));
+    }
+
+    Absent
+}
+
+/// `true` if the parser is at the mlang dialect's `~[]~` escaping of the
+/// array-type-suffix brackets. Verifies the full 4-token sequence is
+/// actually ahead (via lookahead, so nothing is consumed) rather than just
+/// checking `p.at(T![~])` -- the position right after a type name can
+/// legitimately continue with a plain `~` binary operator too (e.g.
+/// `x::int ~ y`), which must not be misread as the start of an array
+/// suffix.
+fn is_at_tilde_array_suffix_start(p: &mut PsqlParser) -> bool {
+    if !p.source_type().is_mlang_dialect() || !p.at(T![~]) {
+        return false;
+    }
+
+    p.lookahead(|p| {
+        p.bump(T![~]);
+        if !p.at(T!['[']) {
+            return false;
+        }
+        p.bump(T!['[']);
+        if !p.at(T![']']) {
+            return false;
+        }
+        p.bump(T![']']);
+        p.at(T![~])
+    })
 }
 
 struct PsqlTypeArgumentList;

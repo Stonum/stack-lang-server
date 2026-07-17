@@ -401,7 +401,7 @@ PsqlCastFunctionExpression =
 PsqlTypeName =
    name: ('ident' | 'integer' | 'bigint' | 'varchar' | 'char' | 'text' | 'boolean' | 'date' | 'time' | 'timestamp' | 'interval' | 'numeric' | 'decimal' | 'double' | 'real' | 'json' | 'jsonb' | 'uuid' | 'array' | 'bytea' | 'bit')
    args: PsqlTypeArguments?
-   array_suffix: PsqlTypeArraySuffix?
+   array_suffix: AnyPsqlTypeArraySuffix?
 
 PsqlTypeArguments =
    '('
@@ -410,7 +410,24 @@ PsqlTypeArguments =
 
 PsqlTypeArgumentList = (PsqlNumberLiteralExpression (',' PsqlNumberLiteralExpression)*)
 
+AnyPsqlTypeArraySuffix =
+   PsqlTypeArraySuffix
+   | PsqlTildeArraySuffix
+
 PsqlTypeArraySuffix = '[' ']'
+
+// `int~[]~` -- mlang-dialect escaping of the array-type-suffix brackets, not
+// real Postgres syntax. Unlike `~name~`, this needs no re-lex: `~`, `[`, `]`
+// and `~` already lex correctly as four separate default tokens here (no
+// ambiguity with the regex/LIKE operators, since this position never
+// follows a complete left-hand expression). The two `~`s need explicit
+// labels -- otherwise codegen gives both the same accessor name and the
+// generated struct doesn't compile (duplicate field).
+PsqlTildeArraySuffix =
+   open_tilde: '~'
+   '['
+   ']'
+   close_tilde: '~'
 
 PsqlSubqueryExpression =
    '('

@@ -2798,6 +2798,56 @@ pub struct PsqlTableNameFields {
     pub name: SyntaxResult<AnyPsqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTildeArraySuffix {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTildeArraySuffix {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTildeArraySuffixFields {
+        PsqlTildeArraySuffixFields {
+            open_tilde_token: self.open_tilde_token(),
+            l_brack_token: self.l_brack_token(),
+            r_brack_token: self.r_brack_token(),
+            close_tilde_token: self.close_tilde_token(),
+        }
+    }
+    pub fn open_tilde_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn r_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn close_tilde_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlTildeArraySuffix {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTildeArraySuffixFields {
+    pub open_tilde_token: SyntaxResult<SyntaxToken>,
+    pub l_brack_token: SyntaxResult<SyntaxToken>,
+    pub r_brack_token: SyntaxResult<SyntaxToken>,
+    pub close_tilde_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTildeName {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2944,7 +2994,7 @@ impl PsqlTypeName {
     pub fn args(&self) -> Option<PsqlTypeArguments> {
         support::node(&self.syntax, 1usize)
     }
-    pub fn array_suffix(&self) -> Option<PsqlTypeArraySuffix> {
+    pub fn array_suffix(&self) -> Option<AnyPsqlTypeArraySuffix> {
         support::node(&self.syntax, 2usize)
     }
 }
@@ -2960,7 +3010,7 @@ impl Serialize for PsqlTypeName {
 pub struct PsqlTypeNameFields {
     pub name: SyntaxResult<SyntaxToken>,
     pub args: Option<PsqlTypeArguments>,
-    pub array_suffix: Option<PsqlTypeArraySuffix>,
+    pub array_suffix: Option<AnyPsqlTypeArraySuffix>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlUnaryExpression {
@@ -3655,6 +3705,25 @@ impl AnyPsqlStatement {
     pub fn as_psql_update_statement(&self) -> Option<&PsqlUpdateStatement> {
         match &self {
             Self::PsqlUpdateStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlTypeArraySuffix {
+    PsqlTildeArraySuffix(PsqlTildeArraySuffix),
+    PsqlTypeArraySuffix(PsqlTypeArraySuffix),
+}
+impl AnyPsqlTypeArraySuffix {
+    pub fn as_psql_tilde_array_suffix(&self) -> Option<&PsqlTildeArraySuffix> {
+        match &self {
+            Self::PsqlTildeArraySuffix(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_type_array_suffix(&self) -> Option<&PsqlTypeArraySuffix> {
+        match &self {
+            Self::PsqlTypeArraySuffix(item) => Some(item),
             _ => None,
         }
     }
@@ -6876,6 +6945,68 @@ impl From<PsqlTableName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTildeArraySuffix {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TILDE_ARRAY_SUFFIX as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TILDE_ARRAY_SUFFIX
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTildeArraySuffix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTildeArraySuffix")
+                .field(
+                    "open_tilde_token",
+                    &support::DebugSyntaxResult(self.open_tilde_token()),
+                )
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .field(
+                    "close_tilde_token",
+                    &support::DebugSyntaxResult(self.close_tilde_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTildeArraySuffix").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTildeArraySuffix> for SyntaxNode {
+    fn from(n: PsqlTildeArraySuffix) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTildeArraySuffix> for SyntaxElement {
+    fn from(n: PsqlTildeArraySuffix) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlTildeName {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -8423,6 +8554,66 @@ impl From<AnyPsqlStatement> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlTildeArraySuffix> for AnyPsqlTypeArraySuffix {
+    fn from(node: PsqlTildeArraySuffix) -> Self {
+        Self::PsqlTildeArraySuffix(node)
+    }
+}
+impl From<PsqlTypeArraySuffix> for AnyPsqlTypeArraySuffix {
+    fn from(node: PsqlTypeArraySuffix) -> Self {
+        Self::PsqlTypeArraySuffix(node)
+    }
+}
+impl AstNode for AnyPsqlTypeArraySuffix {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlTildeArraySuffix::KIND_SET.union(PsqlTypeArraySuffix::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, PSQL_TILDE_ARRAY_SUFFIX | PSQL_TYPE_ARRAY_SUFFIX)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_TILDE_ARRAY_SUFFIX => Self::PsqlTildeArraySuffix(PsqlTildeArraySuffix { syntax }),
+            PSQL_TYPE_ARRAY_SUFFIX => Self::PsqlTypeArraySuffix(PsqlTypeArraySuffix { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlTildeArraySuffix(it) => &it.syntax,
+            Self::PsqlTypeArraySuffix(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlTildeArraySuffix(it) => it.syntax,
+            Self::PsqlTypeArraySuffix(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlTypeArraySuffix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlTildeArraySuffix(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTypeArraySuffix(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlTypeArraySuffix> for SyntaxNode {
+    fn from(n: AnyPsqlTypeArraySuffix) -> Self {
+        match n {
+            AnyPsqlTypeArraySuffix::PsqlTildeArraySuffix(it) => it.into(),
+            AnyPsqlTypeArraySuffix::PsqlTypeArraySuffix(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlTypeArraySuffix> for SyntaxElement {
+    fn from(n: AnyPsqlTypeArraySuffix) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl std::fmt::Display for AnyPsqlConflictAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -8469,6 +8660,11 @@ impl std::fmt::Display for AnyPsqlSelectItem {
     }
 }
 impl std::fmt::Display for AnyPsqlStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnyPsqlTypeArraySuffix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -8769,6 +8965,11 @@ impl std::fmt::Display for PsqlTableColReference {
     }
 }
 impl std::fmt::Display for PsqlTableName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTildeArraySuffix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

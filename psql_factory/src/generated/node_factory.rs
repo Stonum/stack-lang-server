@@ -1374,6 +1374,22 @@ impl PsqlTableNameBuilder {
         ))
     }
 }
+pub fn psql_tilde_array_suffix(
+    open_tilde_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    r_brack_token: SyntaxToken,
+    close_tilde_token: SyntaxToken,
+) -> PsqlTildeArraySuffix {
+    PsqlTildeArraySuffix::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TILDE_ARRAY_SUFFIX,
+        [
+            Some(SyntaxElement::Token(open_tilde_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Token(r_brack_token)),
+            Some(SyntaxElement::Token(close_tilde_token)),
+        ],
+    ))
+}
 pub fn psql_tilde_name(value_token: SyntaxToken) -> PsqlTildeName {
     PsqlTildeName::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_TILDE_NAME,
@@ -1416,14 +1432,14 @@ pub fn psql_type_name(name_token: SyntaxToken) -> PsqlTypeNameBuilder {
 pub struct PsqlTypeNameBuilder {
     name_token: SyntaxToken,
     args: Option<PsqlTypeArguments>,
-    array_suffix: Option<PsqlTypeArraySuffix>,
+    array_suffix: Option<AnyPsqlTypeArraySuffix>,
 }
 impl PsqlTypeNameBuilder {
     pub fn with_args(mut self, args: PsqlTypeArguments) -> Self {
         self.args = Some(args);
         self
     }
-    pub fn with_array_suffix(mut self, array_suffix: PsqlTypeArraySuffix) -> Self {
+    pub fn with_array_suffix(mut self, array_suffix: AnyPsqlTypeArraySuffix) -> Self {
         self.array_suffix = Some(array_suffix);
         self
     }
