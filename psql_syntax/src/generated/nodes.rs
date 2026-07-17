@@ -983,6 +983,41 @@ pub struct PsqlDoUpdateClauseFields {
     pub where_clause: Option<PsqlWhereClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlEmptyStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlEmptyStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlEmptyStatementFields {
+        PsqlEmptyStatementFields {
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn semicolon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlEmptyStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlEmptyStatementFields {
+    pub semicolon_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlFromClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3525,15 +3560,29 @@ impl AnyPsqlSelectItem {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlStatement {
+    PsqlBogusStatement(PsqlBogusStatement),
     PsqlDeleteStatement(PsqlDeleteStatement),
+    PsqlEmptyStatement(PsqlEmptyStatement),
     PsqlInsertStatement(PsqlInsertStatement),
     PsqlSelectStatement(PsqlSelectStatement),
     PsqlUpdateStatement(PsqlUpdateStatement),
 }
 impl AnyPsqlStatement {
+    pub fn as_psql_bogus_statement(&self) -> Option<&PsqlBogusStatement> {
+        match &self {
+            Self::PsqlBogusStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_psql_delete_statement(&self) -> Option<&PsqlDeleteStatement> {
         match &self {
             Self::PsqlDeleteStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_empty_statement(&self) -> Option<&PsqlEmptyStatement> {
+        match &self {
+            Self::PsqlEmptyStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -4630,6 +4679,56 @@ impl From<PsqlDoUpdateClause> for SyntaxNode {
 }
 impl From<PsqlDoUpdateClause> for SyntaxElement {
     fn from(n: PsqlDoUpdateClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlEmptyStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_EMPTY_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_EMPTY_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlEmptyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlEmptyStatement")
+                .field(
+                    "semicolon_token",
+                    &support::DebugSyntaxResult(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlEmptyStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlEmptyStatement> for SyntaxNode {
+    fn from(n: PsqlEmptyStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlEmptyStatement> for SyntaxElement {
+    fn from(n: PsqlEmptyStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -8049,9 +8148,19 @@ impl From<AnyPsqlSelectItem> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlBogusStatement> for AnyPsqlStatement {
+    fn from(node: PsqlBogusStatement) -> Self {
+        Self::PsqlBogusStatement(node)
+    }
+}
 impl From<PsqlDeleteStatement> for AnyPsqlStatement {
     fn from(node: PsqlDeleteStatement) -> Self {
         Self::PsqlDeleteStatement(node)
+    }
+}
+impl From<PsqlEmptyStatement> for AnyPsqlStatement {
+    fn from(node: PsqlEmptyStatement) -> Self {
+        Self::PsqlEmptyStatement(node)
     }
 }
 impl From<PsqlInsertStatement> for AnyPsqlStatement {
@@ -8071,14 +8180,18 @@ impl From<PsqlUpdateStatement> for AnyPsqlStatement {
 }
 impl AstNode for AnyPsqlStatement {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = PsqlDeleteStatement::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = PsqlBogusStatement::KIND_SET
+        .union(PsqlDeleteStatement::KIND_SET)
+        .union(PsqlEmptyStatement::KIND_SET)
         .union(PsqlInsertStatement::KIND_SET)
         .union(PsqlSelectStatement::KIND_SET)
         .union(PsqlUpdateStatement::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            PSQL_DELETE_STATEMENT
+            PSQL_BOGUS_STATEMENT
+                | PSQL_DELETE_STATEMENT
+                | PSQL_EMPTY_STATEMENT
                 | PSQL_INSERT_STATEMENT
                 | PSQL_SELECT_STATEMENT
                 | PSQL_UPDATE_STATEMENT
@@ -8086,7 +8199,9 @@ impl AstNode for AnyPsqlStatement {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            PSQL_BOGUS_STATEMENT => Self::PsqlBogusStatement(PsqlBogusStatement { syntax }),
             PSQL_DELETE_STATEMENT => Self::PsqlDeleteStatement(PsqlDeleteStatement { syntax }),
+            PSQL_EMPTY_STATEMENT => Self::PsqlEmptyStatement(PsqlEmptyStatement { syntax }),
             PSQL_INSERT_STATEMENT => Self::PsqlInsertStatement(PsqlInsertStatement { syntax }),
             PSQL_SELECT_STATEMENT => Self::PsqlSelectStatement(PsqlSelectStatement { syntax }),
             PSQL_UPDATE_STATEMENT => Self::PsqlUpdateStatement(PsqlUpdateStatement { syntax }),
@@ -8096,7 +8211,9 @@ impl AstNode for AnyPsqlStatement {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::PsqlBogusStatement(it) => &it.syntax,
             Self::PsqlDeleteStatement(it) => &it.syntax,
+            Self::PsqlEmptyStatement(it) => &it.syntax,
             Self::PsqlInsertStatement(it) => &it.syntax,
             Self::PsqlSelectStatement(it) => &it.syntax,
             Self::PsqlUpdateStatement(it) => &it.syntax,
@@ -8104,7 +8221,9 @@ impl AstNode for AnyPsqlStatement {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::PsqlBogusStatement(it) => it.syntax,
             Self::PsqlDeleteStatement(it) => it.syntax,
+            Self::PsqlEmptyStatement(it) => it.syntax,
             Self::PsqlInsertStatement(it) => it.syntax,
             Self::PsqlSelectStatement(it) => it.syntax,
             Self::PsqlUpdateStatement(it) => it.syntax,
@@ -8114,7 +8233,9 @@ impl AstNode for AnyPsqlStatement {
 impl std::fmt::Debug for AnyPsqlStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::PsqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDeleteStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlUpdateStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -8124,7 +8245,9 @@ impl std::fmt::Debug for AnyPsqlStatement {
 impl From<AnyPsqlStatement> for SyntaxNode {
     fn from(n: AnyPsqlStatement) -> Self {
         match n {
+            AnyPsqlStatement::PsqlBogusStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDeleteStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlEmptyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlInsertStatement(it) => it.into(),
             AnyPsqlStatement::PsqlSelectStatement(it) => it.into(),
             AnyPsqlStatement::PsqlUpdateStatement(it) => it.into(),
@@ -8278,6 +8401,11 @@ impl std::fmt::Display for PsqlDoNothingClause {
     }
 }
 impl std::fmt::Display for PsqlDoUpdateClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlEmptyStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

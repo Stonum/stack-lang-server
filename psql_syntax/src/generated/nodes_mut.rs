@@ -481,6 +481,14 @@ impl PsqlDoUpdateClause {
         ))
     }
 }
+impl PsqlEmptyStatement {
+    pub fn with_semicolon_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+}
 impl PsqlFromClause {
     pub fn with_from_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(

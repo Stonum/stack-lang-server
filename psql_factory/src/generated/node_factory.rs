@@ -473,6 +473,12 @@ impl PsqlDoUpdateClauseBuilder {
         ))
     }
 }
+pub fn psql_empty_statement(semicolon_token: SyntaxToken) -> PsqlEmptyStatement {
+    PsqlEmptyStatement::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_EMPTY_STATEMENT,
+        [Some(SyntaxElement::Token(semicolon_token))],
+    ))
+}
 pub fn psql_from_clause(from_token: SyntaxToken, items: PsqlFromItemList) -> PsqlFromClause {
     PsqlFromClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_FROM_CLAUSE,

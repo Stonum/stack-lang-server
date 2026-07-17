@@ -20,19 +20,6 @@ pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
     while !p.at(EOF) {
         progress.assert_progressing(p);
 
-        // A stray `;` (e.g. `select 1;; select 2`, or whatever's left right
-        // before `;` once statement-recovery has skipped over unparseable
-        // content up to it) is a harmless empty statement, not an error --
-        // skip it directly rather than trying to recover from it. Recovery
-        // itself can't handle this case: `;` is *both* what recovery skips
-        // to *and* what it's recovering from, so retrying `parse_statement`
-        // on it immediately hits "already at a recovery token" and aborts
-        // the whole statement list, silently dropping everything after it.
-        if p.at(T![;]) {
-            p.bump(T![;]);
-            continue;
-        }
-
         if parse_statement(p)
             .or_recover_with_token_set(
                 p,
@@ -49,6 +36,19 @@ pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
 }
 
 pub(crate) fn parse_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    // A stray `;` (e.g. the second `;` in `select 1;; select 2`) is a
+    // harmless empty statement, not an error -- most SQL implementations
+    // treat it as a no-op. Handled as a real `AnyPsqlStatement` alternative
+    // (`PsqlEmptyStatement`) rather than skipped ad hoc: `;` is both what
+    // statement-recovery skips *to* and what it recovers *from*, so treating
+    // it as "not a statement" here would make recovery immediately hit
+    // "already at a recovery token" and abort the whole statement list.
+    if p.at(T![;]) {
+        let m = p.start();
+        p.bump(T![;]);
+        return Present(m.complete(p, PSQL_EMPTY_STATEMENT));
+    }
+
     if p.at(T![with]) {
         return parse_with_prefixed_statement(p);
     }

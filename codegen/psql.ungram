@@ -74,10 +74,17 @@ AnyPsqlStatement =
    | PsqlInsertStatement
    | PsqlDeleteStatement
    | PsqlUpdateStatement
+   | PsqlEmptyStatement
+   | PsqlBogusStatement
 
 ///////////////
 // Statements
 ///////////////
+
+// A stray `;` with nothing before it, e.g. the second `;` in `select 1;;`.
+// Harmless -- most SQL implementations treat it as a no-op, not an error.
+PsqlEmptyStatement =
+   ';'
 
 PsqlWithClause =
    'with'
