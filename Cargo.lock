@@ -1269,6 +1269,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "psql_formatter"
+version = "0.0.1"
+dependencies = [
+ "biome_formatter",
+ "biome_rowan",
+ "biome_unicode_table",
+ "psql_factory",
+ "psql_parser",
+ "psql_syntax",
+ "serde",
+]
+
+[[package]]
 name = "psql_parser"
 version = "0.0.1"
 dependencies = [
