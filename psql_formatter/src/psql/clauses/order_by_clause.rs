@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use psql_syntax::PsqlOrderByClause;
 use psql_syntax::PsqlOrderByClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -11,6 +11,12 @@ impl FormatNodeRule<PsqlOrderByClause> for FormatPsqlOrderByClause {
             items,
         } = node.as_fields();
 
-        write!(f, [order_by_token.format(), space(), items.format()])
+        write!(
+            f,
+            [group(&format_args![
+                order_by_token.format(),
+                soft_line_indent_or_space(&items.format())
+            ])]
+        )
     }
 }

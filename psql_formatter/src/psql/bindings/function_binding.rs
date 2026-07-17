@@ -23,7 +23,7 @@ impl FormatNodeRule<PsqlFunctionBinding> for FormatPsqlFunctionBinding {
             [
                 name.format(),
                 l_paren_token.format(),
-                arguments.format(),
+                group(&soft_block_indent(&arguments.format())),
                 r_paren_token.format(),
             ]
         )?;
