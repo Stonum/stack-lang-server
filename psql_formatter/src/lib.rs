@@ -9,6 +9,7 @@ pub(crate) mod comments;
 pub(crate) mod context;
 
 pub(crate) mod separated;
+pub(crate) mod utils;
 
 use biome_formatter::prelude::*;
 use biome_formatter::{

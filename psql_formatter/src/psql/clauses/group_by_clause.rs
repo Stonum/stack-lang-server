@@ -1,10 +1,16 @@
 use crate::prelude::*;
-use biome_rowan::AstNode;
+use biome_formatter::write;
 use psql_syntax::PsqlGroupByClause;
+use psql_syntax::PsqlGroupByClauseFields;
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatPsqlGroupByClause;
 impl FormatNodeRule<PsqlGroupByClause> for FormatPsqlGroupByClause {
     fn fmt_fields(&self, node: &PsqlGroupByClause, f: &mut PsqlFormatter) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let PsqlGroupByClauseFields {
+            group_by_token,
+            items,
+        } = node.as_fields();
+
+        write!(f, [group_by_token.format(), space(), items.format()])
     }
 }
