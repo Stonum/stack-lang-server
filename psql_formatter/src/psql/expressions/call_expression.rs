@@ -1,10 +1,30 @@
 use crate::prelude::*;
-use biome_rowan::AstNode;
+use biome_formatter::write;
 use psql_syntax::PsqlCallExpression;
+use psql_syntax::PsqlCallExpressionFields;
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatPsqlCallExpression;
 impl FormatNodeRule<PsqlCallExpression> for FormatPsqlCallExpression {
     fn fmt_fields(&self, node: &PsqlCallExpression, f: &mut PsqlFormatter) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let PsqlCallExpressionFields {
+            schema,
+            name,
+            l_paren_token,
+            arguments,
+            r_paren_token,
+        } = node.as_fields();
+
+        if let Some(schema) = schema {
+            write!(f, [schema.format()])?;
+        }
+        write!(
+            f,
+            [
+                name.format(),
+                l_paren_token.format(),
+                group(&soft_block_indent(&arguments.format())),
+                r_paren_token.format(),
+            ]
+        )
     }
 }

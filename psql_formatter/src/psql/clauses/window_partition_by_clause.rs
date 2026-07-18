@@ -1,6 +1,7 @@
 use crate::prelude::*;
-use biome_rowan::AstNode;
+use crate::utils::write_wrapping_clause;
 use psql_syntax::PsqlWindowPartitionByClause;
+use psql_syntax::PsqlWindowPartitionByClauseFields;
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatPsqlWindowPartitionByClause;
 impl FormatNodeRule<PsqlWindowPartitionByClause> for FormatPsqlWindowPartitionByClause {
@@ -9,6 +10,11 @@ impl FormatNodeRule<PsqlWindowPartitionByClause> for FormatPsqlWindowPartitionBy
         node: &PsqlWindowPartitionByClause,
         f: &mut PsqlFormatter,
     ) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let PsqlWindowPartitionByClauseFields {
+            partition_by_token,
+            items,
+        } = node.as_fields();
+
+        write_wrapping_clause(partition_by_token, &items, f)
     }
 }
