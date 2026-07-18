@@ -5,8 +5,7 @@ mod helper;
 fn format_simple_select() {
     assert_fmt!(
         r#"--
-select a, b
-from t
+select a, b from t
 "#
     );
 }
@@ -15,8 +14,7 @@ from t
 fn format_select_star() {
     assert_fmt!(
         r#"--
-select *
-from t
+select * from t
 "#
     );
 }
@@ -25,8 +23,7 @@ from t
 fn format_select_with_alias() {
     assert_fmt!(
         r#"--
-select a as "A", b "B"
-from t
+select a as "A", b "B" from t
 "#
     );
 }
@@ -35,8 +32,7 @@ from t
 fn format_select_multiple_from_items() {
     assert_fmt!(
         r#"--
-select a
-from t1, t2
+select a from t1, t2
 "#
     );
 }
@@ -45,9 +41,7 @@ from t1, t2
 fn format_select_with_where() {
     assert_fmt!(
         r#"--
-select a
-from t
-where a > 1
+select a from t where a > 1
 "#
     );
 }
@@ -56,10 +50,7 @@ where a > 1
 fn format_select_with_group_by_having() {
     assert_fmt!(
         r#"--
-select a
-from t
-group_by a
-having a > 1
+select a from t group_by a having a > 1
 "#
     );
 }
@@ -68,11 +59,7 @@ having a > 1
 fn format_select_with_order_by_limit_offset() {
     assert_fmt!(
         r#"--
-select a
-from t
-order_by a desc
-limit 10
-offset 5
+select a from t order_by a desc limit 10 offset 5
 "#
     );
 }
@@ -104,8 +91,7 @@ join t3 on t2.id = t3.id
 fn format_select_with_function_from() {
     assert_fmt!(
         r#"--
-select a
-from generate_series(1, 10) g
+select a from generate_series(1, 10) g
 "#
     );
 }
@@ -114,8 +100,7 @@ from generate_series(1, 10) g
 fn format_select_semicolon() {
     assert_fmt!(
         r#"--
-select a
-from t;
+select a from t;
 "#
     );
 }
@@ -138,9 +123,7 @@ fn format_select_with_complex_condition_falls_back_to_verbatim() {
     // untouched through the now-real where/join clause structure.
     assert_fmt!(
         r#"--
-select a
-from t
-where a > 1 and b < 2 or c = 3
+select a from t where a > 1 and b < 2 or c = 3
 "#
     );
 }

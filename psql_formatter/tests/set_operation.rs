@@ -8,8 +8,7 @@ fn format_union_all_between_two_branches() {
 select a
 from t1
 	union all
-select a
-from t2
+select a from t2
 "#
     );
 }
@@ -21,8 +20,7 @@ fn format_union_without_quantifier() {
 select a
 from t1
 	union
-select a
-from t2
+select a from t2
 "#
     );
 }
@@ -34,11 +32,9 @@ fn format_intersect_and_except_chain() {
 select a
 from t1
 	intersect
-select a
-from t2
+select a from t2
 	except
-select a
-from t3
+select a from t3
 "#
     );
 }
@@ -51,9 +47,7 @@ select a
 from t1
 where a > 1
 	union all
-select a
-from t2
-where a > 2
+select a from t2 where a > 2
 "#
     );
 }
@@ -67,8 +61,7 @@ from (
 	select a
 	from t1
 		union all
-	select a
-	from t2
+	select a from t2
 ) sub
 "#
     );
