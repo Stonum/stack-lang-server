@@ -16,8 +16,7 @@ fn format_insert_select() {
     assert_fmt!(
         r#"--
 insert into t (a, b)
-select a, b
-from t2
+select a, b from t2
 "#
     );
 }

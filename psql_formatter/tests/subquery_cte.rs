@@ -6,11 +6,9 @@ fn format_cte_body_indents_one_level() {
     assert_fmt!(
         r#"--
 with x as (
-	select a
-	from t
+	select a from t
 )
-select a
-from x
+select a from x
 "#
     );
 }
@@ -23,15 +21,12 @@ fn format_multiple_ctes() {
     assert_fmt!(
         r#"--
 with x as (
-	select a
-	from t1
+	select a from t1
 ),
 y as (
-	select b
-	from t2
+	select b from t2
 )
-select a
-from x
+select a from x
 "#
     );
 }
@@ -42,8 +37,7 @@ fn format_subquery_in_from_indents_one_level() {
         r#"--
 select a
 from (
-	select a
-	from t
+	select a from t
 ) sub
 "#
     );
@@ -56,8 +50,7 @@ fn format_subquery_in_in_expression_indents_one_level() {
 select a
 from t
 where a in (
-	select b
-	from t2
+	select b from t2
 )
 "#
     );
@@ -71,8 +64,7 @@ select a
 from (
 	select a
 	from (
-		select a
-		from t
+		select a from t
 	) inner_sub
 ) outer_sub
 "#

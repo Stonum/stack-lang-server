@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_select_body_clauses;
 use biome_formatter::write;
 use psql_syntax::PsqlSetOperation;
 use psql_syntax::PsqlSetOperationFields;
@@ -31,19 +32,19 @@ impl FormatNodeRule<PsqlSetOperation> for FormatPsqlSetOperation {
             }))]
         )?;
 
-        write!(f, [hard_line_break(), select_clause.format()])?;
-        if let Some(from_clause) = from_clause {
-            write!(f, [hard_line_break(), from_clause.format()])?;
-        }
-        if let Some(where_clause) = where_clause {
-            write!(f, [hard_line_break(), where_clause.format()])?;
-        }
-        if let Some(group_by_clause) = group_by_clause {
-            write!(f, [hard_line_break(), group_by_clause.format()])?;
-        }
-        if let Some(having_clause) = having_clause {
-            write!(f, [hard_line_break(), having_clause.format()])?;
-        }
-        Ok(())
+        write!(f, [hard_line_break()])?;
+        write!(
+            f,
+            [group(&format_once(|f| {
+                write_select_body_clauses(
+                    select_clause,
+                    from_clause,
+                    where_clause,
+                    group_by_clause,
+                    having_clause,
+                    f,
+                )
+            }))]
+        )
     }
 }

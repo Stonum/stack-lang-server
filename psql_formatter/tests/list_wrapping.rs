@@ -21,8 +21,7 @@ from t
 fn format_select_list_stays_flat_when_short() {
     assert_fmt!(
         r#"--
-select a, b, c
-from t
+select a, b, c from t
 "#
     );
 }
