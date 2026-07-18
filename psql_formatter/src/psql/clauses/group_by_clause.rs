@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::{format_args, write};
+use crate::utils::write_wrapping_clause;
 use psql_syntax::PsqlGroupByClause;
 use psql_syntax::PsqlGroupByClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -11,12 +11,6 @@ impl FormatNodeRule<PsqlGroupByClause> for FormatPsqlGroupByClause {
             items,
         } = node.as_fields();
 
-        write!(
-            f,
-            [group(&format_args![
-                group_by_token.format(),
-                soft_line_indent_or_space(&items.format())
-            ])]
-        )
+        write_wrapping_clause(group_by_token, &items, f)
     }
 }
