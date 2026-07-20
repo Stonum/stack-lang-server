@@ -50,11 +50,33 @@ fn format_select_list_with_many_short_items_fill_packs() {
     // multiple per line (as many as fit) once their combined width doesn't
     // fit on one line -- same fill layout as function call arguments
     // (see format_function_call_arguments_wrap_when_too_long).
+    // Once packing needs more than one line, the two lines are balanced to
+    // be roughly equal width instead of cramming the first line to the
+    // limit and leaving a short, ragged remainder -- see
+    // `balanced_fill_breaks` in `psql_formatter/src/utils.rs`.
     assert_fmt!(
         r#"--
 select
-	c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25,
-	c26, c27, c28, c29, c30
+	c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16,
+	c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30
+from t
+"#
+    );
+}
+
+#[test]
+fn format_select_list_balances_across_more_than_two_lines() {
+    // Same balancing, but with enough items that 4 lines are needed --
+    // confirms the binary search in `balanced_fill_breaks` isn't just a
+    // 2-line special case: 21/20/20/19 items per line, not a lopsided
+    // greedy pack.
+    assert_fmt!(
+        r#"--
+select
+	c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21,
+	c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41,
+	c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61,
+	c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80
 from t
 "#
     );
@@ -74,13 +96,15 @@ group_by
 
 #[test]
 fn format_order_by_wraps_when_too_long() {
+    // Balanced across its two lines rather than cramming 3 items onto the
+    // first line and leaving a lone 4th on the second.
     assert_fmt!(
         r#"--
 select a
 from t
 order_by
-	really_long_column_name_one desc, really_long_column_name_two desc, really_long_column_name_three desc,
-	really_long_column_name_four desc
+	really_long_column_name_one desc, really_long_column_name_two desc,
+	really_long_column_name_three desc, really_long_column_name_four desc
 "#
     );
 }
