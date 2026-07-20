@@ -45,7 +45,7 @@ fn format_case_without_else_wraps_when_too_long() {
     assert_fmt!(
         r#"--
 select case
-	when really_long_condition_that_forces_a_wrap_all_by_itself_here then 'x'
+	when really_long_condition_that_forces_a_wrap_all_by_itself_here_even_at_a_much_wider_line_width_than_before then 'x'
 end
 from t
 "#

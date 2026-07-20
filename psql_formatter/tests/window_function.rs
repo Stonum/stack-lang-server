@@ -69,10 +69,7 @@ fn format_call_arguments_wrap_when_too_long() {
     assert_fmt!(
         r#"--
 select coalesce(
-	really_long_argument_one,
-	really_long_argument_two,
-	really_long_argument_three,
-	really_long_argument_four
+	really_long_argument_one, really_long_argument_two, really_long_argument_three, really_long_argument_four
 )
 from t
 "#

@@ -1,5 +1,6 @@
 use crate::prelude::*;
-use crate::utils::write_wrapping_clause;
+use crate::utils::{is_simple_expression, write_wrapping_fill_clause};
+use psql_syntax::AnyPsqlExpression;
 use psql_syntax::PsqlGroupByClause;
 use psql_syntax::PsqlGroupByClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -11,6 +12,11 @@ impl FormatNodeRule<PsqlGroupByClause> for FormatPsqlGroupByClause {
             items,
         } = node.as_fields();
 
-        write_wrapping_clause(group_by_token, &items, f)
+        write_wrapping_fill_clause(
+            group_by_token,
+            &items,
+            |expr: &AnyPsqlExpression| !is_simple_expression(expr, 0),
+            f,
+        )
     }
 }
