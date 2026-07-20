@@ -51,7 +51,8 @@ using
 	really_long_table_name_one,
 	really_long_table_name_two,
 	really_long_table_name_three,
-	really_long_table_name_four
+	really_long_table_name_four,
+	really_long_table_name_five
 "#
     );
 }

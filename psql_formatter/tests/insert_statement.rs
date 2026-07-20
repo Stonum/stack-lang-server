@@ -80,14 +80,13 @@ on conflict on constraint t_pkey do nothing
 
 #[test]
 fn format_insert_values_wrap_when_too_long() {
+    // PsqlExpressionList fill-packs simple values instead of always one per
+    // line -- see array_expression.rs's format_array_literal_wraps_when_too_long.
     assert_fmt!(
         r#"--
-insert into t (a, b, c, d)
+insert into t (a, b, c, d, e)
 values (
-	really_long_value_one,
-	really_long_value_two,
-	really_long_value_three,
-	really_long_value_four
+	really_long_value_one, really_long_value_two, really_long_value_three, really_long_value_four, really_long_value_five
 )
 "#
     );

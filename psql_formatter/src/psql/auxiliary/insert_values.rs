@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_bracketed_fill_list;
 use biome_formatter::write;
 use psql_syntax::PsqlInsertValues;
 use psql_syntax::PsqlInsertValuesFields;
@@ -13,15 +14,7 @@ impl FormatNodeRule<PsqlInsertValues> for FormatPsqlInsertValues {
             r_paren_token,
         } = node.as_fields();
 
-        write!(
-            f,
-            [
-                values_token.format(),
-                space(),
-                l_paren_token.format(),
-                group(&soft_block_indent(&items.format())),
-                r_paren_token.format(),
-            ]
-        )
+        write!(f, [values_token.format(), space()])?;
+        write_bracketed_fill_list(l_paren_token, &items, r_paren_token, f)
     }
 }

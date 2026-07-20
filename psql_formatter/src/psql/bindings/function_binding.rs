@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_bracketed_fill_list;
 use biome_formatter::write;
 use psql_syntax::PsqlFunctionBinding;
 use psql_syntax::PsqlFunctionBindingFields;
@@ -18,15 +19,8 @@ impl FormatNodeRule<PsqlFunctionBinding> for FormatPsqlFunctionBinding {
         if let Some(schema) = schema {
             write!(f, [schema.format()])?;
         }
-        write!(
-            f,
-            [
-                name.format(),
-                l_paren_token.format(),
-                group(&soft_block_indent(&arguments.format())),
-                r_paren_token.format(),
-            ]
-        )?;
+        write!(f, [name.format()])?;
+        write_bracketed_fill_list(l_paren_token, &arguments, r_paren_token, f)?;
         if let Some(alias) = alias {
             write!(f, [space(), alias.format()])?;
         }

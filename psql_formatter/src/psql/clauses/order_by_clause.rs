@@ -1,7 +1,8 @@
 use crate::prelude::*;
-use crate::utils::write_wrapping_clause;
+use crate::utils::{is_simple_expression, write_wrapping_fill_clause};
 use psql_syntax::PsqlOrderByClause;
 use psql_syntax::PsqlOrderByClauseFields;
+use psql_syntax::PsqlOrderByExpression;
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatPsqlOrderByClause;
 impl FormatNodeRule<PsqlOrderByClause> for FormatPsqlOrderByClause {
@@ -11,6 +12,14 @@ impl FormatNodeRule<PsqlOrderByClause> for FormatPsqlOrderByClause {
             items,
         } = node.as_fields();
 
-        write_wrapping_clause(order_by_token, &items, f)
+        write_wrapping_fill_clause(
+            order_by_token,
+            &items,
+            |item: &PsqlOrderByExpression| {
+                item.item()
+                    .is_ok_and(|expr| !is_simple_expression(&expr, 0))
+            },
+            f,
+        )
     }
 }

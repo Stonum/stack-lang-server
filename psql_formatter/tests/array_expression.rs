@@ -39,13 +39,17 @@ select matrix[0][1] from t
 
 #[test]
 fn format_array_literal_wraps_when_too_long() {
+    // PsqlExpressionList (shared by array literals, call arguments, and
+    // INSERT...VALUES) uses a fill layout: simple items (bare names,
+    // literals) pack multiple per line rather than always one per line --
+    // see format_function_call_arguments_wrap_when_too_long below for the
+    // case where a *complex* item (its own call expression) forces a line
+    // break around itself regardless of how short it is.
     assert_fmt!(
         r#"--
 select array[
-	really_long_element_one,
-	really_long_element_two,
-	really_long_element_three,
-	really_long_element_four
+	really_quite_noticeably_long_element_one, really_quite_noticeably_long_element_two,
+	really_quite_noticeably_long_element_three, really_quite_noticeably_long_element_four
 ]
 from t
 "#
