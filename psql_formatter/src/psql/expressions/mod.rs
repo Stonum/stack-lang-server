@@ -16,6 +16,7 @@ pub(crate) mod logical_expression;
 pub(crate) mod null_literal_expression;
 pub(crate) mod number_literal_expression;
 pub(crate) mod order_by_expression;
+pub(crate) mod parameter_expression;
 pub(crate) mod parenthesized_expression;
 pub(crate) mod select_expression;
 pub(crate) mod string_literal_expression;

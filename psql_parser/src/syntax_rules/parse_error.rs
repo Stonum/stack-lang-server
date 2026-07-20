@@ -26,6 +26,10 @@ pub fn expected_number_literal(p: &PsqlParser, range: TextRange) -> ParseDiagnos
     expected_node("number literal", range, p)
 }
 
+pub fn expected_limit_value(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("number literal or parameter", range, p)
+}
+
 pub fn expected_table_binding(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("table", range, p)
 }

@@ -1543,6 +1543,46 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlOrderByExpression {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlParameterExpression>
+    for crate::psql::expressions::parameter_expression::FormatPsqlParameterExpression
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlParameterExpression,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlParameterExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlParameterExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlParameterExpression,
+        crate::psql::expressions::parameter_expression::FormatPsqlParameterExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::parameter_expression::FormatPsqlParameterExpression::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlParameterExpression {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlParameterExpression,
+        crate::psql::expressions::parameter_expression::FormatPsqlParameterExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::parameter_expression::FormatPsqlParameterExpression::default(
+            ),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlParenthesizedExpression>
     for crate::psql::expressions::parenthesized_expression::FormatPsqlParenthesizedExpression
 {
@@ -3287,6 +3327,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlInsertSource {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::insert_source::FormatAnyPsqlInsertSource::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlLimitValue {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlLimitValue,
+        crate::psql::any::limit_value::FormatAnyPsqlLimitValue,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::limit_value::FormatAnyPsqlLimitValue::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlLimitValue {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlLimitValue,
+        crate::psql::any::limit_value::FormatAnyPsqlLimitValue,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::limit_value::FormatAnyPsqlLimitValue::default(),
         )
     }
 }

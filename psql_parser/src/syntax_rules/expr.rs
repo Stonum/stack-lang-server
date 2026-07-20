@@ -229,11 +229,34 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![case] => parse_case_expression(p),
         T![array] => parse_array_expression(p),
         T![cast] => parse_cast_function_expression(p),
+        T![:] => parse_parameter_expression(p),
         _ => Absent,
     };
 
     let expression = parse_array_subscript_tail(p, expression);
     parse_cast_tail(p, expression)
+}
+
+/// `:name`/`:N`, a colon-prefixed bind parameter -- a widely-used SQL
+/// client/tooling convention (DBeaver, JDBC named parameters, SQLAlchemy,
+/// etc.), available in both dialects, not an mlang-specific extension.
+/// Unlike `~name~`, `:` is otherwise unused anywhere in this grammar (only
+/// `::` cast is a real operator), so there's no ambiguity to disambiguate
+/// via re-lex -- seeing `:` immediately followed by an identifier or
+/// number literal is always unambiguously a parameter.
+fn is_at_parameter_start(p: &mut PsqlParser) -> bool {
+    p.at(T![:]) && matches!(p.nth(1), T![ident] | PSQL_NUMBER_LITERAL)
+}
+
+fn parse_parameter_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !is_at_parameter_start(p) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![:]);
+    p.bump_any();
+    Present(m.complete(p, PSQL_PARAMETER_EXPRESSION))
 }
 
 /// `array[1, 2, 3]`.
@@ -629,8 +652,8 @@ fn parse_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
 }
 
 /// A bare number literal, used where the grammar requires a
-/// `PsqlNumberLiteralExpression` specifically (e.g. `LIMIT`/`OFFSET`)
-/// rather than any general expression.
+/// `PsqlNumberLiteralExpression` specifically (e.g. type arguments like
+/// `numeric(10, 2)`) rather than any general expression.
 pub(crate) fn parse_number_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(PSQL_NUMBER_LITERAL) {
         return Absent;
@@ -638,6 +661,18 @@ pub(crate) fn parse_number_literal_expression(p: &mut PsqlParser) -> ParsedSynta
     let m = p.start();
     p.bump(PSQL_NUMBER_LITERAL);
     Present(m.complete(p, PSQL_NUMBER_LITERAL_EXPRESSION))
+}
+
+/// A `LIMIT`/`OFFSET` value (`AnyPsqlLimitValue`): a bare number literal,
+/// or a bind parameter (`LIMIT :n`) -- real Postgres accepts any expression
+/// here, but this grammar deliberately narrows it to just these two forms,
+/// the only ones that occur in practice.
+pub(crate) fn parse_limit_offset_value(p: &mut PsqlParser) -> ParsedSyntax {
+    let literal = parse_number_literal_expression(p);
+    if literal.is_present() {
+        return literal;
+    }
+    parse_parameter_expression(p)
 }
 
 fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {

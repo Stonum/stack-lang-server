@@ -832,7 +832,7 @@ impl PsqlLikeExpressionBuilder {
 }
 pub fn psql_limit_clause(
     limit_token: SyntaxToken,
-    limit_count: PsqlNumberLiteralExpression,
+    limit_count: AnyPsqlLimitValue,
 ) -> PsqlLimitClause {
     PsqlLimitClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_LIMIT_CLAUSE,
@@ -874,10 +874,7 @@ pub fn psql_number_literal_expression(value_token: SyntaxToken) -> PsqlNumberLit
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
-pub fn psql_offset_clause(
-    offset_token: SyntaxToken,
-    start: PsqlNumberLiteralExpression,
-) -> PsqlOffsetClause {
+pub fn psql_offset_clause(offset_token: SyntaxToken, start: AnyPsqlLimitValue) -> PsqlOffsetClause {
     PsqlOffsetClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_OFFSET_CLAUSE,
         [
@@ -972,6 +969,18 @@ impl PsqlOrderByExpressionBuilder {
             ],
         ))
     }
+}
+pub fn psql_parameter_expression(
+    colon_token: SyntaxToken,
+    name_token: SyntaxToken,
+) -> PsqlParameterExpression {
+    PsqlParameterExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_PARAMETER_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(colon_token)),
+            Some(SyntaxElement::Token(name_token)),
+        ],
+    ))
 }
 pub fn psql_parenthesized_expression(
     l_paren_token: SyntaxToken,

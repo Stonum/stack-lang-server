@@ -3,9 +3,7 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{
-    EXPR_RECOVERY_SET, parse_alias, parse_expression, parse_number_literal_expression,
-};
+use super::expr::{EXPR_RECOVERY_SET, parse_alias, parse_expression, parse_limit_offset_value};
 use super::from::parse_from_clause;
 use super::parse_error::*;
 use super::where_clause::parse_where_clause;
@@ -227,7 +225,7 @@ fn parse_limit_clause(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![limit]);
-    parse_number_literal_expression(p).or_add_diagnostic(p, expected_number_literal);
+    parse_limit_offset_value(p).or_add_diagnostic(p, expected_limit_value);
     Present(m.complete(p, PSQL_LIMIT_CLAUSE))
 }
 
@@ -238,7 +236,7 @@ fn parse_offset_clause(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![offset]);
-    parse_number_literal_expression(p).or_add_diagnostic(p, expected_number_literal);
+    parse_limit_offset_value(p).or_add_diagnostic(p, expected_limit_value);
     Present(m.complete(p, PSQL_OFFSET_CLAUSE))
 }
 

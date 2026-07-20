@@ -1640,7 +1640,7 @@ impl PsqlLimitClause {
     pub fn limit_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn limit_count(&self) -> SyntaxResult<PsqlNumberLiteralExpression> {
+    pub fn limit_count(&self) -> SyntaxResult<AnyPsqlLimitValue> {
         support::required_node(&self.syntax, 1usize)
     }
 }
@@ -1655,7 +1655,7 @@ impl Serialize for PsqlLimitClause {
 #[derive(Serialize)]
 pub struct PsqlLimitClauseFields {
     pub limit_token: SyntaxResult<SyntaxToken>,
-    pub limit_count: SyntaxResult<PsqlNumberLiteralExpression>,
+    pub limit_count: SyntaxResult<AnyPsqlLimitValue>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlLogicalExpression {
@@ -1830,7 +1830,7 @@ impl PsqlOffsetClause {
     pub fn offset_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn start(&self) -> SyntaxResult<PsqlNumberLiteralExpression> {
+    pub fn start(&self) -> SyntaxResult<AnyPsqlLimitValue> {
         support::required_node(&self.syntax, 1usize)
     }
 }
@@ -1845,7 +1845,7 @@ impl Serialize for PsqlOffsetClause {
 #[derive(Serialize)]
 pub struct PsqlOffsetClauseFields {
     pub offset_token: SyntaxResult<SyntaxToken>,
-    pub start: SyntaxResult<PsqlNumberLiteralExpression>,
+    pub start: SyntaxResult<AnyPsqlLimitValue>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlOnConflictClause {
@@ -2021,6 +2021,46 @@ impl Serialize for PsqlOrderByExpression {
 pub struct PsqlOrderByExpressionFields {
     pub item: SyntaxResult<AnyPsqlExpression>,
     pub order: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlParameterExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlParameterExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlParameterExpressionFields {
+        PsqlParameterExpressionFields {
+            colon_token: self.colon_token(),
+            name: self.name(),
+        }
+    }
+    pub fn colon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlParameterExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlParameterExpressionFields {
+    pub colon_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlParenthesizedExpression {
@@ -3392,6 +3432,7 @@ pub enum AnyPsqlExpression {
     PsqlLikeExpression(PsqlLikeExpression),
     PsqlLogicalExpression(PsqlLogicalExpression),
     PsqlName(PsqlName),
+    PsqlParameterExpression(PsqlParameterExpression),
     PsqlParenthesizedExpression(PsqlParenthesizedExpression),
     PsqlStar(PsqlStar),
     PsqlSubqueryExpression(PsqlSubqueryExpression),
@@ -3487,6 +3528,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_name(&self) -> Option<&PsqlName> {
         match &self {
             Self::PsqlName(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_parameter_expression(&self) -> Option<&PsqlParameterExpression> {
+        match &self {
+            Self::PsqlParameterExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -3587,6 +3634,25 @@ impl AnyPsqlInsertSource {
     pub fn as_psql_select_statement(&self) -> Option<&PsqlSelectStatement> {
         match &self {
             Self::PsqlSelectStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlLimitValue {
+    PsqlNumberLiteralExpression(PsqlNumberLiteralExpression),
+    PsqlParameterExpression(PsqlParameterExpression),
+}
+impl AnyPsqlLimitValue {
+    pub fn as_psql_number_literal_expression(&self) -> Option<&PsqlNumberLiteralExpression> {
+        match &self {
+            Self::PsqlNumberLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_parameter_expression(&self) -> Option<&PsqlParameterExpression> {
+        match &self {
+            Self::PsqlParameterExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -6029,6 +6095,57 @@ impl From<PsqlOrderByExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlParameterExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARAMETER_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARAMETER_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlParameterExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlParameterExpression")
+                .field(
+                    "colon_token",
+                    &support::DebugSyntaxResult(self.colon_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlParameterExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlParameterExpression> for SyntaxNode {
+    fn from(n: PsqlParameterExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlParameterExpression> for SyntaxElement {
+    fn from(n: PsqlParameterExpression) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlParenthesizedExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -7794,6 +7911,11 @@ impl From<PsqlName> for AnyPsqlExpression {
         Self::PsqlName(node)
     }
 }
+impl From<PsqlParameterExpression> for AnyPsqlExpression {
+    fn from(node: PsqlParameterExpression) -> Self {
+        Self::PsqlParameterExpression(node)
+    }
+}
 impl From<PsqlParenthesizedExpression> for AnyPsqlExpression {
     fn from(node: PsqlParenthesizedExpression) -> Self {
         Self::PsqlParenthesizedExpression(node)
@@ -7841,6 +7963,7 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlLikeExpression::KIND_SET)
         .union(PsqlLogicalExpression::KIND_SET)
         .union(PsqlName::KIND_SET)
+        .union(PsqlParameterExpression::KIND_SET)
         .union(PsqlParenthesizedExpression::KIND_SET)
         .union(PsqlStar::KIND_SET)
         .union(PsqlSubqueryExpression::KIND_SET)
@@ -7863,6 +7986,7 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_LIKE_EXPRESSION
             | PSQL_LOGICAL_EXPRESSION
             | PSQL_NAME
+            | PSQL_PARAMETER_EXPRESSION
             | PSQL_PARENTHESIZED_EXPRESSION
             | PSQL_STAR
             | PSQL_SUBQUERY_EXPRESSION
@@ -7897,6 +8021,9 @@ impl AstNode for AnyPsqlExpression {
                 Self::PsqlLogicalExpression(PsqlLogicalExpression { syntax })
             }
             PSQL_NAME => Self::PsqlName(PsqlName { syntax }),
+            PSQL_PARAMETER_EXPRESSION => {
+                Self::PsqlParameterExpression(PsqlParameterExpression { syntax })
+            }
             PSQL_PARENTHESIZED_EXPRESSION => {
                 Self::PsqlParenthesizedExpression(PsqlParenthesizedExpression { syntax })
             }
@@ -7936,6 +8063,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlLikeExpression(it) => &it.syntax,
             Self::PsqlLogicalExpression(it) => &it.syntax,
             Self::PsqlName(it) => &it.syntax,
+            Self::PsqlParameterExpression(it) => &it.syntax,
             Self::PsqlParenthesizedExpression(it) => &it.syntax,
             Self::PsqlStar(it) => &it.syntax,
             Self::PsqlSubqueryExpression(it) => &it.syntax,
@@ -7961,6 +8089,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlLikeExpression(it) => it.syntax,
             Self::PsqlLogicalExpression(it) => it.syntax,
             Self::PsqlName(it) => it.syntax,
+            Self::PsqlParameterExpression(it) => it.syntax,
             Self::PsqlParenthesizedExpression(it) => it.syntax,
             Self::PsqlStar(it) => it.syntax,
             Self::PsqlSubqueryExpression(it) => it.syntax,
@@ -7989,6 +8118,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlLikeExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlLogicalExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlName(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlParameterExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlStar(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -8016,6 +8146,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlLikeExpression(it) => it.into(),
             AnyPsqlExpression::PsqlLogicalExpression(it) => it.into(),
             AnyPsqlExpression::PsqlName(it) => it.into(),
+            AnyPsqlExpression::PsqlParameterExpression(it) => it.into(),
             AnyPsqlExpression::PsqlParenthesizedExpression(it) => it.into(),
             AnyPsqlExpression::PsqlStar(it) => it.into(),
             AnyPsqlExpression::PsqlSubqueryExpression(it) => it.into(),
@@ -8223,6 +8354,73 @@ impl From<AnyPsqlInsertSource> for SyntaxNode {
 }
 impl From<AnyPsqlInsertSource> for SyntaxElement {
     fn from(n: AnyPsqlInsertSource) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
+impl From<PsqlNumberLiteralExpression> for AnyPsqlLimitValue {
+    fn from(node: PsqlNumberLiteralExpression) -> Self {
+        Self::PsqlNumberLiteralExpression(node)
+    }
+}
+impl From<PsqlParameterExpression> for AnyPsqlLimitValue {
+    fn from(node: PsqlParameterExpression) -> Self {
+        Self::PsqlParameterExpression(node)
+    }
+}
+impl AstNode for AnyPsqlLimitValue {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlNumberLiteralExpression::KIND_SET.union(PsqlParameterExpression::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_NUMBER_LITERAL_EXPRESSION | PSQL_PARAMETER_EXPRESSION
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_NUMBER_LITERAL_EXPRESSION => {
+                Self::PsqlNumberLiteralExpression(PsqlNumberLiteralExpression { syntax })
+            }
+            PSQL_PARAMETER_EXPRESSION => {
+                Self::PsqlParameterExpression(PsqlParameterExpression { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlNumberLiteralExpression(it) => &it.syntax,
+            Self::PsqlParameterExpression(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlNumberLiteralExpression(it) => it.syntax,
+            Self::PsqlParameterExpression(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlLimitValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlNumberLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlParameterExpression(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlLimitValue> for SyntaxNode {
+    fn from(n: AnyPsqlLimitValue) -> Self {
+        match n {
+            AnyPsqlLimitValue::PsqlNumberLiteralExpression(it) => it.into(),
+            AnyPsqlLimitValue::PsqlParameterExpression(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlLimitValue> for SyntaxElement {
+    fn from(n: AnyPsqlLimitValue) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
@@ -8644,6 +8842,11 @@ impl std::fmt::Display for AnyPsqlInsertSource {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlLimitValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -8880,6 +9083,11 @@ impl std::fmt::Display for PsqlOrderByClause {
     }
 }
 impl std::fmt::Display for PsqlOrderByExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlParameterExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

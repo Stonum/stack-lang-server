@@ -63,6 +63,22 @@ PsqlNullLiteralExpression = value: 'null'
 PsqlName = value: 'ident'
 PsqlStar = value: '*'
 
+// `:name`/`:N`, a colon-prefixed bind parameter -- a widely-used SQL
+// client/tooling convention (DBeaver, JDBC named parameters, SQLAlchemy,
+// etc.), not real Postgres wire-protocol syntax (that's `$1`, not
+// implemented here) and not mlang-specific, so this is available in both
+// dialects. `:` is otherwise unused in this grammar (only `::` cast is),
+// so no lexer disambiguation is needed, unlike `~name~`.
+PsqlParameterExpression = ':' name: ( 'ident' | 'Psql_number_literal' )
+
+// A `LIMIT`/`OFFSET` value: a bare number literal, or a bind parameter
+// (`LIMIT :n`) -- real Postgres itself accepts any expression here, but
+// this grammar deliberately narrows it to just these two, the only forms
+// that occur in practice.
+AnyPsqlLimitValue =
+   PsqlNumberLiteralExpression
+   | PsqlParameterExpression
+
 // `~name~`/`~$name~`, a table or function name written in the mlang
 // dialect's own convention rather than plain Postgres syntax -- not part of
 // real Postgres, presumably expanded by mlang's runtime before the query
@@ -196,7 +212,7 @@ PsqlHavingClause =
 
 PsqlLimitClause =
    'limit'
-   limit_count: PsqlNumberLiteralExpression
+   limit_count: AnyPsqlLimitValue
 
 PsqlOrderByClause =
    'order_by'
@@ -210,7 +226,7 @@ PsqlOrderByExpression =
 
 PsqlOffsetClause =
    'offset'
-   start: PsqlNumberLiteralExpression
+   start: AnyPsqlLimitValue
 
 PsqlInsertStatement =
    with_clause: PsqlWithClause?
@@ -353,6 +369,7 @@ PsqlExpressionList = (AnyPsqlExpression (',' AnyPsqlExpression)* )
 AnyPsqlExpression =
    PsqlName
    | PsqlStar
+   | PsqlParameterExpression
    | PsqlTableColReference
    | PsqlColReference
    | PsqlBinaryExpression
