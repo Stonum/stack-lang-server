@@ -325,7 +325,6 @@ pub fn format_range(
 /// Formats a SQL file based on its features.
 ///
 /// It returns a [Formatted] result, which the user can use to override a file.
-/// Used only in tests
 pub fn format_node(
     options: PsqlFormatOptions,
     root: &PsqlSyntaxNode,

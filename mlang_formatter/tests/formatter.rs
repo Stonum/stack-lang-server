@@ -61,23 +61,35 @@ switch(val)
 
 #[test]
 fn format_query_like_expressions() {
+    // The embedded SQL inside `Query`/`Command`/etc.'s first string
+    // argument is now actually parsed and reformatted with
+    // `psql_formatter` (mlang dialect) instead of left byte-for-byte as
+    // written: short queries collapse onto one line, longer ones wrap with
+    // real SQL formatting rules (here, a 3-condition `and` chain), and the
+    // embedded indentation matches the surrounding mlang code's own style
+    // (spaces, width 3, from `MFormatOptions`). The opening quote always
+    // hugs the opening paren, and trailing arguments stay inline after the
+    // closing quote when they fit (same "group the first argument"
+    // mechanism as `foo(function () {...}, other)`).
     assert_fmt!(
         r#"#
-var qq = Query(`
-    select row_id from ~Лицевые договора~ where Договор = :1
-`, 1, "p1,S");
+var qq = Query(`select row_id from ~Лицевые договора~ where Договор = :1`, 1, "p1,S");
 
-var qq = Command(
-   `update stack."Лицевые договора" set Договор = :1 where row_id = :2 and now() between ДатНач and ДатКнц`,
-   1, "p1,S,p2,S"
-);
+var qq = Command(`
+   update stack."Лицевые договора"
+   set Договор = :1
+   where row_id = :2 and now() between ДатНач and ДатКнц
+`, 1, "p1,S,p2,S");
 
-var qq = сессия.Query(
-   `select row_id from ~Лицевые договора~ where Договор = :1 and Лицевой = :2 and now() between ДатНач and ДатКнц`,
-   1, "p1,S,p2,S"
-);
+var qq = сессия.Query(`
+   select row_id
+   from ~Лицевые договора~
+   where Договор = :1
+      and Лицевой = :2
+      and now() between ДатНач and ДатКнц
+`, 1, "p1,S,p2,S");
 
-var qq = Query(`select row_id from ~Лицевые договора~ `, 1, "p1,S");
+var qq = Query(`select row_id from ~Лицевые договора~`, 1, "p1,S");
 "#
     );
 }

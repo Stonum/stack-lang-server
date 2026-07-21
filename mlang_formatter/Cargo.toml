@@ -7,6 +7,9 @@ edition.workspace = true
 [dependencies]
 mlang_syntax = { workspace = true }
 mlang_factory = { workspace = true }
+psql_syntax = { workspace = true }
+psql_parser = { workspace = true }
+psql_formatter = { workspace = true }
 
 serde = { workspace = true }
 biome_rowan = { workspace = true }

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use biome_formatter::{format_args, write};
+use biome_formatter::{FormatOptions, format_args, write};
 use mlang_syntax::MSyntaxKind::{M_LONG_STRING_LITERAL, M_STRING_LITERAL};
 use mlang_syntax::MSyntaxToken;
 use std::borrow::Cow;
@@ -180,6 +180,40 @@ impl<'token> LiteralStringNormaliser<'token> {
     }
 }
 
+/// Tries to parse `token`'s raw (still-escaped, as written in source --
+/// `LiteralStringNormaliser` doesn't decode escapes either, it only
+/// normalises `\r\n`/`\r` line endings) string content as embedded SQL
+/// (mlang dialect, so `~table~`/`#temp`/`:param` are understood) and
+/// reformat it with `psql_formatter`.
+///
+/// Returns `None` if the content doesn't parse cleanly, in which case the
+/// caller must leave the string exactly as written. This is a deliberate
+/// safety net: a formatter must never risk corrupting a real query it
+/// doesn't fully understand (unsupported syntax, string concatenation
+/// building up the query in pieces, etc.) just to make it "prettier".
+pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> Option<String> {
+    let content = token.text_trimmed();
+    let raw_content = content.get(1..content.len().saturating_sub(1))?;
+
+    let syntax = psql_syntax::PsqlFileSource::query().with_dialect(psql_syntax::PsqlDialect::Mlang);
+    let parsed = psql_parser::parse(raw_content, syntax);
+    if parsed.has_errors() {
+        return None;
+    }
+
+    // Match the embedded query's own indentation to the surrounding mlang
+    // code's style/width, since the resulting lines get spliced in as raw
+    // text (see `format_reformatted_multi_line_query`) -- a mismatch would
+    // otherwise mix, say, mlang's spaces with psql_formatter's default tabs.
+    let options = psql_formatter::PsqlFormatOptions::new(syntax)
+        .with_indent_style(f.options().indent_style())
+        .with_indent_width(f.options().indent_width());
+    let formatted = psql_formatter::format_node(options, &parsed.syntax()).ok()?;
+    let printed = formatted.print().ok()?;
+
+    Some(printed.as_code().trim_end().to_string())
+}
+
 pub(crate) struct FormatSqlStringToken<'token> {
     token: &'token MSyntaxToken,
 }
@@ -270,13 +304,114 @@ impl<'token> FormatSqlStringToken<'token> {
             )]
         )
     }
+
+    /// Splices freshly `psql_formatter`-formatted SQL text in as this
+    /// token's new content, using `preferred_quote` -- the token's own
+    /// original delimiter (`` ` `` or `"`; mlang lexes both identically,
+    /// including support for literal embedded newlines, so there's no
+    /// reason to force one over the other) -- as the surrounding quote.
+    /// Unlike [Self::format_multi_line_query], every line (including the
+    /// first) is indented uniformly one level via a single `block_indent`
+    /// -- the per-line block-indent-vs-dedent branching there exists to
+    /// approximate the *original* author's own indentation style when
+    /// reproducing raw content close to verbatim, which doesn't apply here
+    /// since `psql_formatter`'s own output is already internally consistent.
+    fn format_reformatted_multi_line_query(
+        &self,
+        formatted_sql: String,
+        preferred_quote: char,
+        f: &mut MFormatter,
+    ) -> FormatResult<()> {
+        let start = self.token.text_trimmed_range().start();
+        let quote_text = quote_as_static_str(preferred_quote);
+
+        write!(
+            f,
+            [format_replaced(
+                self.token,
+                &format_args![
+                    text(quote_text),
+                    block_indent(&format_with(move |f| {
+                        let mut lines = formatted_sql.lines();
+                        if let Some(first) = lines.next() {
+                            write!(
+                                f,
+                                [dynamic_text(
+                                    &escape_for_string_literal(first, preferred_quote),
+                                    start
+                                )]
+                            )?;
+                            for line in lines {
+                                write!(
+                                    f,
+                                    [
+                                        hard_line_break(),
+                                        dynamic_text(
+                                            &escape_for_string_literal(line, preferred_quote),
+                                            start
+                                        )
+                                    ]
+                                )?;
+                            }
+                        }
+                        Ok(())
+                    })),
+                    text(quote_text),
+                ]
+            )]
+        )
+    }
+}
+
+/// The only two delimiters mlang's lexer accepts for a string literal (see
+/// `consume_str_literal` in `mlang_parser`'s lexer -- `'` is reserved for
+/// "long identifiers", not strings), as a `'static` string for use with
+/// `text()`.
+fn quote_as_static_str(quote: char) -> &'static str {
+    if quote == '`' { "`" } else { "\"" }
+}
+
+/// Escapes `\` and the delimiter `quote` character (mlang's string escape
+/// rules recognise `\\`/`` \` ``/`\"`, per `consume_escape_sequence`) so
+/// `text` can be embedded inside a `quote`-delimited mlang string literal
+/// without prematurely terminating it (e.g. a double-quoted mlang string
+/// around SQL containing `"quoted identifiers"`) or corrupting an
+/// accidental escape sequence.
+fn escape_for_string_literal(text: &str, quote: char) -> Cow<'_, str> {
+    if !text.contains(['\\', quote]) {
+        return Cow::Borrowed(text);
+    }
+
+    let mut escaped = String::with_capacity(text.len());
+    for c in text.chars() {
+        if c == '\\' || c == quote {
+            escaped.push('\\');
+        }
+        escaped.push(c);
+    }
+    Cow::Owned(escaped)
 }
 
 impl Format<MFormatContext> for FormatSqlStringToken<'_> {
     fn fmt(&self, f: &mut MFormatter) -> FormatResult<()> {
-        let token = self.token();
-        let preferred_quote = '`';
+        // Preserve whichever delimiter the query was actually written
+        // with -- mlang's lexer treats `` ` `` and `"` identically (see
+        // `quote_as_static_str`'s doc comment), so there's no reason to
+        // force one over the other.
+        let preferred_quote = self.token().text_trimmed().chars().next().unwrap_or('`');
 
+        if let Some(formatted_sql) = try_format_embedded_sql(self.token(), f) {
+            return if formatted_sql.lines().count() > 1 {
+                self.format_reformatted_multi_line_query(formatted_sql, preferred_quote, f)
+            } else {
+                let escaped = escape_for_string_literal(&formatted_sql, preferred_quote);
+                let content: Cow<str> =
+                    Cow::Owned(std::format!("{preferred_quote}{escaped}{preferred_quote}"));
+                self.format_single_line_query(content, f)
+            };
+        }
+
+        let token = self.token();
         let mut string_cleaner = LiteralStringNormaliser::new(token, preferred_quote);
 
         let content = string_cleaner.normalise_text();

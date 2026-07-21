@@ -7,7 +7,8 @@ use crate::rules::lists::array_element_list::can_concisely_print_array_list;
 use crate::utils::function_body::FunctionBodyCacheMode;
 use crate::utils::member_chain::SimpleArgument;
 use crate::utils::{
-    is_long_curried_call, write_arguments_multi_line, write_with_custom_line_width,
+    is_long_curried_call, try_format_embedded_sql, write_arguments_multi_line,
+    write_with_custom_line_width,
 };
 use biome_formatter::{VecBuffer, format_args, format_element, write};
 use biome_rowan::{AstSeparatedElement, AstSeparatedList, SyntaxResult};
@@ -44,11 +45,19 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
         }
 
         let call_expression = node.parent::<MCallExpression>();
-        let query_like_call = is_query_like_call(call_expression.as_ref());
+        let query_like_call = is_query_like_call(call_expression.as_ref(), f);
 
         let last_index = args.len().saturating_sub(1);
         let mut has_empty_line = false;
         let mut first_is_string = false;
+        // Whether the first argument's string content was successfully
+        // parsed and reformatted as SQL (see `try_format_embedded_sql`).
+        // `false` for anything that isn't valid SQL we understand -- string
+        // concatenation building up the query in pieces, unsupported
+        // syntax, a `:param` typo, etc. -- in which case the whole
+        // argument list still falls back to the safe, unmodified verbatim
+        // reproduction below, exactly as before this feature existed.
+        let mut embedded_sql_formatted = false;
 
         let arguments: Vec<_> = args
             .elements()
@@ -61,9 +70,16 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                 if index == 0
                     && let Ok(node) = element.node()
                 {
-                    first_is_string = MLongStringLiteralExpression::cast_ref(node.syntax())
-                        .is_some()
-                        | MStringLiteralExpression::cast_ref(node.syntax()).is_some()
+                    let string_token = MLongStringLiteralExpression::cast_ref(node.syntax())
+                        .and_then(|literal| literal.value_token().ok())
+                        .or_else(|| {
+                            MStringLiteralExpression::cast_ref(node.syntax())
+                                .and_then(|literal| literal.value_token().ok())
+                        });
+                    first_is_string = string_token.is_some();
+                    if query_like_call && let Some(token) = &string_token {
+                        embedded_sql_formatted = try_format_embedded_sql(token, f).is_some();
+                    }
                 }
 
                 FormatCallArgument::Default {
@@ -75,16 +91,23 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
             })
             .collect();
 
-        if first_is_string && is_query_like_call(call_expression.as_ref()) {
+        if first_is_string && query_like_call && !embedded_sql_formatted {
             return format_verbatim_node(node.syntax()).fmt(f);
-            // return write!(
-            //     f,
-            //     [FormatQueryLikeArguments {
-            //         l_paren: &l_paren_token.format(),
-            //         args: &arguments,
-            //         r_paren: &r_paren_token.format(),
-            //     }]
-            // );
+        }
+
+        // Hug the (possibly multi-line) reformatted query to the opening
+        // paren -- same "group the first argument" mechanism already used
+        // for e.g. `foo(function() {...}, other)` -- so the opening quote
+        // always sits right after `(`, and any trailing arguments stay
+        // inline after the closing quote if they fit, only wrapping to
+        // their own lines if they don't.
+        if embedded_sql_formatted {
+            return write_grouped_arguments(
+                node,
+                arguments,
+                GroupedCallArgumentLayout::GroupedFirstArgument,
+                f,
+            );
         }
 
         if has_empty_line || is_function_composition_args(node) {
@@ -1080,7 +1103,7 @@ fn is_function_composition_args(arguments: &MCallArguments) -> bool {
     false
 }
 
-fn is_query_like_call(expression: Option<&MCallExpression>) -> bool {
+fn is_query_like_call(expression: Option<&MCallExpression>, f: &MFormatter) -> bool {
     if let Some(expression) = expression
         && let Ok(callee) = expression.callee()
     {
@@ -1095,10 +1118,11 @@ fn is_query_like_call(expression: Option<&MCallExpression>) -> bool {
             }
             _ => return false,
         };
-        return matches!(
-            callee_name.to_ascii_lowercase().as_ref(),
-            "query" | "command" | "bufferedreader" | "exec_command"
-        );
+        return f
+            .options()
+            .sql_call_names()
+            .iter()
+            .any(|name| name.eq_ignore_ascii_case(&callee_name));
     }
 
     false
