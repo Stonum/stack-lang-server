@@ -137,6 +137,10 @@ impl CstFormatContext for MFormatContext {
     }
 }
 
+/// Default value for [MFormatOptions::sql_call_names] -- the primitive
+/// query-executing builtins found in real mlang scripts.
+pub const DEFAULT_SQL_CALL_NAMES: &[&str] = &["query", "command", "bufferedreader", "exec_command"];
+
 #[derive(Debug, Clone)]
 pub struct MFormatOptions {
     /// The indent style.
@@ -174,6 +178,15 @@ pub struct MFormatOptions {
     /// fills don't force expansion from structural complexity alone.
     compact_fill_mode: bool,
 
+    /// Callee names (case-insensitive, matched against the identifier or
+    /// static-member name, e.g. `x.query(...)` matches on `query`) whose
+    /// first string-literal argument is treated as embedded SQL, currently
+    /// meaning it's left untouched (`format_verbatim_node`) instead of
+    /// being formatted as an ordinary call argument. Defaults to the
+    /// primitive query-executing builtins; projects with their own wrapper
+    /// functions around them can extend this list.
+    sql_call_names: Vec<String>,
+
     /// Whether to hug the closing bracket of multiline HTML/MX tags to the end of the last line, rather than being alone on the following line. Defaults to false.
     bracket_same_line: BracketSameLine,
 
@@ -201,6 +214,10 @@ impl MFormatOptions {
             attribute_position: AttributePosition::default(),
             pretty_line_width: LineWidth::default(),
             compact_fill_mode: false,
+            sql_call_names: DEFAULT_SQL_CALL_NAMES
+                .iter()
+                .map(|name| name.to_string())
+                .collect(),
         }
     }
 
@@ -264,6 +281,11 @@ impl MFormatOptions {
         self
     }
 
+    pub fn with_sql_call_names(mut self, sql_call_names: Vec<String>) -> Self {
+        self.sql_call_names = sql_call_names;
+        self
+    }
+
     pub fn set_bracket_spacing(&mut self, bracket_spacing: BracketSpacing) {
         self.bracket_spacing = bracket_spacing;
     }
@@ -311,6 +333,10 @@ impl MFormatOptions {
         self.pretty_line_width = line_width;
     }
 
+    pub fn set_sql_call_names(&mut self, sql_call_names: Vec<String>) {
+        self.sql_call_names = sql_call_names;
+    }
+
     pub fn bracket_spacing(&self) -> BracketSpacing {
         self.bracket_spacing
     }
@@ -349,6 +375,10 @@ impl MFormatOptions {
 
     pub fn pretty_line_width(&self) -> LineWidth {
         self.pretty_line_width
+    }
+
+    pub fn sql_call_names(&self) -> &[String] {
+        &self.sql_call_names
     }
 
     pub fn compact_fill_mode(&self) -> bool {

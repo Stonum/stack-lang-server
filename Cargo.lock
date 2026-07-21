@@ -1012,6 +1012,9 @@ dependencies = [
  "mlang_factory",
  "mlang_parser",
  "mlang_syntax",
+ "psql_formatter",
+ "psql_parser",
+ "psql_syntax",
  "serde",
 ]
 
