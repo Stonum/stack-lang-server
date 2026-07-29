@@ -342,6 +342,56 @@ impl<'src> PsqlLexer<'src> {
         false
     }
 
+    /// Postgres dollar-quoted string: `$$...$$` or `$tag$...$tag$`, where
+    /// `tag` is an alphanumeric/underscore identifier chosen per-string (no
+    /// nesting, no escape processing -- the body is everything up to the
+    /// first byte-for-byte repeat of the opening delimiter). This is the
+    /// near-universal way PL/pgSQL function/procedure bodies are delimited
+    /// in real scripts, so without it a body containing `'`/`;` would
+    /// corrupt the surrounding statement grammar. Reuses `PSQL_STRING_LITERAL`
+    /// rather than a distinct kind -- Postgres treats dollar-quoting as just
+    /// another string literal spelling, valid anywhere a `'...'` literal is.
+    fn read_dollar_string(&mut self) -> PsqlSyntaxKind {
+        let start = self.position;
+        self.advance(1); // opening '$'
+        let tag_start = self.position;
+
+        while matches!(self.current_byte(), Some(b) if b.is_ascii_alphanumeric() || b == b'_') {
+            self.advance(1);
+        }
+
+        if self.current_byte() != Some(b'$') {
+            // Not a valid dollar-quote opener (e.g. a bare `$`, or a `$1`
+            // positional parameter -- not supported yet). Back off to just
+            // the `$` itself so the following bytes still lex normally.
+            self.position = tag_start;
+            self.push_diagnostic(ParseDiagnostic::new(
+                "unexpected token `$`",
+                start..self.position,
+            ));
+            return ERROR_TOKEN;
+        }
+        self.advance(1); // closing '$' of the opening delimiter
+
+        let delimiter = &self.source()[start..self.position];
+        loop {
+            match self.current_byte() {
+                None => {
+                    self.push_diagnostic(ParseDiagnostic::new(
+                        "unterminated dollar-quoted string",
+                        start..self.position,
+                    ));
+                    return ERROR_TOKEN;
+                }
+                Some(b'$') if self.source()[self.position..].starts_with(delimiter) => {
+                    self.advance(delimiter.len());
+                    return PSQL_STRING_LITERAL;
+                }
+                Some(b) => self.advance_byte_or_char(b),
+            }
+        }
+    }
+
     fn consume_escape_sequence(&mut self) -> bool {
         self.assert_byte(b'\\');
         self.advance(1);
@@ -607,6 +657,7 @@ impl<'src> PsqlLexer<'src> {
                 ERROR_TOKEN
             }
             HAS if self.dialect.is_mlang() => self.resolve_hash_identifier(),
+            DOL => self.read_dollar_string(),
             DIG | ZER => self.resolve_number(),
             PNO => self.eat_byte(T!['(']),
             PNC => self.eat_byte(T![')']),
