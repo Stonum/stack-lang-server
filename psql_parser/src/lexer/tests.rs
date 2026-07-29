@@ -229,8 +229,38 @@ fn strings() {
     assert_lex! { r#"''"#, PSQL_STRING_LITERAL:2 }
     assert_lex! { r#"'with spaces and words'"#, PSQL_STRING_LITERAL:23 }
     assert_lex! { r#"'with '' quotes'"#, PSQL_STRING_LITERAL:16 } // doubled quotes
-    // assert_lex! { r#"$$dollar quoted$$"#, PSQL_STRING_LITERAL:16 } // dollar quoted are not supported yet
     assert_lex! { r#"'with \n escape'"#, PSQL_STRING_LITERAL:16 }
+}
+
+#[test]
+fn dollar_quoted_strings() {
+    assert_lex! { "$$$$", PSQL_STRING_LITERAL:4 }
+    assert_lex! { "$$dollar quoted$$", PSQL_STRING_LITERAL:17 }
+    assert_lex! { "$tag$dollar quoted$tag$", PSQL_STRING_LITERAL:23 }
+    // body may contain quotes/semicolons/newlines untouched -- exactly why
+    // this is the real-world delimiter for PL/pgSQL function bodies
+    assert_lex! { "$func$begin return 'it''s'; end;$func$", PSQL_STRING_LITERAL:38 }
+    assert_lex! { "$$line one\nline two$$", PSQL_STRING_LITERAL:21 }
+    // a `$` inside the body that doesn't match the closing delimiter is
+    // just body content, not a premature close
+    assert_lex! { "$$a$b$$", PSQL_STRING_LITERAL:7 }
+    assert_lex! { "$tag$a$$b$tag$", PSQL_STRING_LITERAL:14 }
+}
+
+#[test]
+fn unterminated_dollar_quoted_string() {
+    assert_lex! { "$$unterminated", ERROR_TOKEN:14 }
+    assert_lex! { "$tag$unterminated", ERROR_TOKEN:17 }
+    assert_lex! { "$tag$almost$tagg$", ERROR_TOKEN:17 }
+}
+
+#[test]
+fn dollar_not_followed_by_a_valid_tag_backs_off_to_a_single_error_token() {
+    // `$1` (a Postgres positional parameter) isn't a dollar-quote opener --
+    // not supported yet, but must not swallow the `1` as part of a failed
+    // dollar-quote attempt.
+    assert_lex! { "$1", ERROR_TOKEN:1, PSQL_NUMBER_LITERAL:1 }
+    assert_lex! { "$ 1", ERROR_TOKEN:1, WHITESPACE:1, PSQL_NUMBER_LITERAL:1 }
 }
 
 #[test]
