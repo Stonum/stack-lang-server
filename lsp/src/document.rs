@@ -1,37 +1,61 @@
 use biome_diagnostics::diagnostic::Diagnostic as _;
 use line_index::{LineColRange, LineIndex};
 
-use mlang_parser::{ParseDiagnostic, parse};
+use mlang_parser::ParseDiagnostic;
 use mlang_semantic::{AnyMDefinition, SemanticModel, semantics};
-use mlang_syntax::{MFileSource, MLanguage, MSyntaxNode, SendNode, SyntaxNode, TextRange};
+use mlang_syntax::{
+    FileSourceError, MFileSource, MLanguage, MSyntaxNode, SendNode, SyntaxNode, TextRange,
+};
 
-use std::{any::type_name, path::PathBuf};
+use psql_syntax::{PsqlDialect, PsqlFileSource, PsqlLanguage, PsqlSyntaxNode};
+
+use std::{
+    any::type_name,
+    path::{Path, PathBuf},
+};
 use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Url};
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum DocumentLanguage {
+    Mlang,
+    Psql,
+}
 
 pub struct CurrentDocument {
     uri: Url,
     root: SendNode,
+    language: DocumentLanguage,
     line_index: LineIndex,
-    semantics: SemanticModel,
+    semantics: Option<SemanticModel>,
     parse_diagnostics: Vec<ParseDiagnostic>,
 }
 
 impl CurrentDocument {
-    pub fn new(uri: Url, text: &str, file_source: MFileSource) -> CurrentDocument {
-        let parsed = parse(text, file_source);
-        let diagnostics = parsed.diagnostics();
+    pub fn new(uri: Url, path: &Path, text: &str) -> Result<CurrentDocument, FileSourceError> {
+        if let Ok(file_source) = PsqlFileSource::try_from(path) {
+            let file_source = file_source.with_dialect(PsqlDialect::Mlang);
+            return Ok(CurrentDocument::new_psql(uri, text, file_source));
+        }
 
-        Self::from_root(uri, file_source, text, parsed.syntax(), diagnostics)
+        let file_source = MFileSource::try_from(path)?;
+        Ok(CurrentDocument::new_mlang(uri, text, file_source))
     }
 
-    pub fn from_root(
+    pub fn new_mlang(uri: Url, text: &str, file_source: MFileSource) -> CurrentDocument {
+        let parsed = mlang_parser::parse(text, file_source);
+        let diagnostics = parsed.diagnostics();
+
+        Self::from_mlang_root(uri, file_source, text, parsed.syntax(), diagnostics)
+    }
+
+    pub fn from_mlang_root(
         uri: Url,
         file_source: MFileSource,
         text: &str,
         root: MSyntaxNode,
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
-        let semantics = semantics(text, root.clone(), file_source);
+        let semantics = Some(semantics(text, root.clone(), file_source));
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
@@ -44,10 +68,47 @@ impl CurrentDocument {
         CurrentDocument {
             uri,
             root,
+            language: DocumentLanguage::Mlang,
             semantics,
             line_index,
             parse_diagnostics,
         }
+    }
+
+    pub fn new_psql(uri: Url, text: &str, file_source: PsqlFileSource) -> CurrentDocument {
+        let parsed = psql_parser::parse(text, file_source);
+        let diagnostics = parsed.diagnostics();
+
+        Self::from_psql_root(uri, text, parsed.syntax(), diagnostics)
+    }
+
+    pub fn from_psql_root(
+        uri: Url,
+        text: &str,
+        root: PsqlSyntaxNode,
+        diagnostics: &[ParseDiagnostic],
+    ) -> CurrentDocument {
+        let root = root.as_send().unwrap_or_else(|| {
+            panic!(
+                "could not upcast root node from language {}",
+                type_name::<PsqlLanguage>()
+            )
+        });
+        let line_index = LineIndex::new(text);
+        let parse_diagnostics = diagnostics.to_vec();
+
+        CurrentDocument {
+            uri,
+            root,
+            language: DocumentLanguage::Psql,
+            semantics: None,
+            line_index,
+            parse_diagnostics,
+        }
+    }
+
+    pub fn language(&self) -> DocumentLanguage {
+        self.language
     }
 
     pub fn path(&self) -> PathBuf {
@@ -58,17 +119,19 @@ impl CurrentDocument {
         &self.uri
     }
 
-    pub fn syntax(&self) -> SyntaxNode<MLanguage> {
-        self.root.clone().into_node().unwrap_or_else(|| {
-            panic!(
-                "could not downcast root node to language {}",
-                type_name::<MLanguage>()
-            )
-        })
+    pub fn mlang_syntax(&self) -> Option<SyntaxNode<MLanguage>> {
+        self.root.clone().into_node()
+    }
+
+    pub fn psql_syntax(&self) -> Option<SyntaxNode<PsqlLanguage>> {
+        self.root.clone().into_node()
     }
 
     pub fn definitions(&self) -> core::slice::Iter<'_, AnyMDefinition> {
-        self.semantics.definitions()
+        static EMPTY: &[AnyMDefinition] = &[];
+        self.semantics
+            .as_ref()
+            .map_or_else(|| EMPTY.iter(), |semantics| semantics.definitions())
     }
 
     pub fn line_index(&self) -> &LineIndex {
@@ -78,6 +141,11 @@ impl CurrentDocument {
     pub fn diagnostics(&self, semantic_lint: &[mlang_lint::Diagnostic]) -> Vec<Diagnostic> {
         let line_index = &self.line_index;
 
+        let source = match self.language {
+            DocumentLanguage::Mlang => "mlang",
+            DocumentLanguage::Psql => "psql",
+        };
+
         let from_parser = self.parse_diagnostics.iter().filter_map(|error| {
             let text_range = error.location().span?;
             let range = to_lsp_range(line_index, text_range)?;
@@ -85,7 +153,7 @@ impl CurrentDocument {
                 range,
                 Some(DiagnosticSeverity::ERROR),
                 None,
-                Some("mlang-parser".to_string()),
+                Some(format!("{source}-parser")),
                 error.message.to_string(),
                 None,
                 None,
@@ -102,7 +170,7 @@ impl CurrentDocument {
                 range,
                 Some(severity),
                 Some(NumberOrString::String(diagnostic.code.to_string())),
-                Some("mlang-lint".to_string()),
+                Some(format!("{source}-lint")),
                 diagnostic.message.clone(),
                 None,
                 None,

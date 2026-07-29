@@ -100,12 +100,12 @@ impl PsqlFileSource {
         }
     }
 
-    /// Try to return the mlang file source corresponding to this file extension
+    /// Try to return the psql file source corresponding to this file extension
     pub fn try_from_extension(extension: &OsStr) -> Result<Self, FileSourceError> {
         // We assume the file extension is normalized to lowercase
         match extension.as_encoded_bytes() {
             b"sql" => Ok(Self::script()),
-            _ => Ok(Self::query()),
+            _ => Err(FileSourceError::UnknownExtension),
         }
     }
 }
@@ -122,5 +122,35 @@ impl TryFrom<&Path> for PsqlFileSource {
             .ok_or(FileSourceError::MissingFileExtension)?;
 
         Self::try_from_extension(&extension)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sql_extension_resolves_to_script() {
+        let source = PsqlFileSource::try_from(Path::new("query.sql")).unwrap();
+        assert!(source.is_script());
+    }
+
+    #[test]
+    fn sql_extension_is_case_insensitive() {
+        let source = PsqlFileSource::try_from(Path::new("query.SQL")).unwrap();
+        assert!(source.is_script());
+    }
+
+    #[test]
+    fn unrecognized_extension_is_an_error() {
+        // Must genuinely fail (not silently fall back to `query()`) so
+        // callers can use `try_from` to decide "is this a psql file at
+        // all", e.g. dispatching between mlang and psql document types.
+        assert!(PsqlFileSource::try_from(Path::new("script.prg")).is_err());
+    }
+
+    #[test]
+    fn missing_extension_is_an_error() {
+        assert!(PsqlFileSource::try_from(Path::new("query")).is_err());
     }
 }

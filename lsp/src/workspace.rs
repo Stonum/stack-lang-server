@@ -193,13 +193,11 @@ impl Workspace {
             .to_file_path()
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
 
-        let file_source = MFileSource::try_from(path.as_path())?;
-
         let text = tokio::fs::read_to_string(&path).await?;
         let file_uri = uri.clone();
         let document =
-            tokio::task::spawn_blocking(move || CurrentDocument::new(file_uri, &text, file_source))
-                .await?;
+            tokio::task::spawn_blocking(move || CurrentDocument::new(file_uri, &path, &text))
+                .await??;
 
         let document = Arc::new(RwLock::new(document));
         self.opened_files.insert(uri.clone(), Arc::clone(&document));
@@ -370,7 +368,9 @@ impl Workspace {
         tokens_range: Option<Range>,
     ) -> Result<Option<SemanticTokens>, WorkspaceError> {
         let document = self.get_opened_document(uri).await?;
-        let syntax = document.syntax();
+        let Some(syntax) = document.mlang_syntax() else {
+            return Ok(None);
+        };
         let line_index = document.line_index();
 
         Ok(Some(SemanticTokens {
@@ -393,7 +393,7 @@ impl Workspace {
 
         let document = self.get_opened_document(uri).await?;
         let semantic_info = async {
-            let syntax = document.syntax();
+            let syntax = document.mlang_syntax()?;
             let text = syntax.text().to_string();
 
             let line_index = LineIndex::new(&text);
@@ -440,7 +440,7 @@ impl Workspace {
 
         let document = self.get_opened_document(uri).await?;
         let semantic_data = async {
-            let syntax = document.syntax();
+            let syntax = document.mlang_syntax()?;
             let text = syntax.text().to_string();
 
             let line_index = LineIndex::new(&text);
@@ -501,7 +501,9 @@ impl Workspace {
 
 impl Workspace {
     fn semantic_lint_for(&self, document: &CurrentDocument) -> Vec<mlang_lint::Diagnostic> {
-        let root = document.syntax();
+        let Some(root) = document.mlang_syntax() else {
+            return Vec::new();
+        };
 
         let workspace_semantics: Vec<Arc<SemanticModel>> = self
             .mlang_semantics
@@ -534,14 +536,13 @@ impl Workspace {
         let path = uri
             .to_file_path()
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
-        let file_source = MFileSource::try_from(path.as_path())?;
 
         let document_uri = uri.clone();
         let handle = tokio::task::spawn_blocking(move || {
-            CurrentDocument::new(document_uri, &document.text, file_source)
+            CurrentDocument::new(document_uri, &path, &document.text)
         });
 
-        let document = handle.await?;
+        let document = handle.await??;
         let semantic_lint = self.semantic_lint_for(&document);
         let diagnostics = document.diagnostics(&semantic_lint);
 
@@ -564,7 +565,6 @@ impl Workspace {
         let path = uri
             .to_file_path()
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
-        let file_source = MFileSource::try_from(path.as_path())?;
 
         // lock file for read
         let guard = self.opened_files.get(&uri);
@@ -575,24 +575,31 @@ impl Workspace {
         };
 
         let document_uri = uri.clone();
+        let path_for_blocking = path.clone();
         let handle = tokio::task::spawn_blocking(move || {
-            let parsed = parse(&document.text, file_source);
-            let semantics = semantics(&document.text, parsed.syntax(), file_source);
+            // mlang's cross-file semantic index only applies to mlang
+            // documents -- a `.sql` file has no `MFileSource`/semantic
+            // model at all, so this is simply `None` for those.
+            let mlang_semantics =
+                MFileSource::try_from(path_for_blocking.as_path())
+                    .ok()
+                    .map(|file_source| {
+                        let parsed = parse(&document.text, file_source);
+                        let semantics = semantics(&document.text, parsed.syntax(), file_source);
+                        (file_source, semantics)
+                    });
 
-            let document = CurrentDocument::from_root(
-                document_uri,
-                file_source,
-                &document.text,
-                parsed.syntax(),
-                parsed.diagnostics(),
-            );
+            let current_document =
+                CurrentDocument::new(document_uri, &path_for_blocking, &document.text)?;
 
-            (document, semantics)
+            Ok::<_, mlang_syntax::FileSourceError>((current_document, mlang_semantics))
         });
 
-        let (document, semantics) = handle.await?;
+        let (document, mlang_semantics) = handle.await??;
 
-        if file_source.is_module() || file_source.is_handler() {
+        if let Some((file_source, semantics)) = mlang_semantics
+            && (file_source.is_module() || file_source.is_handler())
+        {
             self.mlang_semantics.insert(path, Some(Arc::new(semantics)));
         }
 
@@ -651,7 +658,7 @@ impl Workspace {
         let document = self.get_opened_document(uri).await?;
 
         let identifier = async {
-            let syntax = document.syntax();
+            let syntax = document.mlang_syntax()?;
             let text = syntax.text().to_string();
 
             let line_index = LineIndex::new(&text);
