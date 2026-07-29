@@ -109,6 +109,10 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlDropFunctionStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_DROP_TABLE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDropTableStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_EMPTY_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlEmptyStatement::new_unchecked(node) };
                     $body
@@ -402,6 +406,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_STATEMENT_LIST => {
                     let $pattern = unsafe { $crate::PsqlStatementList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TABLE_NAME_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTableNameList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST => {

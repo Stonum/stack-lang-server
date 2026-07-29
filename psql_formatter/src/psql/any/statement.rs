@@ -11,6 +11,7 @@ impl FormatRule<AnyPsqlStatement> for FormatAnyPsqlStatement {
             AnyPsqlStatement::PsqlBogusStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlDeleteStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlDropFunctionStatement(node) => node.format().fmt(f),
+            AnyPsqlStatement::PsqlDropTableStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlEmptyStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlInsertStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlSelectStatement(node) => node.format().fmt(f),

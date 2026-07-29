@@ -2,6 +2,7 @@
 
 pub(crate) mod delete_statement;
 pub(crate) mod drop_function_statement;
+pub(crate) mod drop_table_statement;
 pub(crate) mod empty_statement;
 pub(crate) mod insert_statement;
 pub(crate) mod select_statement;
