@@ -355,7 +355,7 @@ const TYPE_NAME_TOKEN_SET: TokenSet<PsqlSyntaxKind> = token_set![
 
 /// A type name such as `text`, `numeric(10, 2)` or `int[]`, used as the
 /// target of a `::` or `CAST(... AS ...)` type cast.
-fn parse_type_name(p: &mut PsqlParser) -> ParsedSyntax {
+pub(crate) fn parse_type_name(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at_ts(TYPE_NAME_TOKEN_SET) {
         return Absent;
     }

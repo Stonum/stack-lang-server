@@ -728,6 +728,70 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDoUpdateClause {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlDropFunctionParameters>
+    for crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlDropFunctionParameters,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlDropFunctionParameters>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlDropFunctionParameters {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlDropFunctionParameters,
+        crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: drop_function_parameters :: FormatPsqlDropFunctionParameters :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropFunctionParameters {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlDropFunctionParameters,
+        crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: drop_function_parameters :: FormatPsqlDropFunctionParameters :: default ())
+    }
+}
+impl FormatRule<psql_syntax::PsqlDropFunctionStatement>
+    for crate::psql::statements::drop_function_statement::FormatPsqlDropFunctionStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlDropFunctionStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlDropFunctionStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlDropFunctionStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlDropFunctionStatement,
+        crate::psql::statements::drop_function_statement::FormatPsqlDropFunctionStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: drop_function_statement :: FormatPsqlDropFunctionStatement :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropFunctionStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlDropFunctionStatement,
+        crate::psql::statements::drop_function_statement::FormatPsqlDropFunctionStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_function_statement :: FormatPsqlDropFunctionStatement :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlEmptyStatement>
     for crate::psql::statements::empty_statement::FormatPsqlEmptyStatement
 {
@@ -2917,6 +2981,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTypeArgumentList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::type_argument_list::FormatPsqlTypeArgumentList::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTypeNameList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTypeNameList,
+        crate::psql::lists::type_name_list::FormatPsqlTypeNameList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::type_name_list::FormatPsqlTypeNameList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTypeNameList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTypeNameList,
+        crate::psql::lists::type_name_list::FormatPsqlTypeNameList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::type_name_list::FormatPsqlTypeNameList::default(),
         )
     }
 }
