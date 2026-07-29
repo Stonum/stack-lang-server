@@ -105,6 +105,7 @@ AnyPsqlStatement =
    | PsqlDropFunctionStatement
    | PsqlDropTableStatement
    | PsqlCreateTableStatement
+   | PsqlCreateFunctionStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -383,6 +384,42 @@ PsqlColumnDefinitionList = (PsqlColumnDefinition (',' PsqlColumnDefinition)*)
 PsqlColumnDefinition =
    name: PsqlName
    type: PsqlTypeName
+
+// `CREATE FUNCTION|PROCEDURE name(param type, ...) [RETURNS type] AS body
+// [LANGUAGE name] [;]` -- minimal skeleton, covers the simplest real
+// PL/pgSQL functions. No `OR REPLACE`, no parameter mode/`DEFAULT`, no
+// `RETURNS TABLE`/`RETURNS TRIGGER`, no option other than a single trailing
+// `LANGUAGE` yet -- those are follow-up steps.
+// `body` is a plain string-literal expression (covers both `'...'` and, now
+// that the lexer supports it, `$$...$$`/`$tag$...$tag$` dollar-quoting) and
+// is printed verbatim by the formatter -- PL/pgSQL body contents are never
+// reparsed or reformatted.
+PsqlCreateFunctionStatement =
+   'create'
+   kind: ('function' | 'procedure')
+   name: AnyPsqlName
+   '('
+   parameters: PsqlFunctionParameterList
+   ')'
+   returns_clause: PsqlReturnsClause?
+   'as'
+   body: PsqlStringLiteralExpression
+   language_option: PsqlLanguageOption?
+   ';'?
+
+PsqlFunctionParameterList = (PsqlFunctionParameter (',' PsqlFunctionParameter)*)
+
+PsqlFunctionParameter =
+   name: PsqlName
+   type: PsqlTypeName
+
+PsqlReturnsClause =
+   'returns'
+   type: PsqlTypeName
+
+PsqlLanguageOption =
+   'language'
+   name: PsqlName
 
 ///////////////////////
 // Parts of expressions

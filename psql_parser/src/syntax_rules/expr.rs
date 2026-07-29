@@ -663,6 +663,20 @@ pub(crate) fn parse_number_literal_expression(p: &mut PsqlParser) -> ParsedSynta
     Present(m.complete(p, PSQL_NUMBER_LITERAL_EXPRESSION))
 }
 
+/// A bare string literal, used where the grammar requires a
+/// `PsqlStringLiteralExpression` specifically -- e.g. a `CREATE FUNCTION`/
+/// `PROCEDURE` body, which covers both `'...'` and dollar-quoted
+/// (`$$...$$`/`$tag$...$tag$`) spellings (both lex as `PSQL_STRING_LITERAL`)
+/// rather than any general expression.
+pub(crate) fn parse_string_literal_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(PSQL_STRING_LITERAL) {
+        return Absent;
+    }
+    let m = p.start();
+    p.bump(PSQL_STRING_LITERAL);
+    Present(m.complete(p, PSQL_STRING_LITERAL_EXPRESSION))
+}
+
 /// A `LIMIT`/`OFFSET` value (`AnyPsqlLimitValue`): a bare number literal,
 /// or a bind parameter (`LIMIT :n`) -- real Postgres accepts any expression
 /// here, but this grammar deliberately narrows it to just these two forms,
