@@ -470,6 +470,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlColReference {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlColumnDefinition>
+    for crate::psql::auxiliary::column_definition::FormatPsqlColumnDefinition
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlColumnDefinition,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlColumnDefinition>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlColumnDefinition {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlColumnDefinition,
+        crate::psql::auxiliary::column_definition::FormatPsqlColumnDefinition,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::column_definition::FormatPsqlColumnDefinition::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlColumnDefinition {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlColumnDefinition,
+        crate::psql::auxiliary::column_definition::FormatPsqlColumnDefinition,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::column_definition::FormatPsqlColumnDefinition::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlColumnList>
     for crate::psql::auxiliary::column_list::FormatPsqlColumnList
 {
@@ -502,6 +540,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlColumnList {
             self,
             crate::psql::auxiliary::column_list::FormatPsqlColumnList::default(),
         )
+    }
+}
+impl FormatRule<psql_syntax::PsqlCreateTableStatement>
+    for crate::psql::statements::create_table_statement::FormatPsqlCreateTableStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlCreateTableStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlCreateTableStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlCreateTableStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlCreateTableStatement,
+        crate::psql::statements::create_table_statement::FormatPsqlCreateTableStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_table_statement :: FormatPsqlCreateTableStatement :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreateTableStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlCreateTableStatement,
+        crate::psql::statements::create_table_statement::FormatPsqlCreateTableStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_table_statement :: FormatPsqlCreateTableStatement :: default ())
     }
 }
 impl FormatRule<psql_syntax::PsqlCteDefinition>
@@ -2717,6 +2787,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCaseWhenClauseList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::case_when_clause_list::FormatPsqlCaseWhenClauseList::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlColumnDefinitionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlColumnDefinitionList,
+        crate::psql::lists::column_definition_list::FormatPsqlColumnDefinitionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::column_definition_list::FormatPsqlColumnDefinitionList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlColumnDefinitionList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlColumnDefinitionList,
+        crate::psql::lists::column_definition_list::FormatPsqlColumnDefinitionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::column_definition_list::FormatPsqlColumnDefinitionList::default(),
         )
     }
 }

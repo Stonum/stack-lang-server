@@ -207,6 +207,9 @@ pub enum PsqlSyntaxKind {
     PSQL_TYPE_NAME_LIST,
     PSQL_DROP_TABLE_STATEMENT,
     PSQL_TABLE_NAME_LIST,
+    PSQL_CREATE_TABLE_STATEMENT,
+    PSQL_COLUMN_DEFINITION_LIST,
+    PSQL_COLUMN_DEFINITION,
     PSQL_DATA_BASE_NAME,
     PSQL_SHEMA_NAME,
     PSQL_TABLE_NAME,
@@ -330,6 +333,7 @@ impl PsqlSyntaxKind {
                 | PSQL_SET_ITEM_LIST
                 | PSQL_TYPE_NAME_LIST
                 | PSQL_TABLE_NAME_LIST
+                | PSQL_COLUMN_DEFINITION_LIST
                 | PSQL_EXPRESSION_LIST
                 | PSQL_IN_VALUE_LIST
                 | PSQL_CASE_WHEN_CLAUSE_LIST

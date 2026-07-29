@@ -104,6 +104,7 @@ AnyPsqlStatement =
    | PsqlEmptyStatement
    | PsqlDropFunctionStatement
    | PsqlDropTableStatement
+   | PsqlCreateTableStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -360,6 +361,28 @@ PsqlDropTableStatement =
    ';'?
 
 PsqlTableNameList = (PsqlTableName (',' PsqlTableName)*)
+
+// `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --
+// column list only for now, no column-level (NOT NULL/DEFAULT/PRIMARY KEY/
+// ...) or table-level (CONSTRAINT/FOREIGN KEY/...) constraints yet. No real
+// example in the client corpus this grammar is otherwise grounded in, so
+// this deliberately starts minimal rather than guessing at the full
+// standard-Postgres constraint grammar up front.
+PsqlCreateTableStatement =
+   'create'
+   'table'
+   ('if' 'not' 'exists')?
+   name: PsqlTableName
+   '('
+   columns: PsqlColumnDefinitionList
+   ')'
+   ';'?
+
+PsqlColumnDefinitionList = (PsqlColumnDefinition (',' PsqlColumnDefinition)*)
+
+PsqlColumnDefinition =
+   name: PsqlName
+   type: PsqlTypeName
 
 ///////////////////////
 // Parts of expressions

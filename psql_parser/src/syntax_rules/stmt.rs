@@ -3,7 +3,7 @@ use biome_parser::parse_recovery::ParseRecoveryTokenSet;
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::ddl::parse_drop_statement;
+use super::ddl::{parse_create_statement, parse_drop_statement};
 use super::delete::{parse_delete_statement, parse_delete_statement_body};
 use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
@@ -60,6 +60,7 @@ pub(crate) fn parse_statement(p: &mut PsqlParser) -> ParsedSyntax {
         T![update] => parse_update_statement(p),
         T![insert] => parse_insert_statement(p),
         T![drop] => parse_drop_statement(p),
+        T![create] => parse_create_statement(p),
         _ => Absent,
     }
 }
