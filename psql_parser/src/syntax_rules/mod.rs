@@ -1,3 +1,4 @@
+mod ddl;
 mod delete;
 mod expr;
 mod from;

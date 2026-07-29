@@ -99,6 +99,16 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlDoUpdateClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_DROP_FUNCTION_PARAMETERS => {
+                    let $pattern =
+                        unsafe { $crate::PsqlDropFunctionParameters::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_DROP_FUNCTION_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlDropFunctionStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_EMPTY_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlEmptyStatement::new_unchecked(node) };
                     $body
@@ -396,6 +406,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST => {
                     let $pattern = unsafe { $crate::PsqlTypeArgumentList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TYPE_NAME_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTypeNameList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_WINDOW_PARTITION_BY_ITEM_LIST => {

@@ -102,6 +102,7 @@ AnyPsqlStatement =
    | PsqlDeleteStatement
    | PsqlUpdateStatement
    | PsqlEmptyStatement
+   | PsqlDropFunctionStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -322,6 +323,31 @@ PsqlSetItem =
    column: PsqlName
    '='
    expr: AnyPsqlExpression
+
+///////////////
+// DDL
+///////////////
+
+// `DROP FUNCTION|PROCEDURE [IF EXISTS] name [(type, ...)] [CASCADE|RESTRICT] [;]`
+// -- Postgres DDL for removing a stored function/procedure. `GO` (a T-SQL
+// batch separator some client scripts still carry over from MSSQL) is
+// deliberately not part of this grammar; it already recovers fine as
+// ordinary bogus-statement content between two real statements.
+PsqlDropFunctionStatement =
+   'drop'
+   kind: ('function' | 'procedure')
+   ('if' 'exists')?
+   name: AnyPsqlName
+   parameters: PsqlDropFunctionParameters?
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+PsqlDropFunctionParameters =
+   '('
+   items: PsqlTypeNameList
+   ')'
+
+PsqlTypeNameList = (PsqlTypeName (',' PsqlTypeName)*)
 
 ///////////////////////
 // Parts of expressions
