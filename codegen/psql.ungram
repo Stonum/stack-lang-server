@@ -103,6 +103,7 @@ AnyPsqlStatement =
    | PsqlUpdateStatement
    | PsqlEmptyStatement
    | PsqlDropFunctionStatement
+   | PsqlDropTableStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -348,6 +349,17 @@ PsqlDropFunctionParameters =
    ')'
 
 PsqlTypeNameList = (PsqlTypeName (',' PsqlTypeName)*)
+
+// `DROP TABLE [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
+PsqlDropTableStatement =
+   'drop'
+   'table'
+   ('if' 'exists')?
+   tables: PsqlTableNameList
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+PsqlTableNameList = (PsqlTableName (',' PsqlTableName)*)
 
 ///////////////////////
 // Parts of expressions

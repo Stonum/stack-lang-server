@@ -553,6 +553,64 @@ impl PsqlDropFunctionStatementBuilder {
         ))
     }
 }
+pub fn psql_drop_table_statement(
+    drop_token: SyntaxToken,
+    table_token: SyntaxToken,
+    tables: PsqlTableNameList,
+) -> PsqlDropTableStatementBuilder {
+    PsqlDropTableStatementBuilder {
+        drop_token,
+        table_token,
+        tables,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropTableStatementBuilder {
+    drop_token: SyntaxToken,
+    table_token: SyntaxToken,
+    tables: PsqlTableNameList,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropTableStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropTableStatement {
+        PsqlDropTableStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_DROP_TABLE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.table_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_empty_statement(semicolon_token: SyntaxToken) -> PsqlEmptyStatement {
     PsqlEmptyStatement::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_EMPTY_STATEMENT,
@@ -1944,6 +2002,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_table_name_list<I, S>(items: I, separators: S) -> PsqlTableNameList
+where
+    I: IntoIterator<Item = PsqlTableName>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlTableNameList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TABLE_NAME_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_type_argument_list<I, S>(items: I, separators: S) -> PsqlTypeArgumentList

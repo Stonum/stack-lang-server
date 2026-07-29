@@ -3,17 +3,104 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{parse_any_name, parse_type_name};
+use super::expr::{
+    EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_tilde_name_start, parse_any_name,
+    parse_table_name, parse_type_name,
+};
 use super::parse_error::*;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
+
+/// Dispatches `DROP ...` to whichever DDL shape follows -- currently `DROP
+/// TABLE` and `DROP FUNCTION`/`DROP PROCEDURE`, the only two seen in real
+/// client scripts so far.
+pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![drop]) {
+        return Absent;
+    }
+
+    if p.nth_at(1, T![table]) {
+        return parse_drop_table_statement(p);
+    }
+
+    parse_drop_function_statement(p)
+}
+
+/// `DROP TABLE [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
+fn parse_drop_table_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![drop]);
+    p.bump(T![table]);
+
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+
+    PsqlTableNameList.parse_list(p);
+
+    if p.at(T![cascade]) || p.at(T![restrict]) {
+        p.bump_any();
+    }
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_DROP_TABLE_STATEMENT))
+}
+
+/// A plain or schema-qualified table name (`table`/`schema.table`), or a
+/// mlang tilde name -- no alias, unlike [super::from::parse_table_binding].
+fn parse_table_name_for_ddl(p: &mut PsqlParser) -> ParsedSyntax {
+    if is_at_tilde_name_start(p) {
+        return Present(parse_table_name(p, 0));
+    }
+
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    let segment_count = count_dotted_name_segments(p).min(3);
+    Present(parse_table_name(p, segment_count))
+}
+
+struct PsqlTableNameList;
+
+impl ParseSeparatedList for PsqlTableNameList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_TABLE_NAME_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_table_name_for_ddl(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![;]) || p.at(T![cascade]) || p.at(T![restrict])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, EXPR_RECOVERY_SET),
+            expected_table_binding,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
 
 /// `DROP FUNCTION|PROCEDURE [IF EXISTS] name [(type, ...)] [CASCADE|RESTRICT] [;]`
 /// -- Postgres DDL for removing a stored function/procedure. `GO` (a T-SQL
 /// batch separator some client scripts still carry over from MSSQL) isn't
 /// part of this grammar at all; it already recovers fine as ordinary
 /// bogus-statement content between two real statements.
-pub(crate) fn parse_drop_function_statement(p: &mut PsqlParser) -> ParsedSyntax {
+fn parse_drop_function_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![drop]) {
         return Absent;
     }
