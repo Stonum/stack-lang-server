@@ -5,22 +5,121 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_tilde_name_start, parse_any_name,
-    parse_name, parse_table_name, parse_type_name,
+    parse_name, parse_string_literal_expression, parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
-/// Dispatches `CREATE ...` to whichever DDL shape follows -- currently just
-/// `CREATE TABLE`. Any other `CREATE ...` falls through to `Absent`, letting
-/// the caller's ordinary bogus-statement recovery handle it, the same way
-/// an unimplemented statement always has.
+/// Dispatches `CREATE ...` to whichever DDL shape follows -- currently
+/// `CREATE TABLE` and `CREATE FUNCTION`/`CREATE PROCEDURE`. Any other
+/// `CREATE ...` falls through to `Absent`, letting the caller's ordinary
+/// bogus-statement recovery handle it, the same way an unimplemented
+/// statement always has.
 pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![create]) || !p.nth_at(1, T![table]) {
+    if !p.at(T![create]) {
         return Absent;
     }
 
-    parse_create_table_statement(p)
+    if p.nth_at(1, T![table]) {
+        return parse_create_table_statement(p);
+    }
+    if p.nth_at(1, T![function]) || p.nth_at(1, T![procedure]) {
+        return parse_create_function_statement(p);
+    }
+
+    Absent
+}
+
+/// `CREATE FUNCTION|PROCEDURE name(param type, ...) [RETURNS type] AS body
+/// [LANGUAGE name] [;]` -- minimal skeleton (see the matching note in
+/// `codegen/psql.ungram` for what's deliberately not supported yet).
+fn parse_create_function_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![create]);
+    p.bump_any(); // 'function' | 'procedure'
+
+    parse_any_name(p).or_add_diagnostic(p, expected_identifier);
+
+    p.expect(T!['(']);
+    PsqlFunctionParameterList.parse_list(p);
+    p.expect(T![')']);
+
+    let _ = parse_returns_clause(p);
+
+    p.expect(T![as]);
+    parse_string_literal_expression(p).or_add_diagnostic(p, expected_expression);
+
+    let _ = parse_language_option(p);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_CREATE_FUNCTION_STATEMENT))
+}
+
+fn parse_returns_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![returns]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![returns]);
+    parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    Present(m.complete(p, PSQL_RETURNS_CLAUSE))
+}
+
+fn parse_language_option(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![language]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![language]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    Present(m.complete(p, PSQL_LANGUAGE_OPTION))
+}
+
+struct PsqlFunctionParameterList;
+
+impl ParseSeparatedList for PsqlFunctionParameterList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_FUNCTION_PARAMETER_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_function_parameter(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, token_set![T![')']]),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+fn parse_function_parameter(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    parse_name(p).unwrap();
+    parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    Present(m.complete(p, PSQL_FUNCTION_PARAMETER))
 }
 
 /// `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --

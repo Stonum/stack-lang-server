@@ -1,6 +1,7 @@
 //! Generated file, do not edit by hand, see `xtask/codegen`
 
 #![allow(clippy::redundant_closure)]
+#![allow(clippy::too_many_arguments)]
 use biome_rowan::AstNode;
 use psql_syntax::{
     PsqlSyntaxElement as SyntaxElement, PsqlSyntaxNode as SyntaxNode,
@@ -300,6 +301,78 @@ pub fn psql_column_list(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
+}
+pub fn psql_create_function_statement(
+    create_token: SyntaxToken,
+    kind_token: SyntaxToken,
+    name: AnyPsqlName,
+    l_paren_token: SyntaxToken,
+    parameters: PsqlFunctionParameterList,
+    r_paren_token: SyntaxToken,
+    as_token: SyntaxToken,
+    body: PsqlStringLiteralExpression,
+) -> PsqlCreateFunctionStatementBuilder {
+    PsqlCreateFunctionStatementBuilder {
+        create_token,
+        kind_token,
+        name,
+        l_paren_token,
+        parameters,
+        r_paren_token,
+        as_token,
+        body,
+        returns_clause: None,
+        language_option: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateFunctionStatementBuilder {
+    create_token: SyntaxToken,
+    kind_token: SyntaxToken,
+    name: AnyPsqlName,
+    l_paren_token: SyntaxToken,
+    parameters: PsqlFunctionParameterList,
+    r_paren_token: SyntaxToken,
+    as_token: SyntaxToken,
+    body: PsqlStringLiteralExpression,
+    returns_clause: Option<PsqlReturnsClause>,
+    language_option: Option<PsqlLanguageOption>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateFunctionStatementBuilder {
+    pub fn with_returns_clause(mut self, returns_clause: PsqlReturnsClause) -> Self {
+        self.returns_clause = Some(returns_clause);
+        self
+    }
+    pub fn with_language_option(mut self, language_option: PsqlLanguageOption) -> Self {
+        self.language_option = Some(language_option);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateFunctionStatement {
+        PsqlCreateFunctionStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.kind_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.parameters.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.returns_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.as_token)),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
+                self.language_option
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn psql_create_table_statement(
     create_token: SyntaxToken,
@@ -761,6 +834,15 @@ impl PsqlFunctionBindingBuilder {
         ))
     }
 }
+pub fn psql_function_parameter(name: PsqlName, ty: PsqlTypeName) -> PsqlFunctionParameter {
+    PsqlFunctionParameter::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_group_by_clause(
     group_by_token: SyntaxToken,
     items: PsqlGroupByItemList,
@@ -1011,6 +1093,15 @@ impl PsqlJoinClauseBuilder {
         ))
     }
 }
+pub fn psql_language_option(language_token: SyntaxToken, name: PsqlName) -> PsqlLanguageOption {
+    PsqlLanguageOption::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_LANGUAGE_OPTION,
+        [
+            Some(SyntaxElement::Token(language_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_like_expression(
     expression: AnyPsqlExpression,
     operator_token_token: SyntaxToken,
@@ -1221,6 +1312,15 @@ pub fn psql_returning_clause(
         [
             Some(SyntaxElement::Token(returning_token)),
             Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_returns_clause(returns_token: SyntaxToken, ty: PsqlTypeName) -> PsqlReturnsClause {
+    PsqlReturnsClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_CLAUSE,
+        [
+            Some(SyntaxElement::Token(returns_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
         ],
     ))
 }
@@ -1974,6 +2074,27 @@ where
     let length = items.len() + separators.len();
     PsqlFromItemList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_FROM_ITEM_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_function_parameter_list<I, S>(items: I, separators: S) -> PsqlFunctionParameterList
+where
+    I: IntoIterator<Item = PsqlFunctionParameter>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlFunctionParameterList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

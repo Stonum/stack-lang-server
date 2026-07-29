@@ -6,6 +6,7 @@ pub(crate) mod column_name_list;
 pub(crate) mod cte_definition_list;
 pub(crate) mod expression_list;
 pub(crate) mod from_item_list;
+pub(crate) mod function_parameter_list;
 pub(crate) mod group_by_item_list;
 pub(crate) mod join_clause_list;
 pub(crate) mod order_by_expression_list;

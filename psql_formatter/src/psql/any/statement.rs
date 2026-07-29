@@ -9,6 +9,7 @@ impl FormatRule<AnyPsqlStatement> for FormatAnyPsqlStatement {
     fn fmt(&self, node: &AnyPsqlStatement, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
             AnyPsqlStatement::PsqlBogusStatement(node) => node.format().fmt(f),
+            AnyPsqlStatement::PsqlCreateFunctionStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlCreateTableStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlDeleteStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlDropFunctionStatement(node) => node.format().fmt(f),
