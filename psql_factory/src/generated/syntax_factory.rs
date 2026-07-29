@@ -526,6 +526,32 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_COL_REFERENCE, children)
             }
+            PSQL_COLUMN_DEFINITION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlTypeName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_COLUMN_DEFINITION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_COLUMN_DEFINITION, children)
+            }
             PSQL_COLUMN_LIST => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
@@ -558,6 +584,88 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_COLUMN_LIST, children)
+            }
+            PSQL_CREATE_TABLE_STATEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<10usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![create]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![table]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![if]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![not]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![exists]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlTableName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T!['(']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlColumnDefinitionList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![')']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_CREATE_TABLE_STATEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_CREATE_TABLE_STATEMENT, children)
             }
             PSQL_CTE_DEFINITION => {
                 let mut elements = (&children).into_iter();
@@ -2753,6 +2861,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             PSQL_CASE_WHEN_CLAUSE_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlCaseWhenClause::can_cast)
             }
+            PSQL_COLUMN_DEFINITION_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                PsqlColumnDefinition::can_cast,
+                T ! [,],
+                false,
+            ),
             PSQL_COLUMN_NAME_LIST => {
                 Self::make_separated_list_syntax(kind, children, PsqlName::can_cast, T ! [,], false)
             }

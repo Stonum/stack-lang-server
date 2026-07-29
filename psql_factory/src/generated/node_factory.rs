@@ -278,6 +278,15 @@ pub fn psql_col_reference(name: PsqlName) -> PsqlColReference {
         [Some(SyntaxElement::Node(name.into_syntax()))],
     ))
 }
+pub fn psql_column_definition(name: PsqlName, ty: PsqlTypeName) -> PsqlColumnDefinition {
+    PsqlColumnDefinition::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_COLUMN_DEFINITION,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_column_list(
     l_paren_token: SyntaxToken,
     items: PsqlColumnNameList,
@@ -291,6 +300,75 @@ pub fn psql_column_list(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
+}
+pub fn psql_create_table_statement(
+    create_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: PsqlTableName,
+    l_paren_token: SyntaxToken,
+    columns: PsqlColumnDefinitionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlCreateTableStatementBuilder {
+    PsqlCreateTableStatementBuilder {
+        create_token,
+        table_token,
+        name,
+        l_paren_token,
+        columns,
+        r_paren_token,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateTableStatementBuilder {
+    create_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: PsqlTableName,
+    l_paren_token: SyntaxToken,
+    columns: PsqlColumnDefinitionList,
+    r_paren_token: SyntaxToken,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateTableStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateTableStatement {
+        PsqlCreateTableStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CREATE_TABLE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.table_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.columns.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn psql_cte_definition(
     name: PsqlName,
@@ -1798,6 +1876,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_column_definition_list<I, S>(items: I, separators: S) -> PsqlColumnDefinitionList
+where
+    I: IntoIterator<Item = PsqlColumnDefinition>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlColumnDefinitionList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_COLUMN_DEFINITION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_column_name_list<I, S>(items: I, separators: S) -> PsqlColumnNameList

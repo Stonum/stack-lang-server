@@ -2,6 +2,7 @@
 
 pub(crate) mod alias;
 pub(crate) mod col_reference;
+pub(crate) mod column_definition;
 pub(crate) mod column_list;
 pub(crate) mod cte_definition;
 pub(crate) mod data_base_name;

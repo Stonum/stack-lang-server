@@ -71,8 +71,16 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlColReference::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_COLUMN_DEFINITION => {
+                    let $pattern = unsafe { $crate::PsqlColumnDefinition::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_COLUMN_LIST => {
                     let $pattern = unsafe { $crate::PsqlColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_CREATE_TABLE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlCreateTableStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_CTE_DEFINITION => {
@@ -361,6 +369,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_CASE_WHEN_CLAUSE_LIST => {
                     let $pattern = unsafe { $crate::PsqlCaseWhenClauseList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_COLUMN_DEFINITION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlColumnDefinitionList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_COLUMN_NAME_LIST => {
