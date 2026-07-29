@@ -126,4 +126,78 @@ mod tests {
         assert_eq!(edits.len(), 1);
         assert_eq!(edits[0].new_text, "var a = 1;");
     }
+
+    #[test]
+    fn range_past_end_of_document_returns_none_not_a_panic() {
+        let uri = Url::parse("file:///test.sql").unwrap();
+        let text = "select a from t\n";
+        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+
+        // The document only has 2 lines (0 and the trailing empty one); a
+        // stale range from a client that hasn't caught up with a recent
+        // edit could easily point well past that.
+        let range = Range {
+            start: Position::new(50, 0),
+            end: Position::new(60, 0),
+        };
+
+        assert!(format(&document, formatting_options(), range).is_none());
+    }
+
+    #[test]
+    fn empty_psql_document_does_not_panic() {
+        let uri = Url::parse("file:///test.sql").unwrap();
+        let text = "";
+        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("an empty document still produces a (no-op) edit");
+
+        assert_eq!(edits.len(), 1);
+        assert_eq!(edits[0].new_text, "");
+    }
+
+    #[test]
+    fn empty_mlang_document_does_not_panic() {
+        let uri = Url::parse("file:///test.prg").unwrap();
+        let text = "";
+        let document = CurrentDocument::new_mlang(uri, text, MFileSource::module());
+
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("an empty document still produces a (no-op) edit");
+
+        assert_eq!(edits.len(), 1);
+        assert_eq!(edits[0].new_text, "");
+    }
+
+    #[test]
+    fn malformed_sql_falls_back_to_the_original_text() {
+        let uri = Url::parse("file:///test.sql").unwrap();
+        let text = "select from where;;;\n";
+        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+
+        // Doesn't parse cleanly, so psql_formatter's own verbatim safety
+        // net kicks in -- reproduces the text unchanged rather than
+        // guessing at a "prettier" but potentially wrong structure.
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("malformed input should not panic");
+
+        assert_eq!(edits.len(), 1);
+        assert_eq!(edits[0].new_text, "select from where;;;");
+    }
+
+    #[test]
+    fn malformed_mlang_recovers_instead_of_panicking() {
+        let uri = Url::parse("file:///test.prg").unwrap();
+        let text = "var a = ;;;\n";
+        let document = CurrentDocument::new_mlang(uri, text, MFileSource::module());
+
+        // mlang's parser has real error recovery (unlike psql's verbatim
+        // fallback): it drops the stray extra `;`s and formats what's left.
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("malformed input should not panic");
+
+        assert_eq!(edits.len(), 1);
+        assert_eq!(edits[0].new_text, "var a = ;\n");
+    }
 }
