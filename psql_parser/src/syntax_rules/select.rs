@@ -253,6 +253,7 @@ impl ParseSeparatedList for PsqlSelectItemList {
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         p.at(EOF)
+            || p.at(T![;])
             || p.at(T![from])
             || p.at(T![where])
             || p.at(T![group_by])
