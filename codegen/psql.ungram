@@ -577,10 +577,19 @@ PsqlCreateTriggerStatement =
    table: PsqlTableName
    referencing_clause: PsqlTriggerReferencingClause?
    for_each_clause: PsqlTriggerForEachClause?
+   when_clause: PsqlTriggerWhenClause?
    'execute'
    function_kind: ('function' | 'procedure')
    function: PsqlCallExpression
    ';'?
+
+// `WHEN (condition)` -- restricts a row-level trigger to fire only when
+// `condition` holds (referencing `OLD`/`NEW` like the trigger body does).
+PsqlTriggerWhenClause =
+   'when'
+   '('
+   condition: AnyPsqlExpression
+   ')'
 
 PsqlTriggerEventList = PsqlTriggerEvent*
 
@@ -606,8 +615,14 @@ PsqlTriggerReferencingClause =
 
 PsqlTriggerReferencingItemList = PsqlTriggerReferencingItem*
 
+// `which` holds the literal text `old`/`new` (checked at parse time, case
+// insensitively) rather than being a keyword-token alternation: unlike
+// `~name~`, real Postgres never reserves `OLD`/`NEW` as keywords at all --
+// they must still parse as ordinary identifiers everywhere outside a
+// `REFERENCING` item (e.g. `old.some_column` in a trigger's `WHEN (...)`
+// condition or body).
 PsqlTriggerReferencingItem =
-   which: ('old' | 'new')
+   which: 'ident'
    'table'
    'as'
    name: PsqlName

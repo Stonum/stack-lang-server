@@ -407,6 +407,10 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlTriggerUpdateOfClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_WHEN_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlTriggerWhenClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENTS => {
                     let $pattern = unsafe { $crate::PsqlTypeArguments::new_unchecked(node) };
                     $body

@@ -68,6 +68,49 @@ create trigger t after update of a, b on foo for each row execute function f()
 }
 
 #[test]
+fn format_create_trigger_when_clause() {
+    assert_fmt!(
+        r#"--
+create trigger t after update on foo for each row when (old.a > 0) execute function f()
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_when_clause_no_for_each() {
+    assert_fmt!(
+        r#"--
+create trigger t after insert on foo when (new.a > 0) execute function f()
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_when_clause_normalizes_case_and_spacing() {
+    assert_fmt_eq!(
+        r#"--
+create trigger t after update on foo for each row WHEN(old.a > 0) execute function f()
+"#,
+        r#"--
+create trigger t after update on foo for each row when (old.a > 0) execute function f()
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_referencing_old_new_case_is_preserved() {
+    // `OLD`/`NEW` in a `REFERENCING` item are now an ordinary identifier
+    // token (not a dedicated keyword), so -- unlike real keywords -- their
+    // casing is preserved verbatim rather than forced to lowercase, same
+    // as any other identifier this formatter never rewrites.
+    assert_fmt!(
+        r#"--
+create trigger t after update on foo referencing OLD table as deleted for each row execute function f()
+"#
+    );
+}
+
+#[test]
 fn format_create_trigger_execute_procedure() {
     assert_fmt!(
         r#"--

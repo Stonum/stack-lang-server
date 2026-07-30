@@ -3353,6 +3353,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerUpdateOfClause {
         FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: trigger_update_of_clause :: FormatPsqlTriggerUpdateOfClause :: default ())
     }
 }
+impl FormatRule<psql_syntax::PsqlTriggerWhenClause>
+    for crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTriggerWhenClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTriggerWhenClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerWhenClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerWhenClause,
+        crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerWhenClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerWhenClause,
+        crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlTypeArguments>
     for crate::psql::auxiliary::type_arguments::FormatPsqlTypeArguments
 {

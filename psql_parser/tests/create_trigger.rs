@@ -145,6 +145,69 @@ fn test_create_trigger_no_for_each_clause() {
 }
 
 #[test]
+fn test_create_trigger_when_clause() {
+    let res = parse(
+        "create trigger t after update on foo for each row when (old.a > 0) execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_when_clause_no_for_each() {
+    let res = parse(
+        "create trigger t after insert on foo when (new.a > 0) execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_when_clause_after_referencing() {
+    let res = parse(
+        "create trigger t after update on foo referencing old table as deleted new table as inserted when (new.a > 0) execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_when_clause_referencing_both_old_and_new() {
+    let res = parse(
+        "create trigger t after update on foo for each row when (old.a <> new.a) execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_old_and_new_are_ordinary_identifiers_outside_referencing() {
+    // `OLD`/`NEW` are only ever meaningful (and only checked by text, not
+    // by dedicated keyword tokens) inside a `REFERENCING` item -- elsewhere
+    // they must parse as any other column/table reference would.
+    let res = parse(
+        "select old, new, old.a, new.b from old join new on old.id = new.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_referencing_case_insensitive() {
+    let res = parse(
+        "create trigger t after update on foo referencing OLD table as deleted NEW table as inserted for each statement execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_trigger_referencing_old_table() {
     let res = parse(
         "create trigger t after delete on foo referencing old table as deleted for each statement execute function f()",
@@ -274,6 +337,22 @@ fn test_realistic_trigger_attachment_shape() {
 create trigger "t_change_trig" after insert or update or delete
 on ~business_process~ for each row
 execute function ~$business_process_log~();"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_realistic_conditional_trigger_shape() {
+    // Representative of a real conditional row-level trigger: `WHEN (...)`
+    // referencing `OLD`/`NEW` columns, placed between `FOR EACH ROW` and
+    // `EXECUTE FUNCTION`.
+    let res = parse(
+        r#"create trigger "some_conditional_trig" after update or delete
+on ~some_table~ for each row
+when ( old."SomeFlag" > 0 )
+execute function ~$some_func~();"#,
         mlang(),
     );
 

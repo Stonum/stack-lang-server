@@ -11,7 +11,7 @@ impl FormatNodeRule<PsqlTriggerReferencingItem> for FormatPsqlTriggerReferencing
         f: &mut PsqlFormatter,
     ) -> FormatResult<()> {
         let PsqlTriggerReferencingItemFields {
-            which,
+            which_token,
             table_token,
             as_token,
             name,
@@ -20,7 +20,7 @@ impl FormatNodeRule<PsqlTriggerReferencingItem> for FormatPsqlTriggerReferencing
         write!(
             f,
             [
-                which.format(),
+                which_token.format(),
                 space(),
                 table_token.format(),
                 space(),

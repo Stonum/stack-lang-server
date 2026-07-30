@@ -554,6 +554,7 @@ pub fn psql_create_trigger_statement(
         function,
         referencing_clause: None,
         for_each_clause: None,
+        when_clause: None,
         semicolon_token: None,
     }
 }
@@ -570,6 +571,7 @@ pub struct PsqlCreateTriggerStatementBuilder {
     function: PsqlCallExpression,
     referencing_clause: Option<PsqlTriggerReferencingClause>,
     for_each_clause: Option<PsqlTriggerForEachClause>,
+    when_clause: Option<PsqlTriggerWhenClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlCreateTriggerStatementBuilder {
@@ -582,6 +584,10 @@ impl PsqlCreateTriggerStatementBuilder {
     }
     pub fn with_for_each_clause(mut self, for_each_clause: PsqlTriggerForEachClause) -> Self {
         self.for_each_clause = Some(for_each_clause);
+        self
+    }
+    pub fn with_when_clause(mut self, when_clause: PsqlTriggerWhenClause) -> Self {
+        self.when_clause = Some(when_clause);
         self
     }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
@@ -602,6 +608,8 @@ impl PsqlCreateTriggerStatementBuilder {
                 self.referencing_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.for_each_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.when_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.execute_token)),
                 Some(SyntaxElement::Token(self.function_kind_token)),
@@ -2371,6 +2379,22 @@ pub fn psql_trigger_update_of_clause(
         [
             Some(SyntaxElement::Token(of_token)),
             Some(SyntaxElement::Node(columns.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_trigger_when_clause(
+    when_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnyPsqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlTriggerWhenClause {
+    PsqlTriggerWhenClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_WHEN_CLAUSE,
+        [
+            Some(SyntaxElement::Token(when_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
 }

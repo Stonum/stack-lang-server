@@ -1037,6 +1037,7 @@ impl PsqlCreateTriggerStatement {
             table: self.table(),
             referencing_clause: self.referencing_clause(),
             for_each_clause: self.for_each_clause(),
+            when_clause: self.when_clause(),
             execute_token: self.execute_token(),
             function_kind: self.function_kind(),
             function: self.function(),
@@ -1070,17 +1071,20 @@ impl PsqlCreateTriggerStatement {
     pub fn for_each_clause(&self) -> Option<PsqlTriggerForEachClause> {
         support::node(&self.syntax, 8usize)
     }
-    pub fn execute_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 9usize)
+    pub fn when_clause(&self) -> Option<PsqlTriggerWhenClause> {
+        support::node(&self.syntax, 9usize)
     }
-    pub fn function_kind(&self) -> SyntaxResult<SyntaxToken> {
+    pub fn execute_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 10usize)
     }
+    pub fn function_kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 11usize)
+    }
     pub fn function(&self) -> SyntaxResult<PsqlCallExpression> {
-        support::required_node(&self.syntax, 11usize)
+        support::required_node(&self.syntax, 12usize)
     }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 12usize)
+        support::token(&self.syntax, 13usize)
     }
 }
 impl Serialize for PsqlCreateTriggerStatement {
@@ -1102,6 +1106,7 @@ pub struct PsqlCreateTriggerStatementFields {
     pub table: SyntaxResult<PsqlTableName>,
     pub referencing_clause: Option<PsqlTriggerReferencingClause>,
     pub for_each_clause: Option<PsqlTriggerForEachClause>,
+    pub when_clause: Option<PsqlTriggerWhenClause>,
     pub execute_token: SyntaxResult<SyntaxToken>,
     pub function_kind: SyntaxResult<SyntaxToken>,
     pub function: SyntaxResult<PsqlCallExpression>,
@@ -4513,13 +4518,13 @@ impl PsqlTriggerReferencingItem {
     }
     pub fn as_fields(&self) -> PsqlTriggerReferencingItemFields {
         PsqlTriggerReferencingItemFields {
-            which: self.which(),
+            which_token: self.which_token(),
             table_token: self.table_token(),
             as_token: self.as_token(),
             name: self.name(),
         }
     }
-    pub fn which(&self) -> SyntaxResult<SyntaxToken> {
+    pub fn which_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
     pub fn table_token(&self) -> SyntaxResult<SyntaxToken> {
@@ -4542,7 +4547,7 @@ impl Serialize for PsqlTriggerReferencingItem {
 }
 #[derive(Serialize)]
 pub struct PsqlTriggerReferencingItemFields {
-    pub which: SyntaxResult<SyntaxToken>,
+    pub which_token: SyntaxResult<SyntaxToken>,
     pub table_token: SyntaxResult<SyntaxToken>,
     pub as_token: SyntaxResult<SyntaxToken>,
     pub name: SyntaxResult<PsqlName>,
@@ -4586,6 +4591,56 @@ impl Serialize for PsqlTriggerUpdateOfClause {
 pub struct PsqlTriggerUpdateOfClauseFields {
     pub of_token: SyntaxResult<SyntaxToken>,
     pub columns: PsqlColumnNameList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTriggerWhenClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTriggerWhenClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTriggerWhenClauseFields {
+        PsqlTriggerWhenClauseFields {
+            when_token: self.when_token(),
+            l_paren_token: self.l_paren_token(),
+            condition: self.condition(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn when_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlTriggerWhenClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTriggerWhenClauseFields {
+    pub when_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnyPsqlExpression>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTypeArguments {
@@ -6870,6 +6925,10 @@ impl std::fmt::Debug for PsqlCreateTriggerStatement {
                 .field(
                     "for_each_clause",
                     &support::DebugOptionalElement(self.for_each_clause()),
+                )
+                .field(
+                    "when_clause",
+                    &support::DebugOptionalElement(self.when_clause()),
                 )
                 .field(
                     "execute_token",
@@ -10842,7 +10901,10 @@ impl std::fmt::Debug for PsqlTriggerReferencingItem {
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlTriggerReferencingItem")
-                .field("which", &support::DebugSyntaxResult(self.which()))
+                .field(
+                    "which_token",
+                    &support::DebugSyntaxResult(self.which_token()),
+                )
                 .field(
                     "table_token",
                     &support::DebugSyntaxResult(self.table_token()),
@@ -10912,6 +10974,62 @@ impl From<PsqlTriggerUpdateOfClause> for SyntaxNode {
 }
 impl From<PsqlTriggerUpdateOfClause> for SyntaxElement {
     fn from(n: PsqlTriggerUpdateOfClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTriggerWhenClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_WHEN_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_WHEN_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTriggerWhenClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTriggerWhenClause")
+                .field("when_token", &support::DebugSyntaxResult(self.when_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTriggerWhenClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTriggerWhenClause> for SyntaxNode {
+    fn from(n: PsqlTriggerWhenClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTriggerWhenClause> for SyntaxElement {
+    fn from(n: PsqlTriggerWhenClause) -> Self {
         n.syntax.into()
     }
 }
@@ -13661,6 +13779,11 @@ impl std::fmt::Display for PsqlTriggerReferencingItem {
     }
 }
 impl std::fmt::Display for PsqlTriggerUpdateOfClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTriggerWhenClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

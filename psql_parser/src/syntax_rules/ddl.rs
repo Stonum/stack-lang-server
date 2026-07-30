@@ -546,6 +546,7 @@ fn parse_create_trigger_statement(p: &mut PsqlParser) -> ParsedSyntax {
 
     let _ = parse_trigger_referencing_clause(p);
     let _ = parse_trigger_for_each_clause(p);
+    let _ = parse_trigger_when_clause(p);
 
     p.expect(T![execute]);
     if p.at(T![function]) || p.at(T![procedure]) {
@@ -636,6 +637,19 @@ impl ParseSeparatedList for PsqlTriggerUpdateOfColumnList {
     }
 }
 
+/// `true` if the parser is at an `ident` spelled `old`/`new` (case
+/// insensitive) -- unlike `~name~`, real Postgres never reserves these as
+/// keywords, so they're recognized by text, not by a dedicated token kind,
+/// keeping them usable as ordinary identifiers everywhere else (e.g.
+/// `old.some_column` in a `WHEN (...)` condition or trigger body).
+fn is_at_old_or_new(p: &mut PsqlParser) -> bool {
+    if !p.at(T![ident]) {
+        return false;
+    }
+    let text = p.text(p.cur_range());
+    text.eq_ignore_ascii_case("old") || text.eq_ignore_ascii_case("new")
+}
+
 fn parse_trigger_referencing_clause(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![referencing]) {
         return Absent;
@@ -645,9 +659,9 @@ fn parse_trigger_referencing_clause(p: &mut PsqlParser) -> ParsedSyntax {
     p.bump(T![referencing]);
 
     let items = p.start();
-    while p.at(T![old]) || p.at(T![new]) {
+    while is_at_old_or_new(p) {
         let item = p.start();
-        p.bump_any();
+        p.bump(T![ident]);
         p.expect(T![table]);
         p.expect(T![as]);
         parse_name(p).or_add_diagnostic(p, expected_identifier);
@@ -674,6 +688,21 @@ fn parse_trigger_for_each_clause(p: &mut PsqlParser) -> ParsedSyntax {
         p.error(err);
     }
     Present(m.complete(p, PSQL_TRIGGER_FOR_EACH_CLAUSE))
+}
+
+/// `WHEN (condition)` -- restricts a row-level trigger to fire only when
+/// `condition` holds.
+fn parse_trigger_when_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![when]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![when]);
+    p.expect(T!['(']);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_TRIGGER_WHEN_CLAUSE))
 }
 
 /// The `name(args)` called by `EXECUTE FUNCTION`/`EXECUTE PROCEDURE` --

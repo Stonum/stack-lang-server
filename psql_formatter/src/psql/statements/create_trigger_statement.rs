@@ -20,6 +20,7 @@ impl FormatNodeRule<PsqlCreateTriggerStatement> for FormatPsqlCreateTriggerState
             table,
             referencing_clause,
             for_each_clause,
+            when_clause,
             execute_token,
             function_kind,
             function,
@@ -50,6 +51,9 @@ impl FormatNodeRule<PsqlCreateTriggerStatement> for FormatPsqlCreateTriggerState
         }
         if let Some(for_each_clause) = for_each_clause {
             write!(f, [space(), for_each_clause.format()])?;
+        }
+        if let Some(when_clause) = when_clause {
+            write!(f, [space(), when_clause.format()])?;
         }
 
         write!(
