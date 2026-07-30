@@ -2261,15 +2261,21 @@ pub fn psql_trigger_event(kind_token: SyntaxToken) -> PsqlTriggerEventBuilder {
     PsqlTriggerEventBuilder {
         kind_token,
         or_token: None,
+        of_clause: None,
     }
 }
 pub struct PsqlTriggerEventBuilder {
     kind_token: SyntaxToken,
     or_token: Option<SyntaxToken>,
+    of_clause: Option<PsqlTriggerUpdateOfClause>,
 }
 impl PsqlTriggerEventBuilder {
     pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
         self.or_token = Some(or_token);
+        self
+    }
+    pub fn with_of_clause(mut self, of_clause: PsqlTriggerUpdateOfClause) -> Self {
+        self.of_clause = Some(of_clause);
         self
     }
     pub fn build(self) -> PsqlTriggerEvent {
@@ -2278,6 +2284,8 @@ impl PsqlTriggerEventBuilder {
             [
                 self.or_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.kind_token)),
+                self.of_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }
@@ -2321,6 +2329,18 @@ pub fn psql_trigger_referencing_item(
             Some(SyntaxElement::Token(table_token)),
             Some(SyntaxElement::Token(as_token)),
             Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_trigger_update_of_clause(
+    of_token: SyntaxToken,
+    columns: PsqlColumnNameList,
+) -> PsqlTriggerUpdateOfClause {
+    PsqlTriggerUpdateOfClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_UPDATE_OF_CLAUSE,
+        [
+            Some(SyntaxElement::Token(of_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
         ],
     ))
 }

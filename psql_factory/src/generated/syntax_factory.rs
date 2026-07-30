@@ -3403,7 +3403,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_TRIGGER_EVENT => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![or]
@@ -3414,6 +3414,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && matches!(element.kind(), T![insert] | T![update] | T![delete])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlTriggerUpdateOfClause::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -3525,6 +3532,32 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_TRIGGER_REFERENCING_ITEM, children)
+            }
+            PSQL_TRIGGER_UPDATE_OF_CLAUSE => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![of]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlColumnNameList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_TRIGGER_UPDATE_OF_CLAUSE.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_TRIGGER_UPDATE_OF_CLAUSE, children)
             }
             PSQL_TYPE_ARGUMENTS => {
                 let mut elements = (&children).into_iter();

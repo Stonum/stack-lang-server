@@ -39,6 +39,72 @@ fn test_create_trigger_multiple_events() {
 }
 
 #[test]
+fn test_create_trigger_update_of_single_column() {
+    let res = parse(
+        "create trigger t after update of a on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_update_of_multiple_columns() {
+    let res = parse(
+        "create trigger t after update of a, b, c on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_insert_or_update_of_column() {
+    let res = parse(
+        "create trigger t after insert or update of a on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_update_of_quoted_column_then_or_delete() {
+    let res = parse(
+        r#"create trigger t after update of "Col A" or delete on foo for each row execute function f()"#,
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_update_no_of_clause_still_works() {
+    let res = parse(
+        "create trigger t after update on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_realistic_update_of_trigger_shape() {
+    // Representative of the real shape this was fixed for: `UPDATE OF
+    // "column"` with a quoted (Cyrillic) column name, quoted trigger and
+    // table names, no trailing `;`, followed by `ON`/`FOR EACH ROW` on
+    // their own lines.
+    let res = parse(
+        r#"create trigger "SomeTrigger" after insert or update of "SomeColumn"
+on ~$some_table~ for each row
+execute function ~$some_func~();"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_trigger_execute_procedure() {
     let res = parse(
         "create trigger t after insert on foo for each row execute procedure f()",

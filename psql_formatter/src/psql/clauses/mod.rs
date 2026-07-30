@@ -24,6 +24,7 @@ pub(crate) mod select_clause;
 pub(crate) mod set_clause;
 pub(crate) mod trigger_for_each_clause;
 pub(crate) mod trigger_referencing_clause;
+pub(crate) mod trigger_update_of_clause;
 pub(crate) mod where_clause;
 pub(crate) mod window_partition_by_clause;
 pub(crate) mod with_clause;

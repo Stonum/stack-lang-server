@@ -568,6 +568,13 @@ PsqlTriggerEventList = PsqlTriggerEvent*
 PsqlTriggerEvent =
    'or'?
    kind: ('insert' | 'update' | 'delete')
+   of_clause: PsqlTriggerUpdateOfClause?
+
+// `UPDATE OF col, col, ...` -- narrows an `UPDATE` event to specific
+// columns; only ever follows an `update` event kind.
+PsqlTriggerUpdateOfClause =
+   'of'
+   columns: PsqlColumnNameList
 
 // `REFERENCING OLD TABLE AS old_name NEW TABLE AS new_name` (either or both,
 // in either order) -- names the transition tables for statement-level

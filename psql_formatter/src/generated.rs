@@ -3245,6 +3245,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingItem {
         FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: trigger_referencing_item :: FormatPsqlTriggerReferencingItem :: default ())
     }
 }
+impl FormatRule<psql_syntax::PsqlTriggerUpdateOfClause>
+    for crate::psql::clauses::trigger_update_of_clause::FormatPsqlTriggerUpdateOfClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTriggerUpdateOfClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTriggerUpdateOfClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerUpdateOfClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerUpdateOfClause,
+        crate::psql::clauses::trigger_update_of_clause::FormatPsqlTriggerUpdateOfClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: trigger_update_of_clause :: FormatPsqlTriggerUpdateOfClause :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerUpdateOfClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerUpdateOfClause,
+        crate::psql::clauses::trigger_update_of_clause::FormatPsqlTriggerUpdateOfClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: trigger_update_of_clause :: FormatPsqlTriggerUpdateOfClause :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlTypeArguments>
     for crate::psql::auxiliary::type_arguments::FormatPsqlTypeArguments
 {

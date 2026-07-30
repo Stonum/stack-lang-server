@@ -547,7 +547,10 @@ fn parse_trigger_event_list(p: &mut PsqlParser) -> CompletedMarker {
         if !first {
             p.bump(T![or]);
         }
-        if p.at(T![insert]) || p.at(T![update]) || p.at(T![delete]) {
+        if p.at(T![update]) {
+            p.bump(T![update]);
+            let _ = parse_trigger_update_of_clause(p);
+        } else if p.at(T![insert]) || p.at(T![delete]) {
             p.bump_any();
         } else {
             let range = p.cur_range();
@@ -560,6 +563,54 @@ fn parse_trigger_event_list(p: &mut PsqlParser) -> CompletedMarker {
         first = false;
     }
     m.complete(p, PSQL_TRIGGER_EVENT_LIST)
+}
+
+/// `UPDATE OF col, col, ...` -- narrows an `UPDATE` trigger event to
+/// specific columns.
+fn parse_trigger_update_of_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![of]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![of]);
+    PsqlTriggerUpdateOfColumnList.parse_list(p);
+    Present(m.complete(p, PSQL_TRIGGER_UPDATE_OF_CLAUSE))
+}
+
+/// Unlike `INSERT`'s parenthesized column list, `UPDATE OF col, col` has no
+/// enclosing parens -- it ends at whatever follows (`ON`, another `OR`
+/// event, `;`, EOF), not at a `)`.
+struct PsqlTriggerUpdateOfColumnList;
+
+impl ParseSeparatedList for PsqlTriggerUpdateOfColumnList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_COLUMN_NAME_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_name(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![on]) || p.at(T![or]) || p.at(T![;])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, token_set![T![on], T![or], T![;]]),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
 }
 
 fn parse_trigger_referencing_clause(p: &mut PsqlParser) -> ParsedSyntax {

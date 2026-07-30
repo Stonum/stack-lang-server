@@ -29,6 +29,45 @@ create trigger t after insert or update or delete on foo for each row execute fu
 }
 
 #[test]
+fn format_create_trigger_update_of_single_column() {
+    assert_fmt!(
+        r#"--
+create trigger t after update of a on foo for each row execute function f()
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_update_of_multiple_columns() {
+    assert_fmt!(
+        r#"--
+create trigger t after update of a, b, c on foo for each row execute function f()
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_insert_or_update_of_column() {
+    assert_fmt!(
+        r#"--
+create trigger t after insert or update of a on foo for each row execute function f()
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_update_of_normalizes_case() {
+    assert_fmt_eq!(
+        r#"--
+create trigger t after UPDATE OF a,b on foo for each row execute function f()
+"#,
+        r#"--
+create trigger t after update of a, b on foo for each row execute function f()
+"#
+    );
+}
+
+#[test]
 fn format_create_trigger_execute_procedure() {
     assert_fmt!(
         r#"--

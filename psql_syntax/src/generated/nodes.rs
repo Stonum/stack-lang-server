@@ -4290,6 +4290,7 @@ impl PsqlTriggerEvent {
         PsqlTriggerEventFields {
             or_token: self.or_token(),
             kind: self.kind(),
+            of_clause: self.of_clause(),
         }
     }
     pub fn or_token(&self) -> Option<SyntaxToken> {
@@ -4297,6 +4298,9 @@ impl PsqlTriggerEvent {
     }
     pub fn kind(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 1usize)
+    }
+    pub fn of_clause(&self) -> Option<PsqlTriggerUpdateOfClause> {
+        support::node(&self.syntax, 2usize)
     }
 }
 impl Serialize for PsqlTriggerEvent {
@@ -4311,6 +4315,7 @@ impl Serialize for PsqlTriggerEvent {
 pub struct PsqlTriggerEventFields {
     pub or_token: Option<SyntaxToken>,
     pub kind: SyntaxResult<SyntaxToken>,
+    pub of_clause: Option<PsqlTriggerUpdateOfClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTriggerForEachClause {
@@ -4446,6 +4451,46 @@ pub struct PsqlTriggerReferencingItemFields {
     pub table_token: SyntaxResult<SyntaxToken>,
     pub as_token: SyntaxResult<SyntaxToken>,
     pub name: SyntaxResult<PsqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTriggerUpdateOfClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTriggerUpdateOfClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTriggerUpdateOfClauseFields {
+        PsqlTriggerUpdateOfClauseFields {
+            of_token: self.of_token(),
+            columns: self.columns(),
+        }
+    }
+    pub fn of_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn columns(&self) -> PsqlColumnNameList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlTriggerUpdateOfClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTriggerUpdateOfClauseFields {
+    pub of_token: SyntaxResult<SyntaxToken>,
+    pub columns: PsqlColumnNameList,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTypeArguments {
@@ -10424,6 +10469,10 @@ impl std::fmt::Debug for PsqlTriggerEvent {
             f.debug_struct("PsqlTriggerEvent")
                 .field("or_token", &support::DebugOptionalElement(self.or_token()))
                 .field("kind", &support::DebugSyntaxResult(self.kind()))
+                .field(
+                    "of_clause",
+                    &support::DebugOptionalElement(self.of_clause()),
+                )
                 .finish()
         } else {
             f.debug_struct("PsqlTriggerEvent").finish()
@@ -10595,6 +10644,54 @@ impl From<PsqlTriggerReferencingItem> for SyntaxNode {
 }
 impl From<PsqlTriggerReferencingItem> for SyntaxElement {
     fn from(n: PsqlTriggerReferencingItem) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTriggerUpdateOfClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_UPDATE_OF_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_UPDATE_OF_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTriggerUpdateOfClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTriggerUpdateOfClause")
+                .field("of_token", &support::DebugSyntaxResult(self.of_token()))
+                .field("columns", &self.columns())
+                .finish()
+        } else {
+            f.debug_struct("PsqlTriggerUpdateOfClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTriggerUpdateOfClause> for SyntaxNode {
+    fn from(n: PsqlTriggerUpdateOfClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTriggerUpdateOfClause> for SyntaxElement {
+    fn from(n: PsqlTriggerUpdateOfClause) -> Self {
         n.syntax.into()
     }
 }
@@ -13299,6 +13396,11 @@ impl std::fmt::Display for PsqlTriggerReferencingClause {
     }
 }
 impl std::fmt::Display for PsqlTriggerReferencingItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTriggerUpdateOfClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
