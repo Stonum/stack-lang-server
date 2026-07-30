@@ -1811,6 +1811,24 @@ pub fn psql_returns_clause(
         ],
     ))
 }
+pub fn psql_returns_null_option(
+    returns_token: SyntaxToken,
+    first_null_token: SyntaxToken,
+    on_token: SyntaxToken,
+    second_null_token: SyntaxToken,
+    input_token: SyntaxToken,
+) -> PsqlReturnsNullOption {
+    PsqlReturnsNullOption::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_NULL_OPTION,
+        [
+            Some(SyntaxElement::Token(returns_token)),
+            Some(SyntaxElement::Token(first_null_token)),
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(second_null_token)),
+            Some(SyntaxElement::Token(input_token)),
+        ],
+    ))
+}
 pub fn psql_returns_table_clause(
     table_token: SyntaxToken,
     l_paren_token: SyntaxToken,

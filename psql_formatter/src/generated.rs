@@ -2337,6 +2337,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsClause {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlReturnsNullOption>
+    for crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlReturnsNullOption,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlReturnsNullOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsNullOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlReturnsNullOption,
+        crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsNullOption {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlReturnsNullOption,
+        crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlReturnsTableClause>
     for crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause
 {

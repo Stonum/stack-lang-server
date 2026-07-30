@@ -147,6 +147,36 @@ create function foo() as 'select 1' strict;
 }
 
 #[test]
+fn format_create_function_returns_null_on_null_input_trailing() {
+    assert_fmt!(
+        r#"--
+create function foo() returns text as 'select 1' returns null on null input;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_null_on_null_input_leading() {
+    assert_fmt!(
+        r#"--
+create function foo() returns text returns null on null input as 'select 1';
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_null_on_null_input_normalizes_case() {
+    assert_fmt_eq!(
+        r#"--
+create function foo() returns text as 'select 1' RETURNS NULL ON NULL INPUT;
+"#,
+        r#"--
+create function foo() returns text as 'select 1' returns null on null input;
+"#
+    );
+}
+
+#[test]
 fn format_create_function_leading_options_before_as() {
     assert_fmt!(
         r#"--

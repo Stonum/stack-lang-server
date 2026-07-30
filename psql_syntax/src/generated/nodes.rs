@@ -3298,6 +3298,61 @@ pub struct PsqlReturnsClauseFields {
     pub ty: SyntaxResult<AnyPsqlReturnsType>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlReturnsNullOption {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlReturnsNullOption {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlReturnsNullOptionFields {
+        PsqlReturnsNullOptionFields {
+            returns_token: self.returns_token(),
+            first_null_token: self.first_null_token(),
+            on_token: self.on_token(),
+            second_null_token: self.second_null_token(),
+            input_token: self.input_token(),
+        }
+    }
+    pub fn returns_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn first_null_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn second_null_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn input_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlReturnsNullOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlReturnsNullOptionFields {
+    pub returns_token: SyntaxResult<SyntaxToken>,
+    pub first_null_token: SyntaxResult<SyntaxToken>,
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub second_null_token: SyntaxResult<SyntaxToken>,
+    pub input_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlReturnsTableClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5329,6 +5384,7 @@ impl AnyPsqlFromExpression {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlFunctionOption {
     PsqlLanguageOption(PsqlLanguageOption),
+    PsqlReturnsNullOption(PsqlReturnsNullOption),
     PsqlSecurityOption(PsqlSecurityOption),
     PsqlStrictOption(PsqlStrictOption),
     PsqlVolatilityOption(PsqlVolatilityOption),
@@ -5337,6 +5393,12 @@ impl AnyPsqlFunctionOption {
     pub fn as_psql_language_option(&self) -> Option<&PsqlLanguageOption> {
         match &self {
             Self::PsqlLanguageOption(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_returns_null_option(&self) -> Option<&PsqlReturnsNullOption> {
+        match &self {
+            Self::PsqlReturnsNullOption(item) => Some(item),
             _ => None,
         }
     }
@@ -9256,6 +9318,69 @@ impl From<PsqlReturnsClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlReturnsNullOption {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_RETURNS_NULL_OPTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_RETURNS_NULL_OPTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlReturnsNullOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlReturnsNullOption")
+                .field(
+                    "returns_token",
+                    &support::DebugSyntaxResult(self.returns_token()),
+                )
+                .field(
+                    "first_null_token",
+                    &support::DebugSyntaxResult(self.first_null_token()),
+                )
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field(
+                    "second_null_token",
+                    &support::DebugSyntaxResult(self.second_null_token()),
+                )
+                .field(
+                    "input_token",
+                    &support::DebugSyntaxResult(self.input_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlReturnsNullOption").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlReturnsNullOption> for SyntaxNode {
+    fn from(n: PsqlReturnsNullOption) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlReturnsNullOption> for SyntaxElement {
+    fn from(n: PsqlReturnsNullOption) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlReturnsTableClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11990,6 +12115,11 @@ impl From<PsqlLanguageOption> for AnyPsqlFunctionOption {
         Self::PsqlLanguageOption(node)
     }
 }
+impl From<PsqlReturnsNullOption> for AnyPsqlFunctionOption {
+    fn from(node: PsqlReturnsNullOption) -> Self {
+        Self::PsqlReturnsNullOption(node)
+    }
+}
 impl From<PsqlSecurityOption> for AnyPsqlFunctionOption {
     fn from(node: PsqlSecurityOption) -> Self {
         Self::PsqlSecurityOption(node)
@@ -12008,6 +12138,7 @@ impl From<PsqlVolatilityOption> for AnyPsqlFunctionOption {
 impl AstNode for AnyPsqlFunctionOption {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = PsqlLanguageOption::KIND_SET
+        .union(PsqlReturnsNullOption::KIND_SET)
         .union(PsqlSecurityOption::KIND_SET)
         .union(PsqlStrictOption::KIND_SET)
         .union(PsqlVolatilityOption::KIND_SET);
@@ -12015,6 +12146,7 @@ impl AstNode for AnyPsqlFunctionOption {
         matches!(
             kind,
             PSQL_LANGUAGE_OPTION
+                | PSQL_RETURNS_NULL_OPTION
                 | PSQL_SECURITY_OPTION
                 | PSQL_STRICT_OPTION
                 | PSQL_VOLATILITY_OPTION
@@ -12023,6 +12155,9 @@ impl AstNode for AnyPsqlFunctionOption {
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             PSQL_LANGUAGE_OPTION => Self::PsqlLanguageOption(PsqlLanguageOption { syntax }),
+            PSQL_RETURNS_NULL_OPTION => {
+                Self::PsqlReturnsNullOption(PsqlReturnsNullOption { syntax })
+            }
             PSQL_SECURITY_OPTION => Self::PsqlSecurityOption(PsqlSecurityOption { syntax }),
             PSQL_STRICT_OPTION => Self::PsqlStrictOption(PsqlStrictOption { syntax }),
             PSQL_VOLATILITY_OPTION => Self::PsqlVolatilityOption(PsqlVolatilityOption { syntax }),
@@ -12033,6 +12168,7 @@ impl AstNode for AnyPsqlFunctionOption {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::PsqlLanguageOption(it) => &it.syntax,
+            Self::PsqlReturnsNullOption(it) => &it.syntax,
             Self::PsqlSecurityOption(it) => &it.syntax,
             Self::PsqlStrictOption(it) => &it.syntax,
             Self::PsqlVolatilityOption(it) => &it.syntax,
@@ -12041,6 +12177,7 @@ impl AstNode for AnyPsqlFunctionOption {
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::PsqlLanguageOption(it) => it.syntax,
+            Self::PsqlReturnsNullOption(it) => it.syntax,
             Self::PsqlSecurityOption(it) => it.syntax,
             Self::PsqlStrictOption(it) => it.syntax,
             Self::PsqlVolatilityOption(it) => it.syntax,
@@ -12051,6 +12188,7 @@ impl std::fmt::Debug for AnyPsqlFunctionOption {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PsqlLanguageOption(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlReturnsNullOption(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSecurityOption(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlStrictOption(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlVolatilityOption(it) => std::fmt::Debug::fmt(it, f),
@@ -12061,6 +12199,7 @@ impl From<AnyPsqlFunctionOption> for SyntaxNode {
     fn from(n: AnyPsqlFunctionOption) -> Self {
         match n {
             AnyPsqlFunctionOption::PsqlLanguageOption(it) => it.into(),
+            AnyPsqlFunctionOption::PsqlReturnsNullOption(it) => it.into(),
             AnyPsqlFunctionOption::PsqlSecurityOption(it) => it.into(),
             AnyPsqlFunctionOption::PsqlStrictOption(it) => it.into(),
             AnyPsqlFunctionOption::PsqlVolatilityOption(it) => it.into(),
@@ -13263,6 +13402,11 @@ impl std::fmt::Display for PsqlReturningClause {
     }
 }
 impl std::fmt::Display for PsqlReturnsClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlReturnsNullOption {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

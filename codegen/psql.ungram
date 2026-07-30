@@ -422,6 +422,18 @@ AnyPsqlFunctionOption =
    | PsqlVolatilityOption
    | PsqlSecurityOption
    | PsqlStrictOption
+   | PsqlReturnsNullOption
+
+// `RETURNS NULL ON NULL INPUT` -- a synonym for `STRICT`. The two `'null'`s
+// need distinct labels -- otherwise codegen gives both the same accessor
+// name and the generated struct doesn't compile (duplicate field), the
+// same issue `PsqlTildeArraySuffix`'s two `~`s already ran into.
+PsqlReturnsNullOption =
+   'returns'
+   first_null: 'null'
+   'on'
+   second_null: 'null'
+   'input'
 
 PsqlVolatilityOption =
    value: ('immutable' | 'stable' | 'volatile')

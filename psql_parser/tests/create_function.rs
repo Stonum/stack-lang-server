@@ -290,6 +290,36 @@ fn test_create_function_strict() {
 }
 
 #[test]
+fn test_create_function_returns_null_on_null_input_trailing() {
+    let res = parse(
+        "create function foo() returns text as 'select 1' returns null on null input;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_returns_null_on_null_input_leading() {
+    let res = parse(
+        "create function foo() returns text returns null on null input as 'select 1';",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_returns_null_on_null_input_with_other_options() {
+    let res = parse(
+        "create function foo() returns text returns null on null input language plpgsql as 'select 1';",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_function_leading_options_before_as() {
     let res = parse(
         "create function foo() language plpgsql stable as 'select 1';",

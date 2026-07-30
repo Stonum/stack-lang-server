@@ -9,6 +9,7 @@ impl FormatRule<AnyPsqlFunctionOption> for FormatAnyPsqlFunctionOption {
     fn fmt(&self, node: &AnyPsqlFunctionOption, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
             AnyPsqlFunctionOption::PsqlLanguageOption(node) => node.format().fmt(f),
+            AnyPsqlFunctionOption::PsqlReturnsNullOption(node) => node.format().fmt(f),
             AnyPsqlFunctionOption::PsqlSecurityOption(node) => node.format().fmt(f),
             AnyPsqlFunctionOption::PsqlStrictOption(node) => node.format().fmt(f),
             AnyPsqlFunctionOption::PsqlVolatilityOption(node) => node.format().fmt(f),

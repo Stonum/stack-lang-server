@@ -111,6 +111,10 @@ fn is_at_function_option(p: &mut PsqlParser) -> bool {
         || p.at(T![volatile])
         || p.at(T![security])
         || p.at(T![strict])
+        // The primary `RETURNS <type>` clause is always parsed separately,
+        // before the option list is ever reached, so a `returns` seen here
+        // can only be the start of `RETURNS NULL ON NULL INPUT`.
+        || p.at(T![returns])
 }
 
 fn parse_function_option(p: &mut PsqlParser) -> ParsedSyntax {
@@ -119,8 +123,20 @@ fn parse_function_option(p: &mut PsqlParser) -> ParsedSyntax {
         T![immutable] | T![stable] | T![volatile] => parse_volatility_option(p),
         T![security] => parse_security_option(p),
         T![strict] => parse_strict_option(p),
+        T![returns] => parse_returns_null_option(p),
         _ => Absent,
     }
+}
+
+/// `RETURNS NULL ON NULL INPUT` -- a synonym for `STRICT`.
+fn parse_returns_null_option(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![returns]);
+    p.expect(T![null]);
+    p.expect(T![on]);
+    p.expect(T![null]);
+    p.expect(T![input]);
+    Present(m.complete(p, PSQL_RETURNS_NULL_OPTION))
 }
 
 fn parse_volatility_option(p: &mut PsqlParser) -> ParsedSyntax {
