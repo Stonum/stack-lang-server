@@ -110,6 +110,8 @@ AnyPsqlStatement =
    | PsqlDropViewStatement
    | PsqlCreatePolicyStatement
    | PsqlDropPolicyStatement
+   | PsqlCreateTriggerStatement
+   | PsqlDropTriggerStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -538,6 +540,64 @@ PsqlDropPolicyStatement =
    name: PsqlName
    'on'
    table: PsqlTableName
+   ';'?
+
+// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
+// [REFERENCING ...] [FOR EACH ROW|STATEMENT] EXECUTE FUNCTION|PROCEDURE
+// name(args) [;]` -- the trigger *function* itself is a separate
+// `CREATE FUNCTION ... RETURNS TRIGGER`; this is just the attachment.
+PsqlCreateTriggerStatement =
+   'create'
+   'trigger'
+   name: AnyPsqlName
+   timing: ('before' | 'after')
+   events: PsqlTriggerEventList
+   'on'
+   table: PsqlTableName
+   referencing_clause: PsqlTriggerReferencingClause?
+   for_each_clause: PsqlTriggerForEachClause?
+   'execute'
+   function_kind: ('function' | 'procedure')
+   function: PsqlCallExpression
+   ';'?
+
+PsqlTriggerEventList = PsqlTriggerEvent*
+
+// The leading `'or'?` is only present on every event after the first (the
+// same "each element owns its own separator" shape as `PsqlSetOperation`).
+PsqlTriggerEvent =
+   'or'?
+   kind: ('insert' | 'update' | 'delete')
+
+// `REFERENCING OLD TABLE AS old_name NEW TABLE AS new_name` (either or both,
+// in either order) -- names the transition tables for statement-level
+// triggers.
+PsqlTriggerReferencingClause =
+   'referencing'
+   items: PsqlTriggerReferencingItemList
+
+PsqlTriggerReferencingItemList = PsqlTriggerReferencingItem*
+
+PsqlTriggerReferencingItem =
+   which: ('old' | 'new')
+   'table'
+   'as'
+   name: PsqlName
+
+PsqlTriggerForEachClause =
+   'for'
+   'each'
+   granularity: ('row' | 'statement')
+
+// `DROP TRIGGER [IF EXISTS] name ON table [CASCADE|RESTRICT] [;]`
+PsqlDropTriggerStatement =
+   'drop'
+   'trigger'
+   ('if' 'exists')?
+   name: AnyPsqlName
+   'on'
+   table: PsqlTableName
+   drop_behavior: ('cascade' | 'restrict')?
    ';'?
 
 PsqlLanguageOption =

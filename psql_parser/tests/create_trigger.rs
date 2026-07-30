@@ -1,0 +1,215 @@
+#[macro_use]
+mod helper;
+
+use psql_parser::parse;
+use psql_syntax::{PsqlDialect, PsqlFileSource};
+
+fn mlang() -> PsqlFileSource {
+    PsqlFileSource::script().with_dialect(PsqlDialect::Mlang)
+}
+
+#[test]
+fn test_create_trigger_after_insert() {
+    let res = parse(
+        "create trigger t after insert on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_before_update() {
+    let res = parse(
+        "create trigger t before update on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_multiple_events() {
+    let res = parse(
+        "create trigger t after insert or update or delete on foo for each row execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_execute_procedure() {
+    let res = parse(
+        "create trigger t after insert on foo for each row execute procedure f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_function_with_arguments() {
+    let res = parse(
+        "create trigger t after insert on foo for each row execute function f('a', 'b')",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_for_each_statement() {
+    let res = parse(
+        "create trigger t after delete on foo for each statement execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_no_for_each_clause() {
+    let res = parse(
+        "create trigger t after insert on foo execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_referencing_old_table() {
+    let res = parse(
+        "create trigger t after delete on foo referencing old table as deleted for each statement execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_referencing_new_table() {
+    let res = parse(
+        "create trigger t after insert on foo referencing new table as inserted for each statement execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_referencing_both_tables() {
+    let res = parse(
+        "create trigger t after update on foo referencing new table as inserted old table as deleted for each statement execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_referencing_without_for_each() {
+    let res = parse(
+        "create trigger t after update on foo referencing old table as deleted new table as inserted execute function f()",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_quoted_name() {
+    let res = parse(
+        r#"create trigger "MyTrigger" after insert on foo for each row execute function f();"#,
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_followed_by_another_statement() {
+    let res = parse(
+        "create trigger t after insert on foo execute function f(); select a from foo;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_tilde_names_in_mlang_dialect() {
+    let res = parse(
+        "create trigger t after insert on ~foo~ for each row execute function ~$f~()",
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_drop_trigger_bare() {
+    let res = parse("drop trigger t on foo", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_drop_trigger_if_exists() {
+    let res = parse("drop trigger if exists t on foo;", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_drop_trigger_cascade() {
+    let res = parse(
+        "drop trigger if exists t on foo cascade;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_drop_trigger_quoted_name() {
+    let res = parse(
+        r#"drop trigger if exists "MyTrigger" on foo;"#,
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_drop_trigger_tilde_name_in_mlang_dialect() {
+    let res = parse("drop trigger if exists t on ~foo~;", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_and_drop_trigger_do_not_shadow_policy_view() {
+    let res = parse(
+        "drop policy if exists p on foo; drop trigger if exists t on foo; create policy p on foo for all; create trigger t after insert on foo execute function f();",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_realistic_trigger_attachment_shape() {
+    // Representative of a real trigger attachment: multiple events,
+    // `FOR EACH ROW`, `EXECUTE FUNCTION` with a tilde-qualified function.
+    let res = parse(
+        r#"drop trigger if exists "t_change_trig" on ~business_process~;
+create trigger "t_change_trig" after insert or update or delete
+on ~business_process~ for each row
+execute function ~$business_process_log~();"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+}

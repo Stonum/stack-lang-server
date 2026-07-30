@@ -93,6 +93,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCreateTableStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CREATE_TRIGGER_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreateTriggerStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_CREATE_VIEW_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlCreateViewStatement::new_unchecked(node) };
                     $body
@@ -137,6 +142,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_DROP_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlDropTableStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_DROP_TRIGGER_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDropTriggerStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_DROP_VIEW_STATEMENT => {
@@ -363,6 +372,24 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTildeName::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_EVENT => {
+                    let $pattern = unsafe { $crate::PsqlTriggerEvent::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_FOR_EACH_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlTriggerForEachClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_REFERENCING_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerReferencingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerReferencingItem::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENTS => {
                     let $pattern = unsafe { $crate::PsqlTypeArguments::new_unchecked(node) };
                     $body
@@ -514,6 +541,15 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_TABLE_NAME_LIST => {
                     let $pattern = unsafe { $crate::PsqlTableNameList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_EVENT_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTriggerEventList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerReferencingItemList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_ARGUMENT_LIST => {

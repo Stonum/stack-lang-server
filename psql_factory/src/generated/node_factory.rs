@@ -517,6 +517,89 @@ impl PsqlCreateTableStatementBuilder {
         ))
     }
 }
+pub fn psql_create_trigger_statement(
+    create_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnyPsqlName,
+    timing_token: SyntaxToken,
+    events: PsqlTriggerEventList,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+    execute_token: SyntaxToken,
+    function_kind_token: SyntaxToken,
+    function: PsqlCallExpression,
+) -> PsqlCreateTriggerStatementBuilder {
+    PsqlCreateTriggerStatementBuilder {
+        create_token,
+        trigger_token,
+        name,
+        timing_token,
+        events,
+        on_token,
+        table,
+        execute_token,
+        function_kind_token,
+        function,
+        referencing_clause: None,
+        for_each_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateTriggerStatementBuilder {
+    create_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnyPsqlName,
+    timing_token: SyntaxToken,
+    events: PsqlTriggerEventList,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+    execute_token: SyntaxToken,
+    function_kind_token: SyntaxToken,
+    function: PsqlCallExpression,
+    referencing_clause: Option<PsqlTriggerReferencingClause>,
+    for_each_clause: Option<PsqlTriggerForEachClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateTriggerStatementBuilder {
+    pub fn with_referencing_clause(
+        mut self,
+        referencing_clause: PsqlTriggerReferencingClause,
+    ) -> Self {
+        self.referencing_clause = Some(referencing_clause);
+        self
+    }
+    pub fn with_for_each_clause(mut self, for_each_clause: PsqlTriggerForEachClause) -> Self {
+        self.for_each_clause = Some(for_each_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateTriggerStatement {
+        PsqlCreateTriggerStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CREATE_TRIGGER_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.trigger_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.timing_token)),
+                Some(SyntaxElement::Node(self.events.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.referencing_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.for_each_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.execute_token)),
+                Some(SyntaxElement::Token(self.function_kind_token)),
+                Some(SyntaxElement::Node(self.function.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_create_view_statement(
     create_token: SyntaxToken,
     view_token: SyntaxToken,
@@ -952,6 +1035,72 @@ impl PsqlDropTableStatementBuilder {
                 self.if_token.map(|token| SyntaxElement::Token(token)),
                 self.exists_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_drop_trigger_statement(
+    drop_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnyPsqlName,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+) -> PsqlDropTriggerStatementBuilder {
+    PsqlDropTriggerStatementBuilder {
+        drop_token,
+        trigger_token,
+        name,
+        on_token,
+        table,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropTriggerStatementBuilder {
+    drop_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnyPsqlName,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropTriggerStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropTriggerStatement {
+        PsqlDropTriggerStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_DROP_TRIGGER_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.trigger_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
                 self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
                 self.semicolon_token
@@ -2096,6 +2245,73 @@ pub fn psql_tilde_name(value_token: SyntaxToken) -> PsqlTildeName {
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
+pub fn psql_trigger_event(kind_token: SyntaxToken) -> PsqlTriggerEventBuilder {
+    PsqlTriggerEventBuilder {
+        kind_token,
+        or_token: None,
+    }
+}
+pub struct PsqlTriggerEventBuilder {
+    kind_token: SyntaxToken,
+    or_token: Option<SyntaxToken>,
+}
+impl PsqlTriggerEventBuilder {
+    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
+        self.or_token = Some(or_token);
+        self
+    }
+    pub fn build(self) -> PsqlTriggerEvent {
+        PsqlTriggerEvent::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_TRIGGER_EVENT,
+            [
+                self.or_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.kind_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_trigger_for_each_clause(
+    for_token: SyntaxToken,
+    each_token: SyntaxToken,
+    granularity_token: SyntaxToken,
+) -> PsqlTriggerForEachClause {
+    PsqlTriggerForEachClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_FOR_EACH_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Token(each_token)),
+            Some(SyntaxElement::Token(granularity_token)),
+        ],
+    ))
+}
+pub fn psql_trigger_referencing_clause(
+    referencing_token: SyntaxToken,
+    items: PsqlTriggerReferencingItemList,
+) -> PsqlTriggerReferencingClause {
+    PsqlTriggerReferencingClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_REFERENCING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(referencing_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_trigger_referencing_item(
+    which_token: SyntaxToken,
+    table_token: SyntaxToken,
+    as_token: SyntaxToken,
+    name: PsqlName,
+) -> PsqlTriggerReferencingItem {
+    PsqlTriggerReferencingItem::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM,
+        [
+            Some(SyntaxElement::Token(which_token)),
+            Some(SyntaxElement::Token(table_token)),
+            Some(SyntaxElement::Token(as_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_type_arguments(
     l_paren_token: SyntaxToken,
     items: PsqlTypeArgumentList,
@@ -2687,6 +2903,30 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_trigger_event_list<I>(items: I) -> PsqlTriggerEventList
+where
+    I: IntoIterator<Item = PsqlTriggerEvent>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlTriggerEventList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_EVENT_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_trigger_referencing_item_list<I>(items: I) -> PsqlTriggerReferencingItemList
+where
+    I: IntoIterator<Item = PsqlTriggerReferencingItem>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlTriggerReferencingItemList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_type_argument_list<I, S>(items: I, separators: S) -> PsqlTypeArgumentList
