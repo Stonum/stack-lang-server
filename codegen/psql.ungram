@@ -756,7 +756,25 @@ PsqlCastFunctionExpression =
 PsqlTypeName =
    name: ('ident' | 'integer' | 'bigint' | 'varchar' | 'char' | 'text' | 'boolean' | 'date' | 'time' | 'timestamp' | 'interval' | 'numeric' | 'decimal' | 'double' | 'real' | 'json' | 'jsonb' | 'uuid' | 'array' | 'bytea' | 'bit')
    args: PsqlTypeArguments?
+   modifier: AnyPsqlTypeModifier?
    array_suffix: AnyPsqlTypeArraySuffix?
+
+// The handful of multi-word SQL-standard type spellings real scripts use:
+// `character varying`, `bit varying`, `double precision`, `time[/stamp]
+// [(p)] [ WITH | WITHOUT ] TIME ZONE`.
+AnyPsqlTypeModifier =
+   PsqlVaryingModifier
+   | PsqlPrecisionModifier
+   | PsqlTimeZoneModifier
+
+PsqlVaryingModifier = 'varying'
+
+PsqlPrecisionModifier = 'precision'
+
+PsqlTimeZoneModifier =
+   with_or_without: ('with' | 'without')
+   'time'
+   'zone'
 
 PsqlTypeArguments =
    '('

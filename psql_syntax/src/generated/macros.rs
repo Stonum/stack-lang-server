@@ -279,6 +279,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPolicyUsingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_PRECISION_MODIFIER => {
+                    let $pattern = unsafe { $crate::PsqlPrecisionModifier::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_RETURNING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlReturningClause::new_unchecked(node) };
                     $body
@@ -384,6 +388,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTildeName::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_TIME_ZONE_MODIFIER => {
+                    let $pattern = unsafe { $crate::PsqlTimeZoneModifier::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_TRIGGER_EVENT => {
                     let $pattern = unsafe { $crate::PsqlTriggerEvent::new_unchecked(node) };
                     $body
@@ -429,6 +437,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_UPDATE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlUpdateStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_VARYING_MODIFIER => {
+                    let $pattern = unsafe { $crate::PsqlVaryingModifier::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_VIEW_OPTION => {

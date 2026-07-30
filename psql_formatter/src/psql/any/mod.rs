@@ -15,3 +15,4 @@ pub(crate) mod returns_type;
 pub(crate) mod select_item;
 pub(crate) mod statement;
 pub(crate) mod type_array_suffix;
+pub(crate) mod type_modifier;

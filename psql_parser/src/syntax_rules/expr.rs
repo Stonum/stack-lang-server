@@ -364,8 +364,33 @@ pub(crate) fn parse_type_name(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump_any();
     let _ = parse_type_arguments(p);
+    let _ = parse_type_modifier(p);
     let _ = parse_type_array_suffix(p);
     Present(m.complete(p, PSQL_TYPE_NAME))
+}
+
+/// The handful of multi-word SQL-standard type spellings real scripts use:
+/// `character varying`, `bit varying`, `double precision`, `time[stamp]
+/// [WITH|WITHOUT] TIME ZONE`.
+fn parse_type_modifier(p: &mut PsqlParser) -> ParsedSyntax {
+    if p.at(T![varying]) {
+        let m = p.start();
+        p.bump(T![varying]);
+        return Present(m.complete(p, PSQL_VARYING_MODIFIER));
+    }
+    if p.at(T![precision]) {
+        let m = p.start();
+        p.bump(T![precision]);
+        return Present(m.complete(p, PSQL_PRECISION_MODIFIER));
+    }
+    if p.at(T![with]) || p.at(T![without]) {
+        let m = p.start();
+        p.bump_any(); // 'with' | 'without'
+        p.expect(T![time]);
+        p.expect(T![zone]);
+        return Present(m.complete(p, PSQL_TIME_ZONE_MODIFIER));
+    }
+    Absent
 }
 
 fn parse_type_arguments(p: &mut PsqlParser) -> ParsedSyntax {

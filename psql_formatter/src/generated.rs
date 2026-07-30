@@ -2261,6 +2261,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyUsingClause {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlPrecisionModifier>
+    for crate::psql::auxiliary::precision_modifier::FormatPsqlPrecisionModifier
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlPrecisionModifier,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlPrecisionModifier>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlPrecisionModifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlPrecisionModifier,
+        crate::psql::auxiliary::precision_modifier::FormatPsqlPrecisionModifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::precision_modifier::FormatPsqlPrecisionModifier::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlPrecisionModifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlPrecisionModifier,
+        crate::psql::auxiliary::precision_modifier::FormatPsqlPrecisionModifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::precision_modifier::FormatPsqlPrecisionModifier::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlReturningClause>
     for crate::psql::clauses::returning_clause::FormatPsqlReturningClause
 {
@@ -3183,6 +3221,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTildeName {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlTimeZoneModifier>
+    for crate::psql::auxiliary::time_zone_modifier::FormatPsqlTimeZoneModifier
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTimeZoneModifier,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTimeZoneModifier>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTimeZoneModifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTimeZoneModifier,
+        crate::psql::auxiliary::time_zone_modifier::FormatPsqlTimeZoneModifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::time_zone_modifier::FormatPsqlTimeZoneModifier::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTimeZoneModifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTimeZoneModifier,
+        crate::psql::auxiliary::time_zone_modifier::FormatPsqlTimeZoneModifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::time_zone_modifier::FormatPsqlTimeZoneModifier::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlTriggerEvent>
     for crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent
 {
@@ -3574,6 +3650,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlUpdateStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::statements::update_statement::FormatPsqlUpdateStatement::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlVaryingModifier>
+    for crate::psql::auxiliary::varying_modifier::FormatPsqlVaryingModifier
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlVaryingModifier,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlVaryingModifier>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlVaryingModifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlVaryingModifier,
+        crate::psql::auxiliary::varying_modifier::FormatPsqlVaryingModifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::varying_modifier::FormatPsqlVaryingModifier::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlVaryingModifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlVaryingModifier,
+        crate::psql::auxiliary::varying_modifier::FormatPsqlVaryingModifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::varying_modifier::FormatPsqlVaryingModifier::default(),
         )
     }
 }
@@ -5014,6 +5128,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlTypeArraySuffix {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::type_array_suffix::FormatAnyPsqlTypeArraySuffix::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlTypeModifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlTypeModifier,
+        crate::psql::any::type_modifier::FormatAnyPsqlTypeModifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::type_modifier::FormatAnyPsqlTypeModifier::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlTypeModifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlTypeModifier,
+        crate::psql::any::type_modifier::FormatAnyPsqlTypeModifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::type_modifier::FormatAnyPsqlTypeModifier::default(),
         )
     }
 }

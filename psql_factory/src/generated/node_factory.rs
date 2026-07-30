@@ -1795,6 +1795,12 @@ pub fn psql_policy_using_clause(
         ],
     ))
 }
+pub fn psql_precision_modifier(precision_token: SyntaxToken) -> PsqlPrecisionModifier {
+    PsqlPrecisionModifier::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_PRECISION_MODIFIER,
+        [Some(SyntaxElement::Token(precision_token))],
+    ))
+}
 pub fn psql_returning_clause(
     returning_token: SyntaxToken,
     items: PsqlSelectItemList,
@@ -2295,6 +2301,20 @@ pub fn psql_tilde_name(value_token: SyntaxToken) -> PsqlTildeName {
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
+pub fn psql_time_zone_modifier(
+    with_or_without_token: SyntaxToken,
+    time_token: SyntaxToken,
+    zone_token: SyntaxToken,
+) -> PsqlTimeZoneModifier {
+    PsqlTimeZoneModifier::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TIME_ZONE_MODIFIER,
+        [
+            Some(SyntaxElement::Token(with_or_without_token)),
+            Some(SyntaxElement::Token(time_token)),
+            Some(SyntaxElement::Token(zone_token)),
+        ],
+    ))
+}
 pub fn psql_trigger_event(kind_token: SyntaxToken) -> PsqlTriggerEventBuilder {
     PsqlTriggerEventBuilder {
         kind_token,
@@ -2428,17 +2448,23 @@ pub fn psql_type_name(name_token: SyntaxToken) -> PsqlTypeNameBuilder {
     PsqlTypeNameBuilder {
         name_token,
         args: None,
+        modifier: None,
         array_suffix: None,
     }
 }
 pub struct PsqlTypeNameBuilder {
     name_token: SyntaxToken,
     args: Option<PsqlTypeArguments>,
+    modifier: Option<AnyPsqlTypeModifier>,
     array_suffix: Option<AnyPsqlTypeArraySuffix>,
 }
 impl PsqlTypeNameBuilder {
     pub fn with_args(mut self, args: PsqlTypeArguments) -> Self {
         self.args = Some(args);
+        self
+    }
+    pub fn with_modifier(mut self, modifier: AnyPsqlTypeModifier) -> Self {
+        self.modifier = Some(modifier);
         self
     }
     pub fn with_array_suffix(mut self, array_suffix: AnyPsqlTypeArraySuffix) -> Self {
@@ -2451,6 +2477,8 @@ impl PsqlTypeNameBuilder {
             [
                 Some(SyntaxElement::Token(self.name_token)),
                 self.args
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.modifier
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.array_suffix
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
@@ -2529,6 +2557,12 @@ impl PsqlUpdateStatementBuilder {
             ],
         ))
     }
+}
+pub fn psql_varying_modifier(varying_token: SyntaxToken) -> PsqlVaryingModifier {
+    PsqlVaryingModifier::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VARYING_MODIFIER,
+        [Some(SyntaxElement::Token(varying_token))],
+    ))
 }
 pub fn psql_view_option(
     name: PsqlName,

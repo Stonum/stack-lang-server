@@ -1707,6 +1707,14 @@ impl PsqlPolicyUsingClause {
         )
     }
 }
+impl PsqlPrecisionModifier {
+    pub fn with_precision_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+}
 impl PsqlReturningClause {
     pub fn with_returning_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -2203,6 +2211,26 @@ impl PsqlTildeName {
         )
     }
 }
+impl PsqlTimeZoneModifier {
+    pub fn with_with_or_without_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_time_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_zone_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+}
 impl PsqlTriggerEvent {
     pub fn with_or_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
@@ -2370,9 +2398,15 @@ impl PsqlTypeName {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_array_suffix(self, element: Option<AnyPsqlTypeArraySuffix>) -> Self {
+    pub fn with_modifier(self, element: Option<AnyPsqlTypeModifier>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             2usize..=2usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_array_suffix(self, element: Option<AnyPsqlTypeArraySuffix>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            3usize..=3usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
@@ -2432,6 +2466,14 @@ impl PsqlUpdateStatement {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(6usize..=6usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
+impl PsqlVaryingModifier {
+    pub fn with_varying_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
 }

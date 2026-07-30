@@ -3223,6 +3223,41 @@ pub struct PsqlPolicyUsingClauseFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPrecisionModifier {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPrecisionModifier {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPrecisionModifierFields {
+        PsqlPrecisionModifierFields {
+            precision_token: self.precision_token(),
+        }
+    }
+    pub fn precision_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlPrecisionModifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPrecisionModifierFields {
+    pub precision_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlReturningClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4373,6 +4408,51 @@ pub struct PsqlTildeNameFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTimeZoneModifier {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTimeZoneModifier {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTimeZoneModifierFields {
+        PsqlTimeZoneModifierFields {
+            with_or_without: self.with_or_without(),
+            time_token: self.time_token(),
+            zone_token: self.zone_token(),
+        }
+    }
+    pub fn with_or_without(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn time_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn zone_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlTimeZoneModifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTimeZoneModifierFields {
+    pub with_or_without: SyntaxResult<SyntaxToken>,
+    pub time_token: SyntaxResult<SyntaxToken>,
+    pub zone_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTriggerEvent {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4745,6 +4825,7 @@ impl PsqlTypeName {
         PsqlTypeNameFields {
             name: self.name(),
             args: self.args(),
+            modifier: self.modifier(),
             array_suffix: self.array_suffix(),
         }
     }
@@ -4754,8 +4835,11 @@ impl PsqlTypeName {
     pub fn args(&self) -> Option<PsqlTypeArguments> {
         support::node(&self.syntax, 1usize)
     }
-    pub fn array_suffix(&self) -> Option<AnyPsqlTypeArraySuffix> {
+    pub fn modifier(&self) -> Option<AnyPsqlTypeModifier> {
         support::node(&self.syntax, 2usize)
+    }
+    pub fn array_suffix(&self) -> Option<AnyPsqlTypeArraySuffix> {
+        support::node(&self.syntax, 3usize)
     }
 }
 impl Serialize for PsqlTypeName {
@@ -4770,6 +4854,7 @@ impl Serialize for PsqlTypeName {
 pub struct PsqlTypeNameFields {
     pub name: SyntaxResult<SyntaxToken>,
     pub args: Option<PsqlTypeArguments>,
+    pub modifier: Option<AnyPsqlTypeModifier>,
     pub array_suffix: Option<AnyPsqlTypeArraySuffix>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -4876,6 +4961,41 @@ pub struct PsqlUpdateStatementFields {
     pub where_clause: Option<PsqlWhereClause>,
     pub returning_clause: Option<PsqlReturningClause>,
     pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlVaryingModifier {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlVaryingModifier {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlVaryingModifierFields {
+        PsqlVaryingModifierFields {
+            varying_token: self.varying_token(),
+        }
+    }
+    pub fn varying_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlVaryingModifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlVaryingModifierFields {
+    pub varying_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlViewOption {
@@ -5809,6 +5929,32 @@ impl AnyPsqlTypeArraySuffix {
     pub fn as_psql_type_array_suffix(&self) -> Option<&PsqlTypeArraySuffix> {
         match &self {
             Self::PsqlTypeArraySuffix(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlTypeModifier {
+    PsqlPrecisionModifier(PsqlPrecisionModifier),
+    PsqlTimeZoneModifier(PsqlTimeZoneModifier),
+    PsqlVaryingModifier(PsqlVaryingModifier),
+}
+impl AnyPsqlTypeModifier {
+    pub fn as_psql_precision_modifier(&self) -> Option<&PsqlPrecisionModifier> {
+        match &self {
+            Self::PsqlPrecisionModifier(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_time_zone_modifier(&self) -> Option<&PsqlTimeZoneModifier> {
+        match &self {
+            Self::PsqlTimeZoneModifier(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_varying_modifier(&self) -> Option<&PsqlVaryingModifier> {
+        match &self {
+            Self::PsqlVaryingModifier(item) => Some(item),
             _ => None,
         }
     }
@@ -9322,6 +9468,56 @@ impl From<PsqlPolicyUsingClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlPrecisionModifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PRECISION_MODIFIER as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PRECISION_MODIFIER
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPrecisionModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPrecisionModifier")
+                .field(
+                    "precision_token",
+                    &support::DebugSyntaxResult(self.precision_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPrecisionModifier").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPrecisionModifier> for SyntaxNode {
+    fn from(n: PsqlPrecisionModifier) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPrecisionModifier> for SyntaxElement {
+    fn from(n: PsqlPrecisionModifier) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlReturningClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -10718,6 +10914,58 @@ impl From<PsqlTildeName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTimeZoneModifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TIME_ZONE_MODIFIER as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TIME_ZONE_MODIFIER
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTimeZoneModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTimeZoneModifier")
+                .field(
+                    "with_or_without",
+                    &support::DebugSyntaxResult(self.with_or_without()),
+                )
+                .field("time_token", &support::DebugSyntaxResult(self.time_token()))
+                .field("zone_token", &support::DebugSyntaxResult(self.zone_token()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlTimeZoneModifier").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTimeZoneModifier> for SyntaxNode {
+    fn from(n: PsqlTimeZoneModifier) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTimeZoneModifier> for SyntaxElement {
+    fn from(n: PsqlTimeZoneModifier) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlTriggerEvent {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11172,6 +11420,7 @@ impl std::fmt::Debug for PsqlTypeName {
             f.debug_struct("PsqlTypeName")
                 .field("name", &support::DebugSyntaxResult(self.name()))
                 .field("args", &support::DebugOptionalElement(self.args()))
+                .field("modifier", &support::DebugOptionalElement(self.modifier()))
                 .field(
                     "array_suffix",
                     &support::DebugOptionalElement(self.array_suffix()),
@@ -11310,6 +11559,56 @@ impl From<PsqlUpdateStatement> for SyntaxNode {
 }
 impl From<PsqlUpdateStatement> for SyntaxElement {
     fn from(n: PsqlUpdateStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlVaryingModifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_VARYING_MODIFIER as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_VARYING_MODIFIER
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlVaryingModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlVaryingModifier")
+                .field(
+                    "varying_token",
+                    &support::DebugSyntaxResult(self.varying_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlVaryingModifier").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlVaryingModifier> for SyntaxNode {
+    fn from(n: PsqlVaryingModifier) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlVaryingModifier> for SyntaxElement {
+    fn from(n: PsqlVaryingModifier) -> Self {
         n.syntax.into()
     }
 }
@@ -13238,6 +13537,82 @@ impl From<AnyPsqlTypeArraySuffix> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlPrecisionModifier> for AnyPsqlTypeModifier {
+    fn from(node: PsqlPrecisionModifier) -> Self {
+        Self::PsqlPrecisionModifier(node)
+    }
+}
+impl From<PsqlTimeZoneModifier> for AnyPsqlTypeModifier {
+    fn from(node: PsqlTimeZoneModifier) -> Self {
+        Self::PsqlTimeZoneModifier(node)
+    }
+}
+impl From<PsqlVaryingModifier> for AnyPsqlTypeModifier {
+    fn from(node: PsqlVaryingModifier) -> Self {
+        Self::PsqlVaryingModifier(node)
+    }
+}
+impl AstNode for AnyPsqlTypeModifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = PsqlPrecisionModifier::KIND_SET
+        .union(PsqlTimeZoneModifier::KIND_SET)
+        .union(PsqlVaryingModifier::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_PRECISION_MODIFIER | PSQL_TIME_ZONE_MODIFIER | PSQL_VARYING_MODIFIER
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_PRECISION_MODIFIER => {
+                Self::PsqlPrecisionModifier(PsqlPrecisionModifier { syntax })
+            }
+            PSQL_TIME_ZONE_MODIFIER => Self::PsqlTimeZoneModifier(PsqlTimeZoneModifier { syntax }),
+            PSQL_VARYING_MODIFIER => Self::PsqlVaryingModifier(PsqlVaryingModifier { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlPrecisionModifier(it) => &it.syntax,
+            Self::PsqlTimeZoneModifier(it) => &it.syntax,
+            Self::PsqlVaryingModifier(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlPrecisionModifier(it) => it.syntax,
+            Self::PsqlTimeZoneModifier(it) => it.syntax,
+            Self::PsqlVaryingModifier(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlTypeModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlPrecisionModifier(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTimeZoneModifier(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlVaryingModifier(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlTypeModifier> for SyntaxNode {
+    fn from(n: AnyPsqlTypeModifier) -> Self {
+        match n {
+            AnyPsqlTypeModifier::PsqlPrecisionModifier(it) => it.into(),
+            AnyPsqlTypeModifier::PsqlTimeZoneModifier(it) => it.into(),
+            AnyPsqlTypeModifier::PsqlVaryingModifier(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlTypeModifier> for SyntaxElement {
+    fn from(n: AnyPsqlTypeModifier) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl std::fmt::Display for AnyPsqlAnyAllSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -13309,6 +13684,11 @@ impl std::fmt::Display for AnyPsqlStatement {
     }
 }
 impl std::fmt::Display for AnyPsqlTypeArraySuffix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnyPsqlTypeModifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -13628,6 +14008,11 @@ impl std::fmt::Display for PsqlPolicyUsingClause {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlPrecisionModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlReturningClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -13758,6 +14143,11 @@ impl std::fmt::Display for PsqlTildeName {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlTimeZoneModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlTriggerEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -13809,6 +14199,11 @@ impl std::fmt::Display for PsqlUnaryExpression {
     }
 }
 impl std::fmt::Display for PsqlUpdateStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlVaryingModifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
