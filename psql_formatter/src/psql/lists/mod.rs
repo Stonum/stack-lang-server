@@ -19,4 +19,5 @@ pub(crate) mod statement_list;
 pub(crate) mod table_name_list;
 pub(crate) mod type_argument_list;
 pub(crate) mod type_name_list;
+pub(crate) mod view_option_list;
 pub(crate) mod window_partition_by_item_list;

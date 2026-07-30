@@ -106,6 +106,8 @@ AnyPsqlStatement =
    | PsqlDropTableStatement
    | PsqlCreateTableStatement
    | PsqlCreateFunctionStatement
+   | PsqlCreateViewStatement
+   | PsqlDropViewStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -466,6 +468,41 @@ PsqlReturnsTableColumnList = (PsqlReturnsTableColumn (',' PsqlReturnsTableColumn
 PsqlReturnsTableColumn =
    name: PsqlName
    type: PsqlTypeName
+
+// `CREATE [OR REPLACE] VIEW name [WITH (opt=val, ...)] AS <select>` -- the
+// view body is an ordinary `SELECT` statement, already fully supported;
+// only the thin wrapper is new here.
+PsqlCreateViewStatement =
+   'create'
+   ('or' 'replace')?
+   'view'
+   name: PsqlTableName
+   options: PsqlViewOptions?
+   'as'
+   query: PsqlSelectStatement
+   ';'?
+
+PsqlViewOptions =
+   'with'
+   '('
+   items: PsqlViewOptionList
+   ')'
+
+PsqlViewOptionList = (PsqlViewOption (',' PsqlViewOption)*)
+
+PsqlViewOption =
+   name: PsqlName
+   '='
+   value: AnyPsqlExpression
+
+// `DROP VIEW [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
+PsqlDropViewStatement =
+   'drop'
+   'view'
+   ('if' 'exists')?
+   views: PsqlTableNameList
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
 
 PsqlLanguageOption =
    'language'

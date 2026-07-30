@@ -457,6 +457,72 @@ impl PsqlCreateTableStatementBuilder {
         ))
     }
 }
+pub fn psql_create_view_statement(
+    create_token: SyntaxToken,
+    view_token: SyntaxToken,
+    name: PsqlTableName,
+    as_token: SyntaxToken,
+    query: PsqlSelectStatement,
+) -> PsqlCreateViewStatementBuilder {
+    PsqlCreateViewStatementBuilder {
+        create_token,
+        view_token,
+        name,
+        as_token,
+        query,
+        or_token: None,
+        replace_token: None,
+        options: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateViewStatementBuilder {
+    create_token: SyntaxToken,
+    view_token: SyntaxToken,
+    name: PsqlTableName,
+    as_token: SyntaxToken,
+    query: PsqlSelectStatement,
+    or_token: Option<SyntaxToken>,
+    replace_token: Option<SyntaxToken>,
+    options: Option<PsqlViewOptions>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateViewStatementBuilder {
+    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
+        self.or_token = Some(or_token);
+        self
+    }
+    pub fn with_replace_token(mut self, replace_token: SyntaxToken) -> Self {
+        self.replace_token = Some(replace_token);
+        self
+    }
+    pub fn with_options(mut self, options: PsqlViewOptions) -> Self {
+        self.options = Some(options);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateViewStatement {
+        PsqlCreateViewStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CREATE_VIEW_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                self.or_token.map(|token| SyntaxElement::Token(token)),
+                self.replace_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.view_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.options
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.as_token)),
+                Some(SyntaxElement::Node(self.query.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_cte_definition(
     name: PsqlName,
     as_token: SyntaxToken,
@@ -768,6 +834,64 @@ impl PsqlDropTableStatementBuilder {
                 self.if_token.map(|token| SyntaxElement::Token(token)),
                 self.exists_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_drop_view_statement(
+    drop_token: SyntaxToken,
+    view_token: SyntaxToken,
+    views: PsqlTableNameList,
+) -> PsqlDropViewStatementBuilder {
+    PsqlDropViewStatementBuilder {
+        drop_token,
+        view_token,
+        views,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropViewStatementBuilder {
+    drop_token: SyntaxToken,
+    view_token: SyntaxToken,
+    views: PsqlTableNameList,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropViewStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropViewStatement {
+        PsqlDropViewStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_DROP_VIEW_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.view_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.views.into_syntax())),
                 self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
                 self.semicolon_token
@@ -1958,6 +2082,36 @@ impl PsqlUpdateStatementBuilder {
         ))
     }
 }
+pub fn psql_view_option(
+    name: PsqlName,
+    eq_token: SyntaxToken,
+    value: AnyPsqlExpression,
+) -> PsqlViewOption {
+    PsqlViewOption::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VIEW_OPTION,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Token(eq_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_view_options(
+    with_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: PsqlViewOptionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlViewOptions {
+    PsqlViewOptions::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VIEW_OPTIONS,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_volatility_option(value_token: SyntaxToken) -> PsqlVolatilityOption {
     PsqlVolatilityOption::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_VOLATILITY_OPTION,
@@ -2422,6 +2576,27 @@ where
     let length = items.len() + separators.len();
     PsqlTypeNameList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_TYPE_NAME_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_view_option_list<I, S>(items: I, separators: S) -> PsqlViewOptionList
+where
+    I: IntoIterator<Item = PsqlViewOption>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlViewOptionList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VIEW_OPTION_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

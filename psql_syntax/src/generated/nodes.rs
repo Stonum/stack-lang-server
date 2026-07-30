@@ -903,6 +903,81 @@ pub struct PsqlCreateTableStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCreateViewStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCreateViewStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCreateViewStatementFields {
+        PsqlCreateViewStatementFields {
+            create_token: self.create_token(),
+            or_token: self.or_token(),
+            replace_token: self.replace_token(),
+            view_token: self.view_token(),
+            name: self.name(),
+            options: self.options(),
+            as_token: self.as_token(),
+            query: self.query(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn create_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn or_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn replace_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn view_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlTableName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn options(&self) -> Option<PsqlViewOptions> {
+        support::node(&self.syntax, 5usize)
+    }
+    pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 6usize)
+    }
+    pub fn query(&self) -> SyntaxResult<PsqlSelectStatement> {
+        support::required_node(&self.syntax, 7usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 8usize)
+    }
+}
+impl Serialize for PsqlCreateViewStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCreateViewStatementFields {
+    pub create_token: SyntaxResult<SyntaxToken>,
+    pub or_token: Option<SyntaxToken>,
+    pub replace_token: Option<SyntaxToken>,
+    pub view_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<PsqlTableName>,
+    pub options: Option<PsqlViewOptions>,
+    pub as_token: SyntaxResult<SyntaxToken>,
+    pub query: SyntaxResult<PsqlSelectStatement>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCteDefinition {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1379,6 +1454,71 @@ pub struct PsqlDropTableStatementFields {
     pub if_token: Option<SyntaxToken>,
     pub exists_token: Option<SyntaxToken>,
     pub tables: PsqlTableNameList,
+    pub drop_behavior: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlDropViewStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlDropViewStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlDropViewStatementFields {
+        PsqlDropViewStatementFields {
+            drop_token: self.drop_token(),
+            view_token: self.view_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            views: self.views(),
+            drop_behavior: self.drop_behavior(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn drop_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn view_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn views(&self) -> PsqlTableNameList {
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 6usize)
+    }
+}
+impl Serialize for PsqlDropViewStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlDropViewStatementFields {
+    pub drop_token: SyntaxResult<SyntaxToken>,
+    pub view_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub views: PsqlTableNameList,
     pub drop_behavior: Option<SyntaxToken>,
     pub semicolon_token: Option<SyntaxToken>,
 }
@@ -3928,6 +4068,101 @@ pub struct PsqlUpdateStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlViewOption {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlViewOption {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlViewOptionFields {
+        PsqlViewOptionFields {
+            name: self.name(),
+            eq_token: self.eq_token(),
+            value: self.value(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn eq_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlViewOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlViewOptionFields {
+    pub name: SyntaxResult<PsqlName>,
+    pub eq_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnyPsqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlViewOptions {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlViewOptions {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlViewOptionsFields {
+        PsqlViewOptionsFields {
+            with_token: self.with_token(),
+            l_paren_token: self.l_paren_token(),
+            items: self.items(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn with_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn items(&self) -> PsqlViewOptionList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlViewOptions {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlViewOptionsFields {
+    pub with_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlViewOptionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlVolatilityOption {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4597,9 +4832,11 @@ pub enum AnyPsqlStatement {
     PsqlBogusStatement(PsqlBogusStatement),
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
     PsqlCreateTableStatement(PsqlCreateTableStatement),
+    PsqlCreateViewStatement(PsqlCreateViewStatement),
     PsqlDeleteStatement(PsqlDeleteStatement),
     PsqlDropFunctionStatement(PsqlDropFunctionStatement),
     PsqlDropTableStatement(PsqlDropTableStatement),
+    PsqlDropViewStatement(PsqlDropViewStatement),
     PsqlEmptyStatement(PsqlEmptyStatement),
     PsqlInsertStatement(PsqlInsertStatement),
     PsqlSelectStatement(PsqlSelectStatement),
@@ -4624,6 +4861,12 @@ impl AnyPsqlStatement {
             _ => None,
         }
     }
+    pub fn as_psql_create_view_statement(&self) -> Option<&PsqlCreateViewStatement> {
+        match &self {
+            Self::PsqlCreateViewStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_psql_delete_statement(&self) -> Option<&PsqlDeleteStatement> {
         match &self {
             Self::PsqlDeleteStatement(item) => Some(item),
@@ -4639,6 +4882,12 @@ impl AnyPsqlStatement {
     pub fn as_psql_drop_table_statement(&self) -> Option<&PsqlDropTableStatement> {
         match &self {
             Self::PsqlDropTableStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_drop_view_statement(&self) -> Option<&PsqlDropViewStatement> {
+        match &self {
+            Self::PsqlDropViewStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -5633,6 +5882,70 @@ impl From<PsqlCreateTableStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlCreateViewStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CREATE_VIEW_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CREATE_VIEW_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCreateViewStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCreateViewStatement")
+                .field(
+                    "create_token",
+                    &support::DebugSyntaxResult(self.create_token()),
+                )
+                .field("or_token", &support::DebugOptionalElement(self.or_token()))
+                .field(
+                    "replace_token",
+                    &support::DebugOptionalElement(self.replace_token()),
+                )
+                .field("view_token", &support::DebugSyntaxResult(self.view_token()))
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("options", &support::DebugOptionalElement(self.options()))
+                .field("as_token", &support::DebugSyntaxResult(self.as_token()))
+                .field("query", &support::DebugSyntaxResult(self.query()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCreateViewStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCreateViewStatement> for SyntaxNode {
+    fn from(n: PsqlCreateViewStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCreateViewStatement> for SyntaxElement {
+    fn from(n: PsqlCreateViewStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlCteDefinition {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -6149,6 +6462,68 @@ impl From<PsqlDropTableStatement> for SyntaxNode {
 }
 impl From<PsqlDropTableStatement> for SyntaxElement {
     fn from(n: PsqlDropTableStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlDropViewStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_DROP_VIEW_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_DROP_VIEW_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlDropViewStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlDropViewStatement")
+                .field("drop_token", &support::DebugSyntaxResult(self.drop_token()))
+                .field("view_token", &support::DebugSyntaxResult(self.view_token()))
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("views", &self.views())
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlDropViewStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlDropViewStatement> for SyntaxNode {
+    fn from(n: PsqlDropViewStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlDropViewStatement> for SyntaxElement {
+    fn from(n: PsqlDropViewStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -9196,6 +9571,111 @@ impl From<PsqlUpdateStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlViewOption {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_VIEW_OPTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_VIEW_OPTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlViewOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlViewOption")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("eq_token", &support::DebugSyntaxResult(self.eq_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlViewOption").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlViewOption> for SyntaxNode {
+    fn from(n: PsqlViewOption) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlViewOption> for SyntaxElement {
+    fn from(n: PsqlViewOption) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlViewOptions {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_VIEW_OPTIONS as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_VIEW_OPTIONS
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlViewOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlViewOptions")
+                .field("with_token", &support::DebugSyntaxResult(self.with_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlViewOptions").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlViewOptions> for SyntaxNode {
+    fn from(n: PsqlViewOptions) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlViewOptions> for SyntaxElement {
+    fn from(n: PsqlViewOptions) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlVolatilityOption {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -10610,6 +11090,11 @@ impl From<PsqlCreateTableStatement> for AnyPsqlStatement {
         Self::PsqlCreateTableStatement(node)
     }
 }
+impl From<PsqlCreateViewStatement> for AnyPsqlStatement {
+    fn from(node: PsqlCreateViewStatement) -> Self {
+        Self::PsqlCreateViewStatement(node)
+    }
+}
 impl From<PsqlDeleteStatement> for AnyPsqlStatement {
     fn from(node: PsqlDeleteStatement) -> Self {
         Self::PsqlDeleteStatement(node)
@@ -10623,6 +11108,11 @@ impl From<PsqlDropFunctionStatement> for AnyPsqlStatement {
 impl From<PsqlDropTableStatement> for AnyPsqlStatement {
     fn from(node: PsqlDropTableStatement) -> Self {
         Self::PsqlDropTableStatement(node)
+    }
+}
+impl From<PsqlDropViewStatement> for AnyPsqlStatement {
+    fn from(node: PsqlDropViewStatement) -> Self {
+        Self::PsqlDropViewStatement(node)
     }
 }
 impl From<PsqlEmptyStatement> for AnyPsqlStatement {
@@ -10650,9 +11140,11 @@ impl AstNode for AnyPsqlStatement {
     const KIND_SET: SyntaxKindSet<Language> = PsqlBogusStatement::KIND_SET
         .union(PsqlCreateFunctionStatement::KIND_SET)
         .union(PsqlCreateTableStatement::KIND_SET)
+        .union(PsqlCreateViewStatement::KIND_SET)
         .union(PsqlDeleteStatement::KIND_SET)
         .union(PsqlDropFunctionStatement::KIND_SET)
         .union(PsqlDropTableStatement::KIND_SET)
+        .union(PsqlDropViewStatement::KIND_SET)
         .union(PsqlEmptyStatement::KIND_SET)
         .union(PsqlInsertStatement::KIND_SET)
         .union(PsqlSelectStatement::KIND_SET)
@@ -10663,9 +11155,11 @@ impl AstNode for AnyPsqlStatement {
             PSQL_BOGUS_STATEMENT
                 | PSQL_CREATE_FUNCTION_STATEMENT
                 | PSQL_CREATE_TABLE_STATEMENT
+                | PSQL_CREATE_VIEW_STATEMENT
                 | PSQL_DELETE_STATEMENT
                 | PSQL_DROP_FUNCTION_STATEMENT
                 | PSQL_DROP_TABLE_STATEMENT
+                | PSQL_DROP_VIEW_STATEMENT
                 | PSQL_EMPTY_STATEMENT
                 | PSQL_INSERT_STATEMENT
                 | PSQL_SELECT_STATEMENT
@@ -10681,12 +11175,18 @@ impl AstNode for AnyPsqlStatement {
             PSQL_CREATE_TABLE_STATEMENT => {
                 Self::PsqlCreateTableStatement(PsqlCreateTableStatement { syntax })
             }
+            PSQL_CREATE_VIEW_STATEMENT => {
+                Self::PsqlCreateViewStatement(PsqlCreateViewStatement { syntax })
+            }
             PSQL_DELETE_STATEMENT => Self::PsqlDeleteStatement(PsqlDeleteStatement { syntax }),
             PSQL_DROP_FUNCTION_STATEMENT => {
                 Self::PsqlDropFunctionStatement(PsqlDropFunctionStatement { syntax })
             }
             PSQL_DROP_TABLE_STATEMENT => {
                 Self::PsqlDropTableStatement(PsqlDropTableStatement { syntax })
+            }
+            PSQL_DROP_VIEW_STATEMENT => {
+                Self::PsqlDropViewStatement(PsqlDropViewStatement { syntax })
             }
             PSQL_EMPTY_STATEMENT => Self::PsqlEmptyStatement(PsqlEmptyStatement { syntax }),
             PSQL_INSERT_STATEMENT => Self::PsqlInsertStatement(PsqlInsertStatement { syntax }),
@@ -10701,9 +11201,11 @@ impl AstNode for AnyPsqlStatement {
             Self::PsqlBogusStatement(it) => &it.syntax,
             Self::PsqlCreateFunctionStatement(it) => &it.syntax,
             Self::PsqlCreateTableStatement(it) => &it.syntax,
+            Self::PsqlCreateViewStatement(it) => &it.syntax,
             Self::PsqlDeleteStatement(it) => &it.syntax,
             Self::PsqlDropFunctionStatement(it) => &it.syntax,
             Self::PsqlDropTableStatement(it) => &it.syntax,
+            Self::PsqlDropViewStatement(it) => &it.syntax,
             Self::PsqlEmptyStatement(it) => &it.syntax,
             Self::PsqlInsertStatement(it) => &it.syntax,
             Self::PsqlSelectStatement(it) => &it.syntax,
@@ -10715,9 +11217,11 @@ impl AstNode for AnyPsqlStatement {
             Self::PsqlBogusStatement(it) => it.syntax,
             Self::PsqlCreateFunctionStatement(it) => it.syntax,
             Self::PsqlCreateTableStatement(it) => it.syntax,
+            Self::PsqlCreateViewStatement(it) => it.syntax,
             Self::PsqlDeleteStatement(it) => it.syntax,
             Self::PsqlDropFunctionStatement(it) => it.syntax,
             Self::PsqlDropTableStatement(it) => it.syntax,
+            Self::PsqlDropViewStatement(it) => it.syntax,
             Self::PsqlEmptyStatement(it) => it.syntax,
             Self::PsqlInsertStatement(it) => it.syntax,
             Self::PsqlSelectStatement(it) => it.syntax,
@@ -10731,9 +11235,11 @@ impl std::fmt::Debug for AnyPsqlStatement {
             Self::PsqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCreateViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDeleteStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropTableStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlDropViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -10747,9 +11253,11 @@ impl From<AnyPsqlStatement> for SyntaxNode {
             AnyPsqlStatement::PsqlBogusStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateFunctionStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateTableStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlCreateViewStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDeleteStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropFunctionStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropTableStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlDropViewStatement(it) => it.into(),
             AnyPsqlStatement::PsqlEmptyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlInsertStatement(it) => it.into(),
             AnyPsqlStatement::PsqlSelectStatement(it) => it.into(),
@@ -10978,6 +11486,11 @@ impl std::fmt::Display for PsqlCreateTableStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlCreateViewStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlCteDefinition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -11019,6 +11532,11 @@ impl std::fmt::Display for PsqlDropFunctionStatement {
     }
 }
 impl std::fmt::Display for PsqlDropTableStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlDropViewStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -11304,6 +11822,16 @@ impl std::fmt::Display for PsqlUnaryExpression {
     }
 }
 impl std::fmt::Display for PsqlUpdateStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlViewOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlViewOptions {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -13285,6 +13813,88 @@ impl IntoIterator for PsqlTypeNameList {
 impl IntoIterator for &PsqlTypeNameList {
     type Item = SyntaxResult<PsqlTypeName>;
     type IntoIter = AstSeparatedListNodesIterator<Language, PsqlTypeName>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlViewOptionList {
+    syntax_list: SyntaxList,
+}
+impl PsqlViewOptionList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlViewOptionList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_VIEW_OPTION_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_VIEW_OPTION_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlViewOptionList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlViewOptionList {
+    type Language = Language;
+    type Node = PsqlViewOption;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlViewOptionList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlViewOptionList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlViewOptionList {
+    type Item = SyntaxResult<PsqlViewOption>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlViewOption>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlViewOptionList {
+    type Item = SyntaxResult<PsqlViewOption>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlViewOption>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

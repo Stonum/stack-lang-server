@@ -9,14 +9,15 @@ use super::expr::{
     parse_type_name,
 };
 use super::parse_error::*;
+use super::select::parse_select_statement;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
 /// Dispatches `CREATE ...` to whichever DDL shape follows -- currently
-/// `CREATE TABLE` and `CREATE FUNCTION`/`CREATE PROCEDURE`. Any other
-/// `CREATE ...` falls through to `Absent`, letting the caller's ordinary
-/// bogus-statement recovery handle it, the same way an unimplemented
-/// statement always has.
+/// `CREATE TABLE`, `CREATE FUNCTION`/`CREATE PROCEDURE`, and `CREATE VIEW`.
+/// Any other `CREATE ...` falls through to `Absent`, letting the caller's
+/// ordinary bogus-statement recovery handle it, the same way an
+/// unimplemented statement always has.
 pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![create]) {
         return Absent;
@@ -25,11 +26,24 @@ pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if p.nth_at(1, T![table]) {
         return parse_create_table_statement(p);
     }
-    if p.nth_at(1, T![function]) || p.nth_at(1, T![procedure]) || p.nth_at(1, T![or]) {
-        return parse_create_function_statement(p);
-    }
 
-    Absent
+    // `FUNCTION`/`PROCEDURE`/`VIEW` can all be preceded by an optional `OR
+    // REPLACE`, so a single fixed-offset `nth_at` isn't enough to tell them
+    // apart -- peek past it (without consuming anything for real) to see
+    // which keyword actually follows.
+    let target = p.lookahead(|p| {
+        p.bump(T![create]);
+        if p.eat(T![or]) {
+            p.eat(T![replace]);
+        }
+        p.cur()
+    });
+
+    match target {
+        T![function] | T![procedure] => parse_create_function_statement(p),
+        T![view] => parse_create_view_statement(p),
+        _ => Absent,
+    }
 }
 
 /// `CREATE [OR REPLACE] FUNCTION|PROCEDURE name(param type, ...) [RETURNS
@@ -342,9 +356,89 @@ fn parse_column_definition(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_COLUMN_DEFINITION))
 }
 
-/// Dispatches `DROP ...` to whichever DDL shape follows -- currently `DROP
-/// TABLE` and `DROP FUNCTION`/`DROP PROCEDURE`, the only two seen in real
-/// client scripts so far.
+/// `CREATE [OR REPLACE] VIEW name [WITH (opt=val, ...)] AS <select> [;]` --
+/// the view body is an ordinary `SELECT` statement, already fully
+/// supported; only the thin wrapper is new here.
+fn parse_create_view_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![create]);
+
+    if p.at(T![or]) {
+        p.bump(T![or]);
+        p.expect(T![replace]);
+    }
+    p.bump(T![view]);
+
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+    let _ = parse_view_options(p);
+
+    p.expect(T![as]);
+    parse_select_statement(p).or_add_diagnostic(p, expected_statement);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_CREATE_VIEW_STATEMENT))
+}
+
+fn parse_view_options(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![with]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![with]);
+    p.expect(T!['(']);
+    PsqlViewOptionList.parse_list(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_VIEW_OPTIONS))
+}
+
+struct PsqlViewOptionList;
+
+impl ParseSeparatedList for PsqlViewOptionList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_VIEW_OPTION_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_view_option(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, token_set![T![')']]),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+fn parse_view_option(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    parse_name(p).unwrap();
+    p.expect(T![=]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_VIEW_OPTION))
+}
+
+/// Dispatches `DROP ...` to whichever DDL shape follows -- `DROP TABLE`,
+/// `DROP VIEW`, and `DROP FUNCTION`/`DROP PROCEDURE`.
 pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![drop]) {
         return Absent;
@@ -353,8 +447,33 @@ pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if p.nth_at(1, T![table]) {
         return parse_drop_table_statement(p);
     }
+    if p.nth_at(1, T![view]) {
+        return parse_drop_view_statement(p);
+    }
 
     parse_drop_function_statement(p)
+}
+
+/// `DROP VIEW [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
+fn parse_drop_view_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![drop]);
+    p.bump(T![view]);
+
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+
+    PsqlTableNameList.parse_list(p);
+
+    if p.at(T![cascade]) || p.at(T![restrict]) {
+        p.bump_any();
+    }
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_DROP_VIEW_STATEMENT))
 }
 
 /// `DROP TABLE [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
