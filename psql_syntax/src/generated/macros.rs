@@ -84,6 +84,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlCreateFunctionStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CREATE_POLICY_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreatePolicyStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_CREATE_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlCreateTableStatement::new_unchecked(node) };
                     $body
@@ -124,6 +129,10 @@ macro_rules! map_syntax_node {
                 $crate::PsqlSyntaxKind::PSQL_DROP_FUNCTION_STATEMENT => {
                     let $pattern =
                         unsafe { $crate::PsqlDropFunctionStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_DROP_POLICY_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDropPolicyStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_DROP_TABLE_STATEMENT => {
@@ -247,6 +256,14 @@ macro_rules! map_syntax_node {
                 $crate::PsqlSyntaxKind::PSQL_PARENTHESIZED_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::PsqlParenthesizedExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPolicyForClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_POLICY_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPolicyUsingClause::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_RETURNING_CLAUSE => {

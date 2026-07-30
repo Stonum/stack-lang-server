@@ -14,6 +14,8 @@ pub(crate) mod offset_clause;
 pub(crate) mod on_conflict_clause;
 pub(crate) mod on_constraint_clause;
 pub(crate) mod order_by_clause;
+pub(crate) mod policy_for_clause;
+pub(crate) mod policy_using_clause;
 pub(crate) mod returning_clause;
 pub(crate) mod returns_clause;
 pub(crate) mod returns_table_clause;

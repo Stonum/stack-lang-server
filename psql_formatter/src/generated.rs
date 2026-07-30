@@ -574,6 +574,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreateFunctionStatement 
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_function_statement :: FormatPsqlCreateFunctionStatement :: default ())
     }
 }
+impl FormatRule<psql_syntax::PsqlCreatePolicyStatement>
+    for crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlCreatePolicyStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlCreatePolicyStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlCreatePolicyStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlCreatePolicyStatement,
+        crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_policy_statement :: FormatPsqlCreatePolicyStatement :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreatePolicyStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlCreatePolicyStatement,
+        crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_policy_statement :: FormatPsqlCreatePolicyStatement :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlCreateTableStatement>
     for crate::psql::statements::create_table_statement::FormatPsqlCreateTableStatement
 {
@@ -932,6 +964,46 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropFunctionStatement {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_function_statement :: FormatPsqlDropFunctionStatement :: default ())
+    }
+}
+impl FormatRule<psql_syntax::PsqlDropPolicyStatement>
+    for crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlDropPolicyStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlDropPolicyStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlDropPolicyStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlDropPolicyStatement,
+        crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropPolicyStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlDropPolicyStatement,
+        crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement::default(
+            ),
+        )
     }
 }
 impl FormatRule<psql_syntax::PsqlDropTableStatement>
@@ -2009,6 +2081,82 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlParenthesizedExpression 
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: parenthesized_expression :: FormatPsqlParenthesizedExpression :: default ())
+    }
+}
+impl FormatRule<psql_syntax::PsqlPolicyForClause>
+    for crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlPolicyForClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlPolicyForClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyForClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlPolicyForClause,
+        crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyForClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlPolicyForClause,
+        crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlPolicyUsingClause>
+    for crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlPolicyUsingClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlPolicyUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlPolicyUsingClause,
+        crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyUsingClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlPolicyUsingClause,
+        crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause::default(),
+        )
     }
 }
 impl FormatRule<psql_syntax::PsqlReturningClause>

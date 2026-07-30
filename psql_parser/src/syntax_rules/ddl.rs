@@ -14,10 +14,10 @@ use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
 /// Dispatches `CREATE ...` to whichever DDL shape follows -- currently
-/// `CREATE TABLE`, `CREATE FUNCTION`/`CREATE PROCEDURE`, and `CREATE VIEW`.
-/// Any other `CREATE ...` falls through to `Absent`, letting the caller's
-/// ordinary bogus-statement recovery handle it, the same way an
-/// unimplemented statement always has.
+/// `CREATE TABLE`, `CREATE FUNCTION`/`CREATE PROCEDURE`, `CREATE VIEW`, and
+/// `CREATE POLICY`. Any other `CREATE ...` falls through to `Absent`,
+/// letting the caller's ordinary bogus-statement recovery handle it, the
+/// same way an unimplemented statement always has.
 pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![create]) {
         return Absent;
@@ -25,6 +25,9 @@ pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
 
     if p.nth_at(1, T![table]) {
         return parse_create_table_statement(p);
+    }
+    if p.nth_at(1, T![policy]) {
+        return parse_create_policy_statement(p);
     }
 
     // `FUNCTION`/`PROCEDURE`/`VIEW` can all be preceded by an optional `OR
@@ -437,8 +440,63 @@ fn parse_view_option(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_VIEW_OPTION))
 }
 
+/// `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
+/// [USING (condition)] [;]` -- the `USING` condition is an ordinary boolean
+/// expression, already fully supported.
+fn parse_create_policy_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![create]);
+    p.bump(T![policy]);
+
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+
+    p.expect(T![on]);
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+
+    let _ = parse_policy_for_clause(p);
+    let _ = parse_policy_using_clause(p);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_CREATE_POLICY_STATEMENT))
+}
+
+fn parse_policy_for_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![for]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![for]);
+    if p.at(T![all]) || p.at(T![select]) || p.at(T![insert]) || p.at(T![update]) || p.at(T![delete])
+    {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder(
+            "Expected `all`, `select`, `insert`, `update` or `delete` after `for`",
+            range,
+        );
+        p.error(err);
+    }
+    Present(m.complete(p, PSQL_POLICY_FOR_CLAUSE))
+}
+
+fn parse_policy_using_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![using]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![using]);
+    p.expect(T!['(']);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_POLICY_USING_CLAUSE))
+}
+
 /// Dispatches `DROP ...` to whichever DDL shape follows -- `DROP TABLE`,
-/// `DROP VIEW`, and `DROP FUNCTION`/`DROP PROCEDURE`.
+/// `DROP VIEW`, `DROP POLICY`, and `DROP FUNCTION`/`DROP PROCEDURE`.
 pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![drop]) {
         return Absent;
@@ -450,8 +508,32 @@ pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if p.nth_at(1, T![view]) {
         return parse_drop_view_statement(p);
     }
+    if p.nth_at(1, T![policy]) {
+        return parse_drop_policy_statement(p);
+    }
 
     parse_drop_function_statement(p)
+}
+
+/// `DROP POLICY [IF EXISTS] name ON table [;]`
+fn parse_drop_policy_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![drop]);
+    p.bump(T![policy]);
+
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+
+    p.expect(T![on]);
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_DROP_POLICY_STATEMENT))
 }
 
 /// `DROP VIEW [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`

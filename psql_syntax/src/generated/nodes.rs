@@ -823,6 +823,76 @@ pub struct PsqlCreateFunctionStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCreatePolicyStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCreatePolicyStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCreatePolicyStatementFields {
+        PsqlCreatePolicyStatementFields {
+            create_token: self.create_token(),
+            policy_token: self.policy_token(),
+            name: self.name(),
+            on_token: self.on_token(),
+            table: self.table(),
+            for_clause: self.for_clause(),
+            using_clause: self.using_clause(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn create_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn policy_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn table(&self) -> SyntaxResult<PsqlTableName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn for_clause(&self) -> Option<PsqlPolicyForClause> {
+        support::node(&self.syntax, 5usize)
+    }
+    pub fn using_clause(&self) -> Option<PsqlPolicyUsingClause> {
+        support::node(&self.syntax, 6usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for PsqlCreatePolicyStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCreatePolicyStatementFields {
+    pub create_token: SyntaxResult<SyntaxToken>,
+    pub policy_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<PsqlName>,
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub table: SyntaxResult<PsqlTableName>,
+    pub for_clause: Option<PsqlPolicyForClause>,
+    pub using_clause: Option<PsqlPolicyUsingClause>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCreateTableStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1390,6 +1460,76 @@ pub struct PsqlDropFunctionStatementFields {
     pub name: SyntaxResult<AnyPsqlName>,
     pub parameters: Option<PsqlDropFunctionParameters>,
     pub drop_behavior: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlDropPolicyStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlDropPolicyStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlDropPolicyStatementFields {
+        PsqlDropPolicyStatementFields {
+            drop_token: self.drop_token(),
+            policy_token: self.policy_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            on_token: self.on_token(),
+            table: self.table(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn drop_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn policy_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn table(&self) -> SyntaxResult<PsqlTableName> {
+        support::required_node(&self.syntax, 6usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for PsqlDropPolicyStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlDropPolicyStatementFields {
+    pub drop_token: SyntaxResult<SyntaxToken>,
+    pub policy_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<PsqlName>,
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub table: SyntaxResult<PsqlTableName>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -2775,6 +2915,96 @@ impl Serialize for PsqlParenthesizedExpression {
 pub struct PsqlParenthesizedExpressionFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub expression: SyntaxResult<AnyPsqlExpression>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPolicyForClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPolicyForClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPolicyForClauseFields {
+        PsqlPolicyForClauseFields {
+            for_token: self.for_token(),
+            command: self.command(),
+        }
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn command(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPolicyForClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPolicyForClauseFields {
+    pub for_token: SyntaxResult<SyntaxToken>,
+    pub command: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPolicyUsingClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPolicyUsingClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPolicyUsingClauseFields {
+        PsqlPolicyUsingClauseFields {
+            using_token: self.using_token(),
+            l_paren_token: self.l_paren_token(),
+            condition: self.condition(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn using_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlPolicyUsingClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPolicyUsingClauseFields {
+    pub using_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnyPsqlExpression>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -4831,10 +5061,12 @@ impl AnyPsqlSelectItem {
 pub enum AnyPsqlStatement {
     PsqlBogusStatement(PsqlBogusStatement),
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
+    PsqlCreatePolicyStatement(PsqlCreatePolicyStatement),
     PsqlCreateTableStatement(PsqlCreateTableStatement),
     PsqlCreateViewStatement(PsqlCreateViewStatement),
     PsqlDeleteStatement(PsqlDeleteStatement),
     PsqlDropFunctionStatement(PsqlDropFunctionStatement),
+    PsqlDropPolicyStatement(PsqlDropPolicyStatement),
     PsqlDropTableStatement(PsqlDropTableStatement),
     PsqlDropViewStatement(PsqlDropViewStatement),
     PsqlEmptyStatement(PsqlEmptyStatement),
@@ -4852,6 +5084,12 @@ impl AnyPsqlStatement {
     pub fn as_psql_create_function_statement(&self) -> Option<&PsqlCreateFunctionStatement> {
         match &self {
             Self::PsqlCreateFunctionStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_create_policy_statement(&self) -> Option<&PsqlCreatePolicyStatement> {
+        match &self {
+            Self::PsqlCreatePolicyStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -4876,6 +5114,12 @@ impl AnyPsqlStatement {
     pub fn as_psql_drop_function_statement(&self) -> Option<&PsqlDropFunctionStatement> {
         match &self {
             Self::PsqlDropFunctionStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_drop_policy_statement(&self) -> Option<&PsqlDropPolicyStatement> {
+        match &self {
+            Self::PsqlDropPolicyStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -5805,6 +6049,75 @@ impl From<PsqlCreateFunctionStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlCreatePolicyStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CREATE_POLICY_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CREATE_POLICY_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCreatePolicyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCreatePolicyStatement")
+                .field(
+                    "create_token",
+                    &support::DebugSyntaxResult(self.create_token()),
+                )
+                .field(
+                    "policy_token",
+                    &support::DebugSyntaxResult(self.policy_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field(
+                    "for_clause",
+                    &support::DebugOptionalElement(self.for_clause()),
+                )
+                .field(
+                    "using_clause",
+                    &support::DebugOptionalElement(self.using_clause()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCreatePolicyStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCreatePolicyStatement> for SyntaxNode {
+    fn from(n: PsqlCreatePolicyStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCreatePolicyStatement> for SyntaxElement {
+    fn from(n: PsqlCreatePolicyStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlCreateTableStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -6397,6 +6710,69 @@ impl From<PsqlDropFunctionStatement> for SyntaxNode {
 }
 impl From<PsqlDropFunctionStatement> for SyntaxElement {
     fn from(n: PsqlDropFunctionStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlDropPolicyStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_DROP_POLICY_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_DROP_POLICY_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlDropPolicyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlDropPolicyStatement")
+                .field("drop_token", &support::DebugSyntaxResult(self.drop_token()))
+                .field(
+                    "policy_token",
+                    &support::DebugSyntaxResult(self.policy_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlDropPolicyStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlDropPolicyStatement> for SyntaxNode {
+    fn from(n: PsqlDropPolicyStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlDropPolicyStatement> for SyntaxElement {
+    fn from(n: PsqlDropPolicyStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -8006,6 +8382,113 @@ impl From<PsqlParenthesizedExpression> for SyntaxNode {
 }
 impl From<PsqlParenthesizedExpression> for SyntaxElement {
     fn from(n: PsqlParenthesizedExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPolicyForClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_POLICY_FOR_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_POLICY_FOR_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPolicyForClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPolicyForClause")
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field("command", &support::DebugSyntaxResult(self.command()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPolicyForClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPolicyForClause> for SyntaxNode {
+    fn from(n: PsqlPolicyForClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPolicyForClause> for SyntaxElement {
+    fn from(n: PsqlPolicyForClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPolicyUsingClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_POLICY_USING_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_POLICY_USING_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPolicyUsingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPolicyUsingClause")
+                .field(
+                    "using_token",
+                    &support::DebugSyntaxResult(self.using_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPolicyUsingClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPolicyUsingClause> for SyntaxNode {
+    fn from(n: PsqlPolicyUsingClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPolicyUsingClause> for SyntaxElement {
+    fn from(n: PsqlPolicyUsingClause) -> Self {
         n.syntax.into()
     }
 }
@@ -11085,6 +11568,11 @@ impl From<PsqlCreateFunctionStatement> for AnyPsqlStatement {
         Self::PsqlCreateFunctionStatement(node)
     }
 }
+impl From<PsqlCreatePolicyStatement> for AnyPsqlStatement {
+    fn from(node: PsqlCreatePolicyStatement) -> Self {
+        Self::PsqlCreatePolicyStatement(node)
+    }
+}
 impl From<PsqlCreateTableStatement> for AnyPsqlStatement {
     fn from(node: PsqlCreateTableStatement) -> Self {
         Self::PsqlCreateTableStatement(node)
@@ -11103,6 +11591,11 @@ impl From<PsqlDeleteStatement> for AnyPsqlStatement {
 impl From<PsqlDropFunctionStatement> for AnyPsqlStatement {
     fn from(node: PsqlDropFunctionStatement) -> Self {
         Self::PsqlDropFunctionStatement(node)
+    }
+}
+impl From<PsqlDropPolicyStatement> for AnyPsqlStatement {
+    fn from(node: PsqlDropPolicyStatement) -> Self {
+        Self::PsqlDropPolicyStatement(node)
     }
 }
 impl From<PsqlDropTableStatement> for AnyPsqlStatement {
@@ -11139,10 +11632,12 @@ impl AstNode for AnyPsqlStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = PsqlBogusStatement::KIND_SET
         .union(PsqlCreateFunctionStatement::KIND_SET)
+        .union(PsqlCreatePolicyStatement::KIND_SET)
         .union(PsqlCreateTableStatement::KIND_SET)
         .union(PsqlCreateViewStatement::KIND_SET)
         .union(PsqlDeleteStatement::KIND_SET)
         .union(PsqlDropFunctionStatement::KIND_SET)
+        .union(PsqlDropPolicyStatement::KIND_SET)
         .union(PsqlDropTableStatement::KIND_SET)
         .union(PsqlDropViewStatement::KIND_SET)
         .union(PsqlEmptyStatement::KIND_SET)
@@ -11154,10 +11649,12 @@ impl AstNode for AnyPsqlStatement {
             kind,
             PSQL_BOGUS_STATEMENT
                 | PSQL_CREATE_FUNCTION_STATEMENT
+                | PSQL_CREATE_POLICY_STATEMENT
                 | PSQL_CREATE_TABLE_STATEMENT
                 | PSQL_CREATE_VIEW_STATEMENT
                 | PSQL_DELETE_STATEMENT
                 | PSQL_DROP_FUNCTION_STATEMENT
+                | PSQL_DROP_POLICY_STATEMENT
                 | PSQL_DROP_TABLE_STATEMENT
                 | PSQL_DROP_VIEW_STATEMENT
                 | PSQL_EMPTY_STATEMENT
@@ -11172,6 +11669,9 @@ impl AstNode for AnyPsqlStatement {
             PSQL_CREATE_FUNCTION_STATEMENT => {
                 Self::PsqlCreateFunctionStatement(PsqlCreateFunctionStatement { syntax })
             }
+            PSQL_CREATE_POLICY_STATEMENT => {
+                Self::PsqlCreatePolicyStatement(PsqlCreatePolicyStatement { syntax })
+            }
             PSQL_CREATE_TABLE_STATEMENT => {
                 Self::PsqlCreateTableStatement(PsqlCreateTableStatement { syntax })
             }
@@ -11181,6 +11681,9 @@ impl AstNode for AnyPsqlStatement {
             PSQL_DELETE_STATEMENT => Self::PsqlDeleteStatement(PsqlDeleteStatement { syntax }),
             PSQL_DROP_FUNCTION_STATEMENT => {
                 Self::PsqlDropFunctionStatement(PsqlDropFunctionStatement { syntax })
+            }
+            PSQL_DROP_POLICY_STATEMENT => {
+                Self::PsqlDropPolicyStatement(PsqlDropPolicyStatement { syntax })
             }
             PSQL_DROP_TABLE_STATEMENT => {
                 Self::PsqlDropTableStatement(PsqlDropTableStatement { syntax })
@@ -11200,10 +11703,12 @@ impl AstNode for AnyPsqlStatement {
         match self {
             Self::PsqlBogusStatement(it) => &it.syntax,
             Self::PsqlCreateFunctionStatement(it) => &it.syntax,
+            Self::PsqlCreatePolicyStatement(it) => &it.syntax,
             Self::PsqlCreateTableStatement(it) => &it.syntax,
             Self::PsqlCreateViewStatement(it) => &it.syntax,
             Self::PsqlDeleteStatement(it) => &it.syntax,
             Self::PsqlDropFunctionStatement(it) => &it.syntax,
+            Self::PsqlDropPolicyStatement(it) => &it.syntax,
             Self::PsqlDropTableStatement(it) => &it.syntax,
             Self::PsqlDropViewStatement(it) => &it.syntax,
             Self::PsqlEmptyStatement(it) => &it.syntax,
@@ -11216,10 +11721,12 @@ impl AstNode for AnyPsqlStatement {
         match self {
             Self::PsqlBogusStatement(it) => it.syntax,
             Self::PsqlCreateFunctionStatement(it) => it.syntax,
+            Self::PsqlCreatePolicyStatement(it) => it.syntax,
             Self::PsqlCreateTableStatement(it) => it.syntax,
             Self::PsqlCreateViewStatement(it) => it.syntax,
             Self::PsqlDeleteStatement(it) => it.syntax,
             Self::PsqlDropFunctionStatement(it) => it.syntax,
+            Self::PsqlDropPolicyStatement(it) => it.syntax,
             Self::PsqlDropTableStatement(it) => it.syntax,
             Self::PsqlDropViewStatement(it) => it.syntax,
             Self::PsqlEmptyStatement(it) => it.syntax,
@@ -11234,10 +11741,12 @@ impl std::fmt::Debug for AnyPsqlStatement {
         match self {
             Self::PsqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCreatePolicyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDeleteStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlDropPolicyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -11252,10 +11761,12 @@ impl From<AnyPsqlStatement> for SyntaxNode {
         match n {
             AnyPsqlStatement::PsqlBogusStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateFunctionStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlCreatePolicyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateTableStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateViewStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDeleteStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropFunctionStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlDropPolicyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropTableStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropViewStatement(it) => it.into(),
             AnyPsqlStatement::PsqlEmptyStatement(it) => it.into(),
@@ -11481,6 +11992,11 @@ impl std::fmt::Display for PsqlCreateFunctionStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlCreatePolicyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlCreateTableStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -11527,6 +12043,11 @@ impl std::fmt::Display for PsqlDropFunctionParameters {
     }
 }
 impl std::fmt::Display for PsqlDropFunctionStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlDropPolicyStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -11677,6 +12198,16 @@ impl std::fmt::Display for PsqlParameterExpression {
     }
 }
 impl std::fmt::Display for PsqlParenthesizedExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPolicyForClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPolicyUsingClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
