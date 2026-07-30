@@ -20,6 +20,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlAlias::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_ANY_ALL_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlAnyAllExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_ARRAY_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlArrayExpression::new_unchecked(node) };
                     $body

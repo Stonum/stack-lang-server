@@ -230,6 +230,7 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![array] => parse_array_expression(p),
         T![cast] => parse_cast_function_expression(p),
         T![:] => parse_parameter_expression(p),
+        T![any] | T![all] | T![some] => parse_any_all_expression(p),
         _ => Absent,
     };
 
@@ -739,6 +740,22 @@ fn parse_subquery_expression(p: &mut PsqlParser) -> ParsedSyntax {
     parse_with_prefixed_select_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
     Present(m.complete(p, PSQL_SUBQUERY_EXPRESSION))
+}
+
+/// `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --
+/// a quantified comparison, e.g. `x = any(select id from t)` or
+/// `x <> all(array[1, 2])`. [parse_parenthesized_expression] already
+/// dispatches to a subquery vs. a plain parenthesized expression on its
+/// own, so it directly produces the right `AnyPsqlAnyAllSource` variant.
+fn parse_any_all_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![any]) && !p.at(T![all]) && !p.at(T![some]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any(); // 'any' | 'all' | 'some'
+    parse_parenthesized_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_ANY_ALL_EXPRESSION))
 }
 
 /// The source of an `in` predicate: either a parenthesized value list

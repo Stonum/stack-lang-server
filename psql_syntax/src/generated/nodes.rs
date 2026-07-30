@@ -60,6 +60,46 @@ pub struct PsqlAliasFields {
     pub value: SyntaxResult<PsqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlAnyAllExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlAnyAllExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlAnyAllExpressionFields {
+        PsqlAnyAllExpressionFields {
+            quantifier: self.quantifier(),
+            source: self.source(),
+        }
+    }
+    pub fn quantifier(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn source(&self) -> SyntaxResult<AnyPsqlAnyAllSource> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlAnyAllExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlAnyAllExpressionFields {
+    pub quantifier: SyntaxResult<SyntaxToken>,
+    pub source: SyntaxResult<AnyPsqlAnyAllSource>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlArrayExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4993,6 +5033,25 @@ pub struct PsqlWithClauseFields {
     pub ctes: PsqlCteDefinitionList,
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlAnyAllSource {
+    PsqlParenthesizedExpression(PsqlParenthesizedExpression),
+    PsqlSubqueryExpression(PsqlSubqueryExpression),
+}
+impl AnyPsqlAnyAllSource {
+    pub fn as_psql_parenthesized_expression(&self) -> Option<&PsqlParenthesizedExpression> {
+        match &self {
+            Self::PsqlParenthesizedExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_subquery_expression(&self) -> Option<&PsqlSubqueryExpression> {
+        match &self {
+            Self::PsqlSubqueryExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlConflictAction {
     PsqlDoNothingClause(PsqlDoNothingClause),
     PsqlDoUpdateClause(PsqlDoUpdateClause),
@@ -5033,6 +5092,7 @@ impl AnyPsqlConflictTarget {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlExpression {
     AnyPsqlLiteralExpression(AnyPsqlLiteralExpression),
+    PsqlAnyAllExpression(PsqlAnyAllExpression),
     PsqlArrayExpression(PsqlArrayExpression),
     PsqlArraySubscriptExpression(PsqlArraySubscriptExpression),
     PsqlBetweenExpression(PsqlBetweenExpression),
@@ -5059,6 +5119,12 @@ impl AnyPsqlExpression {
     pub fn as_any_psql_literal_expression(&self) -> Option<&AnyPsqlLiteralExpression> {
         match &self {
             Self::AnyPsqlLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_any_all_expression(&self) -> Option<&PsqlAnyAllExpression> {
+        match &self {
+            Self::PsqlAnyAllExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -5583,6 +5649,54 @@ impl From<PsqlAlias> for SyntaxNode {
 }
 impl From<PsqlAlias> for SyntaxElement {
     fn from(n: PsqlAlias) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlAnyAllExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ANY_ALL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ANY_ALL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlAnyAllExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlAnyAllExpression")
+                .field("quantifier", &support::DebugSyntaxResult(self.quantifier()))
+                .field("source", &support::DebugSyntaxResult(self.source()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlAnyAllExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlAnyAllExpression> for SyntaxNode {
+    fn from(n: PsqlAnyAllExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlAnyAllExpression> for SyntaxElement {
+    fn from(n: PsqlAnyAllExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -11181,6 +11295,73 @@ impl From<PsqlWithClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl From<PsqlParenthesizedExpression> for AnyPsqlAnyAllSource {
+    fn from(node: PsqlParenthesizedExpression) -> Self {
+        Self::PsqlParenthesizedExpression(node)
+    }
+}
+impl From<PsqlSubqueryExpression> for AnyPsqlAnyAllSource {
+    fn from(node: PsqlSubqueryExpression) -> Self {
+        Self::PsqlSubqueryExpression(node)
+    }
+}
+impl AstNode for AnyPsqlAnyAllSource {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlParenthesizedExpression::KIND_SET.union(PsqlSubqueryExpression::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_PARENTHESIZED_EXPRESSION | PSQL_SUBQUERY_EXPRESSION
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_PARENTHESIZED_EXPRESSION => {
+                Self::PsqlParenthesizedExpression(PsqlParenthesizedExpression { syntax })
+            }
+            PSQL_SUBQUERY_EXPRESSION => {
+                Self::PsqlSubqueryExpression(PsqlSubqueryExpression { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlParenthesizedExpression(it) => &it.syntax,
+            Self::PsqlSubqueryExpression(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlParenthesizedExpression(it) => it.syntax,
+            Self::PsqlSubqueryExpression(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlAnyAllSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlAnyAllSource> for SyntaxNode {
+    fn from(n: AnyPsqlAnyAllSource) -> Self {
+        match n {
+            AnyPsqlAnyAllSource::PsqlParenthesizedExpression(it) => it.into(),
+            AnyPsqlAnyAllSource::PsqlSubqueryExpression(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlAnyAllSource> for SyntaxElement {
+    fn from(n: AnyPsqlAnyAllSource) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<PsqlDoNothingClause> for AnyPsqlConflictAction {
     fn from(node: PsqlDoNothingClause) -> Self {
         Self::PsqlDoNothingClause(node)
@@ -11303,6 +11484,11 @@ impl From<AnyPsqlConflictTarget> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlAnyAllExpression> for AnyPsqlExpression {
+    fn from(node: PsqlAnyAllExpression) -> Self {
+        Self::PsqlAnyAllExpression(node)
+    }
+}
 impl From<PsqlArrayExpression> for AnyPsqlExpression {
     fn from(node: PsqlArrayExpression) -> Self {
         Self::PsqlArrayExpression(node)
@@ -11411,6 +11597,7 @@ impl From<PsqlWindowFunctionExpression> for AnyPsqlExpression {
 impl AstNode for AnyPsqlExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnyPsqlLiteralExpression::KIND_SET
+        .union(PsqlAnyAllExpression::KIND_SET)
         .union(PsqlArrayExpression::KIND_SET)
         .union(PsqlArraySubscriptExpression::KIND_SET)
         .union(PsqlBetweenExpression::KIND_SET)
@@ -11434,7 +11621,8 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlWindowFunctionExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
-            PSQL_ARRAY_EXPRESSION
+            PSQL_ANY_ALL_EXPRESSION
+            | PSQL_ARRAY_EXPRESSION
             | PSQL_ARRAY_SUBSCRIPT_EXPRESSION
             | PSQL_BETWEEN_EXPRESSION
             | PSQL_BINARY_EXPRESSION
@@ -11461,6 +11649,7 @@ impl AstNode for AnyPsqlExpression {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            PSQL_ANY_ALL_EXPRESSION => Self::PsqlAnyAllExpression(PsqlAnyAllExpression { syntax }),
             PSQL_ARRAY_EXPRESSION => Self::PsqlArrayExpression(PsqlArrayExpression { syntax }),
             PSQL_ARRAY_SUBSCRIPT_EXPRESSION => {
                 Self::PsqlArraySubscriptExpression(PsqlArraySubscriptExpression { syntax })
@@ -11511,6 +11700,7 @@ impl AstNode for AnyPsqlExpression {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::PsqlAnyAllExpression(it) => &it.syntax,
             Self::PsqlArrayExpression(it) => &it.syntax,
             Self::PsqlArraySubscriptExpression(it) => &it.syntax,
             Self::PsqlBetweenExpression(it) => &it.syntax,
@@ -11537,6 +11727,7 @@ impl AstNode for AnyPsqlExpression {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::PsqlAnyAllExpression(it) => it.syntax,
             Self::PsqlArrayExpression(it) => it.syntax,
             Self::PsqlArraySubscriptExpression(it) => it.syntax,
             Self::PsqlBetweenExpression(it) => it.syntax,
@@ -11566,6 +11757,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AnyPsqlLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlAnyAllExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlArraySubscriptExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlBetweenExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -11594,6 +11786,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
     fn from(n: AnyPsqlExpression) -> Self {
         match n {
             AnyPsqlExpression::AnyPsqlLiteralExpression(it) => it.into(),
+            AnyPsqlExpression::PsqlAnyAllExpression(it) => it.into(),
             AnyPsqlExpression::PsqlArrayExpression(it) => it.into(),
             AnyPsqlExpression::PsqlArraySubscriptExpression(it) => it.into(),
             AnyPsqlExpression::PsqlBetweenExpression(it) => it.into(),
@@ -12580,6 +12773,11 @@ impl From<AnyPsqlTypeArraySuffix> for SyntaxElement {
         node.into()
     }
 }
+impl std::fmt::Display for AnyPsqlAnyAllSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlConflictAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12651,6 +12849,11 @@ impl std::fmt::Display for AnyPsqlTypeArraySuffix {
     }
 }
 impl std::fmt::Display for PsqlAlias {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlAnyAllExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

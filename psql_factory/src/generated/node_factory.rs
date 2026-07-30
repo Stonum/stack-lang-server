@@ -32,6 +32,18 @@ impl PsqlAliasBuilder {
         ))
     }
 }
+pub fn psql_any_all_expression(
+    quantifier_token: SyntaxToken,
+    source: AnyPsqlAnyAllSource,
+) -> PsqlAnyAllExpression {
+    PsqlAnyAllExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_ANY_ALL_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(quantifier_token)),
+            Some(SyntaxElement::Node(source.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_array_expression(
     array_token: SyntaxToken,
     l_brack_token: SyntaxToken,

@@ -9,6 +9,7 @@ impl FormatRule<AnyPsqlExpression> for FormatAnyPsqlExpression {
     fn fmt(&self, node: &AnyPsqlExpression, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
             AnyPsqlExpression::AnyPsqlLiteralExpression(node) => node.format().fmt(f),
+            AnyPsqlExpression::PsqlAnyAllExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlArrayExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlArraySubscriptExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlBetweenExpression(node) => node.format().fmt(f),
