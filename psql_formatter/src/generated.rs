@@ -2375,6 +2375,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsNullOption {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlReturnsSetofClause>
+    for crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlReturnsSetofClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlReturnsSetofClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsSetofClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlReturnsSetofClause,
+        crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsSetofClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlReturnsSetofClause,
+        crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlReturnsTableClause>
     for crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause
 {

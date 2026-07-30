@@ -1829,6 +1829,18 @@ pub fn psql_returns_null_option(
         ],
     ))
 }
+pub fn psql_returns_setof_clause(
+    setof_token: SyntaxToken,
+    ty: PsqlTypeName,
+) -> PsqlReturnsSetofClause {
+    PsqlReturnsSetofClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_SETOF_CLAUSE,
+        [
+            Some(SyntaxElement::Token(setof_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_returns_table_clause(
     table_token: SyntaxToken,
     l_paren_token: SyntaxToken,

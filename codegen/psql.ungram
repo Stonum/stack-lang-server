@@ -467,6 +467,13 @@ AnyPsqlReturnsType =
    PsqlTypeName
    | PsqlReturnsTableClause
    | PsqlReturnsTriggerClause
+   | PsqlReturnsSetofClause
+
+// `RETURNS SETOF type` -- a set-returning function's row type, given as a
+// single (usually scalar) type rather than an inline column list.
+PsqlReturnsSetofClause =
+   'setof'
+   type: PsqlTypeName
 
 // `RETURNS TABLE(col type, col type, ...)` -- a set-returning function's
 // result-row shape.

@@ -362,6 +362,36 @@ fn test_create_function_returns_trigger() {
 }
 
 #[test]
+fn test_create_function_returns_setof_scalar() {
+    let res = parse(
+        "create function foo() returns setof int as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_returns_setof_with_trailing_options() {
+    let res = parse(
+        "create function foo() returns setof int language plpgsql stable as 'select 1';",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_returns_setof_named_type() {
+    let res = parse(
+        "create function foo() returns setof mytype as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_realistic_trigger_function_shape() {
     // Representative of a real trigger function: no parameters, `RETURNS
     // TRIGGER`, a body referencing the trigger-context pseudo-tables

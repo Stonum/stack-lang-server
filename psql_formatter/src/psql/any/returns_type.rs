@@ -8,6 +8,7 @@ impl FormatRule<AnyPsqlReturnsType> for FormatAnyPsqlReturnsType {
     type Context = PsqlFormatContext;
     fn fmt(&self, node: &AnyPsqlReturnsType, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
+            AnyPsqlReturnsType::PsqlReturnsSetofClause(node) => node.format().fmt(f),
             AnyPsqlReturnsType::PsqlReturnsTableClause(node) => node.format().fmt(f),
             AnyPsqlReturnsType::PsqlReturnsTriggerClause(node) => node.format().fmt(f),
             AnyPsqlReturnsType::PsqlTypeName(node) => node.format().fmt(f),

@@ -177,6 +177,11 @@ fn parse_returns_clause(p: &mut PsqlParser) -> ParsedSyntax {
         let trigger_clause = p.start();
         p.bump(T![trigger]);
         trigger_clause.complete(p, PSQL_RETURNS_TRIGGER_CLAUSE);
+    } else if p.at(T![setof]) {
+        let setof_clause = p.start();
+        p.bump(T![setof]);
+        parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+        setof_clause.complete(p, PSQL_RETURNS_SETOF_CLAUSE);
     } else {
         parse_type_name(p).or_add_diagnostic(p, expected_type_name);
     }

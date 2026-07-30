@@ -225,6 +225,27 @@ create function foo() returns trigger as 'select 1'
 }
 
 #[test]
+fn format_create_function_returns_setof_scalar() {
+    assert_fmt!(
+        r#"--
+create function foo() returns setof int as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_setof_normalizes_case() {
+    assert_fmt_eq!(
+        r#"--
+create function foo() RETURNS SETOF int as 'select 1'
+"#,
+        r#"--
+create function foo() returns setof int as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_returns_trigger_normalizes_case() {
     assert_fmt_eq!(
         r#"--

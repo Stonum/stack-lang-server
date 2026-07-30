@@ -3353,6 +3353,46 @@ pub struct PsqlReturnsNullOptionFields {
     pub input_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlReturnsSetofClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlReturnsSetofClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlReturnsSetofClauseFields {
+        PsqlReturnsSetofClauseFields {
+            setof_token: self.setof_token(),
+            ty: self.ty(),
+        }
+    }
+    pub fn setof_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn ty(&self) -> SyntaxResult<PsqlTypeName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlReturnsSetofClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlReturnsSetofClauseFields {
+    pub setof_token: SyntaxResult<SyntaxToken>,
+    pub ty: SyntaxResult<PsqlTypeName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlReturnsTableClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5532,11 +5572,18 @@ impl AnyPsqlName {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlReturnsType {
+    PsqlReturnsSetofClause(PsqlReturnsSetofClause),
     PsqlReturnsTableClause(PsqlReturnsTableClause),
     PsqlReturnsTriggerClause(PsqlReturnsTriggerClause),
     PsqlTypeName(PsqlTypeName),
 }
 impl AnyPsqlReturnsType {
+    pub fn as_psql_returns_setof_clause(&self) -> Option<&PsqlReturnsSetofClause> {
+        match &self {
+            Self::PsqlReturnsSetofClause(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_psql_returns_table_clause(&self) -> Option<&PsqlReturnsTableClause> {
         match &self {
             Self::PsqlReturnsTableClause(item) => Some(item),
@@ -9381,6 +9428,57 @@ impl From<PsqlReturnsNullOption> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlReturnsSetofClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_RETURNS_SETOF_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_RETURNS_SETOF_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlReturnsSetofClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlReturnsSetofClause")
+                .field(
+                    "setof_token",
+                    &support::DebugSyntaxResult(self.setof_token()),
+                )
+                .field("ty", &support::DebugSyntaxResult(self.ty()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlReturnsSetofClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlReturnsSetofClause> for SyntaxNode {
+    fn from(n: PsqlReturnsSetofClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlReturnsSetofClause> for SyntaxElement {
+    fn from(n: PsqlReturnsSetofClause) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlReturnsTableClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -12556,6 +12654,11 @@ impl From<AnyPsqlName> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlReturnsSetofClause> for AnyPsqlReturnsType {
+    fn from(node: PsqlReturnsSetofClause) -> Self {
+        Self::PsqlReturnsSetofClause(node)
+    }
+}
 impl From<PsqlReturnsTableClause> for AnyPsqlReturnsType {
     fn from(node: PsqlReturnsTableClause) -> Self {
         Self::PsqlReturnsTableClause(node)
@@ -12573,17 +12676,24 @@ impl From<PsqlTypeName> for AnyPsqlReturnsType {
 }
 impl AstNode for AnyPsqlReturnsType {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = PsqlReturnsTableClause::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = PsqlReturnsSetofClause::KIND_SET
+        .union(PsqlReturnsTableClause::KIND_SET)
         .union(PsqlReturnsTriggerClause::KIND_SET)
         .union(PsqlTypeName::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            PSQL_RETURNS_TABLE_CLAUSE | PSQL_RETURNS_TRIGGER_CLAUSE | PSQL_TYPE_NAME
+            PSQL_RETURNS_SETOF_CLAUSE
+                | PSQL_RETURNS_TABLE_CLAUSE
+                | PSQL_RETURNS_TRIGGER_CLAUSE
+                | PSQL_TYPE_NAME
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            PSQL_RETURNS_SETOF_CLAUSE => {
+                Self::PsqlReturnsSetofClause(PsqlReturnsSetofClause { syntax })
+            }
             PSQL_RETURNS_TABLE_CLAUSE => {
                 Self::PsqlReturnsTableClause(PsqlReturnsTableClause { syntax })
             }
@@ -12597,6 +12707,7 @@ impl AstNode for AnyPsqlReturnsType {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::PsqlReturnsSetofClause(it) => &it.syntax,
             Self::PsqlReturnsTableClause(it) => &it.syntax,
             Self::PsqlReturnsTriggerClause(it) => &it.syntax,
             Self::PsqlTypeName(it) => &it.syntax,
@@ -12604,6 +12715,7 @@ impl AstNode for AnyPsqlReturnsType {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::PsqlReturnsSetofClause(it) => it.syntax,
             Self::PsqlReturnsTableClause(it) => it.syntax,
             Self::PsqlReturnsTriggerClause(it) => it.syntax,
             Self::PsqlTypeName(it) => it.syntax,
@@ -12613,6 +12725,7 @@ impl AstNode for AnyPsqlReturnsType {
 impl std::fmt::Debug for AnyPsqlReturnsType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::PsqlReturnsSetofClause(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlReturnsTableClause(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlReturnsTriggerClause(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTypeName(it) => std::fmt::Debug::fmt(it, f),
@@ -12622,6 +12735,7 @@ impl std::fmt::Debug for AnyPsqlReturnsType {
 impl From<AnyPsqlReturnsType> for SyntaxNode {
     fn from(n: AnyPsqlReturnsType) -> Self {
         match n {
+            AnyPsqlReturnsType::PsqlReturnsSetofClause(it) => it.into(),
             AnyPsqlReturnsType::PsqlReturnsTableClause(it) => it.into(),
             AnyPsqlReturnsType::PsqlReturnsTriggerClause(it) => it.into(),
             AnyPsqlReturnsType::PsqlTypeName(it) => it.into(),
@@ -13407,6 +13521,11 @@ impl std::fmt::Display for PsqlReturnsClause {
     }
 }
 impl std::fmt::Display for PsqlReturnsNullOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlReturnsSetofClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

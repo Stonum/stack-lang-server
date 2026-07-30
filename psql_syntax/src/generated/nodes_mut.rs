@@ -1761,6 +1761,20 @@ impl PsqlReturnsNullOption {
         )
     }
 }
+impl PsqlReturnsSetofClause {
+    pub fn with_setof_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_ty(self, element: PsqlTypeName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl PsqlReturnsTableClause {
     pub fn with_table_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(

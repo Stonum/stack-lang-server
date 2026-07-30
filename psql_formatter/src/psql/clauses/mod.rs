@@ -18,6 +18,7 @@ pub(crate) mod policy_for_clause;
 pub(crate) mod policy_using_clause;
 pub(crate) mod returning_clause;
 pub(crate) mod returns_clause;
+pub(crate) mod returns_setof_clause;
 pub(crate) mod returns_table_clause;
 pub(crate) mod returns_trigger_clause;
 pub(crate) mod select_clause;
