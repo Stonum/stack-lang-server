@@ -5,7 +5,8 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_tilde_name_start, parse_any_name,
-    parse_name, parse_string_literal_expression, parse_table_name, parse_type_name,
+    parse_expression, parse_name, parse_string_literal_expression, parse_table_name,
+    parse_type_name,
 };
 use super::parse_error::*;
 use crate::PsqlParser;
@@ -111,15 +112,34 @@ impl ParseSeparatedList for PsqlFunctionParameterList {
     }
 }
 
+fn is_at_parameter_mode(p: &mut PsqlParser) -> bool {
+    p.at(T![in]) || p.at(T![out]) || p.at(T![inout])
+}
+
 fn parse_function_parameter(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !p.at(T![ident]) && !is_at_parameter_mode(p) {
         return Absent;
     }
 
     let m = p.start();
-    parse_name(p).unwrap();
+    if is_at_parameter_mode(p) {
+        p.bump_any();
+    }
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
     parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    let _ = parse_parameter_default(p);
     Present(m.complete(p, PSQL_FUNCTION_PARAMETER))
+}
+
+fn parse_parameter_default(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![default]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![default]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_PARAMETER_DEFAULT))
 }
 
 /// `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --

@@ -6,8 +6,22 @@ use psql_syntax::PsqlFunctionParameterFields;
 pub(crate) struct FormatPsqlFunctionParameter;
 impl FormatNodeRule<PsqlFunctionParameter> for FormatPsqlFunctionParameter {
     fn fmt_fields(&self, node: &PsqlFunctionParameter, f: &mut PsqlFormatter) -> FormatResult<()> {
-        let PsqlFunctionParameterFields { name, ty } = node.as_fields();
+        let PsqlFunctionParameterFields {
+            mode,
+            name,
+            ty,
+            default,
+        } = node.as_fields();
 
-        write!(f, [name.format(), space(), ty.format()])
+        if let Some(mode) = mode {
+            write!(f, [mode.format(), space()])?;
+        }
+
+        write!(f, [name.format(), space(), ty.format()])?;
+
+        if let Some(default) = default {
+            write!(f, [space(), default.format()])?;
+        }
+        Ok(())
     }
 }

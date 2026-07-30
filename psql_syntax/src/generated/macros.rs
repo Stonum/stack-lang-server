@@ -228,6 +228,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlOrderByExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_PARAMETER_DEFAULT => {
+                    let $pattern = unsafe { $crate::PsqlParameterDefault::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_PARAMETER_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlParameterExpression::new_unchecked(node) };
                     $body

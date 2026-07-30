@@ -410,8 +410,14 @@ PsqlCreateFunctionStatement =
 PsqlFunctionParameterList = (PsqlFunctionParameter (',' PsqlFunctionParameter)*)
 
 PsqlFunctionParameter =
+   mode: ('in' | 'out' | 'inout')?
    name: PsqlName
    type: PsqlTypeName
+   default: PsqlParameterDefault?
+
+PsqlParameterDefault =
+   'default'
+   value: AnyPsqlExpression
 
 PsqlReturnsClause =
    'returns'

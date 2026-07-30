@@ -1558,15 +1558,23 @@ impl PsqlFunctionParameter {
     }
     pub fn as_fields(&self) -> PsqlFunctionParameterFields {
         PsqlFunctionParameterFields {
+            mode: self.mode(),
             name: self.name(),
             ty: self.ty(),
+            default: self.default(),
         }
     }
+    pub fn mode(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
     pub fn name(&self) -> SyntaxResult<PsqlName> {
-        support::required_node(&self.syntax, 0usize)
+        support::required_node(&self.syntax, 1usize)
     }
     pub fn ty(&self) -> SyntaxResult<PsqlTypeName> {
-        support::required_node(&self.syntax, 1usize)
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn default(&self) -> Option<PsqlParameterDefault> {
+        support::node(&self.syntax, 3usize)
     }
 }
 impl Serialize for PsqlFunctionParameter {
@@ -1579,8 +1587,10 @@ impl Serialize for PsqlFunctionParameter {
 }
 #[derive(Serialize)]
 pub struct PsqlFunctionParameterFields {
+    pub mode: Option<SyntaxToken>,
     pub name: SyntaxResult<PsqlName>,
     pub ty: SyntaxResult<PsqlTypeName>,
+    pub default: Option<PsqlParameterDefault>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlGroupByClause {
@@ -2486,6 +2496,46 @@ impl Serialize for PsqlOrderByExpression {
 pub struct PsqlOrderByExpressionFields {
     pub item: SyntaxResult<AnyPsqlExpression>,
     pub order: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlParameterDefault {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlParameterDefault {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlParameterDefaultFields {
+        PsqlParameterDefaultFields {
+            default_token: self.default_token(),
+            value: self.value(),
+        }
+    }
+    pub fn default_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlParameterDefault {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlParameterDefaultFields {
+    pub default_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlParameterExpression {
@@ -6022,8 +6072,10 @@ impl std::fmt::Debug for PsqlFunctionParameter {
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlFunctionParameter")
+                .field("mode", &support::DebugOptionalElement(self.mode()))
                 .field("name", &support::DebugSyntaxResult(self.name()))
                 .field("ty", &support::DebugSyntaxResult(self.ty()))
+                .field("default", &support::DebugOptionalElement(self.default()))
                 .finish()
         } else {
             f.debug_struct("PsqlFunctionParameter").finish()
@@ -7110,6 +7162,57 @@ impl From<PsqlOrderByExpression> for SyntaxNode {
 }
 impl From<PsqlOrderByExpression> for SyntaxElement {
     fn from(n: PsqlOrderByExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlParameterDefault {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARAMETER_DEFAULT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARAMETER_DEFAULT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlParameterDefault {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlParameterDefault")
+                .field(
+                    "default_token",
+                    &support::DebugSyntaxResult(self.default_token()),
+                )
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlParameterDefault").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlParameterDefault> for SyntaxNode {
+    fn from(n: PsqlParameterDefault) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlParameterDefault> for SyntaxElement {
+    fn from(n: PsqlParameterDefault) -> Self {
         n.syntax.into()
     }
 }
@@ -10248,6 +10351,11 @@ impl std::fmt::Display for PsqlOrderByClause {
     }
 }
 impl std::fmt::Display for PsqlOrderByExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlParameterDefault {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

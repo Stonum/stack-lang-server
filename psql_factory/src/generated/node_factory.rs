@@ -834,14 +834,41 @@ impl PsqlFunctionBindingBuilder {
         ))
     }
 }
-pub fn psql_function_parameter(name: PsqlName, ty: PsqlTypeName) -> PsqlFunctionParameter {
-    PsqlFunctionParameter::unwrap_cast(SyntaxNode::new_detached(
-        PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER,
-        [
-            Some(SyntaxElement::Node(name.into_syntax())),
-            Some(SyntaxElement::Node(ty.into_syntax())),
-        ],
-    ))
+pub fn psql_function_parameter(name: PsqlName, ty: PsqlTypeName) -> PsqlFunctionParameterBuilder {
+    PsqlFunctionParameterBuilder {
+        name,
+        ty,
+        mode_token: None,
+        default: None,
+    }
+}
+pub struct PsqlFunctionParameterBuilder {
+    name: PsqlName,
+    ty: PsqlTypeName,
+    mode_token: Option<SyntaxToken>,
+    default: Option<PsqlParameterDefault>,
+}
+impl PsqlFunctionParameterBuilder {
+    pub fn with_mode_token(mut self, mode_token: SyntaxToken) -> Self {
+        self.mode_token = Some(mode_token);
+        self
+    }
+    pub fn with_default(mut self, default: PsqlParameterDefault) -> Self {
+        self.default = Some(default);
+        self
+    }
+    pub fn build(self) -> PsqlFunctionParameter {
+        PsqlFunctionParameter::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER,
+            [
+                self.mode_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Node(self.ty.into_syntax())),
+                self.default
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
 }
 pub fn psql_group_by_clause(
     group_by_token: SyntaxToken,
@@ -1276,6 +1303,18 @@ impl PsqlOrderByExpressionBuilder {
             ],
         ))
     }
+}
+pub fn psql_parameter_default(
+    default_token: SyntaxToken,
+    value: AnyPsqlExpression,
+) -> PsqlParameterDefault {
+    PsqlParameterDefault::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_PARAMETER_DEFAULT,
+        [
+            Some(SyntaxElement::Token(default_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
 }
 pub fn psql_parameter_expression(
     colon_token: SyntaxToken,
