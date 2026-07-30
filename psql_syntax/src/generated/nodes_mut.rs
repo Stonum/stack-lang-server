@@ -1361,6 +1361,14 @@ impl PsqlReturnsTableColumn {
         )
     }
 }
+impl PsqlReturnsTriggerClause {
+    pub fn with_trigger_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+}
 impl PsqlRoot {
     pub fn with_stmt(self, element: PsqlStatementList) -> Self {
         Self::unwrap_cast(

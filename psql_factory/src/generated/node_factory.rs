@@ -1391,6 +1391,12 @@ pub fn psql_returns_table_column(name: PsqlName, ty: PsqlTypeName) -> PsqlReturn
         ],
     ))
 }
+pub fn psql_returns_trigger_clause(trigger_token: SyntaxToken) -> PsqlReturnsTriggerClause {
+    PsqlReturnsTriggerClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_TRIGGER_CLAUSE,
+        [Some(SyntaxElement::Token(trigger_token))],
+    ))
+}
 pub fn psql_root(stmt: PsqlStatementList, eof_token: SyntaxToken) -> PsqlRoot {
     PsqlRoot::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_ROOT,

@@ -67,6 +67,10 @@ fn parse_returns_clause(p: &mut PsqlParser) -> ParsedSyntax {
     p.bump(T![returns]);
     if p.at(T![table]) {
         parse_returns_table_clause(p);
+    } else if p.at(T![trigger]) {
+        let trigger_clause = p.start();
+        p.bump(T![trigger]);
+        trigger_clause.complete(p, PSQL_RETURNS_TRIGGER_CLAUSE);
     } else {
         parse_type_name(p).or_add_diagnostic(p, expected_type_name);
     }

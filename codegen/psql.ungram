@@ -426,6 +426,7 @@ PsqlReturnsClause =
 AnyPsqlReturnsType =
    PsqlTypeName
    | PsqlReturnsTableClause
+   | PsqlReturnsTriggerClause
 
 // `RETURNS TABLE(col type, col type, ...)` -- a set-returning function's
 // result-row shape.
@@ -434,6 +435,11 @@ PsqlReturnsTableClause =
    '('
    columns: PsqlReturnsTableColumnList
    ')'
+
+// `RETURNS TRIGGER` -- the pseudo-type convention marking a function as a
+// trigger function, callable only via `CREATE TRIGGER ... EXECUTE FUNCTION`.
+PsqlReturnsTriggerClause =
+   'trigger'
 
 PsqlReturnsTableColumnList = (PsqlReturnsTableColumn (',' PsqlReturnsTableColumn)*)
 

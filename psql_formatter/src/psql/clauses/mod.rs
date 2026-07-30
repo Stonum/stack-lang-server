@@ -17,6 +17,7 @@ pub(crate) mod order_by_clause;
 pub(crate) mod returning_clause;
 pub(crate) mod returns_clause;
 pub(crate) mod returns_table_clause;
+pub(crate) mod returns_trigger_clause;
 pub(crate) mod select_clause;
 pub(crate) mod set_clause;
 pub(crate) mod where_clause;
