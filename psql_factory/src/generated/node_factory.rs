@@ -1354,11 +1354,39 @@ pub fn psql_returning_clause(
         ],
     ))
 }
-pub fn psql_returns_clause(returns_token: SyntaxToken, ty: PsqlTypeName) -> PsqlReturnsClause {
+pub fn psql_returns_clause(
+    returns_token: SyntaxToken,
+    ty: AnyPsqlReturnsType,
+) -> PsqlReturnsClause {
     PsqlReturnsClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_RETURNS_CLAUSE,
         [
             Some(SyntaxElement::Token(returns_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_returns_table_clause(
+    table_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    columns: PsqlReturnsTableColumnList,
+    r_paren_token: SyntaxToken,
+) -> PsqlReturnsTableClause {
+    PsqlReturnsTableClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_TABLE_CLAUSE,
+        [
+            Some(SyntaxElement::Token(table_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_returns_table_column(name: PsqlName, ty: PsqlTypeName) -> PsqlReturnsTableColumn {
+    PsqlReturnsTableColumn::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
             Some(SyntaxElement::Node(ty.into_syntax())),
         ],
     ))
@@ -2188,6 +2216,27 @@ where
     let length = items.len() + separators.len();
     PsqlOrderByExpressionList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_ORDER_BY_EXPRESSION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_returns_table_column_list<I, S>(items: I, separators: S) -> PsqlReturnsTableColumnList
+where
+    I: IntoIterator<Item = PsqlReturnsTableColumn>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlReturnsTableColumnList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

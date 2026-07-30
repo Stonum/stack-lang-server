@@ -168,6 +168,58 @@ fn test_create_function_mode_and_default_combined() {
 }
 
 #[test]
+fn test_create_function_returns_table_single_column() {
+    let res = parse(
+        "create function foo() returns table(a int) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_returns_table_multiple_columns() {
+    let res = parse(
+        "create function foo() returns table(a int, b text, c boolean) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_returns_table_typed_column_with_arguments() {
+    let res = parse(
+        "create function foo() returns table(a numeric(10, 2)) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_realistic_table_returning_function_shape() {
+    // Representative of a real set-returning function: a wide result-row
+    // shape (some quoted column names, since quoted identifiers are common
+    // in real mlang table/column names), a `RETURN QUERY SELECT ...` body.
+    let res = parse(
+        r#"create function ~$build_report~ (root text, period timestamp)
+returns table(
+  id int,
+  "Some Column" varchar(256),
+  amount numeric
+) as $$
+begin
+  return query select 1, 'x', 2.5;
+end;
+$$ language plpgsql;"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_realistic_scalar_function_shape() {
     // Representative of the simplest real PL/pgSQL functions this grammar
     // is meant to cover -- dollar-quoted body containing quotes/semicolons/

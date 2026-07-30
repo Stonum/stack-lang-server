@@ -421,6 +421,24 @@ PsqlParameterDefault =
 
 PsqlReturnsClause =
    'returns'
+   type: AnyPsqlReturnsType
+
+AnyPsqlReturnsType =
+   PsqlTypeName
+   | PsqlReturnsTableClause
+
+// `RETURNS TABLE(col type, col type, ...)` -- a set-returning function's
+// result-row shape.
+PsqlReturnsTableClause =
+   'table'
+   '('
+   columns: PsqlReturnsTableColumnList
+   ')'
+
+PsqlReturnsTableColumnList = (PsqlReturnsTableColumn (',' PsqlReturnsTableColumn)*)
+
+PsqlReturnsTableColumn =
+   name: PsqlName
    type: PsqlTypeName
 
 PsqlLanguageOption =

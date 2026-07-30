@@ -65,8 +65,66 @@ fn parse_returns_clause(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![returns]);
-    parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    if p.at(T![table]) {
+        parse_returns_table_clause(p);
+    } else {
+        parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    }
     Present(m.complete(p, PSQL_RETURNS_CLAUSE))
+}
+
+/// `TABLE(col type, col type, ...)` -- a set-returning function's
+/// result-row shape.
+fn parse_returns_table_clause(p: &mut PsqlParser) -> CompletedMarker {
+    let m = p.start();
+    p.bump(T![table]);
+    p.expect(T!['(']);
+    PsqlReturnsTableColumnList.parse_list(p);
+    p.expect(T![')']);
+    m.complete(p, PSQL_RETURNS_TABLE_CLAUSE)
+}
+
+struct PsqlReturnsTableColumnList;
+
+impl ParseSeparatedList for PsqlReturnsTableColumnList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_RETURNS_TABLE_COLUMN_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_returns_table_column(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, token_set![T![')']]),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+fn parse_returns_table_column(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    parse_name(p).unwrap();
+    parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+    Present(m.complete(p, PSQL_RETURNS_TABLE_COLUMN))
 }
 
 fn parse_language_option(p: &mut PsqlParser) -> ParsedSyntax {

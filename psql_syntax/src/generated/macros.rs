@@ -249,6 +249,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlReturnsClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_RETURNS_TABLE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlReturnsTableClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN => {
+                    let $pattern = unsafe { $crate::PsqlReturnsTableColumn::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_ROOT => {
                     let $pattern = unsafe { $crate::PsqlRoot::new_unchecked(node) };
                     $body
@@ -428,6 +436,11 @@ macro_rules! map_syntax_node {
                 $crate::PsqlSyntaxKind::PSQL_ORDER_BY_EXPRESSION_LIST => {
                     let $pattern =
                         unsafe { $crate::PsqlOrderByExpressionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlReturnsTableColumnList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_SELECT_ITEM_LIST => {

@@ -10,6 +10,7 @@ pub(crate) mod function_parameter_list;
 pub(crate) mod group_by_item_list;
 pub(crate) mod join_clause_list;
 pub(crate) mod order_by_expression_list;
+pub(crate) mod returns_table_column_list;
 pub(crate) mod select_item_list;
 pub(crate) mod set_item_list;
 pub(crate) mod set_operation_list;
