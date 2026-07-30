@@ -3018,11 +3018,11 @@ impl PsqlParameterDefault {
     }
     pub fn as_fields(&self) -> PsqlParameterDefaultFields {
         PsqlParameterDefaultFields {
-            default_token: self.default_token(),
+            marker: self.marker(),
             value: self.value(),
         }
     }
-    pub fn default_token(&self) -> SyntaxResult<SyntaxToken> {
+    pub fn marker(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
     pub fn value(&self) -> SyntaxResult<AnyPsqlExpression> {
@@ -3039,7 +3039,7 @@ impl Serialize for PsqlParameterDefault {
 }
 #[derive(Serialize)]
 pub struct PsqlParameterDefaultFields {
-    pub default_token: SyntaxResult<SyntaxToken>,
+    pub marker: SyntaxResult<SyntaxToken>,
     pub value: SyntaxResult<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -8921,10 +8921,7 @@ impl std::fmt::Debug for PsqlParameterDefault {
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlParameterDefault")
-                .field(
-                    "default_token",
-                    &support::DebugSyntaxResult(self.default_token()),
-                )
+                .field("marker", &support::DebugSyntaxResult(self.marker()))
                 .field("value", &support::DebugSyntaxResult(self.value()))
                 .finish()
         } else {

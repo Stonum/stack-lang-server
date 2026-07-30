@@ -146,6 +146,28 @@ fn test_create_function_parameter_default() {
 }
 
 #[test]
+fn test_create_function_parameter_default_eq_shorthand() {
+    // Postgres accepts `= expr` as a shorthand for `DEFAULT expr`; real
+    // scripts use both spellings.
+    let res = parse(
+        "create function foo(a text = '') as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_multiple_parameters_eq_shorthand() {
+    let res = parse(
+        "create function foo(a text = null, b int = 0) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_function_parameter_default_with_cast() {
     // Real-world shape: an empty-string default cast to the parameter's
     // own type (`DEFAULT ''::type`) is a common pattern for text params.

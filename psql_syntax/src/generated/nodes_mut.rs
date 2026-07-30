@@ -1614,7 +1614,7 @@ impl PsqlOrderByExpression {
     }
 }
 impl PsqlParameterDefault {
-    pub fn with_default_token(self, element: SyntaxToken) -> Self {
+    pub fn with_marker_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),

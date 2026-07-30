@@ -283,13 +283,15 @@ fn parse_function_parameter(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_FUNCTION_PARAMETER))
 }
 
+/// Postgres allows either spelling for a parameter default -- `DEFAULT
+/// expr` or the shorthand `= expr` -- both seen in real scripts.
 fn parse_parameter_default(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![default]) {
+    if !p.at(T![default]) && !p.at(T![=]) {
         return Absent;
     }
 
     let m = p.start();
-    p.bump(T![default]);
+    p.bump_any(); // 'default' | '='
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     Present(m.complete(p, PSQL_PARAMETER_DEFAULT))
 }

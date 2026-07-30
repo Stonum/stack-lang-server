@@ -93,6 +93,15 @@ create function foo(a text default '') as 'select 1'
 }
 
 #[test]
+fn format_create_function_parameter_default_eq_shorthand() {
+    assert_fmt!(
+        r#"--
+create function foo(a text = '') as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_parameter_mode_and_default_combined() {
     assert_fmt!(
         r#"--

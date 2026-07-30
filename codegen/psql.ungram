@@ -441,8 +441,10 @@ PsqlFunctionParameter =
    type: PsqlTypeName
    default: PsqlParameterDefault?
 
+// Postgres allows either spelling for a parameter default -- `DEFAULT expr`
+// or the shorthand `= expr` -- both seen in real scripts.
 PsqlParameterDefault =
-   'default'
+   marker: ('default' | '=')
    value: AnyPsqlExpression
 
 PsqlReturnsClause =

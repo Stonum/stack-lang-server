@@ -6,11 +6,8 @@ use psql_syntax::PsqlParameterDefaultFields;
 pub(crate) struct FormatPsqlParameterDefault;
 impl FormatNodeRule<PsqlParameterDefault> for FormatPsqlParameterDefault {
     fn fmt_fields(&self, node: &PsqlParameterDefault, f: &mut PsqlFormatter) -> FormatResult<()> {
-        let PsqlParameterDefaultFields {
-            default_token,
-            value,
-        } = node.as_fields();
+        let PsqlParameterDefaultFields { marker, value } = node.as_fields();
 
-        write!(f, [default_token.format(), space(), value.format()])
+        write!(f, [marker.format(), space(), value.format()])
     }
 }

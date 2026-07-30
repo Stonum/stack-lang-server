@@ -1722,13 +1722,13 @@ impl PsqlOrderByExpressionBuilder {
     }
 }
 pub fn psql_parameter_default(
-    default_token: SyntaxToken,
+    marker_token: SyntaxToken,
     value: AnyPsqlExpression,
 ) -> PsqlParameterDefault {
     PsqlParameterDefault::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_PARAMETER_DEFAULT,
         [
-            Some(SyntaxElement::Token(default_token)),
+            Some(SyntaxElement::Token(marker_token)),
             Some(SyntaxElement::Node(value.into_syntax())),
         ],
     ))

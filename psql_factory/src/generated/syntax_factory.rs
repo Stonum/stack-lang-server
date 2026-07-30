@@ -2495,7 +2495,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
-                    && element.kind() == T![default]
+                    && matches!(element.kind(), T![default] | T ! [=])
                 {
                     slots.mark_present();
                     current_element = elements.next();
