@@ -29,5 +29,7 @@ pub(crate) mod tilde_name;
 pub(crate) mod type_arguments;
 pub(crate) mod type_array_suffix;
 pub(crate) mod type_name;
+pub(crate) mod view_option;
+pub(crate) mod view_options;
 pub(crate) mod volatility_option;
 pub(crate) mod window_specification;

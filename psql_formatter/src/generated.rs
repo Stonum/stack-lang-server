@@ -606,6 +606,46 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreateTableStatement {
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_table_statement :: FormatPsqlCreateTableStatement :: default ())
     }
 }
+impl FormatRule<psql_syntax::PsqlCreateViewStatement>
+    for crate::psql::statements::create_view_statement::FormatPsqlCreateViewStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlCreateViewStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlCreateViewStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlCreateViewStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlCreateViewStatement,
+        crate::psql::statements::create_view_statement::FormatPsqlCreateViewStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::create_view_statement::FormatPsqlCreateViewStatement::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreateViewStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlCreateViewStatement,
+        crate::psql::statements::create_view_statement::FormatPsqlCreateViewStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::create_view_statement::FormatPsqlCreateViewStatement::default(
+            ),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlCteDefinition>
     for crate::psql::auxiliary::cte_definition::FormatPsqlCteDefinition
 {
@@ -929,6 +969,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropTableStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::statements::drop_table_statement::FormatPsqlDropTableStatement::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlDropViewStatement>
+    for crate::psql::statements::drop_view_statement::FormatPsqlDropViewStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlDropViewStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlDropViewStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlDropViewStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlDropViewStatement,
+        crate::psql::statements::drop_view_statement::FormatPsqlDropViewStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::drop_view_statement::FormatPsqlDropViewStatement::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropViewStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlDropViewStatement,
+        crate::psql::statements::drop_view_statement::FormatPsqlDropViewStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::drop_view_statement::FormatPsqlDropViewStatement::default(),
         )
     }
 }
@@ -2965,6 +3043,74 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlUpdateStatement {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlViewOption>
+    for crate::psql::auxiliary::view_option::FormatPsqlViewOption
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlViewOption, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlViewOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlViewOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlViewOption,
+        crate::psql::auxiliary::view_option::FormatPsqlViewOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::view_option::FormatPsqlViewOption::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlViewOption {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlViewOption,
+        crate::psql::auxiliary::view_option::FormatPsqlViewOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::view_option::FormatPsqlViewOption::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlViewOptions>
+    for crate::psql::auxiliary::view_options::FormatPsqlViewOptions
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlViewOptions, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlViewOptions>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlViewOptions {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlViewOptions,
+        crate::psql::auxiliary::view_options::FormatPsqlViewOptions,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::view_options::FormatPsqlViewOptions::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlViewOptions {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlViewOptions,
+        crate::psql::auxiliary::view_options::FormatPsqlViewOptions,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::view_options::FormatPsqlViewOptions::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlVolatilityOption>
     for crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption
 {
@@ -3641,6 +3787,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTypeNameList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::type_name_list::FormatPsqlTypeNameList::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlViewOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlViewOptionList,
+        crate::psql::lists::view_option_list::FormatPsqlViewOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::view_option_list::FormatPsqlViewOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlViewOptionList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlViewOptionList,
+        crate::psql::lists::view_option_list::FormatPsqlViewOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::view_option_list::FormatPsqlViewOptionList::default(),
         )
     }
 }

@@ -88,6 +88,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCreateTableStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CREATE_VIEW_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlCreateViewStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_CTE_DEFINITION => {
                     let $pattern = unsafe { $crate::PsqlCteDefinition::new_unchecked(node) };
                     $body
@@ -124,6 +128,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_DROP_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlDropTableStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_DROP_VIEW_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDropViewStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_EMPTY_STATEMENT => {
@@ -358,6 +366,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlUpdateStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_VIEW_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlViewOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_VIEW_OPTIONS => {
+                    let $pattern = unsafe { $crate::PsqlViewOptions::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_VOLATILITY_OPTION => {
                     let $pattern = unsafe { $crate::PsqlVolatilityOption::new_unchecked(node) };
                     $body
@@ -489,6 +505,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_NAME_LIST => {
                     let $pattern = unsafe { $crate::PsqlTypeNameList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_VIEW_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlViewOptionList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_WINDOW_PARTITION_BY_ITEM_LIST => {
