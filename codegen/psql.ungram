@@ -108,6 +108,8 @@ AnyPsqlStatement =
    | PsqlCreateFunctionStatement
    | PsqlCreateViewStatement
    | PsqlDropViewStatement
+   | PsqlCreatePolicyStatement
+   | PsqlDropPolicyStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -502,6 +504,40 @@ PsqlDropViewStatement =
    ('if' 'exists')?
    views: PsqlTableNameList
    drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+// `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
+// [USING (condition)] [;]` -- the `USING` condition is an ordinary boolean
+// expression, already fully supported (including subqueries/function
+// calls); only the thin wrapper is new here.
+PsqlCreatePolicyStatement =
+   'create'
+   'policy'
+   name: PsqlName
+   'on'
+   table: PsqlTableName
+   for_clause: PsqlPolicyForClause?
+   using_clause: PsqlPolicyUsingClause?
+   ';'?
+
+PsqlPolicyForClause =
+   'for'
+   command: ('all' | 'select' | 'insert' | 'update' | 'delete')
+
+PsqlPolicyUsingClause =
+   'using'
+   '('
+   condition: AnyPsqlExpression
+   ')'
+
+// `DROP POLICY [IF EXISTS] name ON table [;]`
+PsqlDropPolicyStatement =
+   'drop'
+   'policy'
+   ('if' 'exists')?
+   name: PsqlName
+   'on'
+   table: PsqlTableName
    ';'?
 
 PsqlLanguageOption =

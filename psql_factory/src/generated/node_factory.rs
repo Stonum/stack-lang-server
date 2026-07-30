@@ -388,6 +388,66 @@ impl PsqlCreateFunctionStatementBuilder {
         ))
     }
 }
+pub fn psql_create_policy_statement(
+    create_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: PsqlName,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+) -> PsqlCreatePolicyStatementBuilder {
+    PsqlCreatePolicyStatementBuilder {
+        create_token,
+        policy_token,
+        name,
+        on_token,
+        table,
+        for_clause: None,
+        using_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreatePolicyStatementBuilder {
+    create_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: PsqlName,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+    for_clause: Option<PsqlPolicyForClause>,
+    using_clause: Option<PsqlPolicyUsingClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreatePolicyStatementBuilder {
+    pub fn with_for_clause(mut self, for_clause: PsqlPolicyForClause) -> Self {
+        self.for_clause = Some(for_clause);
+        self
+    }
+    pub fn with_using_clause(mut self, using_clause: PsqlPolicyUsingClause) -> Self {
+        self.using_clause = Some(using_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreatePolicyStatement {
+        PsqlCreatePolicyStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CREATE_POLICY_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.policy_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.for_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_create_table_statement(
     create_token: SyntaxToken,
     table_token: SyntaxToken,
@@ -778,6 +838,64 @@ impl PsqlDropFunctionStatementBuilder {
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_drop_policy_statement(
+    drop_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: PsqlName,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+) -> PsqlDropPolicyStatementBuilder {
+    PsqlDropPolicyStatementBuilder {
+        drop_token,
+        policy_token,
+        name,
+        on_token,
+        table,
+        if_token: None,
+        exists_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropPolicyStatementBuilder {
+    drop_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: PsqlName,
+    on_token: SyntaxToken,
+    table: PsqlTableName,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropPolicyStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropPolicyStatement {
+        PsqlDropPolicyStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_DROP_POLICY_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.policy_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
             ],
@@ -1476,6 +1594,34 @@ pub fn psql_parenthesized_expression(
         [
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_policy_for_clause(
+    for_token: SyntaxToken,
+    command_token: SyntaxToken,
+) -> PsqlPolicyForClause {
+    PsqlPolicyForClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Token(command_token)),
+        ],
+    ))
+}
+pub fn psql_policy_using_clause(
+    using_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnyPsqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlPolicyUsingClause {
+    PsqlPolicyUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_POLICY_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
