@@ -587,10 +587,24 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_CREATE_FUNCTION_STATEMENT => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<11usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<14usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![create]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![or]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![replace]
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -639,6 +653,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
+                    && PsqlFunctionOptionList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
                     && element.kind() == T![as]
                 {
                     slots.mark_present();
@@ -653,7 +674,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && PsqlLanguageOption::can_cast(element.kind())
+                    && PsqlFunctionOptionList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -2241,6 +2262,32 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_ROOT, children)
             }
+            PSQL_SECURITY_OPTION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![security]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![definer] | T![invoker])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_SECURITY_OPTION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_SECURITY_OPTION, children)
+            }
             PSQL_SELECT_CLAUSE => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
@@ -2553,6 +2600,25 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_STAR, children)
+            }
+            PSQL_STRICT_OPTION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![strict]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_STRICT_OPTION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_STRICT_OPTION, children)
             }
             PSQL_STRING_LITERAL_EXPRESSION => {
                 let mut elements = (&children).into_iter();
@@ -2992,6 +3058,25 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_UPDATE_STATEMENT, children)
             }
+            PSQL_VOLATILITY_OPTION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![immutable] | T![stable] | T![volatile])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_VOLATILITY_OPTION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_VOLATILITY_OPTION, children)
+            }
             PSQL_WHERE_CLAUSE => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
@@ -3184,6 +3269,9 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 T ! [,],
                 false,
             ),
+            PSQL_FUNCTION_OPTION_LIST => {
+                Self::make_node_list_syntax(kind, children, AnyPsqlFunctionOption::can_cast)
+            }
             PSQL_FUNCTION_PARAMETER_LIST => Self::make_separated_list_syntax(
                 kind,
                 children,

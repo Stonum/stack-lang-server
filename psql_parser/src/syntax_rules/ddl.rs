@@ -25,19 +25,33 @@ pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if p.nth_at(1, T![table]) {
         return parse_create_table_statement(p);
     }
-    if p.nth_at(1, T![function]) || p.nth_at(1, T![procedure]) {
+    if p.nth_at(1, T![function]) || p.nth_at(1, T![procedure]) || p.nth_at(1, T![or]) {
         return parse_create_function_statement(p);
     }
 
     Absent
 }
 
-/// `CREATE FUNCTION|PROCEDURE name(param type, ...) [RETURNS type] AS body
-/// [LANGUAGE name] [;]` -- minimal skeleton (see the matching note in
-/// `codegen/psql.ungram` for what's deliberately not supported yet).
+/// `CREATE [OR REPLACE] FUNCTION|PROCEDURE name(param type, ...) [RETURNS
+/// type] <options>* AS body <options>* [;]` (see the matching note in
+/// `codegen/psql.ungram` for the option-list shape).
 fn parse_create_function_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![create]);
+
+    if p.at(T![or]) {
+        p.bump(T![or]);
+        p.expect(T![replace]);
+    }
+
+    if !p.at(T![function]) && !p.at(T![procedure]) {
+        let range = p.cur_range();
+        let err = p
+            .err_builder("Expected `function` or `procedure` after `create`", range)
+            .with_hint("Only `CREATE FUNCTION`/`CREATE PROCEDURE` is supported");
+        p.error(err);
+        return Present(m.complete(p, PSQL_BOGUS_STATEMENT));
+    }
     p.bump_any(); // 'function' | 'procedure'
 
     parse_any_name(p).or_add_diagnostic(p, expected_identifier);
@@ -47,15 +61,71 @@ fn parse_create_function_statement(p: &mut PsqlParser) -> ParsedSyntax {
     p.expect(T![')']);
 
     let _ = parse_returns_clause(p);
+    parse_function_option_list(p);
 
     p.expect(T![as]);
     parse_string_literal_expression(p).or_add_diagnostic(p, expected_expression);
 
-    let _ = parse_language_option(p);
+    parse_function_option_list(p);
 
     p.eat(T![;]);
 
     Present(m.complete(p, PSQL_CREATE_FUNCTION_STATEMENT))
+}
+
+/// Zero or more options (`LANGUAGE`, volatility, `SECURITY DEFINER`/
+/// `INVOKER`, `STRICT`) in any order -- real scripts scatter these both
+/// before and after `AS`, so this is called from both positions.
+fn parse_function_option_list(p: &mut PsqlParser) -> CompletedMarker {
+    let m = p.start();
+    while is_at_function_option(p) {
+        let _ = parse_function_option(p);
+    }
+    m.complete(p, PSQL_FUNCTION_OPTION_LIST)
+}
+
+fn is_at_function_option(p: &mut PsqlParser) -> bool {
+    p.at(T![language])
+        || p.at(T![immutable])
+        || p.at(T![stable])
+        || p.at(T![volatile])
+        || p.at(T![security])
+        || p.at(T![strict])
+}
+
+fn parse_function_option(p: &mut PsqlParser) -> ParsedSyntax {
+    match p.cur() {
+        T![language] => parse_language_option(p),
+        T![immutable] | T![stable] | T![volatile] => parse_volatility_option(p),
+        T![security] => parse_security_option(p),
+        T![strict] => parse_strict_option(p),
+        _ => Absent,
+    }
+}
+
+fn parse_volatility_option(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump_any(); // 'immutable' | 'stable' | 'volatile'
+    Present(m.complete(p, PSQL_VOLATILITY_OPTION))
+}
+
+fn parse_security_option(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![security]);
+    if p.at(T![definer]) || p.at(T![invoker]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `definer` or `invoker` after `security`", range);
+        p.error(err);
+    }
+    Present(m.complete(p, PSQL_SECURITY_OPTION))
+}
+
+fn parse_strict_option(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![strict]);
+    Present(m.complete(p, PSQL_STRICT_OPTION))
 }
 
 fn parse_returns_clause(p: &mut PsqlParser) -> ParsedSyntax {

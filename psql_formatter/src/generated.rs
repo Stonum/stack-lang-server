@@ -2150,6 +2150,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlRoot {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlSecurityOption>
+    for crate::psql::auxiliary::security_option::FormatPsqlSecurityOption
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlSecurityOption,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlSecurityOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlSecurityOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlSecurityOption,
+        crate::psql::auxiliary::security_option::FormatPsqlSecurityOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::security_option::FormatPsqlSecurityOption::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSecurityOption {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlSecurityOption,
+        crate::psql::auxiliary::security_option::FormatPsqlSecurityOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::security_option::FormatPsqlSecurityOption::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlSelectClause>
     for crate::psql::clauses::select_clause::FormatPsqlSelectClause
 {
@@ -2418,6 +2456,40 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlStar {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::star::FormatPsqlStar::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlStrictOption>
+    for crate::psql::auxiliary::strict_option::FormatPsqlStrictOption
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlStrictOption, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlStrictOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlStrictOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlStrictOption,
+        crate::psql::auxiliary::strict_option::FormatPsqlStrictOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::strict_option::FormatPsqlStrictOption::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlStrictOption {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlStrictOption,
+        crate::psql::auxiliary::strict_option::FormatPsqlStrictOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::strict_option::FormatPsqlStrictOption::default(),
         )
     }
 }
@@ -2893,6 +2965,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlUpdateStatement {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlVolatilityOption>
+    for crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlVolatilityOption,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlVolatilityOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlVolatilityOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlVolatilityOption,
+        crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlVolatilityOption {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlVolatilityOption,
+        crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlWhereClause>
     for crate::psql::clauses::where_clause::FormatPsqlWhereClause
 {
@@ -3210,6 +3320,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFromItemList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::from_item_list::FormatPsqlFromItemList::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlFunctionOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlFunctionOptionList,
+        crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFunctionOptionList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlFunctionOptionList,
+        crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList::default(),
         )
     }
 }
@@ -3866,6 +4001,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlFromExpression {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::from_expression::FormatAnyPsqlFromExpression::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlFunctionOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlFunctionOption,
+        crate::psql::any::function_option::FormatAnyPsqlFunctionOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::function_option::FormatAnyPsqlFunctionOption::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlFunctionOption {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlFunctionOption,
+        crate::psql::any::function_option::FormatAnyPsqlFunctionOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::function_option::FormatAnyPsqlFunctionOption::default(),
         )
     }
 }
