@@ -669,7 +669,21 @@ AnyPsqlExpression =
    | PsqlArraySubscriptExpression
    | PsqlCastExpression
    | PsqlCastFunctionExpression
+   | PsqlAnyAllExpression
    | AnyPsqlLiteralExpression
+
+// `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --
+// a quantified comparison, e.g. `x = ANY (select id from t)` or
+// `x <> ALL (array[1, 2])`. Reuses the existing parenthesized-subquery and
+// parenthesized-expression nodes as-is (both already own their parens),
+// the same way `AnyPsqlInSource` reuses them for `IN (...)`.
+PsqlAnyAllExpression =
+   quantifier: ('any' | 'all' | 'some')
+   source: AnyPsqlAnyAllSource
+
+AnyPsqlAnyAllSource =
+   PsqlSubqueryExpression
+   | PsqlParenthesizedExpression
 
 PsqlArrayExpression =
    'array'

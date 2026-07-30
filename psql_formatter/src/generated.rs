@@ -36,6 +36,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlAlias {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlAnyAllExpression>
+    for crate::psql::expressions::any_all_expression::FormatPsqlAnyAllExpression
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlAnyAllExpression,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlAnyAllExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlAnyAllExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlAnyAllExpression,
+        crate::psql::expressions::any_all_expression::FormatPsqlAnyAllExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::any_all_expression::FormatPsqlAnyAllExpression::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlAnyAllExpression {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlAnyAllExpression,
+        crate::psql::expressions::any_all_expression::FormatPsqlAnyAllExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::any_all_expression::FormatPsqlAnyAllExpression::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlArrayExpression>
     for crate::psql::expressions::array_expression::FormatPsqlArrayExpression
 {
@@ -4466,6 +4504,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlBogusStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::bogus::bogus_statement::FormatPsqlBogusStatement::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlAnyAllSource {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlAnyAllSource,
+        crate::psql::any::any_all_source::FormatAnyPsqlAnyAllSource,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::any_all_source::FormatAnyPsqlAnyAllSource::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlAnyAllSource {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlAnyAllSource,
+        crate::psql::any::any_all_source::FormatAnyPsqlAnyAllSource,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::any_all_source::FormatAnyPsqlAnyAllSource::default(),
         )
     }
 }
