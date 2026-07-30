@@ -537,6 +537,86 @@ impl PsqlCreateTableStatement {
         )
     }
 }
+impl PsqlCreateTriggerStatement {
+    pub fn with_create_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_trigger_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_name(self, element: AnyPsqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_timing_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_events(self, element: PsqlTriggerEventList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_on_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(5usize..=5usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_table(self, element: PsqlTableName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(6usize..=6usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_referencing_clause(self, element: Option<PsqlTriggerReferencingClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            7usize..=7usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_for_each_clause(self, element: Option<PsqlTriggerForEachClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            8usize..=8usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_execute_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(9usize..=9usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_function_kind_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(10usize..=10usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_function(self, element: PsqlCallExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(11usize..=11usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            12usize..=12usize,
+            once(element.map(|element| element.into())),
+        ))
+    }
+}
 impl PsqlCreateViewStatement {
     pub fn with_create_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -910,6 +990,62 @@ impl PsqlDropTableStatement {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(6usize..=6usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
+impl PsqlDropTriggerStatement {
+    pub fn with_drop_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_trigger_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_if_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_exists_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_name(self, element: AnyPsqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_on_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(5usize..=5usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_table(self, element: PsqlTableName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(6usize..=6usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_drop_behavior_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(7usize..=7usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(8usize..=8usize, once(element.map(|element| element.into()))),
         )
     }
 }
@@ -1998,6 +2134,80 @@ impl PsqlTildeName {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+}
+impl PsqlTriggerEvent {
+    pub fn with_or_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_kind_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+}
+impl PsqlTriggerForEachClause {
+    pub fn with_for_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_each_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_granularity_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+}
+impl PsqlTriggerReferencingClause {
+    pub fn with_referencing_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_items(self, element: PsqlTriggerReferencingItemList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl PsqlTriggerReferencingItem {
+    pub fn with_which_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_table_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_as_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_name(self, element: PsqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
         )
     }
 }

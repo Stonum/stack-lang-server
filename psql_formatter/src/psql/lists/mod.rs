@@ -17,6 +17,8 @@ pub(crate) mod set_item_list;
 pub(crate) mod set_operation_list;
 pub(crate) mod statement_list;
 pub(crate) mod table_name_list;
+pub(crate) mod trigger_event_list;
+pub(crate) mod trigger_referencing_item_list;
 pub(crate) mod type_argument_list;
 pub(crate) mod type_name_list;
 pub(crate) mod view_option_list;

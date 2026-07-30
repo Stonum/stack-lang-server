@@ -638,6 +638,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreateTableStatement {
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_table_statement :: FormatPsqlCreateTableStatement :: default ())
     }
 }
+impl FormatRule<psql_syntax::PsqlCreateTriggerStatement>
+    for crate::psql::statements::create_trigger_statement::FormatPsqlCreateTriggerStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlCreateTriggerStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlCreateTriggerStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlCreateTriggerStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlCreateTriggerStatement,
+        crate::psql::statements::create_trigger_statement::FormatPsqlCreateTriggerStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_trigger_statement :: FormatPsqlCreateTriggerStatement :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCreateTriggerStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlCreateTriggerStatement,
+        crate::psql::statements::create_trigger_statement::FormatPsqlCreateTriggerStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_trigger_statement :: FormatPsqlCreateTriggerStatement :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlCreateViewStatement>
     for crate::psql::statements::create_view_statement::FormatPsqlCreateViewStatement
 {
@@ -1042,6 +1074,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropTableStatement {
             self,
             crate::psql::statements::drop_table_statement::FormatPsqlDropTableStatement::default(),
         )
+    }
+}
+impl FormatRule<psql_syntax::PsqlDropTriggerStatement>
+    for crate::psql::statements::drop_trigger_statement::FormatPsqlDropTriggerStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlDropTriggerStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlDropTriggerStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlDropTriggerStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlDropTriggerStatement,
+        crate::psql::statements::drop_trigger_statement::FormatPsqlDropTriggerStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: drop_trigger_statement :: FormatPsqlDropTriggerStatement :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDropTriggerStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlDropTriggerStatement,
+        crate::psql::statements::drop_trigger_statement::FormatPsqlDropTriggerStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_trigger_statement :: FormatPsqlDropTriggerStatement :: default ())
     }
 }
 impl FormatRule<psql_syntax::PsqlDropViewStatement>
@@ -3005,6 +3069,144 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTildeName {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlTriggerEvent>
+    for crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlTriggerEvent, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTriggerEvent>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerEvent {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerEvent,
+        crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerEvent {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerEvent,
+        crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlTriggerForEachClause>
+    for crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTriggerForEachClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTriggerForEachClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerForEachClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerForEachClause,
+        crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerForEachClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerForEachClause,
+        crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause::default(
+            ),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlTriggerReferencingClause>
+    for crate::psql::clauses::trigger_referencing_clause::FormatPsqlTriggerReferencingClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTriggerReferencingClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTriggerReferencingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerReferencingClause,
+        crate::psql::clauses::trigger_referencing_clause::FormatPsqlTriggerReferencingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: trigger_referencing_clause :: FormatPsqlTriggerReferencingClause :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerReferencingClause,
+        crate::psql::clauses::trigger_referencing_clause::FormatPsqlTriggerReferencingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: trigger_referencing_clause :: FormatPsqlTriggerReferencingClause :: default ())
+    }
+}
+impl FormatRule<psql_syntax::PsqlTriggerReferencingItem>
+    for crate::psql::auxiliary::trigger_referencing_item::FormatPsqlTriggerReferencingItem
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTriggerReferencingItem,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTriggerReferencingItem>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingItem {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerReferencingItem,
+        crate::psql::auxiliary::trigger_referencing_item::FormatPsqlTriggerReferencingItem,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: trigger_referencing_item :: FormatPsqlTriggerReferencingItem :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingItem {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerReferencingItem,
+        crate::psql::auxiliary::trigger_referencing_item::FormatPsqlTriggerReferencingItem,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: trigger_referencing_item :: FormatPsqlTriggerReferencingItem :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlTypeArguments>
     for crate::psql::auxiliary::type_arguments::FormatPsqlTypeArguments
 {
@@ -3886,6 +4088,50 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTableNameList {
             self,
             crate::psql::lists::table_name_list::FormatPsqlTableNameList::default(),
         )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerEventList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerEventList,
+        crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerEventList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerEventList,
+        crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingItemList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTriggerReferencingItemList,
+        crate::psql::lists::trigger_referencing_item_list::FormatPsqlTriggerReferencingItemList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: lists :: trigger_referencing_item_list :: FormatPsqlTriggerReferencingItemList :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTriggerReferencingItemList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTriggerReferencingItemList,
+        crate::psql::lists::trigger_referencing_item_list::FormatPsqlTriggerReferencingItemList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: lists :: trigger_referencing_item_list :: FormatPsqlTriggerReferencingItemList :: default ())
     }
 }
 impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTypeArgumentList {

@@ -973,6 +973,101 @@ pub struct PsqlCreateTableStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCreateTriggerStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCreateTriggerStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCreateTriggerStatementFields {
+        PsqlCreateTriggerStatementFields {
+            create_token: self.create_token(),
+            trigger_token: self.trigger_token(),
+            name: self.name(),
+            timing: self.timing(),
+            events: self.events(),
+            on_token: self.on_token(),
+            table: self.table(),
+            referencing_clause: self.referencing_clause(),
+            for_each_clause: self.for_each_clause(),
+            execute_token: self.execute_token(),
+            function_kind: self.function_kind(),
+            function: self.function(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn create_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn trigger_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn name(&self) -> SyntaxResult<AnyPsqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn timing(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn events(&self) -> PsqlTriggerEventList {
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn table(&self) -> SyntaxResult<PsqlTableName> {
+        support::required_node(&self.syntax, 6usize)
+    }
+    pub fn referencing_clause(&self) -> Option<PsqlTriggerReferencingClause> {
+        support::node(&self.syntax, 7usize)
+    }
+    pub fn for_each_clause(&self) -> Option<PsqlTriggerForEachClause> {
+        support::node(&self.syntax, 8usize)
+    }
+    pub fn execute_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 9usize)
+    }
+    pub fn function_kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 10usize)
+    }
+    pub fn function(&self) -> SyntaxResult<PsqlCallExpression> {
+        support::required_node(&self.syntax, 11usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 12usize)
+    }
+}
+impl Serialize for PsqlCreateTriggerStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCreateTriggerStatementFields {
+    pub create_token: SyntaxResult<SyntaxToken>,
+    pub trigger_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<AnyPsqlName>,
+    pub timing: SyntaxResult<SyntaxToken>,
+    pub events: PsqlTriggerEventList,
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub table: SyntaxResult<PsqlTableName>,
+    pub referencing_clause: Option<PsqlTriggerReferencingClause>,
+    pub for_each_clause: Option<PsqlTriggerForEachClause>,
+    pub execute_token: SyntaxResult<SyntaxToken>,
+    pub function_kind: SyntaxResult<SyntaxToken>,
+    pub function: SyntaxResult<PsqlCallExpression>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCreateViewStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1594,6 +1689,81 @@ pub struct PsqlDropTableStatementFields {
     pub if_token: Option<SyntaxToken>,
     pub exists_token: Option<SyntaxToken>,
     pub tables: PsqlTableNameList,
+    pub drop_behavior: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlDropTriggerStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlDropTriggerStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlDropTriggerStatementFields {
+        PsqlDropTriggerStatementFields {
+            drop_token: self.drop_token(),
+            trigger_token: self.trigger_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            on_token: self.on_token(),
+            table: self.table(),
+            drop_behavior: self.drop_behavior(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn drop_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn trigger_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn name(&self) -> SyntaxResult<AnyPsqlName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn table(&self) -> SyntaxResult<PsqlTableName> {
+        support::required_node(&self.syntax, 6usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 8usize)
+    }
+}
+impl Serialize for PsqlDropTriggerStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlDropTriggerStatementFields {
+    pub drop_token: SyntaxResult<SyntaxToken>,
+    pub trigger_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<AnyPsqlName>,
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub table: SyntaxResult<PsqlTableName>,
     pub drop_behavior: Option<SyntaxToken>,
     pub semicolon_token: Option<SyntaxToken>,
 }
@@ -4063,6 +4233,181 @@ pub struct PsqlTildeNameFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTriggerEvent {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTriggerEvent {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTriggerEventFields {
+        PsqlTriggerEventFields {
+            or_token: self.or_token(),
+            kind: self.kind(),
+        }
+    }
+    pub fn or_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlTriggerEvent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTriggerEventFields {
+    pub or_token: Option<SyntaxToken>,
+    pub kind: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTriggerForEachClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTriggerForEachClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTriggerForEachClauseFields {
+        PsqlTriggerForEachClauseFields {
+            for_token: self.for_token(),
+            each_token: self.each_token(),
+            granularity: self.granularity(),
+        }
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn each_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn granularity(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlTriggerForEachClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTriggerForEachClauseFields {
+    pub for_token: SyntaxResult<SyntaxToken>,
+    pub each_token: SyntaxResult<SyntaxToken>,
+    pub granularity: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTriggerReferencingClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTriggerReferencingClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTriggerReferencingClauseFields {
+        PsqlTriggerReferencingClauseFields {
+            referencing_token: self.referencing_token(),
+            items: self.items(),
+        }
+    }
+    pub fn referencing_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn items(&self) -> PsqlTriggerReferencingItemList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlTriggerReferencingClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTriggerReferencingClauseFields {
+    pub referencing_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlTriggerReferencingItemList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTriggerReferencingItem {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTriggerReferencingItem {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTriggerReferencingItemFields {
+        PsqlTriggerReferencingItemFields {
+            which: self.which(),
+            table_token: self.table_token(),
+            as_token: self.as_token(),
+            name: self.name(),
+        }
+    }
+    pub fn which(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn table_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlName> {
+        support::required_node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlTriggerReferencingItem {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTriggerReferencingItemFields {
+    pub which: SyntaxResult<SyntaxToken>,
+    pub table_token: SyntaxResult<SyntaxToken>,
+    pub as_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<PsqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTypeArguments {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5063,11 +5408,13 @@ pub enum AnyPsqlStatement {
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
     PsqlCreatePolicyStatement(PsqlCreatePolicyStatement),
     PsqlCreateTableStatement(PsqlCreateTableStatement),
+    PsqlCreateTriggerStatement(PsqlCreateTriggerStatement),
     PsqlCreateViewStatement(PsqlCreateViewStatement),
     PsqlDeleteStatement(PsqlDeleteStatement),
     PsqlDropFunctionStatement(PsqlDropFunctionStatement),
     PsqlDropPolicyStatement(PsqlDropPolicyStatement),
     PsqlDropTableStatement(PsqlDropTableStatement),
+    PsqlDropTriggerStatement(PsqlDropTriggerStatement),
     PsqlDropViewStatement(PsqlDropViewStatement),
     PsqlEmptyStatement(PsqlEmptyStatement),
     PsqlInsertStatement(PsqlInsertStatement),
@@ -5099,6 +5446,12 @@ impl AnyPsqlStatement {
             _ => None,
         }
     }
+    pub fn as_psql_create_trigger_statement(&self) -> Option<&PsqlCreateTriggerStatement> {
+        match &self {
+            Self::PsqlCreateTriggerStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_psql_create_view_statement(&self) -> Option<&PsqlCreateViewStatement> {
         match &self {
             Self::PsqlCreateViewStatement(item) => Some(item),
@@ -5126,6 +5479,12 @@ impl AnyPsqlStatement {
     pub fn as_psql_drop_table_statement(&self) -> Option<&PsqlDropTableStatement> {
         match &self {
             Self::PsqlDropTableStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_drop_trigger_statement(&self) -> Option<&PsqlDropTriggerStatement> {
+        match &self {
+            Self::PsqlDropTriggerStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -6195,6 +6554,86 @@ impl From<PsqlCreateTableStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlCreateTriggerStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CREATE_TRIGGER_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CREATE_TRIGGER_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCreateTriggerStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCreateTriggerStatement")
+                .field(
+                    "create_token",
+                    &support::DebugSyntaxResult(self.create_token()),
+                )
+                .field(
+                    "trigger_token",
+                    &support::DebugSyntaxResult(self.trigger_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("timing", &support::DebugSyntaxResult(self.timing()))
+                .field("events", &self.events())
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field(
+                    "referencing_clause",
+                    &support::DebugOptionalElement(self.referencing_clause()),
+                )
+                .field(
+                    "for_each_clause",
+                    &support::DebugOptionalElement(self.for_each_clause()),
+                )
+                .field(
+                    "execute_token",
+                    &support::DebugSyntaxResult(self.execute_token()),
+                )
+                .field(
+                    "function_kind",
+                    &support::DebugSyntaxResult(self.function_kind()),
+                )
+                .field("function", &support::DebugSyntaxResult(self.function()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCreateTriggerStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCreateTriggerStatement> for SyntaxNode {
+    fn from(n: PsqlCreateTriggerStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCreateTriggerStatement> for SyntaxElement {
+    fn from(n: PsqlCreateTriggerStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlCreateViewStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -6838,6 +7277,73 @@ impl From<PsqlDropTableStatement> for SyntaxNode {
 }
 impl From<PsqlDropTableStatement> for SyntaxElement {
     fn from(n: PsqlDropTableStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlDropTriggerStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_DROP_TRIGGER_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_DROP_TRIGGER_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlDropTriggerStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlDropTriggerStatement")
+                .field("drop_token", &support::DebugSyntaxResult(self.drop_token()))
+                .field(
+                    "trigger_token",
+                    &support::DebugSyntaxResult(self.trigger_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlDropTriggerStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlDropTriggerStatement> for SyntaxNode {
+    fn from(n: PsqlDropTriggerStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlDropTriggerStatement> for SyntaxElement {
+    fn from(n: PsqlDropTriggerStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -9774,6 +10280,210 @@ impl From<PsqlTildeName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTriggerEvent {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_EVENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_EVENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTriggerEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTriggerEvent")
+                .field("or_token", &support::DebugOptionalElement(self.or_token()))
+                .field("kind", &support::DebugSyntaxResult(self.kind()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlTriggerEvent").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTriggerEvent> for SyntaxNode {
+    fn from(n: PsqlTriggerEvent) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTriggerEvent> for SyntaxElement {
+    fn from(n: PsqlTriggerEvent) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTriggerForEachClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_FOR_EACH_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_FOR_EACH_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTriggerForEachClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTriggerForEachClause")
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field("each_token", &support::DebugSyntaxResult(self.each_token()))
+                .field(
+                    "granularity",
+                    &support::DebugSyntaxResult(self.granularity()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTriggerForEachClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTriggerForEachClause> for SyntaxNode {
+    fn from(n: PsqlTriggerForEachClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTriggerForEachClause> for SyntaxElement {
+    fn from(n: PsqlTriggerForEachClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTriggerReferencingClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_REFERENCING_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_REFERENCING_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTriggerReferencingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTriggerReferencingClause")
+                .field(
+                    "referencing_token",
+                    &support::DebugSyntaxResult(self.referencing_token()),
+                )
+                .field("items", &self.items())
+                .finish()
+        } else {
+            f.debug_struct("PsqlTriggerReferencingClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTriggerReferencingClause> for SyntaxNode {
+    fn from(n: PsqlTriggerReferencingClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTriggerReferencingClause> for SyntaxElement {
+    fn from(n: PsqlTriggerReferencingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTriggerReferencingItem {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_REFERENCING_ITEM as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_REFERENCING_ITEM
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTriggerReferencingItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTriggerReferencingItem")
+                .field("which", &support::DebugSyntaxResult(self.which()))
+                .field(
+                    "table_token",
+                    &support::DebugSyntaxResult(self.table_token()),
+                )
+                .field("as_token", &support::DebugSyntaxResult(self.as_token()))
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlTriggerReferencingItem").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTriggerReferencingItem> for SyntaxNode {
+    fn from(n: PsqlTriggerReferencingItem) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTriggerReferencingItem> for SyntaxElement {
+    fn from(n: PsqlTriggerReferencingItem) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlTypeArguments {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11578,6 +12288,11 @@ impl From<PsqlCreateTableStatement> for AnyPsqlStatement {
         Self::PsqlCreateTableStatement(node)
     }
 }
+impl From<PsqlCreateTriggerStatement> for AnyPsqlStatement {
+    fn from(node: PsqlCreateTriggerStatement) -> Self {
+        Self::PsqlCreateTriggerStatement(node)
+    }
+}
 impl From<PsqlCreateViewStatement> for AnyPsqlStatement {
     fn from(node: PsqlCreateViewStatement) -> Self {
         Self::PsqlCreateViewStatement(node)
@@ -11601,6 +12316,11 @@ impl From<PsqlDropPolicyStatement> for AnyPsqlStatement {
 impl From<PsqlDropTableStatement> for AnyPsqlStatement {
     fn from(node: PsqlDropTableStatement) -> Self {
         Self::PsqlDropTableStatement(node)
+    }
+}
+impl From<PsqlDropTriggerStatement> for AnyPsqlStatement {
+    fn from(node: PsqlDropTriggerStatement) -> Self {
+        Self::PsqlDropTriggerStatement(node)
     }
 }
 impl From<PsqlDropViewStatement> for AnyPsqlStatement {
@@ -11634,11 +12354,13 @@ impl AstNode for AnyPsqlStatement {
         .union(PsqlCreateFunctionStatement::KIND_SET)
         .union(PsqlCreatePolicyStatement::KIND_SET)
         .union(PsqlCreateTableStatement::KIND_SET)
+        .union(PsqlCreateTriggerStatement::KIND_SET)
         .union(PsqlCreateViewStatement::KIND_SET)
         .union(PsqlDeleteStatement::KIND_SET)
         .union(PsqlDropFunctionStatement::KIND_SET)
         .union(PsqlDropPolicyStatement::KIND_SET)
         .union(PsqlDropTableStatement::KIND_SET)
+        .union(PsqlDropTriggerStatement::KIND_SET)
         .union(PsqlDropViewStatement::KIND_SET)
         .union(PsqlEmptyStatement::KIND_SET)
         .union(PsqlInsertStatement::KIND_SET)
@@ -11651,11 +12373,13 @@ impl AstNode for AnyPsqlStatement {
                 | PSQL_CREATE_FUNCTION_STATEMENT
                 | PSQL_CREATE_POLICY_STATEMENT
                 | PSQL_CREATE_TABLE_STATEMENT
+                | PSQL_CREATE_TRIGGER_STATEMENT
                 | PSQL_CREATE_VIEW_STATEMENT
                 | PSQL_DELETE_STATEMENT
                 | PSQL_DROP_FUNCTION_STATEMENT
                 | PSQL_DROP_POLICY_STATEMENT
                 | PSQL_DROP_TABLE_STATEMENT
+                | PSQL_DROP_TRIGGER_STATEMENT
                 | PSQL_DROP_VIEW_STATEMENT
                 | PSQL_EMPTY_STATEMENT
                 | PSQL_INSERT_STATEMENT
@@ -11675,6 +12399,9 @@ impl AstNode for AnyPsqlStatement {
             PSQL_CREATE_TABLE_STATEMENT => {
                 Self::PsqlCreateTableStatement(PsqlCreateTableStatement { syntax })
             }
+            PSQL_CREATE_TRIGGER_STATEMENT => {
+                Self::PsqlCreateTriggerStatement(PsqlCreateTriggerStatement { syntax })
+            }
             PSQL_CREATE_VIEW_STATEMENT => {
                 Self::PsqlCreateViewStatement(PsqlCreateViewStatement { syntax })
             }
@@ -11687,6 +12414,9 @@ impl AstNode for AnyPsqlStatement {
             }
             PSQL_DROP_TABLE_STATEMENT => {
                 Self::PsqlDropTableStatement(PsqlDropTableStatement { syntax })
+            }
+            PSQL_DROP_TRIGGER_STATEMENT => {
+                Self::PsqlDropTriggerStatement(PsqlDropTriggerStatement { syntax })
             }
             PSQL_DROP_VIEW_STATEMENT => {
                 Self::PsqlDropViewStatement(PsqlDropViewStatement { syntax })
@@ -11705,11 +12435,13 @@ impl AstNode for AnyPsqlStatement {
             Self::PsqlCreateFunctionStatement(it) => &it.syntax,
             Self::PsqlCreatePolicyStatement(it) => &it.syntax,
             Self::PsqlCreateTableStatement(it) => &it.syntax,
+            Self::PsqlCreateTriggerStatement(it) => &it.syntax,
             Self::PsqlCreateViewStatement(it) => &it.syntax,
             Self::PsqlDeleteStatement(it) => &it.syntax,
             Self::PsqlDropFunctionStatement(it) => &it.syntax,
             Self::PsqlDropPolicyStatement(it) => &it.syntax,
             Self::PsqlDropTableStatement(it) => &it.syntax,
+            Self::PsqlDropTriggerStatement(it) => &it.syntax,
             Self::PsqlDropViewStatement(it) => &it.syntax,
             Self::PsqlEmptyStatement(it) => &it.syntax,
             Self::PsqlInsertStatement(it) => &it.syntax,
@@ -11723,11 +12455,13 @@ impl AstNode for AnyPsqlStatement {
             Self::PsqlCreateFunctionStatement(it) => it.syntax,
             Self::PsqlCreatePolicyStatement(it) => it.syntax,
             Self::PsqlCreateTableStatement(it) => it.syntax,
+            Self::PsqlCreateTriggerStatement(it) => it.syntax,
             Self::PsqlCreateViewStatement(it) => it.syntax,
             Self::PsqlDeleteStatement(it) => it.syntax,
             Self::PsqlDropFunctionStatement(it) => it.syntax,
             Self::PsqlDropPolicyStatement(it) => it.syntax,
             Self::PsqlDropTableStatement(it) => it.syntax,
+            Self::PsqlDropTriggerStatement(it) => it.syntax,
             Self::PsqlDropViewStatement(it) => it.syntax,
             Self::PsqlEmptyStatement(it) => it.syntax,
             Self::PsqlInsertStatement(it) => it.syntax,
@@ -11743,11 +12477,13 @@ impl std::fmt::Debug for AnyPsqlStatement {
             Self::PsqlCreateFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreatePolicyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCreateTriggerStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDeleteStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropPolicyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropTableStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlDropTriggerStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -11763,11 +12499,13 @@ impl From<AnyPsqlStatement> for SyntaxNode {
             AnyPsqlStatement::PsqlCreateFunctionStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreatePolicyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateTableStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlCreateTriggerStatement(it) => it.into(),
             AnyPsqlStatement::PsqlCreateViewStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDeleteStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropFunctionStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropPolicyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropTableStatement(it) => it.into(),
+            AnyPsqlStatement::PsqlDropTriggerStatement(it) => it.into(),
             AnyPsqlStatement::PsqlDropViewStatement(it) => it.into(),
             AnyPsqlStatement::PsqlEmptyStatement(it) => it.into(),
             AnyPsqlStatement::PsqlInsertStatement(it) => it.into(),
@@ -12002,6 +12740,11 @@ impl std::fmt::Display for PsqlCreateTableStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlCreateTriggerStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlCreateViewStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12053,6 +12796,11 @@ impl std::fmt::Display for PsqlDropPolicyStatement {
     }
 }
 impl std::fmt::Display for PsqlDropTableStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlDropTriggerStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -12328,6 +13076,26 @@ impl std::fmt::Display for PsqlTildeArraySuffix {
     }
 }
 impl std::fmt::Display for PsqlTildeName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTriggerEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTriggerForEachClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTriggerReferencingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTriggerReferencingItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -14180,6 +14948,170 @@ impl IntoIterator for PsqlTableNameList {
 impl IntoIterator for &PsqlTableNameList {
     type Item = SyntaxResult<PsqlTableName>;
     type IntoIter = AstSeparatedListNodesIterator<Language, PsqlTableName>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlTriggerEventList {
+    syntax_list: SyntaxList,
+}
+impl PsqlTriggerEventList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlTriggerEventList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_EVENT_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_EVENT_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlTriggerEventList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstNodeList for PsqlTriggerEventList {
+    type Language = Language;
+    type Node = PsqlTriggerEvent;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlTriggerEventList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlTriggerEventList ")?;
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+impl IntoIterator for &PsqlTriggerEventList {
+    type Item = PsqlTriggerEvent;
+    type IntoIter = AstNodeListIterator<Language, PsqlTriggerEvent>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for PsqlTriggerEventList {
+    type Item = PsqlTriggerEvent;
+    type IntoIter = AstNodeListIterator<Language, PsqlTriggerEvent>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlTriggerReferencingItemList {
+    syntax_list: SyntaxList,
+}
+impl PsqlTriggerReferencingItemList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlTriggerReferencingItemList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRIGGER_REFERENCING_ITEM_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRIGGER_REFERENCING_ITEM_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlTriggerReferencingItemList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstNodeList for PsqlTriggerReferencingItemList {
+    type Language = Language;
+    type Node = PsqlTriggerReferencingItem;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlTriggerReferencingItemList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlTriggerReferencingItemList ")?;
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+impl IntoIterator for &PsqlTriggerReferencingItemList {
+    type Item = PsqlTriggerReferencingItem;
+    type IntoIter = AstNodeListIterator<Language, PsqlTriggerReferencingItem>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for PsqlTriggerReferencingItemList {
+    type Item = PsqlTriggerReferencingItem;
+    type IntoIter = AstNodeListIterator<Language, PsqlTriggerReferencingItem>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

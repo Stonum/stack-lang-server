@@ -549,7 +549,7 @@ fn parse_ident_expression(p: &mut PsqlParser) -> ParsedSyntax {
     }
 }
 
-fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
+pub(crate) fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
     let m = p.start();
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
     parse_any_name(p).or_add_diagnostic(p, expected_identifier);

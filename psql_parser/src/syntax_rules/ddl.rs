@@ -5,8 +5,8 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_tilde_name_start, parse_any_name,
-    parse_expression, parse_name, parse_string_literal_expression, parse_table_name,
-    parse_type_name,
+    parse_call_expression, parse_expression, parse_name, parse_string_literal_expression,
+    parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
 use super::select::parse_select_statement;
@@ -14,10 +14,10 @@ use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
 /// Dispatches `CREATE ...` to whichever DDL shape follows -- currently
-/// `CREATE TABLE`, `CREATE FUNCTION`/`CREATE PROCEDURE`, `CREATE VIEW`, and
-/// `CREATE POLICY`. Any other `CREATE ...` falls through to `Absent`,
-/// letting the caller's ordinary bogus-statement recovery handle it, the
-/// same way an unimplemented statement always has.
+/// `CREATE TABLE`, `CREATE FUNCTION`/`CREATE PROCEDURE`, `CREATE VIEW`,
+/// `CREATE POLICY`, and `CREATE TRIGGER`. Any other `CREATE ...` falls
+/// through to `Absent`, letting the caller's ordinary bogus-statement
+/// recovery handle it, the same way an unimplemented statement always has.
 pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![create]) {
         return Absent;
@@ -28,6 +28,9 @@ pub(crate) fn parse_create_statement(p: &mut PsqlParser) -> ParsedSyntax {
     }
     if p.nth_at(1, T![policy]) {
         return parse_create_policy_statement(p);
+    }
+    if p.nth_at(1, T![trigger]) {
+        return parse_create_trigger_statement(p);
     }
 
     // `FUNCTION`/`PROCEDURE`/`VIEW` can all be preceded by an optional `OR
@@ -495,8 +498,126 @@ fn parse_policy_using_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_POLICY_USING_CLAUSE))
 }
 
+/// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
+/// [REFERENCING ...] [FOR EACH ROW|STATEMENT] EXECUTE FUNCTION|PROCEDURE
+/// name(args) [;]` -- the trigger *function* itself is a separate
+/// `CREATE FUNCTION ... RETURNS TRIGGER`; this is just the attachment.
+fn parse_create_trigger_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![create]);
+    p.bump(T![trigger]);
+
+    parse_any_name(p).or_add_diagnostic(p, expected_identifier);
+
+    if p.at(T![before]) || p.at(T![after]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `before` or `after`", range);
+        p.error(err);
+    }
+    parse_trigger_event_list(p);
+
+    p.expect(T![on]);
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+
+    let _ = parse_trigger_referencing_clause(p);
+    let _ = parse_trigger_for_each_clause(p);
+
+    p.expect(T![execute]);
+    if p.at(T![function]) || p.at(T![procedure]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `function` or `procedure` after `execute`", range);
+        p.error(err);
+    }
+    parse_trigger_function(p).or_add_diagnostic(p, expected_expression);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_CREATE_TRIGGER_STATEMENT))
+}
+
+fn parse_trigger_event_list(p: &mut PsqlParser) -> CompletedMarker {
+    let m = p.start();
+    let mut first = true;
+    while first || p.at(T![or]) {
+        let event = p.start();
+        if !first {
+            p.bump(T![or]);
+        }
+        if p.at(T![insert]) || p.at(T![update]) || p.at(T![delete]) {
+            p.bump_any();
+        } else {
+            let range = p.cur_range();
+            let err = p.err_builder("Expected `insert`, `update` or `delete`", range);
+            p.error(err);
+            event.abandon(p);
+            break;
+        }
+        event.complete(p, PSQL_TRIGGER_EVENT);
+        first = false;
+    }
+    m.complete(p, PSQL_TRIGGER_EVENT_LIST)
+}
+
+fn parse_trigger_referencing_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![referencing]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![referencing]);
+
+    let items = p.start();
+    while p.at(T![old]) || p.at(T![new]) {
+        let item = p.start();
+        p.bump_any();
+        p.expect(T![table]);
+        p.expect(T![as]);
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        item.complete(p, PSQL_TRIGGER_REFERENCING_ITEM);
+    }
+    items.complete(p, PSQL_TRIGGER_REFERENCING_ITEM_LIST);
+
+    Present(m.complete(p, PSQL_TRIGGER_REFERENCING_CLAUSE))
+}
+
+fn parse_trigger_for_each_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![for]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![for]);
+    p.expect(T![each]);
+    if p.at(T![row]) || p.at(T![statement]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `row` or `statement` after `for each`", range);
+        p.error(err);
+    }
+    Present(m.complete(p, PSQL_TRIGGER_FOR_EACH_CLAUSE))
+}
+
+/// The `name(args)` called by `EXECUTE FUNCTION`/`EXECUTE PROCEDURE` --
+/// structurally identical to an ordinary function call.
+fn parse_trigger_function(p: &mut PsqlParser) -> ParsedSyntax {
+    if is_at_tilde_name_start(p) {
+        return parse_call_expression(p, 0);
+    }
+    if !p.at(T![ident]) {
+        return Absent;
+    }
+    let segment_count = count_dotted_name_segments(p).min(3);
+    parse_call_expression(p, segment_count)
+}
+
 /// Dispatches `DROP ...` to whichever DDL shape follows -- `DROP TABLE`,
-/// `DROP VIEW`, `DROP POLICY`, and `DROP FUNCTION`/`DROP PROCEDURE`.
+/// `DROP VIEW`, `DROP POLICY`, `DROP TRIGGER`, and `DROP FUNCTION`/`DROP
+/// PROCEDURE`.
 pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if !p.at(T![drop]) {
         return Absent;
@@ -511,8 +632,36 @@ pub(crate) fn parse_drop_statement(p: &mut PsqlParser) -> ParsedSyntax {
     if p.nth_at(1, T![policy]) {
         return parse_drop_policy_statement(p);
     }
+    if p.nth_at(1, T![trigger]) {
+        return parse_drop_trigger_statement(p);
+    }
 
     parse_drop_function_statement(p)
+}
+
+/// `DROP TRIGGER [IF EXISTS] name ON table [CASCADE|RESTRICT] [;]`
+fn parse_drop_trigger_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![drop]);
+    p.bump(T![trigger]);
+
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+
+    parse_any_name(p).or_add_diagnostic(p, expected_identifier);
+
+    p.expect(T![on]);
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+
+    if p.at(T![cascade]) || p.at(T![restrict]) {
+        p.bump_any();
+    }
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_DROP_TRIGGER_STATEMENT))
 }
 
 /// `DROP POLICY [IF EXISTS] name ON table [;]`

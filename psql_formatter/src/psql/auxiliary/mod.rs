@@ -26,6 +26,8 @@ pub(crate) mod table_col_reference;
 pub(crate) mod table_name;
 pub(crate) mod tilde_array_suffix;
 pub(crate) mod tilde_name;
+pub(crate) mod trigger_event;
+pub(crate) mod trigger_referencing_item;
 pub(crate) mod type_arguments;
 pub(crate) mod type_array_suffix;
 pub(crate) mod type_name;
