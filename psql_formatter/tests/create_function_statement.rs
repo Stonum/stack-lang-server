@@ -102,6 +102,50 @@ create function foo(in a varchar default ''::varchar) as 'select 1'
 }
 
 #[test]
+fn format_create_function_returns_table_single_column() {
+    assert_fmt!(
+        r#"--
+create function foo() returns table(a int) as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_table_multiple_columns() {
+    assert_fmt!(
+        r#"--
+create function foo() returns table(a int, b text) as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_table_normalizes_spacing() {
+    assert_fmt_eq!(
+        r#"--
+create function foo() returns   TABLE(a   int,b text) as 'select 1'
+"#,
+        r#"--
+create function foo() returns table(a int, b text) as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_table_columns_wrap_when_too_long() {
+    assert_fmt!(
+        r#"--
+create function foo() returns table(
+	really_long_column_name_number_one int,
+	really_long_column_name_number_two text,
+	really_long_column_name_number_three boolean,
+	really_long_column_name_number_four numeric
+) as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_parameters_wrap_when_too_long() {
     assert_fmt!(
         r#"--
