@@ -75,6 +75,33 @@ create function foo(a int, b text) returns boolean as 'select 1' language plpgsq
 }
 
 #[test]
+fn format_create_function_parameter_mode() {
+    assert_fmt!(
+        r#"--
+create function foo(in a int, out b int) as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_parameter_default() {
+    assert_fmt!(
+        r#"--
+create function foo(a text default '') as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_parameter_mode_and_default_combined() {
+    assert_fmt!(
+        r#"--
+create function foo(in a varchar default ''::varchar) as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_parameters_wrap_when_too_long() {
     assert_fmt!(
         r#"--

@@ -1823,6 +1823,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlOrderByExpression {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlParameterDefault>
+    for crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlParameterDefault,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlParameterDefault>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlParameterDefault {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlParameterDefault,
+        crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlParameterDefault {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlParameterDefault,
+        crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlParameterExpression>
     for crate::psql::expressions::parameter_expression::FormatPsqlParameterExpression
 {
