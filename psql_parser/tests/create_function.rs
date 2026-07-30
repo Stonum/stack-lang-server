@@ -198,6 +198,40 @@ fn test_create_function_returns_table_typed_column_with_arguments() {
 }
 
 #[test]
+fn test_create_function_returns_trigger() {
+    let res = parse(
+        "create function foo() returns trigger as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_realistic_trigger_function_shape() {
+    // Representative of a real trigger function: no parameters, `RETURNS
+    // TRIGGER`, a body referencing the trigger-context pseudo-tables
+    // (`old`/`new`) -- ordinary identifiers to this grammar, no special
+    // support needed since the body is opaque.
+    let res = parse(
+        r#"create function ~$on_update~ ()
+returns trigger as $$
+declare
+  message text = '';
+begin
+  if (tg_op = 'UPDATE') then
+    message = 'updated';
+  end if;
+  return new;
+end;
+$$ language plpgsql;"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_realistic_table_returning_function_shape() {
     // Representative of a real set-returning function: a wide result-row
     // shape (some quoted column names, since quoted identifiers are common

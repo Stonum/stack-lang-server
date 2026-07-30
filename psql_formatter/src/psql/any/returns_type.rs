@@ -9,6 +9,7 @@ impl FormatRule<AnyPsqlReturnsType> for FormatAnyPsqlReturnsType {
     fn fmt(&self, node: &AnyPsqlReturnsType, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
             AnyPsqlReturnsType::PsqlReturnsTableClause(node) => node.format().fmt(f),
+            AnyPsqlReturnsType::PsqlReturnsTriggerClause(node) => node.format().fmt(f),
             AnyPsqlReturnsType::PsqlTypeName(node) => node.format().fmt(f),
         }
     }

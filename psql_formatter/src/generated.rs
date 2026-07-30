@@ -2085,6 +2085,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsTableColumn {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlReturnsTriggerClause>
+    for crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlReturnsTriggerClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlReturnsTriggerClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsTriggerClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlReturnsTriggerClause,
+        crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlReturnsTriggerClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlReturnsTriggerClause,
+        crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlRoot> for crate::psql::auxiliary::root::FormatPsqlRoot {
     type Context = PsqlFormatContext;
     #[inline(always)]

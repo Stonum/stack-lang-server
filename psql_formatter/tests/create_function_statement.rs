@@ -102,6 +102,27 @@ create function foo(in a varchar default ''::varchar) as 'select 1'
 }
 
 #[test]
+fn format_create_function_returns_trigger() {
+    assert_fmt!(
+        r#"--
+create function foo() returns trigger as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_returns_trigger_normalizes_case() {
+    assert_fmt_eq!(
+        r#"--
+create function foo() RETURNS TRIGGER as 'select 1'
+"#,
+        r#"--
+create function foo() returns trigger as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_returns_table_single_column() {
     assert_fmt!(
         r#"--
