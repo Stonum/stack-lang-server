@@ -385,27 +385,47 @@ PsqlColumnDefinition =
    name: PsqlName
    type: PsqlTypeName
 
-// `CREATE FUNCTION|PROCEDURE name(param type, ...) [RETURNS type] AS body
-// [LANGUAGE name] [;]` -- minimal skeleton, covers the simplest real
-// PL/pgSQL functions. No `OR REPLACE`, no parameter mode/`DEFAULT`, no
-// `RETURNS TABLE`/`RETURNS TRIGGER`, no option other than a single trailing
-// `LANGUAGE` yet -- those are follow-up steps.
-// `body` is a plain string-literal expression (covers both `'...'` and, now
-// that the lexer supports it, `$$...$$`/`$tag$...$tag$` dollar-quoting) and
-// is printed verbatim by the formatter -- PL/pgSQL body contents are never
-// reparsed or reformatted.
+// `CREATE [OR REPLACE] FUNCTION|PROCEDURE name(param type, ...) [RETURNS
+// type] <options>* AS body <options>* [;]` -- real scripts scatter options
+// (`LANGUAGE`, volatility, `SECURITY DEFINER`/`INVOKER`, `STRICT`) both
+// before and after `AS`, in any order, so both are the same repeatable
+// `PsqlFunctionOptionList`, not a fixed sequence.
+// `body` is a plain string-literal expression (covers both `'...'` and the
+// dollar-quoted `$$...$$`/`$tag$...$tag$` spelling) and is printed verbatim
+// by the formatter -- PL/pgSQL body contents are never reparsed or
+// reformatted.
 PsqlCreateFunctionStatement =
    'create'
+   ('or' 'replace')?
    kind: ('function' | 'procedure')
    name: AnyPsqlName
    '('
    parameters: PsqlFunctionParameterList
    ')'
    returns_clause: PsqlReturnsClause?
+   leading_options: PsqlFunctionOptionList
    'as'
    body: PsqlStringLiteralExpression
-   language_option: PsqlLanguageOption?
+   trailing_options: PsqlFunctionOptionList
    ';'?
+
+PsqlFunctionOptionList = AnyPsqlFunctionOption*
+
+AnyPsqlFunctionOption =
+   PsqlLanguageOption
+   | PsqlVolatilityOption
+   | PsqlSecurityOption
+   | PsqlStrictOption
+
+PsqlVolatilityOption =
+   value: ('immutable' | 'stable' | 'volatile')
+
+PsqlSecurityOption =
+   'security'
+   value: ('definer' | 'invoker')
+
+PsqlStrictOption =
+   'strict'
 
 PsqlFunctionParameterList = (PsqlFunctionParameter (',' PsqlFunctionParameter)*)
 

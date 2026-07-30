@@ -265,6 +265,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlRoot::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_SECURITY_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlSecurityOption::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_SELECT_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlSelectClause::new_unchecked(node) };
                     $body
@@ -295,6 +299,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_STAR => {
                     let $pattern = unsafe { $crate::PsqlStar::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_STRICT_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlStrictOption::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_STRING_LITERAL_EXPRESSION => {
@@ -348,6 +356,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_UPDATE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlUpdateStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_VOLATILITY_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlVolatilityOption::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_WHERE_CLAUSE => {
@@ -422,6 +434,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_FROM_ITEM_LIST => {
                     let $pattern = unsafe { $crate::PsqlFromItemList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_FUNCTION_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlFunctionOptionList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST => {

@@ -309,8 +309,10 @@ pub fn psql_create_function_statement(
     l_paren_token: SyntaxToken,
     parameters: PsqlFunctionParameterList,
     r_paren_token: SyntaxToken,
+    leading_options: PsqlFunctionOptionList,
     as_token: SyntaxToken,
     body: PsqlStringLiteralExpression,
+    trailing_options: PsqlFunctionOptionList,
 ) -> PsqlCreateFunctionStatementBuilder {
     PsqlCreateFunctionStatementBuilder {
         create_token,
@@ -319,10 +321,13 @@ pub fn psql_create_function_statement(
         l_paren_token,
         parameters,
         r_paren_token,
+        leading_options,
         as_token,
         body,
+        trailing_options,
+        or_token: None,
+        replace_token: None,
         returns_clause: None,
-        language_option: None,
         semicolon_token: None,
     }
 }
@@ -333,19 +338,26 @@ pub struct PsqlCreateFunctionStatementBuilder {
     l_paren_token: SyntaxToken,
     parameters: PsqlFunctionParameterList,
     r_paren_token: SyntaxToken,
+    leading_options: PsqlFunctionOptionList,
     as_token: SyntaxToken,
     body: PsqlStringLiteralExpression,
+    trailing_options: PsqlFunctionOptionList,
+    or_token: Option<SyntaxToken>,
+    replace_token: Option<SyntaxToken>,
     returns_clause: Option<PsqlReturnsClause>,
-    language_option: Option<PsqlLanguageOption>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlCreateFunctionStatementBuilder {
-    pub fn with_returns_clause(mut self, returns_clause: PsqlReturnsClause) -> Self {
-        self.returns_clause = Some(returns_clause);
+    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
+        self.or_token = Some(or_token);
         self
     }
-    pub fn with_language_option(mut self, language_option: PsqlLanguageOption) -> Self {
-        self.language_option = Some(language_option);
+    pub fn with_replace_token(mut self, replace_token: SyntaxToken) -> Self {
+        self.replace_token = Some(replace_token);
+        self
+    }
+    pub fn with_returns_clause(mut self, returns_clause: PsqlReturnsClause) -> Self {
+        self.returns_clause = Some(returns_clause);
         self
     }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
@@ -357,6 +369,8 @@ impl PsqlCreateFunctionStatementBuilder {
             PsqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT,
             [
                 Some(SyntaxElement::Token(self.create_token)),
+                self.or_token.map(|token| SyntaxElement::Token(token)),
+                self.replace_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.kind_token)),
                 Some(SyntaxElement::Node(self.name.into_syntax())),
                 Some(SyntaxElement::Token(self.l_paren_token)),
@@ -364,10 +378,10 @@ impl PsqlCreateFunctionStatementBuilder {
                 Some(SyntaxElement::Token(self.r_paren_token)),
                 self.returns_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.leading_options.into_syntax())),
                 Some(SyntaxElement::Token(self.as_token)),
                 Some(SyntaxElement::Node(self.body.into_syntax())),
-                self.language_option
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.trailing_options.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
             ],
@@ -1406,6 +1420,18 @@ pub fn psql_root(stmt: PsqlStatementList, eof_token: SyntaxToken) -> PsqlRoot {
         ],
     ))
 }
+pub fn psql_security_option(
+    security_token: SyntaxToken,
+    value_token: SyntaxToken,
+) -> PsqlSecurityOption {
+    PsqlSecurityOption::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_SECURITY_OPTION,
+        [
+            Some(SyntaxElement::Token(security_token)),
+            Some(SyntaxElement::Token(value_token)),
+        ],
+    ))
+}
 pub fn psql_select_clause(select_token: SyntaxToken, list: PsqlSelectItemList) -> PsqlSelectClause {
     PsqlSelectClause::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_SELECT_CLAUSE,
@@ -1654,6 +1680,12 @@ pub fn psql_star(value_token: SyntaxToken) -> PsqlStar {
     PsqlStar::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_STAR,
         [Some(SyntaxElement::Token(value_token))],
+    ))
+}
+pub fn psql_strict_option(strict_token: SyntaxToken) -> PsqlStrictOption {
+    PsqlStrictOption::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_STRICT_OPTION,
+        [Some(SyntaxElement::Token(strict_token))],
     ))
 }
 pub fn psql_string_literal_expression(value_token: SyntaxToken) -> PsqlStringLiteralExpression {
@@ -1926,6 +1958,12 @@ impl PsqlUpdateStatementBuilder {
         ))
     }
 }
+pub fn psql_volatility_option(value_token: SyntaxToken) -> PsqlVolatilityOption {
+    PsqlVolatilityOption::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VOLATILITY_OPTION,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
+}
 pub fn psql_where_clause(
     where_token: SyntaxToken,
     condition: AnyPsqlExpression,
@@ -2154,6 +2192,18 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_function_option_list<I>(items: I) -> PsqlFunctionOptionList
+where
+    I: IntoIterator<Item = AnyPsqlFunctionOption>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlFunctionOptionList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FUNCTION_OPTION_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_function_parameter_list<I, S>(items: I, separators: S) -> PsqlFunctionParameterList

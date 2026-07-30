@@ -102,6 +102,81 @@ create function foo(in a varchar default ''::varchar) as 'select 1'
 }
 
 #[test]
+fn format_create_or_replace_function() {
+    assert_fmt!(
+        r#"--
+create or replace function foo() as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_trailing_volatility_option() {
+    assert_fmt!(
+        r#"--
+create function foo() as 'select 1' stable;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_security_definer() {
+    assert_fmt!(
+        r#"--
+create function foo() as 'select 1' security definer;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_strict() {
+    assert_fmt!(
+        r#"--
+create function foo() as 'select 1' strict;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_leading_options_before_as() {
+    assert_fmt!(
+        r#"--
+create function foo() language plpgsql stable as 'select 1';
+"#
+    );
+}
+
+#[test]
+fn format_create_function_options_on_both_sides_of_as() {
+    assert_fmt!(
+        r#"--
+create function foo() language plpgsql security definer as 'select 1' stable;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_multiple_trailing_options_any_order() {
+    assert_fmt!(
+        r#"--
+create function foo() as 'select 1' language plpgsql stable strict;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_normalizes_or_replace_and_options_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE   OR REPLACE   FUNCTION foo() AS 'select 1' SECURITY   DEFINER   STRICT;
+"#,
+        r#"--
+create or replace function foo() as 'select 1' security definer strict;
+"#
+    );
+}
+
+#[test]
 fn format_create_function_returns_trigger() {
     assert_fmt!(
         r#"--

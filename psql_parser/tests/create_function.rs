@@ -198,6 +198,108 @@ fn test_create_function_returns_table_typed_column_with_arguments() {
 }
 
 #[test]
+fn test_create_or_replace_function() {
+    let res = parse(
+        "create or replace function foo() as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_trailing_volatility_option() {
+    let res = parse(
+        "create function foo() as 'select 1' stable;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_immutable() {
+    let res = parse(
+        "create function foo() as 'select 1' immutable;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_volatile() {
+    let res = parse(
+        "create function foo() as 'select 1' volatile;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_security_definer() {
+    let res = parse(
+        "create function foo() as 'select 1' security definer;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_security_invoker() {
+    let res = parse(
+        "create function foo() as 'select 1' security invoker;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_strict() {
+    let res = parse(
+        "create function foo() as 'select 1' strict;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_leading_options_before_as() {
+    let res = parse(
+        "create function foo() language plpgsql stable as 'select 1';",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_options_on_both_sides_of_as() {
+    // Real-world shape: options appear both before and after `AS`, not just
+    // one side -- e.g. `LANGUAGE`+`SECURITY DEFINER` before, `STABLE` after.
+    let res = parse(
+        "create function foo() language plpgsql security definer as 'select 1' stable;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_multiple_trailing_options_any_order() {
+    let res = parse(
+        "create function foo() as 'select 1' language plpgsql stable strict;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_function_returns_trigger() {
     let res = parse(
         "create function foo() returns trigger as 'select 1'",
@@ -277,18 +379,21 @@ $$ language plpgsql;"#,
 #[test]
 fn test_realistic_procedure_with_mode_and_default_parameters() {
     // Representative of a real procedure signature: multiple `IN`
-    // parameters, each with a `DEFAULT` cast to its own type. (Options like
-    // `LANGUAGE`/`SECURITY DEFINER` appearing *before* `AS` aren't
-    // supported yet -- that's a later step.)
+    // parameters, each with a `DEFAULT` cast to its own type, `LANGUAGE`/
+    // `SECURITY DEFINER` options appearing *before* `AS` (a real, common
+    // ordering, distinct from the trailing-only options tested elsewhere).
     let res = parse(
         r#"create procedure ~$do_something~ (
   in first_arg varchar default ''::varchar,
   in second_arg varchar default ''::varchar
-) as $$
+)
+language plpgsql
+security definer
+as $$
 begin
   null;
 end;
-$$ language plpgsql;"#,
+$$;"#,
         mlang(),
     );
 
