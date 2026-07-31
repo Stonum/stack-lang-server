@@ -467,8 +467,8 @@ fn parse_view_option(p: &mut PsqlParser) -> ParsedSyntax {
 }
 
 /// `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
-/// [USING (condition)] [;]` -- the `USING` condition is an ordinary boolean
-/// expression, already fully supported.
+/// [USING (condition)] [WITH CHECK (condition)] [;]` -- both conditions are
+/// ordinary boolean expressions, already fully supported.
 fn parse_create_policy_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![create]);
@@ -481,6 +481,7 @@ fn parse_create_policy_statement(p: &mut PsqlParser) -> ParsedSyntax {
 
     let _ = parse_policy_for_clause(p);
     let _ = parse_policy_using_clause(p);
+    let _ = parse_policy_with_check_clause(p);
 
     p.eat(T![;]);
 
@@ -519,6 +520,20 @@ fn parse_policy_using_clause(p: &mut PsqlParser) -> ParsedSyntax {
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     p.expect(T![')']);
     Present(m.complete(p, PSQL_POLICY_USING_CLAUSE))
+}
+
+fn parse_policy_with_check_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![with]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![with]);
+    p.expect(T![check]);
+    p.expect(T!['(']);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_POLICY_WITH_CHECK_CLAUSE))
 }
 
 /// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table

@@ -283,6 +283,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPolicyUsingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_POLICY_WITH_CHECK_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPolicyWithCheckClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_PRECISION_MODIFIER => {
                     let $pattern = unsafe { $crate::PsqlPrecisionModifier::new_unchecked(node) };
                     $body

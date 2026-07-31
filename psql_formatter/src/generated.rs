@@ -2299,6 +2299,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyUsingClause {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlPolicyWithCheckClause>
+    for crate::psql::clauses::policy_with_check_clause::FormatPsqlPolicyWithCheckClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlPolicyWithCheckClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlPolicyWithCheckClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyWithCheckClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlPolicyWithCheckClause,
+        crate::psql::clauses::policy_with_check_clause::FormatPsqlPolicyWithCheckClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: policy_with_check_clause :: FormatPsqlPolicyWithCheckClause :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlPolicyWithCheckClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlPolicyWithCheckClause,
+        crate::psql::clauses::policy_with_check_clause::FormatPsqlPolicyWithCheckClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: policy_with_check_clause :: FormatPsqlPolicyWithCheckClause :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlPrecisionModifier>
     for crate::psql::auxiliary::precision_modifier::FormatPsqlPrecisionModifier
 {

@@ -885,6 +885,7 @@ impl PsqlCreatePolicyStatement {
             table: self.table(),
             for_clause: self.for_clause(),
             using_clause: self.using_clause(),
+            with_check_clause: self.with_check_clause(),
             semicolon_token: self.semicolon_token(),
         }
     }
@@ -909,8 +910,11 @@ impl PsqlCreatePolicyStatement {
     pub fn using_clause(&self) -> Option<PsqlPolicyUsingClause> {
         support::node(&self.syntax, 6usize)
     }
+    pub fn with_check_clause(&self) -> Option<PsqlPolicyWithCheckClause> {
+        support::node(&self.syntax, 7usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 7usize)
+        support::token(&self.syntax, 8usize)
     }
 }
 impl Serialize for PsqlCreatePolicyStatement {
@@ -930,6 +934,7 @@ pub struct PsqlCreatePolicyStatementFields {
     pub table: SyntaxResult<PsqlTableName>,
     pub for_clause: Option<PsqlPolicyForClause>,
     pub using_clause: Option<PsqlPolicyUsingClause>,
+    pub with_check_clause: Option<PsqlPolicyWithCheckClause>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -3258,6 +3263,61 @@ impl Serialize for PsqlPolicyUsingClause {
 #[derive(Serialize)]
 pub struct PsqlPolicyUsingClauseFields {
     pub using_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnyPsqlExpression>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPolicyWithCheckClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPolicyWithCheckClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPolicyWithCheckClauseFields {
+        PsqlPolicyWithCheckClauseFields {
+            with_token: self.with_token(),
+            check_token: self.check_token(),
+            l_paren_token: self.l_paren_token(),
+            condition: self.condition(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn with_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn check_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlPolicyWithCheckClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPolicyWithCheckClauseFields {
+    pub with_token: SyntaxResult<SyntaxToken>,
+    pub check_token: SyntaxResult<SyntaxToken>,
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub condition: SyntaxResult<AnyPsqlExpression>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
@@ -7091,6 +7151,10 @@ impl std::fmt::Debug for PsqlCreatePolicyStatement {
                     &support::DebugOptionalElement(self.using_clause()),
                 )
                 .field(
+                    "with_check_clause",
+                    &support::DebugOptionalElement(self.with_check_clause()),
+                )
+                .field(
                     "semicolon_token",
                     &support::DebugOptionalElement(self.semicolon_token()),
                 )
@@ -9682,6 +9746,66 @@ impl From<PsqlPolicyUsingClause> for SyntaxNode {
 }
 impl From<PsqlPolicyUsingClause> for SyntaxElement {
     fn from(n: PsqlPolicyUsingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPolicyWithCheckClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_POLICY_WITH_CHECK_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_POLICY_WITH_CHECK_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPolicyWithCheckClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPolicyWithCheckClause")
+                .field("with_token", &support::DebugSyntaxResult(self.with_token()))
+                .field(
+                    "check_token",
+                    &support::DebugSyntaxResult(self.check_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPolicyWithCheckClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPolicyWithCheckClause> for SyntaxNode {
+    fn from(n: PsqlPolicyWithCheckClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPolicyWithCheckClause> for SyntaxElement {
+    fn from(n: PsqlPolicyWithCheckClause) -> Self {
         n.syntax.into()
     }
 }
@@ -14379,6 +14503,11 @@ impl std::fmt::Display for PsqlPolicyForClause {
     }
 }
 impl std::fmt::Display for PsqlPolicyUsingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPolicyWithCheckClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

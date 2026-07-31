@@ -539,9 +539,10 @@ PsqlDropViewStatement =
    ';'?
 
 // `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
-// [USING (condition)] [;]` -- the `USING` condition is an ordinary boolean
-// expression, already fully supported (including subqueries/function
-// calls); only the thin wrapper is new here.
+// [USING (condition)] [WITH CHECK (condition)] [;]` -- `USING` applies to
+// rows already in the table (SELECT/UPDATE/DELETE), `WITH CHECK` applies to
+// rows being written (INSERT/UPDATE); both conditions are ordinary boolean
+// expressions, already fully supported.
 PsqlCreatePolicyStatement =
    'create'
    'policy'
@@ -550,6 +551,7 @@ PsqlCreatePolicyStatement =
    table: PsqlTableName
    for_clause: PsqlPolicyForClause?
    using_clause: PsqlPolicyUsingClause?
+   with_check_clause: PsqlPolicyWithCheckClause?
    ';'?
 
 PsqlPolicyForClause =
@@ -558,6 +560,13 @@ PsqlPolicyForClause =
 
 PsqlPolicyUsingClause =
    'using'
+   '('
+   condition: AnyPsqlExpression
+   ')'
+
+PsqlPolicyWithCheckClause =
+   'with'
+   'check'
    '('
    condition: AnyPsqlExpression
    ')'

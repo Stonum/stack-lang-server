@@ -415,6 +415,7 @@ pub fn psql_create_policy_statement(
         table,
         for_clause: None,
         using_clause: None,
+        with_check_clause: None,
         semicolon_token: None,
     }
 }
@@ -426,6 +427,7 @@ pub struct PsqlCreatePolicyStatementBuilder {
     table: PsqlTableName,
     for_clause: Option<PsqlPolicyForClause>,
     using_clause: Option<PsqlPolicyUsingClause>,
+    with_check_clause: Option<PsqlPolicyWithCheckClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlCreatePolicyStatementBuilder {
@@ -435,6 +437,10 @@ impl PsqlCreatePolicyStatementBuilder {
     }
     pub fn with_using_clause(mut self, using_clause: PsqlPolicyUsingClause) -> Self {
         self.using_clause = Some(using_clause);
+        self
+    }
+    pub fn with_with_check_clause(mut self, with_check_clause: PsqlPolicyWithCheckClause) -> Self {
+        self.with_check_clause = Some(with_check_clause);
         self
     }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
@@ -453,6 +459,8 @@ impl PsqlCreatePolicyStatementBuilder {
                 self.for_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.with_check_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
@@ -1801,6 +1809,24 @@ pub fn psql_policy_using_clause(
         PsqlSyntaxKind::PSQL_POLICY_USING_CLAUSE,
         [
             Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_policy_with_check_clause(
+    with_token: SyntaxToken,
+    check_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnyPsqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlPolicyWithCheckClause {
+    PsqlPolicyWithCheckClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_POLICY_WITH_CHECK_CLAUSE,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(check_token)),
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(condition.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),

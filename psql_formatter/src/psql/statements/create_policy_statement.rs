@@ -18,6 +18,7 @@ impl FormatNodeRule<PsqlCreatePolicyStatement> for FormatPsqlCreatePolicyStateme
             table,
             for_clause,
             using_clause,
+            with_check_clause,
             semicolon_token,
         } = node.as_fields();
 
@@ -41,6 +42,9 @@ impl FormatNodeRule<PsqlCreatePolicyStatement> for FormatPsqlCreatePolicyStateme
         }
         if let Some(using_clause) = using_clause {
             write!(f, [space(), using_clause.format()])?;
+        }
+        if let Some(with_check_clause) = with_check_clause {
+            write!(f, [space(), with_check_clause.format()])?;
         }
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
