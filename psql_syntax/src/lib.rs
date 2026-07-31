@@ -1,6 +1,7 @@
 #[macro_use]
 mod generated;
 mod file_source;
+mod parentheses;
 mod syntax_node;
 
 use biome_rowan::RawSyntaxKind;
@@ -12,6 +13,7 @@ pub use biome_rowan::{
 pub use crate::file_source::*;
 use crate::generated::kind::PsqlSyntaxKind::*;
 pub use crate::generated::*;
+pub use crate::parentheses::NeedsParentheses;
 pub use crate::syntax_node::*;
 
 impl From<u16> for PsqlSyntaxKind {

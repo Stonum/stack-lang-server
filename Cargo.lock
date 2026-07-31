@@ -1301,6 +1301,7 @@ name = "psql_syntax"
 version = "0.0.1"
 dependencies = [
  "biome_rowan",
+ "psql_parser",
  "serde",
  "serde_json",
 ]
