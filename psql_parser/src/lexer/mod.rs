@@ -543,6 +543,17 @@ impl<'src> PsqlLexer<'src> {
     }
 
     #[inline]
+    fn resolve_pipe(&mut self) -> PsqlSyntaxKind {
+        match self.next_byte() {
+            Some(b'|') => {
+                self.next_byte();
+                T![||]
+            }
+            _ => T![|],
+        }
+    }
+
+    #[inline]
     fn resolve_bang(&mut self) -> PsqlSyntaxKind {
         match self.next_byte() {
             Some(b'=') => {
@@ -670,7 +681,7 @@ impl<'src> PsqlLexer<'src> {
             LSS => self.resolve_less_than(),
             MOR => self.resolve_more_than(),
             TLD => self.resolve_tilde(),
-            PIP => self.eat_byte(T![|]),
+            PIP => self.resolve_pipe(),
             Dispatch::AMP => self.eat_byte(T![&]),
             CRT => self.eat_byte(T![^]),
             PLS => self.eat_byte(T![+]),

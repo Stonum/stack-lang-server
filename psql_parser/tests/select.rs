@@ -102,6 +102,54 @@ fn test_select_binary_expression_precedence() {
 }
 
 #[test]
+fn test_select_concat_expression() {
+    let res = parse("select a || b", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_chained_concat_expression() {
+    let res = parse(
+        "select a || ', ' || b || ', ' || c",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_concat_binds_tighter_than_comparison() {
+    // `||` sits above comparisons in precedence (real Postgres's "any other
+    // operator" tier), so `a || b = c` is `(a || b) = c`, not `a || (b =
+    // c)` -- the latter would be a type error in real Postgres anyway
+    // (comparing text to a boolean).
+    let res = parse("select a || b = c", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_concat_binds_looser_than_additive() {
+    // `+`/`-` bind tighter than `||`, so `a + b || c` is `(a + b) || c`.
+    let res = parse("select a + b || c", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_concat_inside_case_expression() {
+    // Representative of a real shape: `||` chained across `case when`
+    // branches to build a display string.
+    let res = parse(
+        "select case when a is not null then a || ', ' else '' end || case when b is not null then b || ', ' else '' end from t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_select_col_references() {
     let res = parse("select a, t.a, s.t.a, d.s.t.a", PsqlFileSource::script());
 

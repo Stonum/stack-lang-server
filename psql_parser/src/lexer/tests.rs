@@ -221,6 +221,9 @@ fn comparison_operators() {
     assert_lex! { "~*", RGX:2 }
     assert_lex! { "!~", NEG_TILDE:2 }
     assert_lex! { "!~*", NEG_RGX:3 }
+    assert_lex! { "|", PIPE:1 }
+    assert_lex! { "||", PIPEPIPE:2 }
+    assert_lex! { "| |", PIPE:1, WHITESPACE:1, PIPE:1 }
 }
 
 #[test]

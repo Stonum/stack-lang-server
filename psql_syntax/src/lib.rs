@@ -127,9 +127,13 @@ pub enum OperatorPrecedence {
     /// but looser than arithmetic and the generic pattern-match operators
     /// already folded into [OperatorPrecedence::Relational].
     Predicate = 14,
-    Shift = 15,
-    Additive = 16,
-    Multiplicative = 17,
+    /// `||` (string concatenation) -- binds tighter than comparisons and
+    /// the `between`/`in`/`like` predicates but looser than the arithmetic
+    /// tiers, matching real Postgres's "any other operator" precedence.
+    Concat = 15,
+    Shift = 16,
+    Additive = 17,
+    Multiplicative = 18,
     Unary = 19,
     Update = 20,
     LeftHandSide = 22,
@@ -181,6 +185,7 @@ impl OperatorPrecedence {
             | T![!~~]
             | T![~~*]
             | T![!~~*] => OperatorPrecedence::Relational,
+            T![||] => OperatorPrecedence::Concat,
             T![<<] | T![>>] => OperatorPrecedence::Shift,
             T![+] | T![-] => OperatorPrecedence::Additive,
             T![*] | T![/] | T![%] => OperatorPrecedence::Multiplicative,
