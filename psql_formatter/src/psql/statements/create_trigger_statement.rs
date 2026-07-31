@@ -38,34 +38,52 @@ impl FormatNodeRule<PsqlCreateTriggerStatement> for FormatPsqlCreateTriggerState
                 space(),
                 timing.format(),
                 space(),
-                group(&events.format()),
-                space(),
-                on_token.format(),
-                space(),
-                table.format(),
+                events.format(),
             ]
         )?;
 
-        if let Some(referencing_clause) = referencing_clause {
-            write!(f, [space(), referencing_clause.format()])?;
-        }
-        if let Some(for_each_clause) = for_each_clause {
-            write!(f, [space(), for_each_clause.format()])?;
-        }
-        if let Some(when_clause) = when_clause {
-            write!(f, [space(), when_clause.format()])?;
-        }
-
+        // `on table [referencing ...] [for each ...] [when (...)] execute
+        // ... name(...)` all wrapped in one group, each present clause
+        // joined by `soft_line_break_or_space` -- a short header collapses
+        // onto a single line (matching most real scripts), while a long
+        // `execute function(...)` argument list (which forces this group to
+        // expand) puts each clause on its own line instead of collapsing
+        // onto whatever's left of the previous line, the way a flat,
+        // ungrouped `write!` chain would. Same shape as
+        // `write_select_body_clauses`.
         write!(
             f,
-            [
-                space(),
-                execute_token.format(),
-                space(),
-                function_kind.format(),
-                space(),
-                function.format(),
-            ]
+            [group(&format_with(|f: &mut PsqlFormatter| {
+                write!(
+                    f,
+                    [
+                        soft_line_break_or_space(),
+                        on_token.format(),
+                        space(),
+                        table.format()
+                    ]
+                )?;
+                if let Some(referencing_clause) = &referencing_clause {
+                    write!(f, [soft_line_break_or_space(), referencing_clause.format()])?;
+                }
+                if let Some(for_each_clause) = &for_each_clause {
+                    write!(f, [soft_line_break_or_space(), for_each_clause.format()])?;
+                }
+                if let Some(when_clause) = &when_clause {
+                    write!(f, [soft_line_break_or_space(), when_clause.format()])?;
+                }
+                write!(
+                    f,
+                    [
+                        soft_line_break_or_space(),
+                        execute_token.format(),
+                        space(),
+                        function_kind.format(),
+                        space(),
+                        function.format(),
+                    ]
+                )
+            }))]
         )?;
 
         if let Some(semicolon_token) = semicolon_token {

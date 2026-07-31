@@ -29,6 +29,26 @@ create trigger t after insert or update or delete on foo for each row execute fu
 }
 
 #[test]
+fn format_create_trigger_multiple_events_stay_flat_when_execute_call_wraps() {
+    // Regression test: a long `execute function(...)` argument list must
+    // not leak into the (short, fixed-vocabulary) event list's own wrap
+    // decision -- `after insert or update or delete` always stays on one
+    // line, and the rest of the header wraps clause-by-clause instead of
+    // collapsing everything after the last event onto one glued, unindented
+    // line.
+    assert_fmt!(
+        r#"--
+create trigger "T_LOG_ALLTRIG" after insert or update or delete
+on foo
+for each row
+execute function audit_general_trigger_js(
+	'row_id, name, folder_add, number, code, category, other_field, another_field', 'row_id, name, folder_add, number, code'
+)
+"#
+    );
+}
+
+#[test]
 fn format_create_trigger_update_of_single_column() {
     assert_fmt!(
         r#"--
@@ -141,8 +161,11 @@ create trigger t after update on foo referencing new table as ins old table as d
 fn format_create_trigger_referencing_wraps_when_too_long() {
     assert_fmt!(
         r#"--
-create trigger t after update on foo referencing new table as inserted
-old table as deleted for each statement execute function f()
+create trigger t after update
+on foo
+referencing new table as inserted old table as deleted
+for each statement
+execute function f()
 "#
     );
 }
