@@ -4,6 +4,7 @@ mod macros;
 mod prelude;
 mod psql;
 mod rules;
+mod syntax_rewriter;
 
 pub(crate) mod comments;
 pub(crate) mod context;
@@ -280,9 +281,28 @@ impl FormatLanguage for PsqlFormatLanguage {
 
     fn transform(
         &self,
-        _root: &SyntaxNode<Self::SyntaxLanguage>,
+        root: &SyntaxNode<Self::SyntaxLanguage>,
     ) -> Option<(SyntaxNode<Self::SyntaxLanguage>, TransformSourceMap)> {
-        None
+        // The source-map offset math `syntax_rewriter::transform` relies on
+        // (via `TransformSourceMapBuilder::with_offset`) only holds when
+        // `root` is the true document root (offset 0). Formatting an
+        // arbitrary sub-node in isolation -- as the `assert_fmt_node!` test
+        // helper does, to exercise one node kind's formatting without an
+        // unimplemented ancestor swallowing it into `format_verbatim_node`
+        // -- hits a `debug_assert` bug in `biome_formatter`'s
+        // `TransformSourceMap` when the offset is non-zero (its bounds
+        // check subtracts the offset instead of adding it, which happens
+        // to be a no-op, and so goes unnoticed, when the offset is always
+        // 0 -- the only case the upstream crate's own tests exercise).
+        // Skipping the transform for a non-root node only turns off
+        // parenthesis normalization for that narrow sub-node-only
+        // formatting path; real whole-file formatting (`format_node`
+        // called on the actual file root, as production code and
+        // `assert_fmt!`/`assert_fmt_eq!` do) is unaffected.
+        if root.parent().is_some() {
+            return None;
+        }
+        Some(syntax_rewriter::transform(root.clone()))
     }
 
     fn is_range_formatting_node(&self, node: &PsqlSyntaxNode) -> bool {
