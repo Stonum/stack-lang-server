@@ -267,6 +267,19 @@ create function foo() returns table(a int) as 'select 1'
 }
 
 #[test]
+fn format_create_function_returns_table_column_named_full() {
+    // `full` isn't fully reserved in real Postgres -- a column can be
+    // named `full`. Its casing is preserved verbatim (it's an ordinary
+    // identifier, remapped from the `FULL_KW` token, not a real keyword
+    // this formatter would lowercase).
+    assert_fmt!(
+        r#"--
+create function foo() returns table(full text, shot text) as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_returns_table_multiple_columns() {
     assert_fmt!(
         r#"--

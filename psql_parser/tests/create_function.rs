@@ -210,6 +210,31 @@ fn test_create_function_returns_table_multiple_columns() {
 }
 
 #[test]
+fn test_create_function_returns_table_column_named_full() {
+    // Real Postgres doesn't fully reserve `FULL` -- unlike `select`/`from`,
+    // it can still be used as a plain column/parameter name (only its
+    // meaning inside `FROM ... FULL JOIN` and bare-alias position is
+    // special). Real-world shape: a `RETURNS TABLE(...)` column literally
+    // named `full`.
+    let res = parse(
+        "create function foo() returns table(full text, shot text) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_parameter_named_full() {
+    let res = parse(
+        "create function foo(full text) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_function_returns_table_typed_column_with_arguments() {
     let res = parse(
         "create function foo() returns table(a numeric(10, 2)) as 'select 1'",

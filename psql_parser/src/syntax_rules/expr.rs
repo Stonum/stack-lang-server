@@ -917,13 +917,42 @@ pub(crate) fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
     })
 }
 
+/// A plain name, e.g. a column/parameter/CTE name. Also accepts `full` --
+/// unlike `select`/`from`/etc., real Postgres doesn't fully reserve
+/// `FULL` (only its meaning inside `FROM ... FULL JOIN` and bare-alias
+/// position is special), so a column or parameter can legitimately be
+/// named `full` (seen in real `RETURNS TABLE(...)` column lists). Bare
+/// alias position (`from t full`, ambiguous with the start of `FULL
+/// JOIN`) and column*-reference* position are deliberately left alone --
+/// `parse_alias`/`parse_primary_expression` have their own, narrower
+/// gates that don't check for `T![full]`, so this widening only ever
+/// takes effect where a name is being *defined*, not referenced.
+///
+/// `PsqlName`'s single child slot is declared in the grammar as a plain
+/// `ident` token, so a `full` keyword token is remapped to `T![ident]`
+/// (`bump_remap`, the same technique `mlang_parser` already uses for its
+/// own contextual-keyword-as-name cases) rather than widening the
+/// grammar/generated node-factory validation to accept `FULL_KW` as-is --
+/// the resulting tree still just sees an ordinary `PSQL_NAME(IDENT)`.
 pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !is_at_name_start(p) {
         return Absent;
     }
     let m = p.start();
-    p.bump(T![ident]);
+    if p.at(T![full]) {
+        p.bump_remap(T![ident]);
+    } else {
+        p.bump(T![ident]);
+    }
     Present(m.complete(p, PSQL_NAME))
+}
+
+/// `true` if the parser is at whatever [parse_name] would accept -- kept
+/// as its own function so every "is a name coming next?" gate stays in
+/// sync with `parse_name`'s own acceptance check, rather than each call
+/// site re-deriving (and risking drifting from) the same condition.
+pub(crate) fn is_at_name_start(p: &mut PsqlParser) -> bool {
+    p.at(T![ident]) || p.at(T![full])
 }
 
 /// `true` if the parser is at a `~` that could be the start of a

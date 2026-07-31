@@ -26,6 +26,16 @@ fn test_create_table_multiple_columns() {
 }
 
 #[test]
+fn test_create_table_column_named_full() {
+    // `FULL` isn't fully reserved in real Postgres -- it can be used as a
+    // plain column name (only its meaning in `FROM ... FULL JOIN`/bare-alias
+    // position is special).
+    let res = parse("create table foo (full text)", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_table_if_not_exists() {
     let res = parse(
         "create table if not exists foo (a int);",

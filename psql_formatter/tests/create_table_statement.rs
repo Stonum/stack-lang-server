@@ -11,6 +11,15 @@ create table foo (a int)
 }
 
 #[test]
+fn format_create_table_column_named_full() {
+    assert_fmt!(
+        r#"--
+create table foo (full text)
+"#
+    );
+}
+
+#[test]
 fn format_create_table_multiple_columns() {
     assert_fmt!(
         r#"--

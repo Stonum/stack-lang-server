@@ -4,9 +4,9 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_tilde_name_start, parse_any_name,
-    parse_call_expression, parse_expression, parse_name, parse_string_literal_expression,
-    parse_table_name, parse_type_name,
+    EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_start, is_at_tilde_name_start,
+    parse_any_name, parse_call_expression, parse_expression, parse_name,
+    parse_string_literal_expression, parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
 use super::select::parse_select_statement;
@@ -232,7 +232,7 @@ impl ParseSeparatedList for PsqlReturnsTableColumnList {
 }
 
 fn parse_returns_table_column(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !is_at_name_start(p) {
         return Absent;
     }
 
@@ -290,7 +290,7 @@ fn is_at_parameter_mode(p: &mut PsqlParser) -> bool {
 }
 
 fn parse_function_parameter(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) && !is_at_parameter_mode(p) {
+    if !is_at_name_start(p) && !is_at_parameter_mode(p) {
         return Absent;
     }
 
@@ -375,7 +375,7 @@ impl ParseSeparatedList for PsqlColumnDefinitionList {
 }
 
 fn parse_column_definition(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !is_at_name_start(p) {
         return Absent;
     }
 
