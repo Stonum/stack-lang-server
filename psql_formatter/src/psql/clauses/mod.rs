@@ -24,6 +24,8 @@ pub(crate) mod returns_table_clause;
 pub(crate) mod returns_trigger_clause;
 pub(crate) mod select_clause;
 pub(crate) mod set_clause;
+pub(crate) mod substring_for_clause;
+pub(crate) mod substring_from_clause;
 pub(crate) mod trigger_for_each_clause;
 pub(crate) mod trigger_referencing_clause;
 pub(crate) mod trigger_update_of_clause;

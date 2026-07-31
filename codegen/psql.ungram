@@ -736,6 +736,7 @@ AnyPsqlExpression =
    | PsqlCastFunctionExpression
    | PsqlAnyAllExpression
    | PsqlExistsExpression
+   | PsqlSubstringExpression
    | AnyPsqlLiteralExpression
 
 // `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --
@@ -757,6 +758,31 @@ AnyPsqlAnyAllSource =
 PsqlExistsExpression =
    'exists'
    subquery: PsqlSubqueryExpression
+
+// `substring(string from start [for count])` / `substring(string from
+// pattern)` -- the SQL-standard substring syntax. `substring` isn't a
+// reserved keyword in Postgres (recognized by text, case-insensitive, the
+// same way `old`/`new` are in a trigger's REFERENCING clause), so it
+// stays a plain `ident` in the grammar rather than a dedicated keyword
+// token -- this only ever gets parsed as this node when the argument list
+// actually contains a top-level `from`; the ordinary comma-separated call
+// syntax (`substring(string, start, count)`) is still just a plain
+// `PsqlCallExpression`, unaffected.
+PsqlSubstringExpression =
+   name: 'ident'
+   '('
+   expression: AnyPsqlExpression
+   from_clause: PsqlSubstringFromClause?
+   for_clause: PsqlSubstringForClause?
+   ')'
+
+PsqlSubstringFromClause =
+   'from'
+   value: AnyPsqlExpression
+
+PsqlSubstringForClause =
+   'for'
+   value: AnyPsqlExpression
 
 PsqlArrayExpression =
    'array'

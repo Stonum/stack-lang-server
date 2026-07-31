@@ -224,6 +224,7 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     let expression = match p.cur() {
         T!['('] => parse_parenthesized_expression(p),
+        T![ident] if is_at_substring_from_form(p) => parse_substring_expression(p),
         T![ident] => parse_ident_expression(p),
         T![*] => parse_star(p),
         T![case] => parse_case_expression(p),
@@ -600,6 +601,80 @@ pub(crate) fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) ->
     p.expect(T![')']);
 
     Present(m.complete(p, PSQL_CALL_EXPRESSION))
+}
+
+/// `true` if the parser is at a `substring(...)` call using the SQL-
+/// standard `from`/`for` syntax rather than the ordinary comma-separated
+/// call syntax -- i.e. `substring` (case insensitive; not a reserved
+/// keyword in Postgres, so recognized by text like `old`/`new` in a
+/// trigger's REFERENCING clause) immediately followed by `(`, with a
+/// top-level `from` keyword before the matching `)`. A pure token scan
+/// (`nth`/`nth_at` never consume), not an actual parse, so it's safe to
+/// call speculatively for every ident that happens to be named
+/// `substring` -- the ordinary comma-separated form (`substring(string,
+/// start, count)`) is left completely alone, still just a plain
+/// `PsqlCallExpression`.
+fn is_at_substring_from_form(p: &mut PsqlParser) -> bool {
+    if !(p.at(T![ident])
+        && p.text(p.cur_range()).eq_ignore_ascii_case("substring")
+        && p.nth_at(1, T!['(']))
+    {
+        return false;
+    }
+
+    let mut depth = 0i32;
+    let mut i = 1usize;
+    loop {
+        match p.nth(i) {
+            T!['('] | T!['['] => depth += 1,
+            T![')'] | T![']'] => {
+                depth -= 1;
+                if depth == 0 {
+                    return false;
+                }
+            }
+            T![from] if depth == 1 => return true,
+            EOF => return false,
+            _ => {}
+        }
+        i += 1;
+    }
+}
+
+/// `substring(string from start [for count])` / `substring(string from
+/// pattern)`. Only ever reached once [is_at_substring_from_form] has
+/// already confirmed the shape (see the primary-expression dispatch), so
+/// every `bump`/`expect` below is expected to succeed on well-formed
+/// input.
+fn parse_substring_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![ident]); // `substring`
+    p.expect(T!['(']);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    let _ = parse_substring_from_clause(p);
+    let _ = parse_substring_for_clause(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_SUBSTRING_EXPRESSION))
+}
+
+fn parse_substring_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![from]) {
+        return Absent;
+    }
+    let m = p.start();
+    p.bump(T![from]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_SUBSTRING_FROM_CLAUSE))
+}
+
+fn parse_substring_for_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![for]) {
+        return Absent;
+    }
+    let m = p.start();
+    p.bump(T![for]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_SUBSTRING_FOR_CLAUSE))
 }
 
 /// Wraps a call expression in `OVER (...)`, turning it into a window

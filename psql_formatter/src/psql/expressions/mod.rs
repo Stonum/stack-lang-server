@@ -23,6 +23,7 @@ pub(crate) mod parenthesized_expression;
 pub(crate) mod select_expression;
 pub(crate) mod string_literal_expression;
 pub(crate) mod subquery_expression;
+pub(crate) mod substring_expression;
 pub(crate) mod tilde_array_expression;
 pub(crate) mod unary_expression;
 pub(crate) mod window_function_expression;

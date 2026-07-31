@@ -377,6 +377,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlSubqueryExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_SUBSTRING_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlSubstringExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_SUBSTRING_FOR_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlSubstringForClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_SUBSTRING_FROM_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlSubstringFromClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_TABLE_BINDING => {
                     let $pattern = unsafe { $crate::PsqlTableBinding::new_unchecked(node) };
                     $body

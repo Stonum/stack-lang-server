@@ -29,6 +29,7 @@ impl FormatRule<AnyPsqlExpression> for FormatAnyPsqlExpression {
             AnyPsqlExpression::PsqlParenthesizedExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlStar(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlSubqueryExpression(node) => node.format().fmt(f),
+            AnyPsqlExpression::PsqlSubstringExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlTableColReference(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlTildeArrayExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlUnaryExpression(node) => node.format().fmt(f),

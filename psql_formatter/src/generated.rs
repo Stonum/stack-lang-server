@@ -3113,6 +3113,122 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSubqueryExpression {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlSubstringExpression>
+    for crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlSubstringExpression,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlSubstringExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlSubstringExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlSubstringExpression,
+        crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSubstringExpression {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlSubstringExpression,
+        crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression::default(
+            ),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlSubstringForClause>
+    for crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlSubstringForClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlSubstringForClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlSubstringForClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlSubstringForClause,
+        crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSubstringForClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlSubstringForClause,
+        crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlSubstringFromClause>
+    for crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlSubstringFromClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlSubstringFromClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlSubstringFromClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlSubstringFromClause,
+        crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSubstringFromClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlSubstringFromClause,
+        crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlTableBinding>
     for crate::psql::bindings::table_binding::FormatPsqlTableBinding
 {

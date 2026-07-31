@@ -2262,6 +2262,78 @@ pub fn psql_subquery_expression(
         ],
     ))
 }
+pub fn psql_substring_expression(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    expression: AnyPsqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlSubstringExpressionBuilder {
+    PsqlSubstringExpressionBuilder {
+        name_token,
+        l_paren_token,
+        expression,
+        r_paren_token,
+        from_clause: None,
+        for_clause: None,
+    }
+}
+pub struct PsqlSubstringExpressionBuilder {
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    expression: AnyPsqlExpression,
+    r_paren_token: SyntaxToken,
+    from_clause: Option<PsqlSubstringFromClause>,
+    for_clause: Option<PsqlSubstringForClause>,
+}
+impl PsqlSubstringExpressionBuilder {
+    pub fn with_from_clause(mut self, from_clause: PsqlSubstringFromClause) -> Self {
+        self.from_clause = Some(from_clause);
+        self
+    }
+    pub fn with_for_clause(mut self, for_clause: PsqlSubstringForClause) -> Self {
+        self.for_clause = Some(for_clause);
+        self
+    }
+    pub fn build(self) -> PsqlSubstringExpression {
+        PsqlSubstringExpression::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_SUBSTRING_EXPRESSION,
+            [
+                Some(SyntaxElement::Token(self.name_token)),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.expression.into_syntax())),
+                self.from_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.for_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_substring_for_clause(
+    for_token: SyntaxToken,
+    value: AnyPsqlExpression,
+) -> PsqlSubstringForClause {
+    PsqlSubstringForClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_SUBSTRING_FOR_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_substring_from_clause(
+    from_token: SyntaxToken,
+    value: AnyPsqlExpression,
+) -> PsqlSubstringFromClause {
+    PsqlSubstringFromClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_SUBSTRING_FROM_CLAUSE,
+        [
+            Some(SyntaxElement::Token(from_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_table_binding(table: PsqlTableName) -> PsqlTableBindingBuilder {
     PsqlTableBindingBuilder { table, alias: None }
 }
