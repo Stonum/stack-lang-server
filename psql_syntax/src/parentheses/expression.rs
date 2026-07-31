@@ -3,7 +3,8 @@ use biome_rowan::AstNode;
 use crate::{
     AnyPsqlExpression, AnyPsqlLiteralExpression, OperatorPrecedence, PsqlBetweenExpression,
     PsqlBinaryExpression, PsqlInExpression, PsqlIsNullExpression, PsqlLikeExpression,
-    PsqlLogicalExpression, PsqlSyntaxKind, PsqlSyntaxNode, PsqlUnaryExpression,
+    PsqlLogicalExpression, PsqlParenthesizedExpression, PsqlSyntaxKind, PsqlSyntaxNode,
+    PsqlUnaryExpression,
 };
 
 use super::NeedsParentheses;
@@ -53,6 +54,17 @@ impl NeedsParentheses for AnyPsqlLiteralExpression {
         // Unlike JS, SQL has no "directive prologue"/expression-statement
         // ambiguity for a bare string literal -- literals are always
         // atomic, regardless of what they're nested inside.
+        false
+    }
+}
+
+impl NeedsParentheses for PsqlParenthesizedExpression {
+    #[inline]
+    fn needs_parentheses(&self) -> bool {
+        // Already has its own literal parens (this impl is only ever
+        // consulted for one of the rare survivors of the preprocessing
+        // removal pass -- see `syntax_rewriter.rs` -- which always keeps
+        // its parens for a reason, e.g. a syntax error).
         false
     }
 }

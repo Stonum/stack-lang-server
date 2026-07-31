@@ -43,13 +43,17 @@ fn format_or_chain_wraps_the_same_way() {
 
 #[test]
 fn format_mixed_and_or_only_flattens_same_operator() {
-    // `and` binds tighter than `or`, so this parses as `(a and b) or c` --
-    // the `and` sub-chain (2 operands) and `c` together form a 2-operand
-    // `or` chain, so nothing here wraps.
+    // `and` binds tighter than `or`, so this parses as `(a and b) or c`
+    // without needing any parens to preserve that grouping -- but the
+    // formatter adds them anyway for readability whenever `and`/`or` mix
+    // without an explicit grouping (see `NeedsParentheses` for
+    // `PsqlLogicalExpression`). The `and` sub-chain (2 operands) and `c`
+    // together still form a 2-operand `or` chain, so nothing here wraps
+    // onto multiple lines.
     assert_fmt_node!(
         "select x from t where a and b or c",
         PsqlSyntaxKind::PSQL_LOGICAL_EXPRESSION,
-        "a and b or c"
+        "(a and b) or c"
     );
 }
 

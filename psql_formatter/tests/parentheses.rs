@@ -28,11 +28,10 @@ select a
 #[test]
 fn format_semantically_necessary_parens_around_a_binary_operand_are_preserved() {
     // `(a + b) * c` -- dropping the parens would change the result (`*`
-    // binds tighter than `+`). `PsqlBinaryExpression` doesn't have its own
-    // real formatter yet (still `format_verbatim_node`), so this is
-    // currently preserved via the transform's source map recovering the
-    // original, paren-inclusive text for the whole outer expression --
-    // not yet via `NeedsParentheses` re-insertion (that's still to come).
+    // binds tighter than `+`). The removal pass strips them like any
+    // other parenthesized expression, but `PsqlBinaryExpression`'s
+    // `NeedsParentheses` impl re-inserts them, since the (now direct)
+    // parent `*` binds tighter than the `+` child.
     assert_fmt!(
         r#"--
 select (a + b) * c
@@ -43,11 +42,25 @@ select (a + b) * c
 #[test]
 fn format_semantically_necessary_parens_around_a_right_operand_are_preserved() {
     // `a - (b - c)` -- `-` isn't associative, so the parens are load
-    // bearing. Same "still verbatim, recovered via the source map" note as
-    // above.
+    // bearing. Same precedence-based re-insertion as above, but via the
+    // same-precedence-right-operand rule rather than a strict precedence
+    // difference.
     assert_fmt!(
         r#"--
 select a - (b - c)
+"#
+    );
+}
+
+#[test]
+fn format_redundant_parens_around_mixed_and_or_are_kept_as_readability_parens() {
+    // `(a and b) or c` -- semantically unnecessary (`and` already binds
+    // tighter), but kept for readability by `PsqlLogicalExpression`'s
+    // `NeedsParentheses` impl whenever `and`/`or` mix without an explicit
+    // grouping.
+    assert_fmt!(
+        r#"--
+select a where (a and b) or c
 "#
     );
 }

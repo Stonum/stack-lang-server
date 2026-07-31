@@ -3,8 +3,8 @@ use crate::prelude::*;
 use biome_formatter::write;
 use biome_rowan::SyntaxResult;
 use psql_syntax::{
-    AnyPsqlExpression, PsqlLogicalExpression, PsqlLogicalExpressionFields, PsqlSyntaxKind,
-    PsqlSyntaxToken,
+    AnyPsqlExpression, NeedsParentheses, PsqlLogicalExpression, PsqlLogicalExpressionFields,
+    PsqlSyntaxKind, PsqlSyntaxToken,
 };
 
 #[derive(Debug, Clone, Default)]
@@ -56,6 +56,10 @@ impl FormatNodeRule<PsqlLogicalExpression> for FormatPsqlLogicalExpression {
                 }))]
             )
         }
+    }
+
+    fn needs_parentheses(&self, item: &PsqlLogicalExpression) -> bool {
+        item.needs_parentheses()
     }
 }
 

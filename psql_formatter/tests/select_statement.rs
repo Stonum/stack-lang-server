@@ -146,13 +146,18 @@ cross join t2
 }
 
 #[test]
-fn format_select_with_complex_condition_falls_back_to_verbatim() {
-    // The condition's own expression kind (logical/binary chain) isn't
-    // formatted yet -- Point 5/6's job -- but it must still round-trip
-    // untouched through the now-real where/join clause structure.
-    assert_fmt!(
+fn format_select_with_complex_condition_normalizes_mixed_and_or() {
+    // `and` binds tighter than `or`, so `a > 1 and b < 2 or c = 3` parses
+    // as `(a > 1 and b < 2) or c = 3` without needing parens to preserve
+    // that grouping -- but the formatter adds them anyway for readability
+    // whenever `and`/`or` mix without an explicit grouping (see
+    // `NeedsParentheses` for `PsqlLogicalExpression`).
+    assert_fmt_eq!(
         r#"--
 select a from t where a > 1 and b < 2 or c = 3
+"#,
+        r#"--
+select a from t where (a > 1 and b < 2) or c = 3
 "#
     );
 }

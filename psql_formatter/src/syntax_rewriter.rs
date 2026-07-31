@@ -74,6 +74,19 @@ impl PsqlFormatSyntaxRewriter {
                     || prev_token
                         .is_some_and(|prev| has_skipped_comment(&prev.trailing_trivia()))
                     || r_paren.leading_trivia().has_skipped()
+                    // `any (...)`/`all (...)`/`some (...)` requires literal
+                    // parens as part of its own grammar (its `source` field
+                    // is typed `AnyPsqlAnyAllSource = PsqlSubqueryExpression
+                    // | PsqlParenthesizedExpression`, not the general
+                    // `AnyPsqlExpression`) -- unlike every other
+                    // parenthesized expression, these parens aren't a
+                    // redundant grouping that can be safely stripped and
+                    // reinserted by `NeedsParentheses`; removing them would
+                    // make the tree fail to cast back into that union.
+                    || parenthesized
+                        .syntax()
+                        .parent()
+                        .is_some_and(|parent| parent.kind() == PsqlSyntaxKind::PSQL_ANY_ALL_EXPRESSION)
                 {
                     return VisitNodeSignal::Traverse(parenthesized.into_syntax());
                 } else {
