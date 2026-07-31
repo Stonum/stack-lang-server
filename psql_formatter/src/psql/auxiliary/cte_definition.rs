@@ -26,7 +26,7 @@ impl FormatNodeRule<PsqlCteDefinition> for FormatPsqlCteDefinition {
                 as_token.format(),
                 space(),
                 l_paren_token.format(),
-                block_indent(&query.format()),
+                group(&soft_block_indent(&query.format())),
                 r_paren_token.format(),
             ]
         )

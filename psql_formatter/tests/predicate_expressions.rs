@@ -69,15 +69,9 @@ select a from t where a not in (1, 2, 3)
 
 #[test]
 fn format_in_subquery() {
-    // `PsqlSubqueryExpression` always block-indents its query, so this
-    // hard break propagates outward and expands the enclosing clauses.
     assert_fmt!(
         r#"--
-select a
-from t
-where a in (
-	select b from u
-)
+select a from t where a in (select b from u)
 "#
     );
 }
