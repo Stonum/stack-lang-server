@@ -456,9 +456,12 @@ PsqlStrictOption =
 
 PsqlFunctionParameterList = (PsqlFunctionParameter (',' PsqlFunctionParameter)*)
 
+// `name` is optional -- Postgres allows an anonymous parameter, just a
+// type (`create function f(text)`), referenced inside the (opaque, never
+// parsed) body only via `$1`/`$2`-style positional references.
 PsqlFunctionParameter =
    mode: ('in' | 'out' | 'inout')?
-   name: PsqlName
+   name: PsqlName?
    type: PsqlTypeName
    default: PsqlParameterDefault?
 

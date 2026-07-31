@@ -136,6 +136,60 @@ fn test_create_function_parameter_mode_inout() {
 }
 
 #[test]
+fn test_create_function_anonymous_parameter() {
+    // Postgres allows a parameter with just a type and no name -- referenced
+    // inside the (opaque, never parsed) body only via `$1`/`$2`.
+    let res = parse(
+        "create function foo(text) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_multiple_anonymous_parameters() {
+    let res = parse(
+        "create function foo(text, int) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_anonymous_parameter_custom_type() {
+    // A single bare identifier with no following type is itself the type
+    // (a user-defined type name), not a name with a missing type.
+    let res = parse(
+        "create function foo(my_custom_type) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_mixed_named_and_anonymous_parameters() {
+    let res = parse(
+        "create function foo(a int, text) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_anonymous_parameter_with_mode() {
+    let res = parse(
+        "create function foo(in text) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_function_parameter_default() {
     let res = parse(
         "create function foo(a text default '') as 'select 1'",

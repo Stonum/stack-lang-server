@@ -345,7 +345,7 @@ fn parse_cast_tail(p: &mut PsqlParser, mut expression: ParsedSyntax) -> ParsedSy
     expression
 }
 
-const TYPE_NAME_TOKEN_SET: TokenSet<PsqlSyntaxKind> = token_set![
+pub(crate) const TYPE_NAME_TOKEN_SET: TokenSet<PsqlSyntaxKind> = token_set![
     T![ident],
     T![integer],
     T![bigint],

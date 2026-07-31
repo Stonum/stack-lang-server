@@ -17,7 +17,11 @@ impl FormatNodeRule<PsqlFunctionParameter> for FormatPsqlFunctionParameter {
             write!(f, [mode.format(), space()])?;
         }
 
-        write!(f, [name.format(), space(), ty.format()])?;
+        if let Some(name) = name {
+            write!(f, [name.format(), space()])?;
+        }
+
+        write!(f, [ty.format()])?;
 
         if let Some(default) = default {
             write!(f, [space(), default.format()])?;

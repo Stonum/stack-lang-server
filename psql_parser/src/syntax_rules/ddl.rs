@@ -4,8 +4,8 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_start, is_at_tilde_name_start,
-    parse_any_name, parse_call_expression, parse_expression, parse_name,
+    EXPR_RECOVERY_SET, TYPE_NAME_TOKEN_SET, count_dotted_name_segments, is_at_name_start,
+    is_at_tilde_name_start, parse_any_name, parse_call_expression, parse_expression, parse_name,
     parse_string_literal_expression, parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
@@ -289,8 +289,16 @@ fn is_at_parameter_mode(p: &mut PsqlParser) -> bool {
     p.at(T![in]) || p.at(T![out]) || p.at(T![inout])
 }
 
+/// `name type` is only unambiguous when the token after the candidate name
+/// also starts a type name -- a lone `ident` (e.g. `create function
+/// f(a)`) is Postgres's anonymous-parameter shorthand (`a` is the *type*,
+/// a user-defined type name), not a name with a missing type.
+fn is_at_named_parameter(p: &mut PsqlParser) -> bool {
+    is_at_name_start(p) && TYPE_NAME_TOKEN_SET.contains(p.nth(1))
+}
+
 fn parse_function_parameter(p: &mut PsqlParser) -> ParsedSyntax {
-    if !is_at_name_start(p) && !is_at_parameter_mode(p) {
+    if !is_at_name_start(p) && !is_at_parameter_mode(p) && !p.at_ts(TYPE_NAME_TOKEN_SET) {
         return Absent;
     }
 
@@ -298,7 +306,9 @@ fn parse_function_parameter(p: &mut PsqlParser) -> ParsedSyntax {
     if is_at_parameter_mode(p) {
         p.bump_any();
     }
-    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    if is_at_named_parameter(p) {
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+    }
     parse_type_name(p).or_add_diagnostic(p, expected_type_name);
     let _ = parse_parameter_default(p);
     Present(m.complete(p, PSQL_FUNCTION_PARAMETER))

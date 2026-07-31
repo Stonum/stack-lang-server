@@ -1279,23 +1279,27 @@ impl PsqlFunctionBindingBuilder {
         ))
     }
 }
-pub fn psql_function_parameter(name: PsqlName, ty: PsqlTypeName) -> PsqlFunctionParameterBuilder {
+pub fn psql_function_parameter(ty: PsqlTypeName) -> PsqlFunctionParameterBuilder {
     PsqlFunctionParameterBuilder {
-        name,
         ty,
         mode_token: None,
+        name: None,
         default: None,
     }
 }
 pub struct PsqlFunctionParameterBuilder {
-    name: PsqlName,
     ty: PsqlTypeName,
     mode_token: Option<SyntaxToken>,
+    name: Option<PsqlName>,
     default: Option<PsqlParameterDefault>,
 }
 impl PsqlFunctionParameterBuilder {
     pub fn with_mode_token(mut self, mode_token: SyntaxToken) -> Self {
         self.mode_token = Some(mode_token);
+        self
+    }
+    pub fn with_name(mut self, name: PsqlName) -> Self {
+        self.name = Some(name);
         self
     }
     pub fn with_default(mut self, default: PsqlParameterDefault) -> Self {
@@ -1307,7 +1311,8 @@ impl PsqlFunctionParameterBuilder {
             PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER,
             [
                 self.mode_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.name
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.ty.into_syntax())),
                 self.default
                     .map(|token| SyntaxElement::Node(token.into_syntax())),

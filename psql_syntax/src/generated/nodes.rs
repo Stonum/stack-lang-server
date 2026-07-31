@@ -2122,8 +2122,8 @@ impl PsqlFunctionParameter {
     pub fn mode(&self) -> Option<SyntaxToken> {
         support::token(&self.syntax, 0usize)
     }
-    pub fn name(&self) -> SyntaxResult<PsqlName> {
-        support::required_node(&self.syntax, 1usize)
+    pub fn name(&self) -> Option<PsqlName> {
+        support::node(&self.syntax, 1usize)
     }
     pub fn ty(&self) -> SyntaxResult<PsqlTypeName> {
         support::required_node(&self.syntax, 2usize)
@@ -2143,7 +2143,7 @@ impl Serialize for PsqlFunctionParameter {
 #[derive(Serialize)]
 pub struct PsqlFunctionParameterFields {
     pub mode: Option<SyntaxToken>,
-    pub name: SyntaxResult<PsqlName>,
+    pub name: Option<PsqlName>,
     pub ty: SyntaxResult<PsqlTypeName>,
     pub default: Option<PsqlParameterDefault>,
 }
@@ -8396,7 +8396,7 @@ impl std::fmt::Debug for PsqlFunctionParameter {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlFunctionParameter")
                 .field("mode", &support::DebugOptionalElement(self.mode()))
-                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("name", &support::DebugOptionalElement(self.name()))
                 .field("ty", &support::DebugSyntaxResult(self.ty()))
                 .field("default", &support::DebugOptionalElement(self.default()))
                 .finish()

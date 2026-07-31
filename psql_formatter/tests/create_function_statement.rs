@@ -84,6 +84,33 @@ create function foo(in a int, out b int) as 'select 1'
 }
 
 #[test]
+fn format_create_function_anonymous_parameter() {
+    assert_fmt!(
+        r#"--
+create function foo(text) as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_multiple_anonymous_parameters() {
+    assert_fmt!(
+        r#"--
+create function foo(text, int) as 'select 1'
+"#
+    );
+}
+
+#[test]
+fn format_create_function_mixed_named_and_anonymous_parameters() {
+    assert_fmt!(
+        r#"--
+create function foo(a int, text) as 'select 1'
+"#
+    );
+}
+
+#[test]
 fn format_create_function_parameter_default() {
     assert_fmt!(
         r#"--
