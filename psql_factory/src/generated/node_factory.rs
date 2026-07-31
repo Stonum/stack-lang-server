@@ -2279,6 +2279,40 @@ impl PsqlTableNameBuilder {
         ))
     }
 }
+pub fn psql_table_star(
+    table: PsqlTableName,
+    dot_token: SyntaxToken,
+    star: PsqlStar,
+) -> PsqlTableStar {
+    PsqlTableStar::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TABLE_STAR,
+        [
+            Some(SyntaxElement::Node(table.into_syntax())),
+            Some(SyntaxElement::Token(dot_token)),
+            Some(SyntaxElement::Node(star.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_tilde_array_expression(
+    array_token: SyntaxToken,
+    open_tilde_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_brack_token: SyntaxToken,
+    close_tilde_token: SyntaxToken,
+) -> PsqlTildeArrayExpression {
+    PsqlTildeArrayExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_TILDE_ARRAY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(array_token)),
+            Some(SyntaxElement::Token(open_tilde_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+            Some(SyntaxElement::Token(close_tilde_token)),
+        ],
+    ))
+}
 pub fn psql_tilde_array_suffix(
     open_tilde_token: SyntaxToken,
     l_brack_token: SyntaxToken,

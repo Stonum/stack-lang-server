@@ -4323,6 +4323,51 @@ pub struct PsqlTableNameFields {
     pub name: SyntaxResult<AnyPsqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTableStar {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTableStar {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTableStarFields {
+        PsqlTableStarFields {
+            table: self.table(),
+            dot_token: self.dot_token(),
+            star: self.star(),
+        }
+    }
+    pub fn table(&self) -> SyntaxResult<PsqlTableName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn dot_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn star(&self) -> SyntaxResult<PsqlStar> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlTableStar {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTableStarFields {
+    pub table: SyntaxResult<PsqlTableName>,
+    pub dot_token: SyntaxResult<SyntaxToken>,
+    pub star: SyntaxResult<PsqlStar>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTildeArraySuffix {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5782,6 +5827,7 @@ impl AnyPsqlReturnsType {
 pub enum AnyPsqlSelectItem {
     PsqlSelectExpression(PsqlSelectExpression),
     PsqlStar(PsqlStar),
+    PsqlTableStar(PsqlTableStar),
 }
 impl AnyPsqlSelectItem {
     pub fn as_psql_select_expression(&self) -> Option<&PsqlSelectExpression> {
@@ -5793,6 +5839,12 @@ impl AnyPsqlSelectItem {
     pub fn as_psql_star(&self) -> Option<&PsqlStar> {
         match &self {
             Self::PsqlStar(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_table_star(&self) -> Option<&PsqlTableStar> {
+        match &self {
+            Self::PsqlTableStar(item) => Some(item),
             _ => None,
         }
     }
@@ -10802,6 +10854,55 @@ impl From<PsqlTableName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTableStar {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TABLE_STAR as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TABLE_STAR
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTableStar {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTableStar")
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field("dot_token", &support::DebugSyntaxResult(self.dot_token()))
+                .field("star", &support::DebugSyntaxResult(self.star()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlTableStar").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTableStar> for SyntaxNode {
+    fn from(n: PsqlTableStar) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTableStar> for SyntaxElement {
+    fn from(n: PsqlTableStar) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlTildeArraySuffix {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -13175,17 +13276,24 @@ impl From<PsqlStar> for AnyPsqlSelectItem {
         Self::PsqlStar(node)
     }
 }
+impl From<PsqlTableStar> for AnyPsqlSelectItem {
+    fn from(node: PsqlTableStar) -> Self {
+        Self::PsqlTableStar(node)
+    }
+}
 impl AstNode for AnyPsqlSelectItem {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        PsqlSelectExpression::KIND_SET.union(PsqlStar::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = PsqlSelectExpression::KIND_SET
+        .union(PsqlStar::KIND_SET)
+        .union(PsqlTableStar::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, PSQL_SELECT_EXPRESSION | PSQL_STAR)
+        matches!(kind, PSQL_SELECT_EXPRESSION | PSQL_STAR | PSQL_TABLE_STAR)
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             PSQL_SELECT_EXPRESSION => Self::PsqlSelectExpression(PsqlSelectExpression { syntax }),
             PSQL_STAR => Self::PsqlStar(PsqlStar { syntax }),
+            PSQL_TABLE_STAR => Self::PsqlTableStar(PsqlTableStar { syntax }),
             _ => return None,
         };
         Some(res)
@@ -13194,12 +13302,14 @@ impl AstNode for AnyPsqlSelectItem {
         match self {
             Self::PsqlSelectExpression(it) => &it.syntax,
             Self::PsqlStar(it) => &it.syntax,
+            Self::PsqlTableStar(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::PsqlSelectExpression(it) => it.syntax,
             Self::PsqlStar(it) => it.syntax,
+            Self::PsqlTableStar(it) => it.syntax,
         }
     }
 }
@@ -13208,6 +13318,7 @@ impl std::fmt::Debug for AnyPsqlSelectItem {
         match self {
             Self::PsqlSelectExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlStar(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTableStar(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -13216,6 +13327,7 @@ impl From<AnyPsqlSelectItem> for SyntaxNode {
         match n {
             AnyPsqlSelectItem::PsqlSelectExpression(it) => it.into(),
             AnyPsqlSelectItem::PsqlStar(it) => it.into(),
+            AnyPsqlSelectItem::PsqlTableStar(it) => it.into(),
         }
     }
 }
@@ -14129,6 +14241,11 @@ impl std::fmt::Display for PsqlTableColReference {
     }
 }
 impl std::fmt::Display for PsqlTableName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTableStar {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

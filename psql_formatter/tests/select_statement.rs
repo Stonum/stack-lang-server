@@ -20,6 +20,35 @@ select * from t
 }
 
 #[test]
+fn format_select_table_qualified_star() {
+    assert_fmt!(
+        r#"--
+select t.* from t
+"#
+    );
+}
+
+#[test]
+fn format_select_table_qualified_star_with_other_columns() {
+    assert_fmt!(
+        r#"--
+select t.*, u.a
+from t
+join u on t.id = u.id
+"#
+    );
+}
+
+#[test]
+fn format_select_schema_qualified_star() {
+    assert_fmt!(
+        r#"--
+select s.t.* from s.t
+"#
+    );
+}
+
+#[test]
 fn format_select_with_alias() {
     assert_fmt!(
         r#"--

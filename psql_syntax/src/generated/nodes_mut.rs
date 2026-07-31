@@ -2177,6 +2177,26 @@ impl PsqlTableName {
         )
     }
 }
+impl PsqlTableStar {
+    pub fn with_table(self, element: PsqlTableName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_dot_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_star(self, element: PsqlStar) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl PsqlTildeArraySuffix {
     pub fn with_open_tilde_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(

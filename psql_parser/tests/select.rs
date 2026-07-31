@@ -15,6 +15,53 @@ fn test_select_literal_list() {
 }
 
 #[test]
+fn test_select_table_qualified_star() {
+    let res = parse("select t.* from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_aliased_table_qualified_star() {
+    let res = parse("select a.* from t a", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_schema_qualified_star() {
+    let res = parse("select s.t.* from s.t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_bare_and_table_qualified_star_together() {
+    let res = parse("select *, t.a, u.* from t, u", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_table_qualified_star_with_other_columns() {
+    let res = parse(
+        "select t.*, u.a, u.b from t join u on t.id = u.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_dotted_column_reference_not_confused_with_table_star() {
+    // `t.a` (an ordinary qualified column reference) must still parse as
+    // before -- only a trailing `.*` triggers the table-star path.
+    let res = parse("select t.a from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_select_asliased_literals() {
     let res = parse(
         "select 1 as x, 2 as y, 3 z, 4 \"as\"",

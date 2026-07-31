@@ -10,6 +10,7 @@ impl FormatRule<AnyPsqlSelectItem> for FormatAnyPsqlSelectItem {
         match node {
             AnyPsqlSelectItem::PsqlSelectExpression(node) => node.format().fmt(f),
             AnyPsqlSelectItem::PsqlStar(node) => node.format().fmt(f),
+            AnyPsqlSelectItem::PsqlTableStar(node) => node.format().fmt(f),
         }
     }
 }

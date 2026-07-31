@@ -17,6 +17,7 @@ impl FormatNodeRule<PsqlSelectClause> for FormatPsqlSelectClause {
                     .expr()
                     .is_ok_and(|expr| !is_simple_expression(&expr, 0)),
                 AnyPsqlSelectItem::PsqlStar(_) => false,
+                AnyPsqlSelectItem::PsqlTableStar(_) => false,
             },
             f,
         )

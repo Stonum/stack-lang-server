@@ -3,7 +3,10 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, parse_alias, parse_expression, parse_limit_offset_value};
+use super::expr::{
+    EXPR_RECOVERY_SET, count_dotted_name_segments, parse_alias, parse_expression,
+    parse_limit_offset_value, parse_table_name,
+};
 use super::from::parse_from_clause;
 use super::parse_error::*;
 use super::where_clause::parse_where_clause;
@@ -292,6 +295,14 @@ pub(crate) fn parse_select_item(p: &mut PsqlParser) -> ParsedSyntax {
     if p.at(T![*]) {
         p.bump(T![*]);
         Present(m.complete(p, PSQL_STAR))
+    } else if is_at_table_star(p) {
+        let segment_count = count_dotted_name_segments(p).min(3);
+        parse_table_name(p, segment_count);
+        p.bump(T![.]);
+        let star = p.start();
+        p.bump(T![*]);
+        star.complete(p, PSQL_STAR);
+        Present(m.complete(p, PSQL_TABLE_STAR))
     } else if parse_expression(p).is_present() {
         parse_alias(p);
         Present(m.complete(p, PSQL_SELECT_EXPRESSION))
@@ -299,4 +310,28 @@ pub(crate) fn parse_select_item(p: &mut PsqlParser) -> ParsedSyntax {
         m.abandon(p);
         Absent
     }
+}
+
+/// `true` if the parser is at `name(.name)*.*` -- a qualified star
+/// (`table.*`/`schema.table.*`), distinct from the bare `*` and from an
+/// ordinary dotted column reference (which never ends in `.*`).
+fn is_at_table_star(p: &mut PsqlParser) -> bool {
+    if !p.at(T![ident]) {
+        return false;
+    }
+    p.lookahead(|p| {
+        loop {
+            if !p.at(T![ident]) {
+                return false;
+            }
+            p.bump(T![ident]);
+            if !p.at(T![.]) {
+                return false;
+            }
+            p.bump(T![.]);
+            if p.at(T![*]) {
+                return true;
+            }
+        }
+    })
 }

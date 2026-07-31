@@ -3149,6 +3149,40 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTableName {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlTableStar>
+    for crate::psql::auxiliary::table_star::FormatPsqlTableStar
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlTableStar, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTableStar>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTableStar {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTableStar,
+        crate::psql::auxiliary::table_star::FormatPsqlTableStar,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::table_star::FormatPsqlTableStar::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTableStar {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTableStar,
+        crate::psql::auxiliary::table_star::FormatPsqlTableStar,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::table_star::FormatPsqlTableStar::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlTildeArraySuffix>
     for crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix
 {

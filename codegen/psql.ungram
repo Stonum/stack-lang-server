@@ -170,7 +170,16 @@ PsqlSelectItemList = (AnyPsqlSelectItem (',' AnyPsqlSelectItem)* ','?)
 
 AnyPsqlSelectItem =
    PsqlStar
+   | PsqlTableStar
    | PsqlSelectExpression
+
+// `table.*` / `alias.*` -- a qualified star, expanding to all of that
+// table's columns, distinct from the bare `*` (`PsqlStar`) that expands
+// every column from every table in the query.
+PsqlTableStar =
+   table: PsqlTableName
+   '.'
+   star: PsqlStar
 
 PsqlSelectExpression =
    expr: AnyPsqlExpression
@@ -709,6 +718,7 @@ AnyPsqlExpression =
    | PsqlCallExpression
    | PsqlWindowFunctionExpression
    | PsqlArrayExpression
+   | PsqlTildeArrayExpression
    | PsqlArraySubscriptExpression
    | PsqlCastExpression
    | PsqlCastFunctionExpression
@@ -733,6 +743,18 @@ PsqlArrayExpression =
    '['
    items: PsqlExpressionList
    ']'
+
+// `array~[...]~` -- mlang-dialect escaping of an array literal's brackets,
+// the same convention `PsqlTildeArraySuffix` already uses for array *type*
+// suffixes (`int~[]~`). Unlike that suffix (always empty), the brackets
+// here can hold real elements, e.g. `array~[1, 2]~`.
+PsqlTildeArrayExpression =
+   'array'
+   open_tilde: '~'
+   '['
+   items: PsqlExpressionList
+   ']'
+   close_tilde: '~'
 
 PsqlArraySubscriptExpression =
    expression: AnyPsqlExpression

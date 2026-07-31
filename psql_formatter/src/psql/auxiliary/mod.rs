@@ -26,6 +26,7 @@ pub(crate) mod star;
 pub(crate) mod strict_option;
 pub(crate) mod table_col_reference;
 pub(crate) mod table_name;
+pub(crate) mod table_star;
 pub(crate) mod tilde_array_suffix;
 pub(crate) mod tilde_name;
 pub(crate) mod time_zone_modifier;
