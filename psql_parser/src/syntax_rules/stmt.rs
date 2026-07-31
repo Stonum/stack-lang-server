@@ -13,7 +13,21 @@ use super::with_clause::parse_with_clause;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
-pub const STMT_RECOVERY_SET: TokenSet<PsqlSyntaxKind> = token_set![T![;]];
+// Recovery stops not just at `;` but at the start of any real statement --
+// so a run of unrecognized tokens (e.g. a bare `GO` batch separator some
+// client scripts carry over from MSSQL) only swallows itself into the
+// bogus node, instead of also swallowing the next, perfectly valid
+// statement that happens to follow it without an intervening `;`.
+pub const STMT_RECOVERY_SET: TokenSet<PsqlSyntaxKind> = token_set![
+    T![;],
+    T![with],
+    T![select],
+    T![delete],
+    T![update],
+    T![insert],
+    T![drop],
+    T![create]
+];
 
 pub(crate) fn parse_statements(p: &mut PsqlParser, statement_list: Marker) {
     let mut progress = ParserProgress::default();
