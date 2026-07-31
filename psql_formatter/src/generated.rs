@@ -3183,6 +3183,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTableStar {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlTildeArrayExpression>
+    for crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlTildeArrayExpression,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlTildeArrayExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlTildeArrayExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlTildeArrayExpression,
+        crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: tilde_array_expression :: FormatPsqlTildeArrayExpression :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTildeArrayExpression {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlTildeArrayExpression,
+        crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: tilde_array_expression :: FormatPsqlTildeArrayExpression :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlTildeArraySuffix>
     for crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix
 {

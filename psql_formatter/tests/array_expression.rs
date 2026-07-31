@@ -64,3 +64,30 @@ select a::int[] from t
 "#
     );
 }
+
+#[test]
+fn format_tilde_array_literal_empty() {
+    assert_fmt!(
+        r#"--
+select array~[]~ from t
+"#
+    );
+}
+
+#[test]
+fn format_tilde_array_literal_with_elements() {
+    assert_fmt!(
+        r#"--
+select array~[1, 2, 3]~ from t
+"#
+    );
+}
+
+#[test]
+fn format_tilde_array_literal_cast_to_tilde_array_type() {
+    assert_fmt!(
+        r#"--
+select array~[]~::text~[]~ from t
+"#
+    );
+}

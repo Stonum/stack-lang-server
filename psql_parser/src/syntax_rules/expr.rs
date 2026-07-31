@@ -268,6 +268,20 @@ fn parse_array_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![array]);
+
+    // `array` is always a keyword, never a plain column reference, so a
+    // `~` immediately after it can only be the mlang dialect's `~[...]~`
+    // bracket escaping -- no lookahead needed to disambiguate, unlike
+    // `~name~` or the array-type-suffix case.
+    if p.source_type().is_mlang_dialect() && p.at(T![~]) {
+        p.bump(T![~]);
+        p.expect(T!['[']);
+        PsqlExpressionList.parse_list(p);
+        p.expect(T![']']);
+        p.expect(T![~]);
+        return Present(m.complete(p, PSQL_TILDE_ARRAY_EXPRESSION));
+    }
+
     p.expect(T!['[']);
     PsqlExpressionList.parse_list(p);
     p.expect(T![']']);

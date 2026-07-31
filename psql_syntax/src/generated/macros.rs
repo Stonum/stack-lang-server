@@ -384,6 +384,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTableStar::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_TILDE_ARRAY_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlTildeArrayExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_TILDE_ARRAY_SUFFIX => {
                     let $pattern = unsafe { $crate::PsqlTildeArraySuffix::new_unchecked(node) };
                     $body

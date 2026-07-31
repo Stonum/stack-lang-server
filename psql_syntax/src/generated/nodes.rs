@@ -4368,6 +4368,66 @@ pub struct PsqlTableStarFields {
     pub star: SyntaxResult<PsqlStar>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTildeArrayExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTildeArrayExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTildeArrayExpressionFields {
+        PsqlTildeArrayExpressionFields {
+            array_token: self.array_token(),
+            open_tilde_token: self.open_tilde_token(),
+            l_brack_token: self.l_brack_token(),
+            items: self.items(),
+            r_brack_token: self.r_brack_token(),
+            close_tilde_token: self.close_tilde_token(),
+        }
+    }
+    pub fn array_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn open_tilde_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn l_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn items(&self) -> PsqlExpressionList {
+        support::list(&self.syntax, 3usize)
+    }
+    pub fn r_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn close_tilde_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlTildeArrayExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTildeArrayExpressionFields {
+    pub array_token: SyntaxResult<SyntaxToken>,
+    pub open_tilde_token: SyntaxResult<SyntaxToken>,
+    pub l_brack_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlExpressionList,
+    pub r_brack_token: SyntaxResult<SyntaxToken>,
+    pub close_tilde_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTildeArraySuffix {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5472,6 +5532,7 @@ pub enum AnyPsqlExpression {
     PsqlStar(PsqlStar),
     PsqlSubqueryExpression(PsqlSubqueryExpression),
     PsqlTableColReference(PsqlTableColReference),
+    PsqlTildeArrayExpression(PsqlTildeArrayExpression),
     PsqlUnaryExpression(PsqlUnaryExpression),
     PsqlWindowFunctionExpression(PsqlWindowFunctionExpression),
 }
@@ -5599,6 +5660,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_table_col_reference(&self) -> Option<&PsqlTableColReference> {
         match &self {
             Self::PsqlTableColReference(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_tilde_array_expression(&self) -> Option<&PsqlTildeArrayExpression> {
+        match &self {
+            Self::PsqlTildeArrayExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -10903,6 +10970,73 @@ impl From<PsqlTableStar> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTildeArrayExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TILDE_ARRAY_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TILDE_ARRAY_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTildeArrayExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTildeArrayExpression")
+                .field(
+                    "array_token",
+                    &support::DebugSyntaxResult(self.array_token()),
+                )
+                .field(
+                    "open_tilde_token",
+                    &support::DebugSyntaxResult(self.open_tilde_token()),
+                )
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .field(
+                    "close_tilde_token",
+                    &support::DebugSyntaxResult(self.close_tilde_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTildeArrayExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTildeArrayExpression> for SyntaxNode {
+    fn from(n: PsqlTildeArrayExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTildeArrayExpression> for SyntaxElement {
+    fn from(n: PsqlTildeArrayExpression) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlTildeArraySuffix {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -12419,6 +12553,11 @@ impl From<PsqlTableColReference> for AnyPsqlExpression {
         Self::PsqlTableColReference(node)
     }
 }
+impl From<PsqlTildeArrayExpression> for AnyPsqlExpression {
+    fn from(node: PsqlTildeArrayExpression) -> Self {
+        Self::PsqlTildeArrayExpression(node)
+    }
+}
 impl From<PsqlUnaryExpression> for AnyPsqlExpression {
     fn from(node: PsqlUnaryExpression) -> Self {
         Self::PsqlUnaryExpression(node)
@@ -12452,6 +12591,7 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlStar::KIND_SET)
         .union(PsqlSubqueryExpression::KIND_SET)
         .union(PsqlTableColReference::KIND_SET)
+        .union(PsqlTildeArrayExpression::KIND_SET)
         .union(PsqlUnaryExpression::KIND_SET)
         .union(PsqlWindowFunctionExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
@@ -12476,6 +12616,7 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_STAR
             | PSQL_SUBQUERY_EXPRESSION
             | PSQL_TABLE_COL_REFERENCE
+            | PSQL_TILDE_ARRAY_EXPRESSION
             | PSQL_UNARY_EXPRESSION
             | PSQL_WINDOW_FUNCTION_EXPRESSION => true,
             k if AnyPsqlLiteralExpression::can_cast(k) => true,
@@ -12520,6 +12661,9 @@ impl AstNode for AnyPsqlExpression {
             PSQL_TABLE_COL_REFERENCE => {
                 Self::PsqlTableColReference(PsqlTableColReference { syntax })
             }
+            PSQL_TILDE_ARRAY_EXPRESSION => {
+                Self::PsqlTildeArrayExpression(PsqlTildeArrayExpression { syntax })
+            }
             PSQL_UNARY_EXPRESSION => Self::PsqlUnaryExpression(PsqlUnaryExpression { syntax }),
             PSQL_WINDOW_FUNCTION_EXPRESSION => {
                 Self::PsqlWindowFunctionExpression(PsqlWindowFunctionExpression { syntax })
@@ -12555,6 +12699,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlStar(it) => &it.syntax,
             Self::PsqlSubqueryExpression(it) => &it.syntax,
             Self::PsqlTableColReference(it) => &it.syntax,
+            Self::PsqlTildeArrayExpression(it) => &it.syntax,
             Self::PsqlUnaryExpression(it) => &it.syntax,
             Self::PsqlWindowFunctionExpression(it) => &it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.syntax(),
@@ -12582,6 +12727,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlStar(it) => it.syntax,
             Self::PsqlSubqueryExpression(it) => it.syntax,
             Self::PsqlTableColReference(it) => it.syntax,
+            Self::PsqlTildeArrayExpression(it) => it.syntax,
             Self::PsqlUnaryExpression(it) => it.syntax,
             Self::PsqlWindowFunctionExpression(it) => it.syntax,
             Self::AnyPsqlLiteralExpression(it) => it.into_syntax(),
@@ -12612,6 +12758,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlStar(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTableColReference(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTildeArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlWindowFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
         }
@@ -12641,6 +12788,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlStar(it) => it.into(),
             AnyPsqlExpression::PsqlSubqueryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlTableColReference(it) => it.into(),
+            AnyPsqlExpression::PsqlTildeArrayExpression(it) => it.into(),
             AnyPsqlExpression::PsqlUnaryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlWindowFunctionExpression(it) => it.into(),
         }
@@ -14246,6 +14394,11 @@ impl std::fmt::Display for PsqlTableName {
     }
 }
 impl std::fmt::Display for PsqlTableStar {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTildeArrayExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
