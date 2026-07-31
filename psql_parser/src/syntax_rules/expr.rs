@@ -231,6 +231,7 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![cast] => parse_cast_function_expression(p),
         T![:] => parse_parameter_expression(p),
         T![any] | T![all] | T![some] => parse_any_all_expression(p),
+        T![exists] => parse_exists_expression(p),
         _ => Absent,
     };
 
@@ -795,6 +796,22 @@ fn parse_any_all_expression(p: &mut PsqlParser) -> ParsedSyntax {
     p.bump_any(); // 'any' | 'all' | 'some'
     parse_parenthesized_expression(p).or_add_diagnostic(p, expected_expression);
     Present(m.complete(p, PSQL_ANY_ALL_EXPRESSION))
+}
+
+/// `EXISTS (subquery)` -- a boolean predicate, e.g. `where exists (select 1
+/// from t where t.id = x.id)`. Unlike `ANY`/`ALL`/`SOME`, `EXISTS` only ever
+/// takes a subquery, never a plain parenthesized value expression, so this
+/// goes straight to [parse_subquery_expression] instead of the general
+/// parenthesized-expression dispatcher.
+fn parse_exists_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![exists]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![exists]);
+    parse_subquery_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_EXISTS_EXPRESSION))
 }
 
 /// The source of an `in` predicate: either a parenthesized value list

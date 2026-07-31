@@ -160,6 +160,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlEmptyStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_EXISTS_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlExistsExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_FROM_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlFromClause::new_unchecked(node) };
                     $body

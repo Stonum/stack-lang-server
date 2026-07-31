@@ -1222,6 +1222,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlEmptyStatement {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlExistsExpression>
+    for crate::psql::expressions::exists_expression::FormatPsqlExistsExpression
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlExistsExpression,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlExistsExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlExistsExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlExistsExpression,
+        crate::psql::expressions::exists_expression::FormatPsqlExistsExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::exists_expression::FormatPsqlExistsExpression::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlExistsExpression {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlExistsExpression,
+        crate::psql::expressions::exists_expression::FormatPsqlExistsExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::exists_expression::FormatPsqlExistsExpression::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlFromClause>
     for crate::psql::clauses::from_clause::FormatPsqlFromClause
 {

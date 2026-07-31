@@ -723,6 +723,7 @@ AnyPsqlExpression =
    | PsqlCastExpression
    | PsqlCastFunctionExpression
    | PsqlAnyAllExpression
+   | PsqlExistsExpression
    | AnyPsqlLiteralExpression
 
 // `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --
@@ -737,6 +738,13 @@ PsqlAnyAllExpression =
 AnyPsqlAnyAllSource =
    PsqlSubqueryExpression
    | PsqlParenthesizedExpression
+
+// `EXISTS (subquery)` -- a boolean predicate, e.g. `where exists (select 1
+// from t where t.id = x.id)`. Reuses the existing parenthesized-subquery
+// node as-is, the same way `PsqlAnyAllExpression` does.
+PsqlExistsExpression =
+   'exists'
+   subquery: PsqlSubqueryExpression
 
 PsqlArrayExpression =
    'array'
