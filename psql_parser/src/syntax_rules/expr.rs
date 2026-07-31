@@ -934,32 +934,36 @@ pub(crate) fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
     })
 }
 
-/// A plain name, e.g. a column/parameter/CTE name. Also accepts `full` --
-/// unlike `select`/`from`/etc., real Postgres doesn't fully reserve
-/// `FULL` (only its meaning inside `FROM ... FULL JOIN` and bare-alias
-/// position is special), so a column or parameter can legitimately be
-/// named `full` (seen in real `RETURNS TABLE(...)` column lists). Bare
-/// alias position (`from t full`, ambiguous with the start of `FULL
-/// JOIN`) and column*-reference* position are deliberately left alone --
-/// `parse_alias`/`parse_primary_expression` have their own, narrower
-/// gates that don't check for `T![full]`, so this widening only ever
-/// takes effect where a name is being *defined*, not referenced.
+/// A plain name, e.g. a column/parameter/CTE name. Also accepts `full`
+/// and every type-name keyword (`date`, `time`, `text`, `numeric`, ...) --
+/// unlike `select`/`from`/etc., real Postgres doesn't fully reserve any of
+/// these (only their meaning in a type-expression position, or -- for
+/// `full` specifically -- inside `FROM ... FULL JOIN` and bare-alias
+/// position, is special), so a column or parameter can legitimately be
+/// named `date` or `full` (both seen in real scripts: a `date timestamp`
+/// parameter, a `full`-named `RETURNS TABLE(...)` column). Bare alias
+/// position (`from t full`, ambiguous with the start of `FULL JOIN`) and
+/// column-*reference* position are deliberately left alone --
+/// `parse_alias`/`parse_primary_expression` have their own, narrower gates
+/// that don't check for these keywords, so this widening only ever takes
+/// effect where a name is being *defined*, not referenced.
 ///
 /// `PsqlName`'s single child slot is declared in the grammar as a plain
-/// `ident` token, so a `full` keyword token is remapped to `T![ident]`
+/// `ident` token, so a keyword token is remapped to `T![ident]`
 /// (`bump_remap`, the same technique `mlang_parser` already uses for its
 /// own contextual-keyword-as-name cases) rather than widening the
-/// grammar/generated node-factory validation to accept `FULL_KW` as-is --
-/// the resulting tree still just sees an ordinary `PSQL_NAME(IDENT)`.
+/// grammar/generated node-factory validation to accept the keyword's own
+/// kind as-is -- the resulting tree still just sees an ordinary
+/// `PSQL_NAME(IDENT)`.
 pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
     if !is_at_name_start(p) {
         return Absent;
     }
     let m = p.start();
-    if p.at(T![full]) {
-        p.bump_remap(T![ident]);
-    } else {
+    if p.at(T![ident]) {
         p.bump(T![ident]);
+    } else {
+        p.bump_remap(T![ident]);
     }
     Present(m.complete(p, PSQL_NAME))
 }
@@ -969,7 +973,7 @@ pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
 /// sync with `parse_name`'s own acceptance check, rather than each call
 /// site re-deriving (and risking drifting from) the same condition.
 pub(crate) fn is_at_name_start(p: &mut PsqlParser) -> bool {
-    p.at(T![ident]) || p.at(T![full])
+    p.at(T![ident]) || p.at(T![full]) || p.at_ts(TYPE_NAME_TOKEN_SET)
 }
 
 /// `true` if the parser is at a `~` that could be the start of a

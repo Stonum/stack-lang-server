@@ -3,7 +3,7 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, parse_column_name_list, parse_name};
+use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, parse_name};
 use super::parse_error::*;
 use super::select::parse_select_statement_body;
 use super::stmt::parse_statement;
@@ -73,7 +73,7 @@ impl ParseSeparatedList for PsqlCteDefinitionList {
 }
 
 fn parse_cte_definition(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !is_at_name_start(p) {
         return Absent;
     }
 

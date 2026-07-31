@@ -15,6 +15,21 @@ fn test_with_select() {
 }
 
 #[test]
+fn test_with_cte_named_after_type_keyword() {
+    // Same `full`-class collision, for a CTE name. The CTE is deliberately
+    // not referenced by name afterwards -- unlike *defining* a name,
+    // *referencing* one in a `from` clause doesn't accept a bare type
+    // keyword yet (`parse_table_binding` has its own, narrower, unwidened
+    // gate), so `from date` would fail for an unrelated reason.
+    let res = parse(
+        "with date as (select a from t) select a from other_table",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_with_recursive() {
     let res = parse(
         "with recursive cte as (select a from t) select a from cte",

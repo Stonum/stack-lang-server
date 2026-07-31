@@ -279,9 +279,43 @@ fn test_create_function_returns_table_column_named_full() {
 }
 
 #[test]
+fn test_create_function_returns_table_column_named_after_type_keyword() {
+    // Same class of collision as `full` above, for a type-name keyword.
+    let res = parse(
+        "create function foo() returns table(date timestamp, amount numeric) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_function_parameter_named_full() {
     let res = parse(
         "create function foo(full text) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_parameter_named_after_type_keyword() {
+    // Real Postgres doesn't fully reserve type-name keywords either -- a
+    // parameter can be named `date` (followed by its actual type), the
+    // same class of collision the `full` fix above already covers.
+    let res = parse(
+        "create function foo(account_id int, date timestamp) as 'select 1'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_multiple_parameters_named_after_type_keywords() {
+    let res = parse(
+        "create function foo(text text, numeric numeric, date date) as 'select 1'",
         PsqlFileSource::script(),
     );
 

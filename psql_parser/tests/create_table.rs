@@ -36,6 +36,19 @@ fn test_create_table_column_named_full() {
 }
 
 #[test]
+fn test_create_table_column_named_after_type_keyword() {
+    // Same class of collision as `full` above, for a type-name keyword
+    // instead (`date timestamp, text_col text` -- both `date` and `text`
+    // are used as ordinary column names, followed by their actual type).
+    let res = parse(
+        "create table foo (date timestamp, text_col text)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_create_table_if_not_exists() {
     let res = parse(
         "create table if not exists foo (a int);",

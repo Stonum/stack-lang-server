@@ -19,6 +19,14 @@ fn test_update_multiple_set_items() {
 }
 
 #[test]
+fn test_update_set_target_named_after_type_keyword() {
+    // Same `full`-class collision, for a `SET` target column.
+    let res = parse("update t set date = now()", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_update_with_where_clause() {
     let res = parse("update t set a = 1 where b > 2", PsqlFileSource::script());
 

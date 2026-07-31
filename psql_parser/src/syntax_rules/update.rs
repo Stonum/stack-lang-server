@@ -3,7 +3,7 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, parse_expression, parse_name};
+use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_expression, parse_name};
 use super::from::parse_table_binding;
 use super::parse_error::*;
 use super::returning_clause::parse_returning_clause;
@@ -78,7 +78,7 @@ impl ParseSeparatedList for PsqlSetItemList {
 }
 
 fn parse_set_item(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !is_at_name_start(p) {
         return Absent;
     }
 
