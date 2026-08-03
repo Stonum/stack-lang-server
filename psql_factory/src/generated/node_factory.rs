@@ -1320,6 +1320,61 @@ impl PsqlFunctionParameterBuilder {
         ))
     }
 }
+pub fn psql_grant_statement(
+    grant_token: SyntaxToken,
+    all_token: SyntaxToken,
+    on_token: SyntaxToken,
+    objects: PsqlTableNameList,
+    to_token: SyntaxToken,
+    grantees: PsqlGranteeList,
+) -> PsqlGrantStatementBuilder {
+    PsqlGrantStatementBuilder {
+        grant_token,
+        all_token,
+        on_token,
+        objects,
+        to_token,
+        grantees,
+        table_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlGrantStatementBuilder {
+    grant_token: SyntaxToken,
+    all_token: SyntaxToken,
+    on_token: SyntaxToken,
+    objects: PsqlTableNameList,
+    to_token: SyntaxToken,
+    grantees: PsqlGranteeList,
+    table_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlGrantStatementBuilder {
+    pub fn with_table_token(mut self, table_token: SyntaxToken) -> Self {
+        self.table_token = Some(table_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlGrantStatement {
+        PsqlGrantStatement::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_GRANT_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.grant_token)),
+                Some(SyntaxElement::Token(self.all_token)),
+                Some(SyntaxElement::Token(self.on_token)),
+                self.table_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.objects.into_syntax())),
+                Some(SyntaxElement::Token(self.to_token)),
+                Some(SyntaxElement::Node(self.grantees.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_group_by_clause(
     group_by_token: SyntaxToken,
     items: PsqlGroupByItemList,
@@ -3022,6 +3077,27 @@ where
     let length = items.len() + separators.len();
     PsqlFunctionParameterList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_grantee_list<I, S>(items: I, separators: S) -> PsqlGranteeList
+where
+    I: IntoIterator<Item = PsqlName>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlGranteeList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_GRANTEE_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

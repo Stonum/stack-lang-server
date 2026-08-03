@@ -1404,6 +1404,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFunctionParameter {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlGrantStatement>
+    for crate::psql::statements::grant_statement::FormatPsqlGrantStatement
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlGrantStatement,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlGrantStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlGrantStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlGrantStatement,
+        crate::psql::statements::grant_statement::FormatPsqlGrantStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::grant_statement::FormatPsqlGrantStatement::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlGrantStatement {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlGrantStatement,
+        crate::psql::statements::grant_statement::FormatPsqlGrantStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::grant_statement::FormatPsqlGrantStatement::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlGroupByClause>
     for crate::psql::clauses::group_by_clause::FormatPsqlGroupByClause
 {
@@ -4416,6 +4454,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFunctionParameterList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlGranteeList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlGranteeList,
+        crate::psql::lists::grantee_list::FormatPsqlGranteeList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::grantee_list::FormatPsqlGranteeList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlGranteeList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlGranteeList,
+        crate::psql::lists::grantee_list::FormatPsqlGranteeList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::grantee_list::FormatPsqlGranteeList::default(),
         )
     }
 }

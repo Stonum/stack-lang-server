@@ -792,6 +792,91 @@ fn parse_drop_trigger_statement(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_DROP_TRIGGER_STATEMENT))
 }
 
+/// `GRANT ALL ON [TABLE] name [, name]* TO grantee [, grantee]* [;]` --
+/// only the bare `ALL` privilege spec is modeled; see the grammar comment
+/// on `PsqlGrantStatement` for why.
+pub(crate) fn parse_grant_statement(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![grant]);
+    p.expect(T![all]);
+    p.expect(T![on]);
+    p.eat(T![table]);
+
+    PsqlGrantObjectList.parse_list(p);
+
+    p.expect(T![to]);
+
+    PsqlGranteeList.parse_list(p);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, PSQL_GRANT_STATEMENT))
+}
+
+struct PsqlGrantObjectList;
+
+impl ParseSeparatedList for PsqlGrantObjectList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_TABLE_NAME_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_table_name_for_ddl(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![to])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, EXPR_RECOVERY_SET),
+            expected_table_binding,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+struct PsqlGranteeList;
+
+impl ParseSeparatedList for PsqlGranteeList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_GRANTEE_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_name(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![;])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, EXPR_RECOVERY_SET),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
 /// `DROP POLICY [IF EXISTS] name ON table [;]`
 fn parse_drop_policy_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();

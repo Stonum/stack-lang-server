@@ -116,6 +116,7 @@ AnyPsqlStatement =
    | PsqlDropPolicyStatement
    | PsqlCreateTriggerStatement
    | PsqlDropTriggerStatement
+   | PsqlGrantStatement
    | PsqlBogusStatement
 
 ///////////////
@@ -667,6 +668,23 @@ PsqlDropTriggerStatement =
    table: PsqlTableName
    drop_behavior: ('cascade' | 'restrict')?
    ';'?
+
+// `GRANT ALL ON [TABLE] name [, name]* TO grantee [, grantee]* [;]` --
+// real scripts only ever use the bare `ALL` privilege spec on a `TABLE`
+// (never a column-scoped or itemized SELECT/INSERT/... privilege list),
+// so that's the only form modeled for now; widen this if a real script
+// needs more.
+PsqlGrantStatement =
+   'grant'
+   'all'
+   'on'
+   'table'?
+   objects: PsqlTableNameList
+   'to'
+   grantees: PsqlGranteeList
+   ';'?
+
+PsqlGranteeList = (PsqlName (',' PsqlName)*)
 
 PsqlLanguageOption =
    'language'

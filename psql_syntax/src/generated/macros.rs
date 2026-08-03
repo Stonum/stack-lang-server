@@ -180,6 +180,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlFunctionParameter::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_GRANT_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlGrantStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_GROUP_BY_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlGroupByClause::new_unchecked(node) };
                     $body
@@ -565,6 +569,10 @@ macro_rules! map_syntax_node {
                 $crate::PsqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST => {
                     let $pattern =
                         unsafe { $crate::PsqlFunctionParameterList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_GRANTEE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlGranteeList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_GROUP_BY_ITEM_LIST => {
