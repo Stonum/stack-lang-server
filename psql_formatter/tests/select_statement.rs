@@ -79,7 +79,7 @@ select a from t where a > 1
 fn format_select_with_group_by_having() {
     assert_fmt!(
         r#"--
-select a from t group_by a having a > 1
+select a from t group by a having a > 1
 "#
     );
 }
@@ -88,7 +88,7 @@ select a from t group_by a having a > 1
 fn format_select_with_order_by_limit_offset() {
     assert_fmt!(
         r#"--
-select a from t order_by a desc limit 10 offset 5
+select a from t order by a desc limit 10 offset 5
 "#
     );
 }
@@ -223,6 +223,26 @@ from t
 }
 
 #[test]
+fn format_select_normalizes_order_by_group_by_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+select a, b from t  ORDER   BY  a desc;
+"#,
+        r#"--
+select a, b from t order by a desc;
+"#
+    );
+    assert_fmt_eq!(
+        r#"--
+select a from t  GROUP by  a having a > 1;
+"#,
+        r#"--
+select a from t group by a having a > 1;
+"#
+    );
+}
+
+#[test]
 fn format_select_full_statement() {
     assert_fmt!(
         r#"--
@@ -230,9 +250,9 @@ select a, b
 from t1
 join t2 on t1.id = t2.id
 where a > 1
-group_by a
+group by a
 having a > 1
-order_by a desc
+order by a desc
 limit 10
 offset 5
 "#

@@ -61,7 +61,7 @@ fn test_create_view_with_multiple_options() {
 #[test]
 fn test_create_view_complex_select_body() {
     let res = parse(
-        "create view foo as select a, b from t where a > 1 order_by b",
+        "create view foo as select a, b from t where a > 1 order by b",
         PsqlFileSource::script(),
     );
 

@@ -32,7 +32,7 @@ select now() from t
 fn format_window_function_partition_by_only() {
     assert_fmt!(
         r#"--
-select row_number() over (partition_by dept) from t
+select row_number() over (partition by dept) from t
 "#
     );
 }
@@ -41,7 +41,7 @@ select row_number() over (partition_by dept) from t
 fn format_window_function_order_by_only() {
     assert_fmt!(
         r#"--
-select row_number() over (order_by salary desc) from t
+select row_number() over (order by salary desc) from t
 "#
     );
 }
@@ -50,7 +50,19 @@ select row_number() over (order_by salary desc) from t
 fn format_window_function_partition_and_order() {
     assert_fmt!(
         r#"--
-select row_number() over (partition_by dept order_by salary desc) from t
+select row_number() over (partition by dept order by salary desc) from t
+"#
+    );
+}
+
+#[test]
+fn format_window_function_normalizes_partition_by_order_by_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+select row_number() over (PARTITION   BY dept ORDER by salary desc) from t
+"#,
+        r#"--
+select row_number() over (partition by dept order by salary desc) from t
 "#
     );
 }

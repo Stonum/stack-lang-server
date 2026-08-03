@@ -277,9 +277,54 @@ impl<'src> PsqlLexer<'src> {
         // already rules out a keyword match -- no need to look one up.
         if all_ascii {
             let s = &self.source()[start..self.position];
-            PsqlSyntaxKind::from_keyword(s.to_lowercase().as_str()).unwrap_or(T![ident])
+            let lower = s.to_lowercase();
+            if let Some(kind) = self.try_fuse_two_word_by_keyword(&lower) {
+                return kind;
+            }
+
+            PsqlSyntaxKind::from_keyword(lower.as_str()).unwrap_or(T![ident])
         } else {
             T![ident]
+        }
+    }
+
+    /// Real Postgres spells these as two separate words: `order by`,
+    /// `group by`, `partition by`. Peeks past intervening whitespace/
+    /// newlines after a bare `order`/`group`/`partition` word for a `by`
+    /// word and, if found, fuses both into one token of the corresponding
+    /// kind. Falls back to a plain identifier if `by` doesn't immediately
+    /// follow (bare `order`/`group`/`partition` aren't otherwise reserved
+    /// words in this grammar).
+    fn try_fuse_two_word_by_keyword(&mut self, first_word_lower: &str) -> Option<PsqlSyntaxKind> {
+        let kind = match first_word_lower {
+            "order" => T![order_by],
+            "group" => T![group_by],
+            "partition" => T![partition_by],
+            _ => return None,
+        };
+
+        let checkpoint = self.position;
+
+        loop {
+            if self.consume_newline() {
+                continue;
+            }
+            let before = self.position;
+            self.consume_whitespaces();
+            if self.position == before {
+                break;
+            }
+        }
+
+        let word_start = self.position;
+        while self.advance_id_continue() {}
+        let word = &self.source()[word_start..self.position];
+
+        if word.eq_ignore_ascii_case("by") {
+            Some(kind)
+        } else {
+            self.position = checkpoint;
+            None
         }
     }
 

@@ -44,7 +44,7 @@ fn test_malformed_number_reports_diagnostic_without_panicking() {
 
 #[test]
 fn test_malformed_number_in_order_by_reports_diagnostic_without_panicking() {
-    let res = parse("select a from t order_by 1.2.3", PsqlFileSource::script());
+    let res = parse("select a from t order by 1.2.3", PsqlFileSource::script());
 
     assert!(res.has_errors());
 }

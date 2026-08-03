@@ -220,7 +220,7 @@ fn test_select_where_clause_without_from() {
 #[test]
 fn test_select_group_by_clause() {
     let res = parse(
-        "select a, b from t group_by a, b,",
+        "select a, b from t group by a, b,",
         PsqlFileSource::script(),
     );
 
@@ -230,7 +230,7 @@ fn test_select_group_by_clause() {
 #[test]
 fn test_select_having_clause() {
     let res = parse(
-        "select a, b from t group_by a having b > 1",
+        "select a, b from t group by a having b > 1",
         PsqlFileSource::script(),
     );
 
@@ -240,7 +240,7 @@ fn test_select_having_clause() {
 #[test]
 fn test_select_order_by_clause() {
     let res = parse(
-        "select a, b from t order_by a asc, b desc, a + b",
+        "select a, b from t order by a asc, b desc, a + b",
         PsqlFileSource::script(),
     );
 
@@ -250,7 +250,7 @@ fn test_select_order_by_clause() {
 #[test]
 fn test_select_order_by_after_having() {
     let res = parse(
-        "select a, b from t group_by a having b > 1 order_by a desc",
+        "select a, b from t group by a having b > 1 order by a desc",
         PsqlFileSource::script(),
     );
 
@@ -270,7 +270,7 @@ fn test_select_limit_offset() {
 #[test]
 fn test_select_limit_offset_after_order_by() {
     let res = parse(
-        "select a from t order_by a limit 10 offset 20",
+        "select a from t order by a limit 10 offset 20",
         PsqlFileSource::script(),
     );
 
@@ -304,7 +304,7 @@ fn test_select_distinct_on() {
 #[test]
 fn test_select_distinct_on_single_column() {
     let res = parse(
-        "select distinct on (a) a, b from t order_by a, b",
+        "select distinct on (a) a, b from t order by a, b",
         PsqlFileSource::script(),
     );
 
@@ -323,6 +323,35 @@ fn test_select_trailing_semicolon() {
     let res = parse("select a from t;", PsqlFileSource::script());
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_select_order_by_irregular_case_and_spacing() {
+    let res = parse(
+        "select a from t  ORDER   BY  a desc",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_bare_order_as_column_name_still_works() {
+    let res = parse(
+        "select order from t where order = 1",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_fused_underscore_order_by_is_rejected() {
+    // `order_by` (one word) isn't real Postgres syntax -- only the real
+    // two-word `order by` is accepted (see the tests above).
+    let res = parse("select a from t order_by a", PsqlFileSource::script());
+
+    assert!(res.has_errors());
 }
 
 #[test]

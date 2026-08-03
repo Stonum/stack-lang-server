@@ -18,10 +18,13 @@ impl FormatRule<PsqlSyntaxToken> for FormatPsqlSyntaxToken {
 
         write!(f, [format_skipped_token_trivia(token)])?;
 
+        let start = token.text_trimmed_range().start();
         if token.kind().is_keyword() {
-            let lowercased = token.text_trimmed().to_lowercase();
-            let start = token.text_trimmed_range().start();
-            return write!(f, [dynamic_text(&lowercased, start)]);
+            let canonical = token
+                .kind()
+                .to_string()
+                .expect("every keyword kind has a canonical to_string() spelling");
+            return write!(f, [dynamic_text(canonical, start)]);
         }
 
         let text = token.text_trimmed();

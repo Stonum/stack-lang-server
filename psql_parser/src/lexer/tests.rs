@@ -110,8 +110,14 @@ fn keywords() {
         "on",
         "as",
         "distinct",
-        "group_by",
-        "order_by",
+        // `group by`/`order by`/`partition by` can't go through this
+        // generic `from_keyword`-based loop -- `from_keyword` doesn't
+        // recognize either spelling for these three at all (neither the
+        // fused `group_by` identifier form, used only for the
+        // SyntaxKind/`T!` symbolic name, nor a string containing a literal
+        // space). The real two-word spelling is recognized by the lexer's
+        // own `try_fuse_two_word_by_keyword` instead, covered by
+        // `two_word_by_keywords_fuse_into_one_token` below.
         "having",
         "union",
         "case",
@@ -180,6 +186,34 @@ fn keywords() {
 
         assert_eq!(lexer.next_token(PsqlLexContext), EOF);
     }
+}
+
+#[test]
+fn two_word_by_keywords_fuse_into_one_token() {
+    assert_lex! { "order by", ORDER_BY_KW:8 }
+    assert_lex! { "group by", GROUP_BY_KW:8 }
+    assert_lex! { "partition by", PARTITION_BY_KW:12 }
+    assert_lex! { "ORDER   BY", ORDER_BY_KW:10 }
+    assert_lex! { "order\nby", ORDER_BY_KW:8 }
+}
+
+#[test]
+fn bare_order_group_partition_without_by_are_plain_identifiers() {
+    assert_lex! { "order", IDENT:5 }
+    assert_lex! { "group", IDENT:5 }
+    assert_lex! { "partition", IDENT:9 }
+    assert_lex! { "order from", IDENT:5, WHITESPACE:1, FROM_KW:4 }
+}
+
+#[test]
+fn fused_underscore_spelling_is_rejected_as_a_plain_identifier() {
+    // `order_by`/`group_by`/`partition_by` (one word, underscore-joined)
+    // isn't real Postgres syntax -- only the genuine two-word spelling
+    // (tested above) is a keyword. A query actually containing this
+    // spelling must fail to parse normally, not be silently accepted.
+    assert_lex! { "order_by", IDENT:8 }
+    assert_lex! { "group_by", IDENT:8 }
+    assert_lex! { "partition_by", IDENT:12 }
 }
 
 #[test]

@@ -88,7 +88,7 @@ fn format_group_by_wraps_when_too_long() {
         r#"--
 select a
 from t
-group_by
+group by
 	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three, really_long_column_name_four
 "#
     );
@@ -102,7 +102,7 @@ fn format_order_by_wraps_when_too_long() {
         r#"--
 select a
 from t
-order_by
+order by
 	really_long_column_name_one desc, really_long_column_name_two desc,
 	really_long_column_name_three desc, really_long_column_name_four desc
 "#

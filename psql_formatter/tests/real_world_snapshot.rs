@@ -14,7 +14,7 @@ with agg as (
 		and coalesce(hist."ВидРасчета", 0) = 0
 	join ~Документ~ doc on doc."row_id" = hist."СвязьДокумент" and doc."ВидДок" = 1
 	where ol."Услуга" = 2
-	group_by hist."Период", hist."СвязьДокумент"
+	group by hist."Период", hist."СвязьДокумент"
 )
 select "итог", "дата"
 from (

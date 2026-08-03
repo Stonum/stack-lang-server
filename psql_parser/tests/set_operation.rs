@@ -67,7 +67,7 @@ fn test_chained_set_operations() {
 #[test]
 fn test_union_with_where_and_group_by_on_both_sides() {
     let res = parse(
-        "select a from t where a > 1 group_by a union select b from u where b > 2 group_by b",
+        "select a from t where a > 1 group by a union select b from u where b > 2 group by b",
         PsqlFileSource::script(),
     );
 
@@ -77,7 +77,7 @@ fn test_union_with_where_and_group_by_on_both_sides() {
 #[test]
 fn test_union_with_trailing_order_by_limit_offset() {
     let res = parse(
-        "select a from t union select a from u order_by a limit 5 offset 1",
+        "select a from t union select a from u order by a limit 5 offset 1",
         PsqlFileSource::script(),
     );
 

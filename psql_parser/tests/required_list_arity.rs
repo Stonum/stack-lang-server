@@ -23,14 +23,14 @@ fn test_delete_using_requires_at_least_one_item() {
 
 #[test]
 fn test_group_by_requires_at_least_one_item() {
-    let res = parse("select a from t group_by", PsqlFileSource::script());
+    let res = parse("select a from t group by", PsqlFileSource::script());
 
     assert!(res.has_errors());
 }
 
 #[test]
 fn test_order_by_requires_at_least_one_item() {
-    let res = parse("select a from t order_by", PsqlFileSource::script());
+    let res = parse("select a from t order by", PsqlFileSource::script());
 
     assert!(res.has_errors());
 }
@@ -55,7 +55,7 @@ fn test_do_update_set_requires_at_least_one_item() {
 #[test]
 fn test_window_partition_by_requires_at_least_one_item() {
     let res = parse(
-        "select row_number() over (partition_by) from t",
+        "select row_number() over (partition by) from t",
         PsqlFileSource::script(),
     );
 
@@ -65,7 +65,7 @@ fn test_window_partition_by_requires_at_least_one_item() {
 #[test]
 fn test_window_order_by_requires_at_least_one_item() {
     let res = parse(
-        "select rank() over (order_by) from t",
+        "select rank() over (order by) from t",
         PsqlFileSource::script(),
     );
 
