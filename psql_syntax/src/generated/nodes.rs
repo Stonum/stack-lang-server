@@ -3673,15 +3673,19 @@ impl PsqlRoot {
     }
     pub fn as_fields(&self) -> PsqlRootFields {
         PsqlRootFields {
+            bom_token: self.bom_token(),
             stmt: self.stmt(),
             eof_token: self.eof_token(),
         }
     }
+    pub fn bom_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
     pub fn stmt(&self) -> PsqlStatementList {
-        support::list(&self.syntax, 0usize)
+        support::list(&self.syntax, 1usize)
     }
     pub fn eof_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 1usize)
+        support::required_token(&self.syntax, 2usize)
     }
 }
 impl Serialize for PsqlRoot {
@@ -3694,6 +3698,7 @@ impl Serialize for PsqlRoot {
 }
 #[derive(Serialize)]
 pub struct PsqlRootFields {
+    pub bom_token: Option<SyntaxToken>,
     pub stmt: PsqlStatementList,
     pub eof_token: SyntaxResult<SyntaxToken>,
 }
@@ -10407,6 +10412,10 @@ impl std::fmt::Debug for PsqlRoot {
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlRoot")
+                .field(
+                    "bom_token",
+                    &support::DebugOptionalElement(self.bom_token()),
+                )
                 .field("stmt", &self.stmt())
                 .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
                 .finish()

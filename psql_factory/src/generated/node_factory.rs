@@ -1929,14 +1929,33 @@ pub fn psql_returns_trigger_clause(trigger_token: SyntaxToken) -> PsqlReturnsTri
         [Some(SyntaxElement::Token(trigger_token))],
     ))
 }
-pub fn psql_root(stmt: PsqlStatementList, eof_token: SyntaxToken) -> PsqlRoot {
-    PsqlRoot::unwrap_cast(SyntaxNode::new_detached(
-        PsqlSyntaxKind::PSQL_ROOT,
-        [
-            Some(SyntaxElement::Node(stmt.into_syntax())),
-            Some(SyntaxElement::Token(eof_token)),
-        ],
-    ))
+pub fn psql_root(stmt: PsqlStatementList, eof_token: SyntaxToken) -> PsqlRootBuilder {
+    PsqlRootBuilder {
+        stmt,
+        eof_token,
+        bom_token: None,
+    }
+}
+pub struct PsqlRootBuilder {
+    stmt: PsqlStatementList,
+    eof_token: SyntaxToken,
+    bom_token: Option<SyntaxToken>,
+}
+impl PsqlRootBuilder {
+    pub fn with_bom_token(mut self, bom_token: SyntaxToken) -> Self {
+        self.bom_token = Some(bom_token);
+        self
+    }
+    pub fn build(self) -> PsqlRoot {
+        PsqlRoot::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_ROOT,
+            [
+                self.bom_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.stmt.into_syntax())),
+                Some(SyntaxElement::Token(self.eof_token)),
+            ],
+        ))
+    }
 }
 pub fn psql_security_option(
     security_token: SyntaxToken,

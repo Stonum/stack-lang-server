@@ -6,7 +6,18 @@ use psql_syntax::PsqlRootFields;
 pub(crate) struct FormatPsqlRoot;
 impl FormatNodeRule<PsqlRoot> for FormatPsqlRoot {
     fn fmt_fields(&self, node: &PsqlRoot, f: &mut PsqlFormatter) -> FormatResult<()> {
-        let PsqlRootFields { stmt, eof_token } = node.as_fields();
+        let PsqlRootFields {
+            bom_token,
+            stmt,
+            eof_token,
+        } = node.as_fields();
+
+        // Preserved verbatim, not stripped -- some Windows-side tooling
+        // that produced the original "UTF-8 with BOM" file may still rely
+        // on it being there.
+        if let Some(bom_token) = bom_token {
+            write![f, [bom_token.format()]]?;
+        }
 
         write![f, [format_leading_comments(node.syntax())]]?;
 

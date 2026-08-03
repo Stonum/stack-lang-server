@@ -212,6 +212,20 @@ impl<'src> PsqlLexer<'src> {
         kind
     }
 
+    /// If the next bytes are a Unicode byte-order-mark, consumes it and
+    /// returns `true`. Only ever called at the very start of the file (see
+    /// the `lex_token` dispatch), the same position `mlang_parser`'s own
+    /// lexer restricts this check to.
+    fn try_consume_bom(&mut self) -> bool {
+        match self.consume_potential_bom(UNICODE_BOM) {
+            Some((_, bom_size)) => {
+                self.unicode_bom_length = bom_size;
+                true
+            }
+            None => false,
+        }
+    }
+
     fn consume_newline(&mut self) -> bool {
         let start = self.position;
         match self.current_byte() {
@@ -657,6 +671,11 @@ impl<'src> PsqlLexer<'src> {
             // non-ASCII bytes: that arm only advances one byte, which is
             // correct for ASCII but corrupts later positions (lands mid
             // character) for any multi-byte UTF-8 sequence.
+            // A BOM can only appear at the very start of a file, so only
+            // check for one there -- anywhere else, a leading `0xEF` byte
+            // is just the start of an ordinary (e.g. Cyrillic-adjacent)
+            // multi-byte UTF-8 identifier character.
+            UNI if self.position == 0 && self.try_consume_bom() => UNICODE_BOM,
             UNI if is_id_continue(self.current_char_unchecked()) => self.resolve_identifier(),
             UNI => {
                 let start = self.position;

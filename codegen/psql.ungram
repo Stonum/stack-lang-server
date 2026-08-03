@@ -90,7 +90,11 @@ AnyPsqlName =
    PsqlName
    | PsqlTildeName
 
-PsqlRoot = 
+// `bom` is a leading Unicode byte-order-mark, real for a Windows-authored
+// script saved as "UTF-8 with BOM" -- optional, and only ever present (if
+// at all) as the literal first three bytes of the file.
+PsqlRoot =
+   bom: 'UNICODE_BOM'?
    stmt: PsqlStatementList
    eof: 'EOF'
 
