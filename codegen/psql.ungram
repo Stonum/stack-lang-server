@@ -169,7 +169,27 @@ PsqlSetOperation =
 
 PsqlSelectClause =
    'select'
+   quantifier: AnyPsqlSelectQuantifier?
    list: PsqlSelectItemList
+
+AnyPsqlSelectQuantifier =
+   PsqlSelectAllQuantifier
+   | PsqlSelectDistinctQuantifier
+
+PsqlSelectAllQuantifier =
+   'all'
+
+// `distinct` optionally followed by `on (expr, ...)`, which dedupes on
+// just those expressions instead of the whole row.
+PsqlSelectDistinctQuantifier =
+   'distinct'
+   on_clause: PsqlDistinctOnClause?
+
+PsqlDistinctOnClause =
+   'on'
+   '('
+   items: PsqlExpressionList
+   ')'
 
 PsqlSelectItemList = (AnyPsqlSelectItem (',' AnyPsqlSelectItem)* ','?)
 

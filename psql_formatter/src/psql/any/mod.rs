@@ -13,6 +13,7 @@ pub(crate) mod literal_expression;
 pub(crate) mod name;
 pub(crate) mod returns_type;
 pub(crate) mod select_item;
+pub(crate) mod select_quantifier;
 pub(crate) mod statement;
 pub(crate) mod type_array_suffix;
 pub(crate) mod type_modifier;

@@ -13,7 +13,7 @@ impl FormatNodeRule<PsqlGroupByClause> for FormatPsqlGroupByClause {
         } = node.as_fields();
 
         write_wrapping_fill_clause(
-            group_by_token,
+            group_by_token.format(),
             &items,
             |expr: &AnyPsqlExpression| !is_simple_expression(expr, 0),
             f,

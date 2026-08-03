@@ -122,6 +122,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlDeleteUsingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_DISTINCT_ON_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDistinctOnClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_DO_NOTHING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlDoNothingClause::new_unchecked(node) };
                     $body
@@ -332,8 +336,17 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlSecurityOption::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_SELECT_ALL_QUANTIFIER => {
+                    let $pattern = unsafe { $crate::PsqlSelectAllQuantifier::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_SELECT_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlSelectClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_SELECT_DISTINCT_QUANTIFIER => {
+                    let $pattern =
+                        unsafe { $crate::PsqlSelectDistinctQuantifier::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_SELECT_EXPRESSION => {

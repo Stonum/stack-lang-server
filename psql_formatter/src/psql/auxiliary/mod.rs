@@ -19,6 +19,8 @@ pub(crate) mod returns_null_option;
 pub(crate) mod returns_table_column;
 pub(crate) mod root;
 pub(crate) mod security_option;
+pub(crate) mod select_all_quantifier;
+pub(crate) mod select_distinct_quantifier;
 pub(crate) mod set_item;
 pub(crate) mod set_operation;
 pub(crate) mod shema_name;

@@ -3,6 +3,7 @@
 pub(crate) mod case_else_clause;
 pub(crate) mod case_when_clause;
 pub(crate) mod delete_using_clause;
+pub(crate) mod distinct_on_clause;
 pub(crate) mod do_nothing_clause;
 pub(crate) mod do_update_clause;
 pub(crate) mod from_clause;

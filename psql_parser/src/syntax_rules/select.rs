@@ -4,8 +4,8 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, count_dotted_name_segments, parse_alias, parse_expression,
-    parse_limit_offset_value, parse_table_name,
+    EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, parse_alias,
+    parse_expression, parse_limit_offset_value, parse_table_name,
 };
 use super::from::parse_from_clause;
 use super::parse_error::*;
@@ -43,6 +43,7 @@ pub(crate) fn parse_select_statement_body(p: &mut PsqlParser, select_stmt: Marke
 fn parse_select_core(p: &mut PsqlParser) {
     let select_clause = p.start();
     p.expect(T![select]);
+    let _ = parse_select_quantifier(p);
     PsqlSelectItemList.parse_list(p);
     select_clause.complete(p, PSQL_SELECT_CLAUSE);
 
@@ -50,6 +51,35 @@ fn parse_select_core(p: &mut PsqlParser) {
     let _ = parse_where_clause(p);
     let _ = parse_group_by_clause(p);
     let _ = parse_having_clause(p);
+}
+
+/// `all` or `distinct [on (expr, ...)]` right after `select`.
+fn parse_select_quantifier(p: &mut PsqlParser) -> ParsedSyntax {
+    if p.at(T![all]) {
+        let m = p.start();
+        p.bump(T![all]);
+        Present(m.complete(p, PSQL_SELECT_ALL_QUANTIFIER))
+    } else if p.at(T![distinct]) {
+        let m = p.start();
+        p.bump(T![distinct]);
+        let _ = parse_distinct_on_clause(p);
+        Present(m.complete(p, PSQL_SELECT_DISTINCT_QUANTIFIER))
+    } else {
+        Absent
+    }
+}
+
+fn parse_distinct_on_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![on]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![on]);
+    p.expect(T!['(']);
+    PsqlExpressionList.parse_list(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_DISTINCT_ON_CLAUSE))
 }
 
 /// Zero or more `union`/`intersect`/`except` branches following the leading

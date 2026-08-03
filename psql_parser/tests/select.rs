@@ -278,6 +278,47 @@ fn test_select_limit_offset_after_order_by() {
 }
 
 #[test]
+fn test_select_distinct() {
+    let res = parse("select distinct a, b from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_all() {
+    let res = parse("select all a, b from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_distinct_on() {
+    let res = parse(
+        "select distinct on (a, b) a, b, c from t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_distinct_on_single_column() {
+    let res = parse(
+        "select distinct on (a) a, b from t order_by a, b",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_distinct_star() {
+    let res = parse("select distinct * from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_select_trailing_semicolon() {
     let res = parse("select a from t;", PsqlFileSource::script());
 

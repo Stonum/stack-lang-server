@@ -1403,6 +1403,56 @@ pub struct PsqlDeleteUsingClauseFields {
     pub items: PsqlFromItemList,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlDistinctOnClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlDistinctOnClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlDistinctOnClauseFields {
+        PsqlDistinctOnClauseFields {
+            on_token: self.on_token(),
+            l_paren_token: self.l_paren_token(),
+            items: self.items(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn items(&self) -> PsqlExpressionList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlDistinctOnClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlDistinctOnClauseFields {
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlDoNothingClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3813,6 +3863,41 @@ pub struct PsqlSecurityOptionFields {
     pub value: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlSelectAllQuantifier {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlSelectAllQuantifier {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlSelectAllQuantifierFields {
+        PsqlSelectAllQuantifierFields {
+            all_token: self.all_token(),
+        }
+    }
+    pub fn all_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlSelectAllQuantifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlSelectAllQuantifierFields {
+    pub all_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlSelectClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3829,14 +3914,18 @@ impl PsqlSelectClause {
     pub fn as_fields(&self) -> PsqlSelectClauseFields {
         PsqlSelectClauseFields {
             select_token: self.select_token(),
+            quantifier: self.quantifier(),
             list: self.list(),
         }
     }
     pub fn select_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
+    pub fn quantifier(&self) -> Option<AnyPsqlSelectQuantifier> {
+        support::node(&self.syntax, 1usize)
+    }
     pub fn list(&self) -> PsqlSelectItemList {
-        support::list(&self.syntax, 1usize)
+        support::list(&self.syntax, 2usize)
     }
 }
 impl Serialize for PsqlSelectClause {
@@ -3850,7 +3939,48 @@ impl Serialize for PsqlSelectClause {
 #[derive(Serialize)]
 pub struct PsqlSelectClauseFields {
     pub select_token: SyntaxResult<SyntaxToken>,
+    pub quantifier: Option<AnyPsqlSelectQuantifier>,
     pub list: PsqlSelectItemList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlSelectDistinctQuantifier {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlSelectDistinctQuantifier {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlSelectDistinctQuantifierFields {
+        PsqlSelectDistinctQuantifierFields {
+            distinct_token: self.distinct_token(),
+            on_clause: self.on_clause(),
+        }
+    }
+    pub fn distinct_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn on_clause(&self) -> Option<PsqlDistinctOnClause> {
+        support::node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlSelectDistinctQuantifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlSelectDistinctQuantifierFields {
+    pub distinct_token: SyntaxResult<SyntaxToken>,
+    pub on_clause: Option<PsqlDistinctOnClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlSelectExpression {
@@ -6291,6 +6421,25 @@ impl AnyPsqlSelectItem {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlSelectQuantifier {
+    PsqlSelectAllQuantifier(PsqlSelectAllQuantifier),
+    PsqlSelectDistinctQuantifier(PsqlSelectDistinctQuantifier),
+}
+impl AnyPsqlSelectQuantifier {
+    pub fn as_psql_select_all_quantifier(&self) -> Option<&PsqlSelectAllQuantifier> {
+        match &self {
+            Self::PsqlSelectAllQuantifier(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_select_distinct_quantifier(&self) -> Option<&PsqlSelectDistinctQuantifier> {
+        match &self {
+            Self::PsqlSelectDistinctQuantifier(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlStatement {
     PsqlBogusStatement(PsqlBogusStatement),
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
@@ -7898,6 +8047,62 @@ impl From<PsqlDeleteUsingClause> for SyntaxNode {
 }
 impl From<PsqlDeleteUsingClause> for SyntaxElement {
     fn from(n: PsqlDeleteUsingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlDistinctOnClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_DISTINCT_ON_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_DISTINCT_ON_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlDistinctOnClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlDistinctOnClause")
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlDistinctOnClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlDistinctOnClause> for SyntaxNode {
+    fn from(n: PsqlDistinctOnClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlDistinctOnClause> for SyntaxElement {
+    fn from(n: PsqlDistinctOnClause) -> Self {
         n.syntax.into()
     }
 }
@@ -10672,6 +10877,53 @@ impl From<PsqlSecurityOption> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlSelectAllQuantifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_SELECT_ALL_QUANTIFIER as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_SELECT_ALL_QUANTIFIER
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlSelectAllQuantifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlSelectAllQuantifier")
+                .field("all_token", &support::DebugSyntaxResult(self.all_token()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlSelectAllQuantifier").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlSelectAllQuantifier> for SyntaxNode {
+    fn from(n: PsqlSelectAllQuantifier) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlSelectAllQuantifier> for SyntaxElement {
+    fn from(n: PsqlSelectAllQuantifier) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlSelectClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -10704,6 +10956,10 @@ impl std::fmt::Debug for PsqlSelectClause {
                     "select_token",
                     &support::DebugSyntaxResult(self.select_token()),
                 )
+                .field(
+                    "quantifier",
+                    &support::DebugOptionalElement(self.quantifier()),
+                )
                 .field("list", &self.list())
                 .finish()
         } else {
@@ -10720,6 +10976,60 @@ impl From<PsqlSelectClause> for SyntaxNode {
 }
 impl From<PsqlSelectClause> for SyntaxElement {
     fn from(n: PsqlSelectClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlSelectDistinctQuantifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_SELECT_DISTINCT_QUANTIFIER as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_SELECT_DISTINCT_QUANTIFIER
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlSelectDistinctQuantifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlSelectDistinctQuantifier")
+                .field(
+                    "distinct_token",
+                    &support::DebugSyntaxResult(self.distinct_token()),
+                )
+                .field(
+                    "on_clause",
+                    &support::DebugOptionalElement(self.on_clause()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlSelectDistinctQuantifier").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlSelectDistinctQuantifier> for SyntaxNode {
+    fn from(n: PsqlSelectDistinctQuantifier) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlSelectDistinctQuantifier> for SyntaxElement {
+    fn from(n: PsqlSelectDistinctQuantifier) -> Self {
         n.syntax.into()
     }
 }
@@ -14286,6 +14596,73 @@ impl From<AnyPsqlSelectItem> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlSelectAllQuantifier> for AnyPsqlSelectQuantifier {
+    fn from(node: PsqlSelectAllQuantifier) -> Self {
+        Self::PsqlSelectAllQuantifier(node)
+    }
+}
+impl From<PsqlSelectDistinctQuantifier> for AnyPsqlSelectQuantifier {
+    fn from(node: PsqlSelectDistinctQuantifier) -> Self {
+        Self::PsqlSelectDistinctQuantifier(node)
+    }
+}
+impl AstNode for AnyPsqlSelectQuantifier {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlSelectAllQuantifier::KIND_SET.union(PsqlSelectDistinctQuantifier::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_SELECT_ALL_QUANTIFIER | PSQL_SELECT_DISTINCT_QUANTIFIER
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_SELECT_ALL_QUANTIFIER => {
+                Self::PsqlSelectAllQuantifier(PsqlSelectAllQuantifier { syntax })
+            }
+            PSQL_SELECT_DISTINCT_QUANTIFIER => {
+                Self::PsqlSelectDistinctQuantifier(PsqlSelectDistinctQuantifier { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlSelectAllQuantifier(it) => &it.syntax,
+            Self::PsqlSelectDistinctQuantifier(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlSelectAllQuantifier(it) => it.syntax,
+            Self::PsqlSelectDistinctQuantifier(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlSelectQuantifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlSelectAllQuantifier(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlSelectDistinctQuantifier(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlSelectQuantifier> for SyntaxNode {
+    fn from(n: AnyPsqlSelectQuantifier) -> Self {
+        match n {
+            AnyPsqlSelectQuantifier::PsqlSelectAllQuantifier(it) => it.into(),
+            AnyPsqlSelectQuantifier::PsqlSelectDistinctQuantifier(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlSelectQuantifier> for SyntaxElement {
+    fn from(n: AnyPsqlSelectQuantifier) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<PsqlBogusStatement> for AnyPsqlStatement {
     fn from(node: PsqlBogusStatement) -> Self {
         Self::PsqlBogusStatement(node)
@@ -14751,6 +15128,11 @@ impl std::fmt::Display for AnyPsqlSelectItem {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlSelectQuantifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -14887,6 +15269,11 @@ impl std::fmt::Display for PsqlDeleteStatement {
     }
 }
 impl std::fmt::Display for PsqlDeleteUsingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlDistinctOnClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -15146,7 +15533,17 @@ impl std::fmt::Display for PsqlSecurityOption {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlSelectAllQuantifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlSelectClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlSelectDistinctQuantifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

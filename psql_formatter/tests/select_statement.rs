@@ -163,6 +163,66 @@ select a from t where (a > 1 and b < 2) or c = 3
 }
 
 #[test]
+fn format_select_distinct() {
+    assert_fmt!(
+        r#"--
+select distinct a, b from t
+"#
+    );
+}
+
+#[test]
+fn format_select_all() {
+    assert_fmt!(
+        r#"--
+select all a, b from t
+"#
+    );
+}
+
+#[test]
+fn format_select_distinct_on() {
+    assert_fmt!(
+        r#"--
+select distinct on (a, b) a, b, c from t
+"#
+    );
+}
+
+#[test]
+fn format_select_distinct_star() {
+    assert_fmt!(
+        r#"--
+select distinct * from t
+"#
+    );
+}
+
+#[test]
+fn format_select_distinct_on_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+SELECT   DISTINCT   ON  (  a , b )   a,b,c   FROM   t;
+"#,
+        r#"--
+select distinct on (a, b) a, b, c from t;
+"#
+    );
+}
+
+#[test]
+fn format_select_distinct_wraps_when_too_long() {
+    assert_fmt!(
+        r#"--
+select distinct
+	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
+	really_long_column_name_four, really_long_column_name_five, really_long_column_name_six
+from t
+"#
+    );
+}
+
+#[test]
 fn format_select_full_statement() {
     assert_fmt!(
         r#"--

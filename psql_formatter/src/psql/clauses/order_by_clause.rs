@@ -13,7 +13,7 @@ impl FormatNodeRule<PsqlOrderByClause> for FormatPsqlOrderByClause {
         } = node.as_fields();
 
         write_wrapping_fill_clause(
-            order_by_token,
+            order_by_token.format(),
             &items,
             |item: &PsqlOrderByExpression| {
                 item.item()

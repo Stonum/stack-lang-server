@@ -93,21 +93,22 @@ where
 /// wrapper node actually holds (e.g. unwrapping a `PsqlSelectExpression`'s
 /// `expr` or a `PsqlOrderByExpression`'s `item`, ignoring the alias/order-
 /// direction suffix since that doesn't affect complexity).
-pub(crate) fn write_wrapping_fill_clause<L>(
-    keyword: SyntaxResult<PsqlSyntaxToken>,
+pub(crate) fn write_wrapping_fill_clause<K, L>(
+    keyword: K,
     list: &L,
     is_complex: impl Fn(&L::Node) -> bool,
     f: &mut PsqlFormatter,
 ) -> FormatResult<()>
 where
+    K: Format<PsqlFormatContext>,
     L: FormatAstSeparatedListExtension + AsFormat<PsqlFormatContext>,
     L::Node: AsFormat<PsqlFormatContext> + 'static,
 {
     if list.len() <= 1 {
-        return write!(f, [keyword.format(), space(), list.format()]);
+        return write!(f, [keyword, space(), list.format()]);
     }
 
-    let keyword = keyword.format().memoized();
+    let keyword = keyword.memoized();
 
     let entries: Vec<_> = list
         .iter()

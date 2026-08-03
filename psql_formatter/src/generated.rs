@@ -896,6 +896,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDeleteUsingClause {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlDistinctOnClause>
+    for crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlDistinctOnClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlDistinctOnClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlDistinctOnClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlDistinctOnClause,
+        crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlDistinctOnClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlDistinctOnClause,
+        crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlDoNothingClause>
     for crate::psql::clauses::do_nothing_clause::FormatPsqlDoNothingClause
 {
@@ -2738,6 +2776,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSecurityOption {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlSelectAllQuantifier>
+    for crate::psql::auxiliary::select_all_quantifier::FormatPsqlSelectAllQuantifier
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlSelectAllQuantifier,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlSelectAllQuantifier>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlSelectAllQuantifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlSelectAllQuantifier,
+        crate::psql::auxiliary::select_all_quantifier::FormatPsqlSelectAllQuantifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::select_all_quantifier::FormatPsqlSelectAllQuantifier::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSelectAllQuantifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlSelectAllQuantifier,
+        crate::psql::auxiliary::select_all_quantifier::FormatPsqlSelectAllQuantifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::select_all_quantifier::FormatPsqlSelectAllQuantifier::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlSelectClause>
     for crate::psql::clauses::select_clause::FormatPsqlSelectClause
 {
@@ -2770,6 +2846,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSelectClause {
             self,
             crate::psql::clauses::select_clause::FormatPsqlSelectClause::default(),
         )
+    }
+}
+impl FormatRule<psql_syntax::PsqlSelectDistinctQuantifier>
+    for crate::psql::auxiliary::select_distinct_quantifier::FormatPsqlSelectDistinctQuantifier
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlSelectDistinctQuantifier,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlSelectDistinctQuantifier>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlSelectDistinctQuantifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlSelectDistinctQuantifier,
+        crate::psql::auxiliary::select_distinct_quantifier::FormatPsqlSelectDistinctQuantifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: select_distinct_quantifier :: FormatPsqlSelectDistinctQuantifier :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlSelectDistinctQuantifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlSelectDistinctQuantifier,
+        crate::psql::auxiliary::select_distinct_quantifier::FormatPsqlSelectDistinctQuantifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: select_distinct_quantifier :: FormatPsqlSelectDistinctQuantifier :: default ())
     }
 }
 impl FormatRule<psql_syntax::PsqlSelectExpression>
@@ -5431,6 +5539,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlSelectItem {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::select_item::FormatAnyPsqlSelectItem::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlSelectQuantifier {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlSelectQuantifier,
+        crate::psql::any::select_quantifier::FormatAnyPsqlSelectQuantifier,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::select_quantifier::FormatAnyPsqlSelectQuantifier::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlSelectQuantifier {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlSelectQuantifier,
+        crate::psql::any::select_quantifier::FormatAnyPsqlSelectQuantifier,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::select_quantifier::FormatAnyPsqlSelectQuantifier::default(),
         )
     }
 }

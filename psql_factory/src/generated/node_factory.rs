@@ -827,6 +827,22 @@ pub fn psql_delete_using_clause(
         ],
     ))
 }
+pub fn psql_distinct_on_clause(
+    on_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlDistinctOnClause {
+    PsqlDistinctOnClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_DISTINCT_ON_CLAUSE,
+        [
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_do_nothing_clause(
     do_token: SyntaxToken,
     nothing_token: SyntaxToken,
@@ -2024,14 +2040,71 @@ pub fn psql_security_option(
         ],
     ))
 }
-pub fn psql_select_clause(select_token: SyntaxToken, list: PsqlSelectItemList) -> PsqlSelectClause {
-    PsqlSelectClause::unwrap_cast(SyntaxNode::new_detached(
-        PsqlSyntaxKind::PSQL_SELECT_CLAUSE,
-        [
-            Some(SyntaxElement::Token(select_token)),
-            Some(SyntaxElement::Node(list.into_syntax())),
-        ],
+pub fn psql_select_all_quantifier(all_token: SyntaxToken) -> PsqlSelectAllQuantifier {
+    PsqlSelectAllQuantifier::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_SELECT_ALL_QUANTIFIER,
+        [Some(SyntaxElement::Token(all_token))],
     ))
+}
+pub fn psql_select_clause(
+    select_token: SyntaxToken,
+    list: PsqlSelectItemList,
+) -> PsqlSelectClauseBuilder {
+    PsqlSelectClauseBuilder {
+        select_token,
+        list,
+        quantifier: None,
+    }
+}
+pub struct PsqlSelectClauseBuilder {
+    select_token: SyntaxToken,
+    list: PsqlSelectItemList,
+    quantifier: Option<AnyPsqlSelectQuantifier>,
+}
+impl PsqlSelectClauseBuilder {
+    pub fn with_quantifier(mut self, quantifier: AnyPsqlSelectQuantifier) -> Self {
+        self.quantifier = Some(quantifier);
+        self
+    }
+    pub fn build(self) -> PsqlSelectClause {
+        PsqlSelectClause::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_SELECT_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.select_token)),
+                self.quantifier
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.list.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_select_distinct_quantifier(
+    distinct_token: SyntaxToken,
+) -> PsqlSelectDistinctQuantifierBuilder {
+    PsqlSelectDistinctQuantifierBuilder {
+        distinct_token,
+        on_clause: None,
+    }
+}
+pub struct PsqlSelectDistinctQuantifierBuilder {
+    distinct_token: SyntaxToken,
+    on_clause: Option<PsqlDistinctOnClause>,
+}
+impl PsqlSelectDistinctQuantifierBuilder {
+    pub fn with_on_clause(mut self, on_clause: PsqlDistinctOnClause) -> Self {
+        self.on_clause = Some(on_clause);
+        self
+    }
+    pub fn build(self) -> PsqlSelectDistinctQuantifier {
+        PsqlSelectDistinctQuantifier::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_SELECT_DISTINCT_QUANTIFIER,
+            [
+                Some(SyntaxElement::Token(self.distinct_token)),
+                self.on_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
 }
 pub fn psql_select_expression(expr: AnyPsqlExpression) -> PsqlSelectExpressionBuilder {
     PsqlSelectExpressionBuilder { expr, alias: None }
