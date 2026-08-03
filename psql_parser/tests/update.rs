@@ -59,3 +59,40 @@ fn test_multiple_update_and_delete_statements() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_update_with_from_clause() {
+    let res = parse(
+        "update t set a = u.a from u where t.id = u.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_update_with_from_clause_multiple_items() {
+    let res = parse(
+        "update t set a = u.a from u, v where t.id = u.id and u.v_id = v.id",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_update_from_clause_with_returning() {
+    let res = parse(
+        "update t set a = u.a from u where t.id = u.id returning t.id;",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_update_from_clause_without_where() {
+    let res = parse("update t set a = u.a from u;", PsqlFileSource::script());
+
+    assert_parser!(res);
+}

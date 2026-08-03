@@ -5318,6 +5318,46 @@ pub struct PsqlUnaryExpressionFields {
     pub expression: SyntaxResult<AnyPsqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlUpdateFromClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlUpdateFromClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlUpdateFromClauseFields {
+        PsqlUpdateFromClauseFields {
+            from_token: self.from_token(),
+            items: self.items(),
+        }
+    }
+    pub fn from_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn items(&self) -> PsqlFromItemList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlUpdateFromClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlUpdateFromClauseFields {
+    pub from_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlFromItemList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlUpdateStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5337,6 +5377,7 @@ impl PsqlUpdateStatement {
             update_token: self.update_token(),
             table: self.table(),
             set_clause: self.set_clause(),
+            from_clause: self.from_clause(),
             where_clause: self.where_clause(),
             returning_clause: self.returning_clause(),
             semicolon_token: self.semicolon_token(),
@@ -5354,14 +5395,17 @@ impl PsqlUpdateStatement {
     pub fn set_clause(&self) -> SyntaxResult<PsqlSetClause> {
         support::required_node(&self.syntax, 3usize)
     }
-    pub fn where_clause(&self) -> Option<PsqlWhereClause> {
+    pub fn from_clause(&self) -> Option<PsqlUpdateFromClause> {
         support::node(&self.syntax, 4usize)
     }
-    pub fn returning_clause(&self) -> Option<PsqlReturningClause> {
+    pub fn where_clause(&self) -> Option<PsqlWhereClause> {
         support::node(&self.syntax, 5usize)
     }
+    pub fn returning_clause(&self) -> Option<PsqlReturningClause> {
+        support::node(&self.syntax, 6usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 6usize)
+        support::token(&self.syntax, 7usize)
     }
 }
 impl Serialize for PsqlUpdateStatement {
@@ -5378,6 +5422,7 @@ pub struct PsqlUpdateStatementFields {
     pub update_token: SyntaxResult<SyntaxToken>,
     pub table: SyntaxResult<PsqlTableBinding>,
     pub set_clause: SyntaxResult<PsqlSetClause>,
+    pub from_clause: Option<PsqlUpdateFromClause>,
     pub where_clause: Option<PsqlWhereClause>,
     pub returning_clause: Option<PsqlReturningClause>,
     pub semicolon_token: Option<SyntaxToken>,
@@ -12407,6 +12452,54 @@ impl From<PsqlUnaryExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlUpdateFromClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_UPDATE_FROM_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_UPDATE_FROM_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlUpdateFromClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlUpdateFromClause")
+                .field("from_token", &support::DebugSyntaxResult(self.from_token()))
+                .field("items", &self.items())
+                .finish()
+        } else {
+            f.debug_struct("PsqlUpdateFromClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlUpdateFromClause> for SyntaxNode {
+    fn from(n: PsqlUpdateFromClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlUpdateFromClause> for SyntaxElement {
+    fn from(n: PsqlUpdateFromClause) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlUpdateStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -12445,6 +12538,10 @@ impl std::fmt::Debug for PsqlUpdateStatement {
                 )
                 .field("table", &support::DebugSyntaxResult(self.table()))
                 .field("set_clause", &support::DebugSyntaxResult(self.set_clause()))
+                .field(
+                    "from_clause",
+                    &support::DebugOptionalElement(self.from_clause()),
+                )
                 .field(
                     "where_clause",
                     &support::DebugOptionalElement(self.where_clause()),
@@ -15210,6 +15307,11 @@ impl std::fmt::Display for PsqlTypeName {
     }
 }
 impl std::fmt::Display for PsqlUnaryExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlUpdateFromClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

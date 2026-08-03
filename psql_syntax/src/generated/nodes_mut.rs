@@ -2657,6 +2657,20 @@ impl PsqlUnaryExpression {
         )
     }
 }
+impl PsqlUpdateFromClause {
+    pub fn with_from_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_items(self, element: PsqlFromItemList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl PsqlUpdateStatement {
     pub fn with_with_clause(self, element: Option<PsqlWithClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
@@ -2682,22 +2696,28 @@ impl PsqlUpdateStatement {
                 .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
         )
     }
-    pub fn with_where_clause(self, element: Option<PsqlWhereClause>) -> Self {
+    pub fn with_from_clause(self, element: Option<PsqlUpdateFromClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             4usize..=4usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_returning_clause(self, element: Option<PsqlReturningClause>) -> Self {
+    pub fn with_where_clause(self, element: Option<PsqlWhereClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             5usize..=5usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_returning_clause(self, element: Option<PsqlReturningClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            6usize..=6usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
     pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(6usize..=6usize, once(element.map(|element| element.into()))),
+                .splice_slots(7usize..=7usize, once(element.map(|element| element.into()))),
         )
     }
 }

@@ -2721,6 +2721,18 @@ pub fn psql_unary_expression(
         ],
     ))
 }
+pub fn psql_update_from_clause(
+    from_token: SyntaxToken,
+    items: PsqlFromItemList,
+) -> PsqlUpdateFromClause {
+    PsqlUpdateFromClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_UPDATE_FROM_CLAUSE,
+        [
+            Some(SyntaxElement::Token(from_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_update_statement(
     update_token: SyntaxToken,
     table: PsqlTableBinding,
@@ -2731,6 +2743,7 @@ pub fn psql_update_statement(
         table,
         set_clause,
         with_clause: None,
+        from_clause: None,
         where_clause: None,
         returning_clause: None,
         semicolon_token: None,
@@ -2741,6 +2754,7 @@ pub struct PsqlUpdateStatementBuilder {
     table: PsqlTableBinding,
     set_clause: PsqlSetClause,
     with_clause: Option<PsqlWithClause>,
+    from_clause: Option<PsqlUpdateFromClause>,
     where_clause: Option<PsqlWhereClause>,
     returning_clause: Option<PsqlReturningClause>,
     semicolon_token: Option<SyntaxToken>,
@@ -2748,6 +2762,10 @@ pub struct PsqlUpdateStatementBuilder {
 impl PsqlUpdateStatementBuilder {
     pub fn with_with_clause(mut self, with_clause: PsqlWithClause) -> Self {
         self.with_clause = Some(with_clause);
+        self
+    }
+    pub fn with_from_clause(mut self, from_clause: PsqlUpdateFromClause) -> Self {
+        self.from_clause = Some(from_clause);
         self
     }
     pub fn with_where_clause(mut self, where_clause: PsqlWhereClause) -> Self {
@@ -2771,6 +2789,8 @@ impl PsqlUpdateStatementBuilder {
                 Some(SyntaxElement::Token(self.update_token)),
                 Some(SyntaxElement::Node(self.table.into_syntax())),
                 Some(SyntaxElement::Node(self.set_clause.into_syntax())),
+                self.from_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.where_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.returning_clause

@@ -67,3 +67,55 @@ set a = 1
 "#
     );
 }
+
+#[test]
+fn format_update_with_from_clause() {
+    assert_fmt!(
+        r#"--
+update t
+set a = 1
+from u
+where t.id = u.id
+"#
+    );
+}
+
+#[test]
+fn format_update_with_from_clause_multiple_items() {
+    assert_fmt!(
+        r#"--
+update t
+set a = 1, b = 2
+from u, v
+where t.id = u.id
+"#
+    );
+}
+
+#[test]
+fn format_update_with_from_clause_and_returning() {
+    assert_fmt!(
+        r#"--
+update t
+set a = 1
+from u
+where t.id = u.id
+returning t.id
+"#
+    );
+}
+
+#[test]
+fn format_update_from_clause_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+UPDATE   t   SET   a=1,b=2   FROM   u,v   WHERE   t.id=u.id;
+"#,
+        r#"--
+update t
+set a = 1, b = 2
+from u, v
+where t.id = u.id;
+"#
+    );
+}

@@ -11,6 +11,7 @@ impl FormatNodeRule<PsqlUpdateStatement> for FormatPsqlUpdateStatement {
             update_token,
             table,
             set_clause,
+            from_clause,
             where_clause,
             returning_clause,
             semicolon_token,
@@ -23,6 +24,9 @@ impl FormatNodeRule<PsqlUpdateStatement> for FormatPsqlUpdateStatement {
         write!(f, [update_token.format(), space(), table.format()])?;
         write!(f, [hard_line_break(), set_clause.format()])?;
 
+        if let Some(from_clause) = from_clause {
+            write!(f, [hard_line_break(), from_clause.format()])?;
+        }
         if let Some(where_clause) = where_clause {
             write!(f, [hard_line_break(), where_clause.format()])?;
         }

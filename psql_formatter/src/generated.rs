@@ -3905,6 +3905,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlUnaryExpression {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlUpdateFromClause>
+    for crate::psql::clauses::update_from_clause::FormatPsqlUpdateFromClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlUpdateFromClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlUpdateFromClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlUpdateFromClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlUpdateFromClause,
+        crate::psql::clauses::update_from_clause::FormatPsqlUpdateFromClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::update_from_clause::FormatPsqlUpdateFromClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlUpdateFromClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlUpdateFromClause,
+        crate::psql::clauses::update_from_clause::FormatPsqlUpdateFromClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::update_from_clause::FormatPsqlUpdateFromClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlUpdateStatement>
     for crate::psql::statements::update_statement::FormatPsqlUpdateStatement
 {

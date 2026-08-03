@@ -332,9 +332,20 @@ PsqlUpdateStatement =
    'update'
    table: PsqlTableBinding
    set_clause: PsqlSetClause
+   from_clause: PsqlUpdateFromClause?
    where_clause: PsqlWhereClause?
    returning_clause: PsqlReturningClause?
    ';'?
+
+// `UPDATE t SET ... FROM other_table WHERE ...` -- brings extra tables
+// into scope for the `SET`/`WHERE` expressions, e.g. to update one table
+// using values joined from another. Reuses `PsqlFromItemList`, same as
+// `PsqlDeleteUsingClause` does for `DELETE ... USING ...` (semantically
+// the same "extra tables in scope" role, spelled with a different leading
+// keyword).
+PsqlUpdateFromClause =
+   'from'
+   items: PsqlFromItemList
 
 PsqlSetClause = 
    'set'
