@@ -1819,7 +1819,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && PsqlName::can_cast(element.kind())
+                    && AnyPsqlName::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();

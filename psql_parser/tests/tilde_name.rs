@@ -72,6 +72,46 @@ fn test_tilde_function_call() {
 }
 
 #[test]
+fn test_tilde_table_valued_function_in_from() {
+    let res = parse("select a from ~SomeFunc~(:1, :2, :3, :4)", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_tilde_table_valued_function_with_alias() {
+    let res = parse("select a from ~AnotherFunc~(:root, 0) c", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_tilde_table_valued_function_no_arguments() {
+    let res = parse("select a from ~SomeFunc~()", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_tilde_table_valued_function_in_join() {
+    let res = parse(
+        "select a from t join ~SomeFunc~(1, 2) f on f.id = t.id",
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_tilde_name_without_parens_still_a_table_binding() {
+    // A tilde name not immediately followed by `(` stays a plain table
+    // reference -- unaffected by the table-valued-function widening above.
+    let res = parse("select a from ~TableName~ d", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_tilde_name_rejected_in_standard_dialect() {
     let res = parse("select a from ~Договор~", PsqlFileSource::script());
 

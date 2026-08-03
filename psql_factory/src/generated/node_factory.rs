@@ -1248,7 +1248,7 @@ pub fn psql_from_item(source: AnyPsqlFromExpression, joins: PsqlJoinClauseList) 
     ))
 }
 pub fn psql_function_binding(
-    name: PsqlName,
+    name: AnyPsqlName,
     l_paren_token: SyntaxToken,
     arguments: PsqlExpressionList,
     r_paren_token: SyntaxToken,
@@ -1263,7 +1263,7 @@ pub fn psql_function_binding(
     }
 }
 pub struct PsqlFunctionBindingBuilder {
-    name: PsqlName,
+    name: AnyPsqlName,
     l_paren_token: SyntaxToken,
     arguments: PsqlExpressionList,
     r_paren_token: SyntaxToken,

@@ -1202,7 +1202,7 @@ impl PsqlFunctionBinding {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_name(self, element: PsqlName) -> Self {
+    pub fn with_name(self, element: AnyPsqlName) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),

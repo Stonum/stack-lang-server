@@ -126,6 +126,33 @@ select a from generate_series(1, 10) g
 }
 
 #[test]
+fn format_select_with_tilde_table_valued_function_from() {
+    assert_fmt!(
+        r#"--
+select a from ~SomeFunc~(:1, :2, :3, :4)
+"#
+    );
+}
+
+#[test]
+fn format_select_with_tilde_table_valued_function_alias() {
+    assert_fmt!(
+        r#"--
+select a from ~AnotherFunc~(:root, 0) c
+"#
+    );
+}
+
+#[test]
+fn format_select_with_tilde_name_without_parens_stays_a_table_binding() {
+    assert_fmt!(
+        r#"--
+select a from ~Договор~ d
+"#
+    );
+}
+
+#[test]
 fn format_select_semicolon() {
     assert_fmt!(
         r#"--

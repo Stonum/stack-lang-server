@@ -2114,7 +2114,7 @@ impl PsqlFunctionBinding {
     pub fn schema(&self) -> Option<PsqlShemaName> {
         support::node(&self.syntax, 0usize)
     }
-    pub fn name(&self) -> SyntaxResult<PsqlName> {
+    pub fn name(&self) -> SyntaxResult<AnyPsqlName> {
         support::required_node(&self.syntax, 1usize)
     }
     pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
@@ -2141,7 +2141,7 @@ impl Serialize for PsqlFunctionBinding {
 #[derive(Serialize)]
 pub struct PsqlFunctionBindingFields {
     pub schema: Option<PsqlShemaName>,
-    pub name: SyntaxResult<PsqlName>,
+    pub name: SyntaxResult<AnyPsqlName>,
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub arguments: PsqlExpressionList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,

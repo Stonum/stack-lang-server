@@ -5,11 +5,11 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, is_at_tilde_name_start,
-    parse_alias, parse_expression, parse_name, parse_shema_qualifier, parse_table_name,
+    parse_alias, parse_any_name, parse_expression, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
 use super::with_clause::parse_with_prefixed_select_statement;
-use crate::PsqlParser;
+use crate::{PsqlParser, lexer::PsqlReLexContext};
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
 pub(crate) fn parse_from_clause(p: &mut PsqlParser) -> ParsedSyntax {
@@ -137,11 +137,24 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
         return parse_subquery_binding(p);
     }
 
-    // A tilde name is never schema-qualified and never a table-valued
-    // function in FROM position (only seen as a plain table name in real
-    // usage) -- always a table binding, segment count 0.
+    // A tilde name is never schema-qualified, but real mlang scripts do
+    // call table-valued functions this way (e.g. `from ~SomeFunc~(:1,
+    // :2)`), so still check for a following `(` -- same decision the ident
+    // branch below makes, just via a re-lex lookahead since a tilde name
+    // needs one to even recognize its own extent.
     if is_at_tilde_name_start(p) {
-        return build_table_binding(p, 0);
+        let is_function_call = p.lookahead(|p| {
+            p.re_lex(PsqlReLexContext::TildeName) == PSQL_TILDE_NAME_LITERAL && {
+                p.bump(PSQL_TILDE_NAME_LITERAL);
+                p.at(T!['('])
+            }
+        });
+
+        return if is_function_call {
+            parse_function_binding(p, 0)
+        } else {
+            build_table_binding(p, 0)
+        };
     }
 
     if !p.at(T![ident]) {
@@ -193,7 +206,7 @@ fn build_table_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax
 fn parse_function_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
     let m = p.start();
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
-    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    parse_any_name(p).or_add_diagnostic(p, expected_identifier);
 
     p.expect(T!['(']);
     PsqlExpressionList.parse_list(p);

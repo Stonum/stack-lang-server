@@ -756,7 +756,7 @@ PsqlTableBinding =
 
 PsqlFunctionBinding =
    schema: PsqlShemaName?
-   name: PsqlName
+   name: AnyPsqlName
    '('
    arguments: PsqlExpressionList
    ')'
