@@ -1066,7 +1066,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_CTE_DEFINITION => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && PsqlName::can_cast(element.kind())
@@ -1084,6 +1084,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && element.kind() == T![as]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlCteMaterializedHint::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -1117,6 +1124,32 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_CTE_DEFINITION, children)
+            }
+            PSQL_CTE_MATERIALIZED_HINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![not]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![materialized]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_CTE_MATERIALIZED_HINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_CTE_MATERIALIZED_HINT, children)
             }
             PSQL_DATA_BASE_NAME => {
                 let mut elements = (&children).into_iter();

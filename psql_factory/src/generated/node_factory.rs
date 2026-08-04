@@ -708,6 +708,7 @@ pub fn psql_cte_definition(
         query,
         r_paren_token,
         columns: None,
+        materialized: None,
     }
 }
 pub struct PsqlCteDefinitionBuilder {
@@ -717,10 +718,15 @@ pub struct PsqlCteDefinitionBuilder {
     query: AnyPsqlStatement,
     r_paren_token: SyntaxToken,
     columns: Option<PsqlColumnList>,
+    materialized: Option<PsqlCteMaterializedHint>,
 }
 impl PsqlCteDefinitionBuilder {
     pub fn with_columns(mut self, columns: PsqlColumnList) -> Self {
         self.columns = Some(columns);
+        self
+    }
+    pub fn with_materialized(mut self, materialized: PsqlCteMaterializedHint) -> Self {
+        self.materialized = Some(materialized);
         self
     }
     pub fn build(self) -> PsqlCteDefinition {
@@ -731,9 +737,38 @@ impl PsqlCteDefinitionBuilder {
                 self.columns
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.as_token)),
+                self.materialized
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.query.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_cte_materialized_hint(
+    materialized_token: SyntaxToken,
+) -> PsqlCteMaterializedHintBuilder {
+    PsqlCteMaterializedHintBuilder {
+        materialized_token,
+        not_token: None,
+    }
+}
+pub struct PsqlCteMaterializedHintBuilder {
+    materialized_token: SyntaxToken,
+    not_token: Option<SyntaxToken>,
+}
+impl PsqlCteMaterializedHintBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> PsqlCteMaterializedHint {
+        PsqlCteMaterializedHint::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_CTE_MATERIALIZED_HINT,
+            [
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.materialized_token)),
             ],
         ))
     }

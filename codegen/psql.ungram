@@ -139,9 +139,19 @@ PsqlCteDefinition =
    name: PsqlName
    columns: PsqlColumnList?
    'as'
+   materialized: PsqlCteMaterializedHint?
    '('
    query: AnyPsqlStatement
    ')'
+
+// `AS MATERIALIZED (...)` forces the CTE to be an optimization fence
+// (always materialized as a temp result); `AS NOT MATERIALIZED (...)`
+// forces the opposite (always inlined). Purely a planner hint -- doesn't
+// change what the query means, so the parser just needs to accept and
+// preserve it, not act on it.
+PsqlCteMaterializedHint =
+   'not'?
+   'materialized'
 
 PsqlSelectStatement =
    with_clause: PsqlWithClause?

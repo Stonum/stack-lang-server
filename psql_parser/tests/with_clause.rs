@@ -168,3 +168,33 @@ fn test_with_inside_subquery_scalar() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_with_cte_materialized_hint() {
+    let res = parse(
+        "with cte as materialized (select a from t) select a from cte",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_cte_not_materialized_hint() {
+    let res = parse(
+        "with cte as not materialized (select a from t) select a from cte",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_multiple_ctes_mixed_materialized_hints() {
+    let res = parse(
+        "with cte1 as materialized (select a from t), cte2 as not materialized (select b from u), cte3 as (select c from v) select a from cte1 join cte2 on cte1.a = cte2.b join cte3 on cte2.b = cte3.c",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

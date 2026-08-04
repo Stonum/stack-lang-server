@@ -10,6 +10,7 @@ impl FormatNodeRule<PsqlCteDefinition> for FormatPsqlCteDefinition {
             name,
             columns,
             as_token,
+            materialized,
             l_paren_token,
             query,
             r_paren_token,
@@ -19,11 +20,13 @@ impl FormatNodeRule<PsqlCteDefinition> for FormatPsqlCteDefinition {
         if let Some(columns) = columns {
             write!(f, [columns.format()])?;
         }
+        write!(f, [space(), as_token.format()])?;
+        if let Some(materialized) = materialized {
+            write!(f, [space(), materialized.format()])?;
+        }
         write!(
             f,
             [
-                space(),
-                as_token.format(),
                 space(),
                 l_paren_token.format(),
                 group(&soft_block_indent(&query.format())),

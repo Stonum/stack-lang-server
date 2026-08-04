@@ -81,6 +81,7 @@ fn parse_cte_definition(p: &mut PsqlParser) -> ParsedSyntax {
     parse_name(p).unwrap();
     let _ = parse_column_name_list(p);
     p.expect(T![as]);
+    let _ = parse_cte_materialized_hint(p);
     p.expect(T!['(']);
     // A CTE's body can be any statement, not just `select` -- Postgres
     // allows data-modifying CTEs (`insert`/`update`/`delete ... returning
@@ -88,4 +89,19 @@ fn parse_cte_definition(p: &mut PsqlParser) -> ParsedSyntax {
     parse_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
     Present(m.complete(p, PSQL_CTE_DEFINITION))
+}
+
+/// `[not] materialized`, a purely-informational planner hint on a CTE
+/// (`with x as materialized (...)` / `with x as not materialized (...)`)
+/// -- doesn't change what the query means, so the parser just accepts and
+/// preserves it rather than acting on it.
+fn parse_cte_materialized_hint(p: &mut PsqlParser) -> ParsedSyntax {
+    if !(p.at(T![materialized]) || p.at(T![not]) && p.nth_at(1, T![materialized])) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.eat(T![not]);
+    p.expect(T![materialized]);
+    Present(m.complete(p, PSQL_CTE_MATERIALIZED_HINT))
 }

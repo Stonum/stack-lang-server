@@ -110,6 +110,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCteDefinition::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_CTE_MATERIALIZED_HINT => {
+                    let $pattern = unsafe { $crate::PsqlCteMaterializedHint::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_DATA_BASE_NAME => {
                     let $pattern = unsafe { $crate::PsqlDataBaseName::new_unchecked(node) };
                     $body

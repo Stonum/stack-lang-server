@@ -45,6 +45,40 @@ select a from x
 }
 
 #[test]
+fn format_cte_materialized_hint() {
+    assert_fmt!(
+        r#"--
+with x as materialized (select a from t)
+select a from x
+"#
+    );
+}
+
+#[test]
+fn format_cte_not_materialized_hint() {
+    assert_fmt!(
+        r#"--
+with x as not materialized (select a from t)
+select a from x
+"#
+    );
+}
+
+#[test]
+fn format_cte_materialized_hint_normalizes_case() {
+    assert_fmt_eq!(
+        r#"--
+with x as MATERIALIZED (select a from t)
+select a from x;
+"#,
+        r#"--
+with x as materialized (select a from t)
+select a from x;
+"#
+    );
+}
+
+#[test]
 fn format_subquery_in_from_stays_flat_when_it_fits() {
     assert_fmt!(
         r#"--

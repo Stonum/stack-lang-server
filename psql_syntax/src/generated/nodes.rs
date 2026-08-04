@@ -1211,6 +1211,7 @@ impl PsqlCteDefinition {
             name: self.name(),
             columns: self.columns(),
             as_token: self.as_token(),
+            materialized: self.materialized(),
             l_paren_token: self.l_paren_token(),
             query: self.query(),
             r_paren_token: self.r_paren_token(),
@@ -1225,14 +1226,17 @@ impl PsqlCteDefinition {
     pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 2usize)
     }
+    pub fn materialized(&self) -> Option<PsqlCteMaterializedHint> {
+        support::node(&self.syntax, 3usize)
+    }
     pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 3usize)
+        support::required_token(&self.syntax, 4usize)
     }
     pub fn query(&self) -> SyntaxResult<AnyPsqlStatement> {
-        support::required_node(&self.syntax, 4usize)
+        support::required_node(&self.syntax, 5usize)
     }
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 5usize)
+        support::required_token(&self.syntax, 6usize)
     }
 }
 impl Serialize for PsqlCteDefinition {
@@ -1248,9 +1252,50 @@ pub struct PsqlCteDefinitionFields {
     pub name: SyntaxResult<PsqlName>,
     pub columns: Option<PsqlColumnList>,
     pub as_token: SyntaxResult<SyntaxToken>,
+    pub materialized: Option<PsqlCteMaterializedHint>,
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub query: SyntaxResult<AnyPsqlStatement>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCteMaterializedHint {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCteMaterializedHint {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCteMaterializedHintFields {
+        PsqlCteMaterializedHintFields {
+            not_token: self.not_token(),
+            materialized_token: self.materialized_token(),
+        }
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn materialized_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlCteMaterializedHint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCteMaterializedHintFields {
+    pub not_token: Option<SyntaxToken>,
+    pub materialized_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlDataBaseName {
@@ -7856,6 +7901,10 @@ impl std::fmt::Debug for PsqlCteDefinition {
                 .field("columns", &support::DebugOptionalElement(self.columns()))
                 .field("as_token", &support::DebugSyntaxResult(self.as_token()))
                 .field(
+                    "materialized",
+                    &support::DebugOptionalElement(self.materialized()),
+                )
+                .field(
                     "l_paren_token",
                     &support::DebugSyntaxResult(self.l_paren_token()),
                 )
@@ -7879,6 +7928,60 @@ impl From<PsqlCteDefinition> for SyntaxNode {
 }
 impl From<PsqlCteDefinition> for SyntaxElement {
     fn from(n: PsqlCteDefinition) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCteMaterializedHint {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CTE_MATERIALIZED_HINT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CTE_MATERIALIZED_HINT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCteMaterializedHint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCteMaterializedHint")
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field(
+                    "materialized_token",
+                    &support::DebugSyntaxResult(self.materialized_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCteMaterializedHint").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCteMaterializedHint> for SyntaxNode {
+    fn from(n: PsqlCteMaterializedHint) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCteMaterializedHint> for SyntaxElement {
+    fn from(n: PsqlCteMaterializedHint) -> Self {
         n.syntax.into()
     }
 }
@@ -15254,6 +15357,11 @@ impl std::fmt::Display for PsqlCreateViewStatement {
     }
 }
 impl std::fmt::Display for PsqlCteDefinition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCteMaterializedHint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

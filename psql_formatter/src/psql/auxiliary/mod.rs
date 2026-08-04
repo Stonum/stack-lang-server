@@ -5,6 +5,7 @@ pub(crate) mod col_reference;
 pub(crate) mod column_definition;
 pub(crate) mod column_list;
 pub(crate) mod cte_definition;
+pub(crate) mod cte_materialized_hint;
 pub(crate) mod data_base_name;
 pub(crate) mod drop_function_parameters;
 pub(crate) mod from_item;

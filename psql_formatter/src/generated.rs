@@ -786,6 +786,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCteDefinition {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlCteMaterializedHint>
+    for crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlCteMaterializedHint,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlCteMaterializedHint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlCteMaterializedHint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlCteMaterializedHint,
+        crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlCteMaterializedHint {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlCteMaterializedHint,
+        crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlDataBaseName>
     for crate::psql::auxiliary::data_base_name::FormatPsqlDataBaseName
 {
