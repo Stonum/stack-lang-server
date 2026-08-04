@@ -1874,6 +1874,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlInsertValues {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlIntervalExpression>
+    for crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlIntervalExpression,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlIntervalExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlIntervalExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlIntervalExpression,
+        crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlIntervalExpression {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlIntervalExpression,
+        crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlIsNullExpression>
     for crate::psql::expressions::is_null_expression::FormatPsqlIsNullExpression
 {

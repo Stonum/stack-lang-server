@@ -10,7 +10,7 @@ use crate::{
     lexer::PsqlReLexContext,
     syntax_rules::parse_error::{
         expected_expression, expected_identifier, expected_number_literal, expected_statement,
-        expected_type_name, expected_window_specification,
+        expected_string_literal, expected_type_name, expected_window_specification,
     },
 };
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
@@ -233,6 +233,7 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![:] => parse_parameter_expression(p),
         T![any] | T![all] | T![some] => parse_any_all_expression(p),
         T![exists] => parse_exists_expression(p),
+        T![interval] => parse_interval_expression(p),
         T![right] | T![left] | T![replace] if p.nth_at(1, T!['(']) => {
             parse_keyword_as_call_expression(p)
         }
@@ -840,6 +841,22 @@ pub(crate) fn parse_string_literal_expression(p: &mut PsqlParser) -> ParsedSynta
     let m = p.start();
     p.bump(PSQL_STRING_LITERAL);
     Present(m.complete(p, PSQL_STRING_LITERAL_EXPRESSION))
+}
+
+/// `interval 'value'`, an interval literal in expression position (as
+/// opposed to `interval` as a bare type name in a cast/column-type
+/// position, parsed elsewhere and never reaching this function). Every
+/// real-world occurrence embeds the field (`interval '1 second'`) in the
+/// string itself, so this deliberately doesn't support a trailing field
+/// qualifier (`interval '1' second`) or leading precision
+/// (`interval(3) '...'`) -- narrower than real Postgres, matching how
+/// [parse_limit_offset_value] and others intentionally narrow to only the
+/// forms actually seen.
+fn parse_interval_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![interval]);
+    parse_string_literal_expression(p).or_add_diagnostic(p, expected_string_literal);
+    Present(m.complete(p, PSQL_INTERVAL_EXPRESSION))
 }
 
 /// A `LIMIT`/`OFFSET` value (`AnyPsqlLimitValue`): a bare number literal,

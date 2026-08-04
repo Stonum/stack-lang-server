@@ -1678,6 +1678,18 @@ pub fn psql_insert_values(
         ],
     ))
 }
+pub fn psql_interval_expression(
+    interval_token: SyntaxToken,
+    value: PsqlStringLiteralExpression,
+) -> PsqlIntervalExpression {
+    PsqlIntervalExpression::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_INTERVAL_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(interval_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_is_null_expression(
     expression: AnyPsqlExpression,
     is_token: SyntaxToken,

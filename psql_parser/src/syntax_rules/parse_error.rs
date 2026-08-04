@@ -53,3 +53,7 @@ pub fn expected_window_specification(p: &PsqlParser, range: TextRange) -> ParseD
 pub fn expected_fetch_tail(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("`only` or `with ties`", range, p)
 }
+
+pub fn expected_string_literal(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("string literal", range, p)
+}

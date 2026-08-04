@@ -59,6 +59,17 @@ PsqlNumberLiteralExpression = value: 'Psql_number_literal'
 PsqlBooleanLiteralExpression = value: ( 'true' | 'false' )
 PsqlNullLiteralExpression = value: 'null'
 
+// `interval '1 day'` -- an interval literal in expression position (as
+// opposed to `interval` as a bare type name, e.g. a column/cast type).
+// Real Postgres also allows a trailing field qualifier (`interval '1'
+// day`) and a leading precision (`interval(3) '...'`), but every
+// real-world occurrence found embeds the field in the string itself
+// (`interval '1 second'`), so only the minimal `interval 'string'` form
+// is supported for now.
+PsqlIntervalExpression =
+   'interval'
+   value: PsqlStringLiteralExpression
+
 ///////////////
 PsqlName = value: 'ident'
 PsqlStar = value: '*'
@@ -826,6 +837,7 @@ AnyPsqlExpression =
    | PsqlAnyAllExpression
    | PsqlExistsExpression
    | PsqlSubstringExpression
+   | PsqlIntervalExpression
    | AnyPsqlLiteralExpression
 
 // `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --

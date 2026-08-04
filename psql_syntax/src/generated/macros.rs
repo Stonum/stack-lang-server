@@ -232,6 +232,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlInsertValues::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_INTERVAL_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlIntervalExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_IS_NULL_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlIsNullExpression::new_unchecked(node) };
                     $body

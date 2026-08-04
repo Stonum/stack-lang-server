@@ -44,7 +44,8 @@ impl NeedsParentheses for AnyPsqlExpression {
             | Self::PsqlCastFunctionExpression(_)
             | Self::PsqlAnyAllExpression(_)
             | Self::PsqlExistsExpression(_)
-            | Self::PsqlSubstringExpression(_) => false,
+            | Self::PsqlSubstringExpression(_)
+            | Self::PsqlIntervalExpression(_) => false,
         }
     }
 }

@@ -12,6 +12,7 @@ pub(crate) mod cast_expression;
 pub(crate) mod cast_function_expression;
 pub(crate) mod exists_expression;
 pub(crate) mod in_expression;
+pub(crate) mod interval_expression;
 pub(crate) mod is_null_expression;
 pub(crate) mod like_expression;
 pub(crate) mod logical_expression;

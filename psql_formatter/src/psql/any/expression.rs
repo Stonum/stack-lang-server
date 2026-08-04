@@ -21,6 +21,7 @@ impl FormatRule<AnyPsqlExpression> for FormatAnyPsqlExpression {
             AnyPsqlExpression::PsqlColReference(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlExistsExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlInExpression(node) => node.format().fmt(f),
+            AnyPsqlExpression::PsqlIntervalExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlIsNullExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlLikeExpression(node) => node.format().fmt(f),
             AnyPsqlExpression::PsqlLogicalExpression(node) => node.format().fmt(f),
