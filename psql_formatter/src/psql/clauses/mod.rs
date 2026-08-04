@@ -12,6 +12,7 @@ pub(crate) mod from_clause;
 pub(crate) mod group_by_clause;
 pub(crate) mod having_clause;
 pub(crate) mod join_clause;
+pub(crate) mod join_using_clause;
 pub(crate) mod limit_clause;
 pub(crate) mod offset_clause;
 pub(crate) mod on_conflict_clause;

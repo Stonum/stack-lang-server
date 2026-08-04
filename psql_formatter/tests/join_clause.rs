@@ -111,3 +111,50 @@ select a from t1, lateral generate_series(1, t1.n) g;
 "#
     );
 }
+
+#[test]
+fn format_join_using_single_column() {
+    assert_fmt!(
+        r#"--
+select a
+from t1
+join t2 using (id)
+"#
+    );
+}
+
+#[test]
+fn format_join_using_multiple_columns() {
+    assert_fmt!(
+        r#"--
+select a
+from t1
+join t2 using (id, name)
+"#
+    );
+}
+
+#[test]
+fn format_left_join_using() {
+    assert_fmt!(
+        r#"--
+select a
+from t1
+left join t2 using (id)
+"#
+    );
+}
+
+#[test]
+fn format_join_using_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+select a from t1 join t2 USING   (id,name);
+"#,
+        r#"--
+select a
+from t1
+join t2 using (id, name);
+"#
+    );
+}

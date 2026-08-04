@@ -1984,6 +1984,44 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlJoinClause {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlJoinUsingClause>
+    for crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlJoinUsingClause,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlJoinUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlJoinUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlJoinUsingClause,
+        crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlJoinUsingClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlJoinUsingClause,
+        crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlLanguageOption>
     for crate::psql::auxiliary::language_option::FormatPsqlLanguageOption
 {

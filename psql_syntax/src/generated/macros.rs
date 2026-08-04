@@ -244,6 +244,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlJoinClause::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_JOIN_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlJoinUsingClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_LANGUAGE_OPTION => {
                     let $pattern = unsafe { $crate::PsqlLanguageOption::new_unchecked(node) };
                     $body

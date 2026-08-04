@@ -13,6 +13,7 @@ impl FormatNodeRule<PsqlJoinClause> for FormatPsqlJoinClause {
             source,
             on_token,
             condition,
+            using_clause,
         } = node.as_fields();
 
         if let Some(join_type) = join_type {
@@ -28,6 +29,9 @@ impl FormatNodeRule<PsqlJoinClause> for FormatPsqlJoinClause {
         }
         if let Some(condition) = condition {
             write!(f, [space(), condition.format()])?;
+        }
+        if let Some(using_clause) = using_clause {
+            write!(f, [space(), using_clause.format()])?;
         }
         Ok(())
     }

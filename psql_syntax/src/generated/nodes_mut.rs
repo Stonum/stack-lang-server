@@ -1660,6 +1660,26 @@ impl PsqlJoinClause {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
+    pub fn with_using_clause(self, element: Option<PsqlJoinUsingClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            6usize..=6usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+}
+impl PsqlJoinUsingClause {
+    pub fn with_using_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_columns(self, element: PsqlColumnList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
 }
 impl PsqlLanguageOption {
     pub fn with_language_token(self, element: SyntaxToken) -> Self {

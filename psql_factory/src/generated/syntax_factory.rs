@@ -2465,7 +2465,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_JOIN_CLAUSE => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && matches!(
@@ -2512,6 +2512,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     current_element = elements.next();
                 }
                 slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlJoinUsingClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
                         PSQL_JOIN_CLAUSE.to_bogus(),
@@ -2519,6 +2526,32 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_JOIN_CLAUSE, children)
+            }
+            PSQL_JOIN_USING_CLAUSE => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![using]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlColumnList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_JOIN_USING_CLAUSE.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_JOIN_USING_CLAUSE, children)
             }
             PSQL_LANGUAGE_OPTION => {
                 let mut elements = (&children).into_iter();

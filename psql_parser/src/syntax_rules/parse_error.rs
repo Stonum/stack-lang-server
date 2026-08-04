@@ -57,3 +57,7 @@ pub fn expected_fetch_tail(p: &PsqlParser, range: TextRange) -> ParseDiagnostic 
 pub fn expected_string_literal(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("string literal", range, p)
 }
+
+pub fn expected_column_list(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("column list", range, p)
+}

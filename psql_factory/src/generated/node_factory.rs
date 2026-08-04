@@ -1736,6 +1736,7 @@ pub fn psql_join_clause(
         outer_token: None,
         on_token: None,
         condition: None,
+        using_clause: None,
     }
 }
 pub struct PsqlJoinClauseBuilder {
@@ -1745,6 +1746,7 @@ pub struct PsqlJoinClauseBuilder {
     outer_token: Option<SyntaxToken>,
     on_token: Option<SyntaxToken>,
     condition: Option<AnyPsqlExpression>,
+    using_clause: Option<PsqlJoinUsingClause>,
 }
 impl PsqlJoinClauseBuilder {
     pub fn with_join_type_token(mut self, join_type_token: SyntaxToken) -> Self {
@@ -1763,6 +1765,10 @@ impl PsqlJoinClauseBuilder {
         self.condition = Some(condition);
         self
     }
+    pub fn with_using_clause(mut self, using_clause: PsqlJoinUsingClause) -> Self {
+        self.using_clause = Some(using_clause);
+        self
+    }
     pub fn build(self) -> PsqlJoinClause {
         PsqlJoinClause::unwrap_cast(SyntaxNode::new_detached(
             PsqlSyntaxKind::PSQL_JOIN_CLAUSE,
@@ -1775,9 +1781,23 @@ impl PsqlJoinClauseBuilder {
                 self.on_token.map(|token| SyntaxElement::Token(token)),
                 self.condition
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }
+}
+pub fn psql_join_using_clause(
+    using_token: SyntaxToken,
+    columns: PsqlColumnList,
+) -> PsqlJoinUsingClause {
+    PsqlJoinUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_JOIN_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+        ],
+    ))
 }
 pub fn psql_language_option(language_token: SyntaxToken, name: PsqlName) -> PsqlLanguageOption {
     PsqlLanguageOption::unwrap_cast(SyntaxNode::new_detached(

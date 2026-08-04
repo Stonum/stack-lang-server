@@ -250,6 +250,17 @@ PsqlJoinClause =
    'join'
    source: AnyPsqlFromExpression
    ('on' condition: AnyPsqlExpression)?
+   using_clause: PsqlJoinUsingClause?
+
+// `JOIN t2 USING (col1, col2)` -- an alternative to `ON`, matching rows by
+// equality on the listed columns (which must exist in both sides) instead
+// of an arbitrary condition. Mutually exclusive with `ON` in practice
+// (never both), but modeled as its own independent optional field rather
+// than unioned with the pre-existing bare `('on' condition: ...)?` pair,
+// to avoid reshaping every existing `ON`-based join's tree.
+PsqlJoinUsingClause =
+   'using'
+   columns: PsqlColumnList
 
 AnyPsqlFromExpression =
    PsqlTableBinding

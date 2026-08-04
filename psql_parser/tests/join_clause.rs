@@ -150,3 +150,43 @@ fn test_join_lateral_qualified_function() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_join_using_single_column() {
+    let res = parse(
+        "select a from t join u using (id)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_join_using_multiple_columns() {
+    let res = parse(
+        "select a from t join u using (id, name)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_left_join_using() {
+    let res = parse(
+        "select a from t left join u using (id)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_multiple_joins_using() {
+    let res = parse(
+        "select a from t join u using (id) join v using (id)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

@@ -5,7 +5,8 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, is_at_tilde_name_start,
-    parse_alias, parse_any_name, parse_expression, parse_shema_qualifier, parse_table_name,
+    parse_alias, parse_any_name, parse_column_name_list, parse_expression, parse_shema_qualifier,
+    parse_table_name,
 };
 use super::parse_error::*;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -122,12 +123,29 @@ fn parse_join_clause(p: &mut PsqlParser) -> ParsedSyntax {
     p.eat(T![outer]);
     p.expect(T![join]);
     parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
-    // `CROSS JOIN` has no `ON` condition -- unlike every other join kind.
+    // `CROSS JOIN` has no `ON`/`USING` clause -- unlike every other join kind.
     if !is_cross {
-        p.expect(T![on]);
-        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        if p.at(T![using]) {
+            let _ = parse_join_using_clause(p);
+        } else {
+            p.expect(T![on]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+        }
     }
     Present(m.complete(p, PSQL_JOIN_CLAUSE))
+}
+
+/// `JOIN t2 USING (col1, col2)` -- an alternative to `ON`, matching rows by
+/// equality on the listed columns instead of an arbitrary condition.
+fn parse_join_using_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![using]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![using]);
+    parse_column_name_list(p).or_add_diagnostic(p, expected_column_list);
+    Present(m.complete(p, PSQL_JOIN_USING_CLAUSE))
 }
 
 /// A table binding, function binding, or subquery binding, e.g. `table`,
