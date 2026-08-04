@@ -81,8 +81,7 @@ impl ParseSeparatedList for PsqlFromItemList {
 }
 
 fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) && !p.at(T!['(']) && !is_at_lateral_source(p) && !is_at_tilde_name_start(p)
-    {
+    if !is_at_from_expression_start(p) {
         return Absent;
     }
 
@@ -90,6 +89,18 @@ fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
     parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
     parse_join_clause_list(p);
     Present(m.complete(p, PSQL_FROM_ITEM))
+}
+
+/// `true` if positioned at anything [parse_from_expression] could start
+/// consuming -- a plain/dotted/tilde name, `lateral`, or a `(` (subquery,
+/// function call, or parenthesized join). Kept as its own function so every
+/// "is a from-expression coming next?" gate stays in sync with
+/// [parse_from_expression]'s own dispatch, rather than each call site
+/// re-deriving (and risking drifting from) the same condition -- see
+/// [is_at_lateral_source]'s doc comment for why that drift is a real,
+/// previously-hit bug (a stuck-parser panic) and not just tidiness.
+fn is_at_from_expression_start(p: &mut PsqlParser) -> bool {
+    p.at(T![ident]) || p.at(T!['(']) || is_at_lateral_source(p) || is_at_tilde_name_start(p)
 }
 
 fn parse_join_clause_list(p: &mut PsqlParser) -> CompletedMarker {
@@ -170,6 +181,9 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
     }
 
     if p.at(T!['(']) {
+        if is_at_parenthesized_join_start(p) {
+            return parse_parenthesized_join_binding(p);
+        }
         return parse_subquery_binding(p);
     }
 
@@ -338,4 +352,33 @@ fn parse_subquery_binding_body(p: &mut PsqlParser, m: Marker) -> ParsedSyntax {
     p.expect(T![')']);
     parse_alias(p);
     Present(m.complete(p, PSQL_SUBQUERY_BINDING))
+}
+
+/// `true` if a `(` is followed by a from-expression rather than `select`/
+/// `with` -- i.e. a parenthesized join `(a JOIN b ON ...)` rather than a
+/// subquery `(select ...)`. Both start with `(`, so this lookahead is what
+/// keeps [parse_from_expression] from routing a parenthesized join into
+/// [parse_subquery_binding] (which would then fail expecting `select`).
+/// Doesn't consume anything.
+fn is_at_parenthesized_join_start(p: &mut PsqlParser) -> bool {
+    p.at(T!['(']) && {
+        p.lookahead(|p| {
+            p.bump(T!['(']);
+            !p.at(T![select]) && !p.at(T![with]) && is_at_from_expression_start(p)
+        })
+    }
+}
+
+/// `(a JOIN b ON ...)` used as a from-item, e.g. as the source of an outer
+/// join, or just to force a particular join grouping/order. Recursively
+/// nestable since `source` is [AnyPsqlFromExpression] itself, which
+/// includes this node kind.
+fn parse_parenthesized_join_binding(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T!['(']);
+    parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
+    parse_join_clause_list(p);
+    p.expect(T![')']);
+    parse_alias(p);
+    Present(m.complete(p, PSQL_PARENTHESIZED_JOIN_BINDING))
 }

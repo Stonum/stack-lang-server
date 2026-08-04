@@ -2627,6 +2627,38 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlParenthesizedExpression 
         FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: parenthesized_expression :: FormatPsqlParenthesizedExpression :: default ())
     }
 }
+impl FormatRule<psql_syntax::PsqlParenthesizedJoinBinding>
+    for crate::psql::bindings::parenthesized_join_binding::FormatPsqlParenthesizedJoinBinding
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlParenthesizedJoinBinding,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlParenthesizedJoinBinding>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlParenthesizedJoinBinding {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlParenthesizedJoinBinding,
+        crate::psql::bindings::parenthesized_join_binding::FormatPsqlParenthesizedJoinBinding,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: bindings :: parenthesized_join_binding :: FormatPsqlParenthesizedJoinBinding :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlParenthesizedJoinBinding {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlParenthesizedJoinBinding,
+        crate::psql::bindings::parenthesized_join_binding::FormatPsqlParenthesizedJoinBinding,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: bindings :: parenthesized_join_binding :: FormatPsqlParenthesizedJoinBinding :: default ())
+    }
+}
 impl FormatRule<psql_syntax::PsqlPolicyForClause>
     for crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause
 {

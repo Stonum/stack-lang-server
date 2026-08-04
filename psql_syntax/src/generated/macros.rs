@@ -320,6 +320,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlParenthesizedExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_PARENTHESIZED_JOIN_BINDING => {
+                    let $pattern =
+                        unsafe { $crate::PsqlParenthesizedJoinBinding::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPolicyForClause::new_unchecked(node) };
                     $body

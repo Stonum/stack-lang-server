@@ -266,6 +266,22 @@ AnyPsqlFromExpression =
    PsqlTableBinding
    | PsqlFunctionBinding
    | PsqlSubqueryBinding
+   | PsqlParenthesizedJoinBinding
+
+// `(a JOIN b ON ...)` -- a parenthesized join used as a from-item,
+// distinct from a subquery `(select ...)` despite sharing the same leading
+// `(`: real Postgres allows grouping a join explicitly (to control
+// join-order, or so the whole group can carry its own alias), and this is
+// disambiguated from [PsqlSubqueryBinding] purely by what follows the `(`
+// -- `select`/`with` means a subquery, anything else that can start a
+// from-expression means this. Recursively nestable via
+// [AnyPsqlFromExpression] itself (e.g. `((a JOIN b ON ...) JOIN c ON ...)`).
+PsqlParenthesizedJoinBinding =
+   '('
+   source: AnyPsqlFromExpression
+   joins: PsqlJoinClauseList
+   ')'
+   alias: PsqlAlias?
 
 PsqlSubqueryBinding =
    'lateral'?

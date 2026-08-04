@@ -9,6 +9,7 @@ impl FormatRule<AnyPsqlFromExpression> for FormatAnyPsqlFromExpression {
     fn fmt(&self, node: &AnyPsqlFromExpression, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
             AnyPsqlFromExpression::PsqlFunctionBinding(node) => node.format().fmt(f),
+            AnyPsqlFromExpression::PsqlParenthesizedJoinBinding(node) => node.format().fmt(f),
             AnyPsqlFromExpression::PsqlSubqueryBinding(node) => node.format().fmt(f),
             AnyPsqlFromExpression::PsqlTableBinding(node) => node.format().fmt(f),
         }

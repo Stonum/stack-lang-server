@@ -2066,6 +2066,46 @@ pub fn psql_parenthesized_expression(
         ],
     ))
 }
+pub fn psql_parenthesized_join_binding(
+    l_paren_token: SyntaxToken,
+    source: AnyPsqlFromExpression,
+    joins: PsqlJoinClauseList,
+    r_paren_token: SyntaxToken,
+) -> PsqlParenthesizedJoinBindingBuilder {
+    PsqlParenthesizedJoinBindingBuilder {
+        l_paren_token,
+        source,
+        joins,
+        r_paren_token,
+        alias: None,
+    }
+}
+pub struct PsqlParenthesizedJoinBindingBuilder {
+    l_paren_token: SyntaxToken,
+    source: AnyPsqlFromExpression,
+    joins: PsqlJoinClauseList,
+    r_paren_token: SyntaxToken,
+    alias: Option<PsqlAlias>,
+}
+impl PsqlParenthesizedJoinBindingBuilder {
+    pub fn with_alias(mut self, alias: PsqlAlias) -> Self {
+        self.alias = Some(alias);
+        self
+    }
+    pub fn build(self) -> PsqlParenthesizedJoinBinding {
+        PsqlParenthesizedJoinBinding::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_PARENTHESIZED_JOIN_BINDING,
+            [
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.source.into_syntax())),
+                Some(SyntaxElement::Node(self.joins.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.alias
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_policy_for_clause(
     for_token: SyntaxToken,
     command_token: SyntaxToken,

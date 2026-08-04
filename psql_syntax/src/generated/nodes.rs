@@ -3713,6 +3713,61 @@ pub struct PsqlParenthesizedExpressionFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlParenthesizedJoinBinding {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlParenthesizedJoinBinding {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlParenthesizedJoinBindingFields {
+        PsqlParenthesizedJoinBindingFields {
+            l_paren_token: self.l_paren_token(),
+            source: self.source(),
+            joins: self.joins(),
+            r_paren_token: self.r_paren_token(),
+            alias: self.alias(),
+        }
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn source(&self) -> SyntaxResult<AnyPsqlFromExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn joins(&self) -> PsqlJoinClauseList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn alias(&self) -> Option<PsqlAlias> {
+        support::node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlParenthesizedJoinBinding {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlParenthesizedJoinBindingFields {
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub source: SyntaxResult<AnyPsqlFromExpression>,
+    pub joins: PsqlJoinClauseList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub alias: Option<PsqlAlias>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPolicyForClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -6640,6 +6695,7 @@ impl AnyPsqlFetchTail {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlFromExpression {
     PsqlFunctionBinding(PsqlFunctionBinding),
+    PsqlParenthesizedJoinBinding(PsqlParenthesizedJoinBinding),
     PsqlSubqueryBinding(PsqlSubqueryBinding),
     PsqlTableBinding(PsqlTableBinding),
 }
@@ -6647,6 +6703,12 @@ impl AnyPsqlFromExpression {
     pub fn as_psql_function_binding(&self) -> Option<&PsqlFunctionBinding> {
         match &self {
             Self::PsqlFunctionBinding(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_parenthesized_join_binding(&self) -> Option<&PsqlParenthesizedJoinBinding> {
+        match &self {
+            Self::PsqlParenthesizedJoinBinding(item) => Some(item),
             _ => None,
         }
     }
@@ -11126,6 +11188,63 @@ impl From<PsqlParenthesizedExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlParenthesizedJoinBinding {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARENTHESIZED_JOIN_BINDING as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARENTHESIZED_JOIN_BINDING
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlParenthesizedJoinBinding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlParenthesizedJoinBinding")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("source", &support::DebugSyntaxResult(self.source()))
+                .field("joins", &self.joins())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("alias", &support::DebugOptionalElement(self.alias()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlParenthesizedJoinBinding").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlParenthesizedJoinBinding> for SyntaxNode {
+    fn from(n: PsqlParenthesizedJoinBinding) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlParenthesizedJoinBinding> for SyntaxElement {
+    fn from(n: PsqlParenthesizedJoinBinding) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlPolicyForClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -14942,6 +15061,11 @@ impl From<PsqlFunctionBinding> for AnyPsqlFromExpression {
         Self::PsqlFunctionBinding(node)
     }
 }
+impl From<PsqlParenthesizedJoinBinding> for AnyPsqlFromExpression {
+    fn from(node: PsqlParenthesizedJoinBinding) -> Self {
+        Self::PsqlParenthesizedJoinBinding(node)
+    }
+}
 impl From<PsqlSubqueryBinding> for AnyPsqlFromExpression {
     fn from(node: PsqlSubqueryBinding) -> Self {
         Self::PsqlSubqueryBinding(node)
@@ -14955,17 +15079,24 @@ impl From<PsqlTableBinding> for AnyPsqlFromExpression {
 impl AstNode for AnyPsqlFromExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = PsqlFunctionBinding::KIND_SET
+        .union(PsqlParenthesizedJoinBinding::KIND_SET)
         .union(PsqlSubqueryBinding::KIND_SET)
         .union(PsqlTableBinding::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            PSQL_FUNCTION_BINDING | PSQL_SUBQUERY_BINDING | PSQL_TABLE_BINDING
+            PSQL_FUNCTION_BINDING
+                | PSQL_PARENTHESIZED_JOIN_BINDING
+                | PSQL_SUBQUERY_BINDING
+                | PSQL_TABLE_BINDING
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             PSQL_FUNCTION_BINDING => Self::PsqlFunctionBinding(PsqlFunctionBinding { syntax }),
+            PSQL_PARENTHESIZED_JOIN_BINDING => {
+                Self::PsqlParenthesizedJoinBinding(PsqlParenthesizedJoinBinding { syntax })
+            }
             PSQL_SUBQUERY_BINDING => Self::PsqlSubqueryBinding(PsqlSubqueryBinding { syntax }),
             PSQL_TABLE_BINDING => Self::PsqlTableBinding(PsqlTableBinding { syntax }),
             _ => return None,
@@ -14975,6 +15106,7 @@ impl AstNode for AnyPsqlFromExpression {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::PsqlFunctionBinding(it) => &it.syntax,
+            Self::PsqlParenthesizedJoinBinding(it) => &it.syntax,
             Self::PsqlSubqueryBinding(it) => &it.syntax,
             Self::PsqlTableBinding(it) => &it.syntax,
         }
@@ -14982,6 +15114,7 @@ impl AstNode for AnyPsqlFromExpression {
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::PsqlFunctionBinding(it) => it.syntax,
+            Self::PsqlParenthesizedJoinBinding(it) => it.syntax,
             Self::PsqlSubqueryBinding(it) => it.syntax,
             Self::PsqlTableBinding(it) => it.syntax,
         }
@@ -14991,6 +15124,7 @@ impl std::fmt::Debug for AnyPsqlFromExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PsqlFunctionBinding(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlParenthesizedJoinBinding(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSubqueryBinding(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTableBinding(it) => std::fmt::Debug::fmt(it, f),
         }
@@ -15000,6 +15134,7 @@ impl From<AnyPsqlFromExpression> for SyntaxNode {
     fn from(n: AnyPsqlFromExpression) -> Self {
         match n {
             AnyPsqlFromExpression::PsqlFunctionBinding(it) => it.into(),
+            AnyPsqlFromExpression::PsqlParenthesizedJoinBinding(it) => it.into(),
             AnyPsqlFromExpression::PsqlSubqueryBinding(it) => it.into(),
             AnyPsqlFromExpression::PsqlTableBinding(it) => it.into(),
         }
@@ -16540,6 +16675,11 @@ impl std::fmt::Display for PsqlParameterExpression {
     }
 }
 impl std::fmt::Display for PsqlParenthesizedExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlParenthesizedJoinBinding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
