@@ -233,6 +233,7 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![:] => parse_parameter_expression(p),
         T![any] | T![all] | T![some] => parse_any_all_expression(p),
         T![exists] => parse_exists_expression(p),
+        T![right] | T![left] if p.nth_at(1, T!['(']) => parse_keyword_as_call_expression(p),
         _ => Absent,
     };
 
@@ -595,13 +596,40 @@ pub(crate) fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) ->
     let m = p.start();
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
     parse_any_name(p).or_add_diagnostic(p, expected_identifier);
+    parse_call_expression_body(p, m)
+}
 
+/// Assumes the call's (possibly schema-qualified, possibly keyword-as-name
+/// remapped) name has already been bumped into the still-open marker `m`.
+fn parse_call_expression_body(p: &mut PsqlParser, m: Marker) -> ParsedSyntax {
     p.expect(T!['(']);
     PsqlExpressionList.parse_list(p);
     p.expect(T![')']);
     let _ = parse_filter_clause(p);
 
     Present(m.complete(p, PSQL_CALL_EXPRESSION))
+}
+
+/// `right`/`left` collide with the `RIGHT`/`LEFT JOIN` keywords, but
+/// aren't actually reserved in real Postgres -- they're common string
+/// functions (`right(text, n)`/`left(text, n)`, real-world confirmed).
+/// Only ever treated as a call here, verified via a one-token lookahead
+/// for an immediately-following `(` before committing (`bump_remap`, same
+/// technique [parse_name] already uses for type-name keywords) -- never as
+/// a bare column-like reference, which would risk colliding with `from t
+/// right join ...`'s own alias-vs-join-keyword disambiguation. Unqualified
+/// only: no real evidence of `schema.right(...)`, so schema-qualification
+/// isn't supported for this narrow case.
+fn parse_keyword_as_call_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    let m = p.start();
+    // `name` is `AnyPsqlName`, a node (`PsqlName | PsqlTildeName`), not a
+    // bare token -- the remapped ident still needs wrapping in its own
+    // `PsqlName` marker, same as [parse_name] does.
+    let name_m = p.start();
+    p.bump_remap(T![ident]);
+    name_m.complete(p, PSQL_NAME);
+    let call = parse_call_expression_body(p, m);
+    parse_window_function_tail(p, call)
 }
 
 /// `filter (where cond)`, restricting an aggregate call to only the rows
