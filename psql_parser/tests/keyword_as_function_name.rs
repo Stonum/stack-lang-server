@@ -59,6 +59,46 @@ fn test_left_outer_join_still_works() {
 }
 
 #[test]
+fn test_replace_as_function_name() {
+    let res = parse(
+        "select replace(name, 'a', 'b') from t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_replace_as_function_name_nested() {
+    let res = parse(
+        "select replace(replace(name, 'a', 'b'), 'c', 'd') from t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_replace_in_update_set() {
+    let res = parse(
+        "update t set name = replace(name, ',', ';')",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_or_replace_function_still_works() {
+    let res = parse(
+        "create or replace function f() returns int as $$ select 1 $$ language sql",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_bare_right_without_parens_is_still_an_error() {
     // Out of scope -- only `right(`/`left(` (immediately followed by a
     // paren) are treated as a call; a bare `right`/`left` reference stays

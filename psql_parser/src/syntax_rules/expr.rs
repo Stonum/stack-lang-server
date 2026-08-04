@@ -233,7 +233,9 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T![:] => parse_parameter_expression(p),
         T![any] | T![all] | T![some] => parse_any_all_expression(p),
         T![exists] => parse_exists_expression(p),
-        T![right] | T![left] if p.nth_at(1, T!['(']) => parse_keyword_as_call_expression(p),
+        T![right] | T![left] | T![replace] if p.nth_at(1, T!['(']) => {
+            parse_keyword_as_call_expression(p)
+        }
         _ => Absent,
     };
 
@@ -610,9 +612,11 @@ fn parse_call_expression_body(p: &mut PsqlParser, m: Marker) -> ParsedSyntax {
     Present(m.complete(p, PSQL_CALL_EXPRESSION))
 }
 
-/// `right`/`left` collide with the `RIGHT`/`LEFT JOIN` keywords, but
-/// aren't actually reserved in real Postgres -- they're common string
-/// functions (`right(text, n)`/`left(text, n)`, real-world confirmed).
+/// `right`/`left` collide with the `RIGHT`/`LEFT JOIN` keywords and
+/// `replace` collides with `CREATE OR REPLACE`, but none of them are
+/// actually reserved in real Postgres -- they're common string functions
+/// (`right(text, n)`/`left(text, n)`/`replace(text, from, to)`,
+/// real-world confirmed, including nested `replace(replace(...))`).
 /// Only ever treated as a call here, verified via a one-token lookahead
 /// for an immediately-following `(` before committing (`bump_remap`, same
 /// technique [parse_name] already uses for type-name keywords) -- never as
