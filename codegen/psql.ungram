@@ -164,6 +164,7 @@ PsqlSelectStatement =
    order_by_clause: PsqlOrderByClause?
    limit_clause: PsqlLimitClause?
    offset_clause: PsqlOffsetClause?
+   fetch_clause: PsqlFetchClause?
    ';'?
 
 PsqlSetOperationList = PsqlSetOperation*
@@ -282,6 +283,29 @@ PsqlOrderByExpression =
 PsqlOffsetClause =
    'offset'
    start: AnyPsqlLimitValue
+
+// SQL-standard row-limiting clause, an alternative spelling of `LIMIT`:
+// `FETCH { FIRST | NEXT } [count] { ROW | ROWS } { ONLY | WITH TIES }`.
+// Real Postgres pairs it with `OFFSET` (never `LIMIT`), but the parser
+// doesn't enforce that combination -- same "accept, don't validate
+// semantics" stance taken elsewhere in this grammar.
+PsqlFetchClause =
+   'fetch'
+   quantifier: ('first' | 'next')
+   count: AnyPsqlLimitValue?
+   row_or_rows: ('row' | 'rows')
+   tail: AnyPsqlFetchTail
+
+AnyPsqlFetchTail =
+   PsqlFetchOnlyTail
+   | PsqlFetchWithTiesTail
+
+PsqlFetchOnlyTail =
+   'only'
+
+PsqlFetchWithTiesTail =
+   'with'
+   'ties'
 
 PsqlInsertStatement =
    with_clause: PsqlWithClause?

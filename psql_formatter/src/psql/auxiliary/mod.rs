@@ -8,6 +8,8 @@ pub(crate) mod cte_definition;
 pub(crate) mod cte_materialized_hint;
 pub(crate) mod data_base_name;
 pub(crate) mod drop_function_parameters;
+pub(crate) mod fetch_only_tail;
+pub(crate) mod fetch_with_ties_tail;
 pub(crate) mod from_item;
 pub(crate) mod function_parameter;
 pub(crate) mod in_value_list;

@@ -172,6 +172,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlExistsExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_FETCH_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlFetchClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_FETCH_ONLY_TAIL => {
+                    let $pattern = unsafe { $crate::PsqlFetchOnlyTail::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_FETCH_WITH_TIES_TAIL => {
+                    let $pattern = unsafe { $crate::PsqlFetchWithTiesTail::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_FILTER_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlFilterClause::new_unchecked(node) };
                     $body

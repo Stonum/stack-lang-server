@@ -4,6 +4,7 @@ pub(crate) mod any_all_source;
 pub(crate) mod conflict_action;
 pub(crate) mod conflict_target;
 pub(crate) mod expression;
+pub(crate) mod fetch_tail;
 pub(crate) mod from_expression;
 pub(crate) mod function_option;
 pub(crate) mod in_source;

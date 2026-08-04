@@ -31,6 +31,7 @@ pub(crate) fn parse_select_statement_body(p: &mut PsqlParser, select_stmt: Marke
     let _ = parse_order_by_clause(p);
     let _ = parse_limit_clause(p);
     let _ = parse_offset_clause(p);
+    let _ = parse_fetch_clause(p);
     p.eat(T![;]);
 
     Present(select_stmt.complete(p, PSQL_SELECT_STATEMENT))
@@ -144,6 +145,7 @@ impl ParseSeparatedList for PsqlGroupByItemList {
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])
+            || p.at(T![fetch])
             || p.at(T![returning])
             // `insert into t select ... group by ... on conflict ...`
             || p.at(T![on])
@@ -213,6 +215,7 @@ impl ParseSeparatedList for PsqlOrderByExpressionList {
             || p.at(T![;])
             || p.at(T![limit])
             || p.at(T![offset])
+            || p.at(T![fetch])
             || p.at(T![returning])
             || p.at(T![')'])
     }
@@ -273,6 +276,56 @@ fn parse_offset_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_OFFSET_CLAUSE))
 }
 
+/// SQL-standard `FETCH { FIRST | NEXT } [count] { ROW | ROWS } { ONLY |
+/// WITH TIES }` -- an alternative spelling of `LIMIT`, real Postgres pairs
+/// it with `OFFSET`.
+fn parse_fetch_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![fetch]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![fetch]);
+    if p.at(T![first]) || p.at(T![next]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p
+            .err_builder("Expected `first` or `next` after `fetch`", range)
+            .with_hint("Only `FETCH FIRST`/`FETCH NEXT` is supported");
+        p.error(err);
+    }
+    let _ = parse_limit_offset_value(p);
+    if p.at(T![row]) || p.at(T![rows]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p
+            .err_builder("Expected `row` or `rows`", range)
+            .with_hint("The fetch count must be followed by `ROW` or `ROWS`");
+        p.error(err);
+    }
+    parse_fetch_tail(p).or_add_diagnostic(p, expected_fetch_tail);
+    Present(m.complete(p, PSQL_FETCH_CLAUSE))
+}
+
+fn parse_fetch_tail(p: &mut PsqlParser) -> ParsedSyntax {
+    if p.at(T![only]) {
+        let m = p.start();
+        p.bump(T![only]);
+        return Present(m.complete(p, PSQL_FETCH_ONLY_TAIL));
+    }
+
+    if p.at(T![with]) {
+        let m = p.start();
+        p.bump(T![with]);
+        p.expect(T![ties]);
+        return Present(m.complete(p, PSQL_FETCH_WITH_TIES_TAIL));
+    }
+
+    Absent
+}
+
 struct PsqlSelectItemList;
 
 impl ParseSeparatedList for PsqlSelectItemList {
@@ -297,6 +350,7 @@ impl ParseSeparatedList for PsqlSelectItemList {
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])
+            || p.at(T![fetch])
             || p.at(T![returning])
             // `insert into t select 1 on conflict ...` (no `from` clause)
             || p.at(T![on])

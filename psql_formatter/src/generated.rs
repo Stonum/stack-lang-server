@@ -1336,6 +1336,116 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlExistsExpression {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlFetchClause>
+    for crate::psql::clauses::fetch_clause::FormatPsqlFetchClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlFetchClause, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlFetchClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlFetchClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlFetchClause,
+        crate::psql::clauses::fetch_clause::FormatPsqlFetchClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::fetch_clause::FormatPsqlFetchClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFetchClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlFetchClause,
+        crate::psql::clauses::fetch_clause::FormatPsqlFetchClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::fetch_clause::FormatPsqlFetchClause::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlFetchOnlyTail>
+    for crate::psql::auxiliary::fetch_only_tail::FormatPsqlFetchOnlyTail
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlFetchOnlyTail,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlFetchOnlyTail>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlFetchOnlyTail {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlFetchOnlyTail,
+        crate::psql::auxiliary::fetch_only_tail::FormatPsqlFetchOnlyTail,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::fetch_only_tail::FormatPsqlFetchOnlyTail::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFetchOnlyTail {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlFetchOnlyTail,
+        crate::psql::auxiliary::fetch_only_tail::FormatPsqlFetchOnlyTail,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::fetch_only_tail::FormatPsqlFetchOnlyTail::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlFetchWithTiesTail>
+    for crate::psql::auxiliary::fetch_with_ties_tail::FormatPsqlFetchWithTiesTail
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlFetchWithTiesTail,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlFetchWithTiesTail>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlFetchWithTiesTail {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlFetchWithTiesTail,
+        crate::psql::auxiliary::fetch_with_ties_tail::FormatPsqlFetchWithTiesTail,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::fetch_with_ties_tail::FormatPsqlFetchWithTiesTail::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFetchWithTiesTail {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlFetchWithTiesTail,
+        crate::psql::auxiliary::fetch_with_ties_tail::FormatPsqlFetchWithTiesTail,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::fetch_with_ties_tail::FormatPsqlFetchWithTiesTail::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlFilterClause>
     for crate::psql::clauses::filter_clause::FormatPsqlFilterClause
 {
@@ -5397,6 +5507,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlExpression {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::expression::FormatAnyPsqlExpression::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlFetchTail {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlFetchTail,
+        crate::psql::any::fetch_tail::FormatAnyPsqlFetchTail,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::fetch_tail::FormatAnyPsqlFetchTail::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlFetchTail {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlFetchTail,
+        crate::psql::any::fetch_tail::FormatAnyPsqlFetchTail,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::fetch_tail::FormatAnyPsqlFetchTail::default(),
         )
     }
 }

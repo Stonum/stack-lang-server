@@ -1272,6 +1272,64 @@ pub fn psql_exists_expression(
         ],
     ))
 }
+pub fn psql_fetch_clause(
+    fetch_token: SyntaxToken,
+    quantifier_token: SyntaxToken,
+    row_or_rows_token: SyntaxToken,
+    tail: AnyPsqlFetchTail,
+) -> PsqlFetchClauseBuilder {
+    PsqlFetchClauseBuilder {
+        fetch_token,
+        quantifier_token,
+        row_or_rows_token,
+        tail,
+        count: None,
+    }
+}
+pub struct PsqlFetchClauseBuilder {
+    fetch_token: SyntaxToken,
+    quantifier_token: SyntaxToken,
+    row_or_rows_token: SyntaxToken,
+    tail: AnyPsqlFetchTail,
+    count: Option<AnyPsqlLimitValue>,
+}
+impl PsqlFetchClauseBuilder {
+    pub fn with_count(mut self, count: AnyPsqlLimitValue) -> Self {
+        self.count = Some(count);
+        self
+    }
+    pub fn build(self) -> PsqlFetchClause {
+        PsqlFetchClause::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_FETCH_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.fetch_token)),
+                Some(SyntaxElement::Token(self.quantifier_token)),
+                self.count
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.row_or_rows_token)),
+                Some(SyntaxElement::Node(self.tail.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_fetch_only_tail(only_token: SyntaxToken) -> PsqlFetchOnlyTail {
+    PsqlFetchOnlyTail::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FETCH_ONLY_TAIL,
+        [Some(SyntaxElement::Token(only_token))],
+    ))
+}
+pub fn psql_fetch_with_ties_tail(
+    with_token: SyntaxToken,
+    ties_token: SyntaxToken,
+) -> PsqlFetchWithTiesTail {
+    PsqlFetchWithTiesTail::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FETCH_WITH_TIES_TAIL,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(ties_token)),
+        ],
+    ))
+}
 pub fn psql_filter_clause(
     filter_token: SyntaxToken,
     l_paren_token: SyntaxToken,
@@ -2212,6 +2270,7 @@ pub fn psql_select_statement(
         order_by_clause: None,
         limit_clause: None,
         offset_clause: None,
+        fetch_clause: None,
         semicolon_token: None,
     }
 }
@@ -2226,6 +2285,7 @@ pub struct PsqlSelectStatementBuilder {
     order_by_clause: Option<PsqlOrderByClause>,
     limit_clause: Option<PsqlLimitClause>,
     offset_clause: Option<PsqlOffsetClause>,
+    fetch_clause: Option<PsqlFetchClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlSelectStatementBuilder {
@@ -2261,6 +2321,10 @@ impl PsqlSelectStatementBuilder {
         self.offset_clause = Some(offset_clause);
         self
     }
+    pub fn with_fetch_clause(mut self, fetch_clause: PsqlFetchClause) -> Self {
+        self.fetch_clause = Some(fetch_clause);
+        self
+    }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
         self.semicolon_token = Some(semicolon_token);
         self
@@ -2286,6 +2350,8 @@ impl PsqlSelectStatementBuilder {
                 self.limit_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.offset_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.fetch_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),

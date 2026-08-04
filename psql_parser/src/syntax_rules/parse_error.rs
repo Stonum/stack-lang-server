@@ -49,3 +49,7 @@ pub fn expected_conflict_action(p: &PsqlParser, range: TextRange) -> ParseDiagno
 pub fn expected_window_specification(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("window specification", range, p)
 }
+
+pub fn expected_fetch_tail(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("`only` or `with ties`", range, p)
+}

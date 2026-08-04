@@ -18,6 +18,7 @@ impl FormatNodeRule<PsqlSelectStatement> for FormatPsqlSelectStatement {
             order_by_clause,
             limit_clause,
             offset_clause,
+            fetch_clause,
             semicolon_token,
         } = node.as_fields();
 
@@ -50,6 +51,9 @@ impl FormatNodeRule<PsqlSelectStatement> for FormatPsqlSelectStatement {
                 }
                 if let Some(offset_clause) = offset_clause {
                     write!(f, [soft_line_break_or_space(), offset_clause.format()])?;
+                }
+                if let Some(fetch_clause) = fetch_clause {
+                    write!(f, [soft_line_break_or_space(), fetch_clause.format()])?;
                 }
                 Ok(())
             }))]

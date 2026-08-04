@@ -48,6 +48,7 @@ impl ParseSeparatedList for PsqlFromItemList {
             || p.at(T![order_by])
             || p.at(T![limit])
             || p.at(T![offset])
+            || p.at(T![fetch])
             || p.at(T![returning])
             // `insert into t select ... from ... on conflict ...`
             || p.at(T![on])

@@ -2058,6 +2058,136 @@ pub struct PsqlExistsExpressionFields {
     pub subquery: SyntaxResult<PsqlSubqueryExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlFetchClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlFetchClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlFetchClauseFields {
+        PsqlFetchClauseFields {
+            fetch_token: self.fetch_token(),
+            quantifier: self.quantifier(),
+            count: self.count(),
+            row_or_rows: self.row_or_rows(),
+            tail: self.tail(),
+        }
+    }
+    pub fn fetch_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn quantifier(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn count(&self) -> Option<AnyPsqlLimitValue> {
+        support::node(&self.syntax, 2usize)
+    }
+    pub fn row_or_rows(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn tail(&self) -> SyntaxResult<AnyPsqlFetchTail> {
+        support::required_node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlFetchClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlFetchClauseFields {
+    pub fetch_token: SyntaxResult<SyntaxToken>,
+    pub quantifier: SyntaxResult<SyntaxToken>,
+    pub count: Option<AnyPsqlLimitValue>,
+    pub row_or_rows: SyntaxResult<SyntaxToken>,
+    pub tail: SyntaxResult<AnyPsqlFetchTail>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlFetchOnlyTail {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlFetchOnlyTail {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlFetchOnlyTailFields {
+        PsqlFetchOnlyTailFields {
+            only_token: self.only_token(),
+        }
+    }
+    pub fn only_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlFetchOnlyTail {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlFetchOnlyTailFields {
+    pub only_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlFetchWithTiesTail {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlFetchWithTiesTail {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlFetchWithTiesTailFields {
+        PsqlFetchWithTiesTailFields {
+            with_token: self.with_token(),
+            ties_token: self.ties_token(),
+        }
+    }
+    pub fn with_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn ties_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlFetchWithTiesTail {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlFetchWithTiesTailFields {
+    pub with_token: SyntaxResult<SyntaxToken>,
+    pub ties_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlFilterClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4158,6 +4288,7 @@ impl PsqlSelectStatement {
             order_by_clause: self.order_by_clause(),
             limit_clause: self.limit_clause(),
             offset_clause: self.offset_clause(),
+            fetch_clause: self.fetch_clause(),
             semicolon_token: self.semicolon_token(),
         }
     }
@@ -4191,8 +4322,11 @@ impl PsqlSelectStatement {
     pub fn offset_clause(&self) -> Option<PsqlOffsetClause> {
         support::node(&self.syntax, 9usize)
     }
+    pub fn fetch_clause(&self) -> Option<PsqlFetchClause> {
+        support::node(&self.syntax, 10usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 10usize)
+        support::token(&self.syntax, 11usize)
     }
 }
 impl Serialize for PsqlSelectStatement {
@@ -4215,6 +4349,7 @@ pub struct PsqlSelectStatementFields {
     pub order_by_clause: Option<PsqlOrderByClause>,
     pub limit_clause: Option<PsqlLimitClause>,
     pub offset_clause: Option<PsqlOffsetClause>,
+    pub fetch_clause: Option<PsqlFetchClause>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -6297,6 +6432,25 @@ impl AnyPsqlExpression {
     pub fn as_psql_window_function_expression(&self) -> Option<&PsqlWindowFunctionExpression> {
         match &self {
             Self::PsqlWindowFunctionExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlFetchTail {
+    PsqlFetchOnlyTail(PsqlFetchOnlyTail),
+    PsqlFetchWithTiesTail(PsqlFetchWithTiesTail),
+}
+impl AnyPsqlFetchTail {
+    pub fn as_psql_fetch_only_tail(&self) -> Option<&PsqlFetchOnlyTail> {
+        match &self {
+            Self::PsqlFetchOnlyTail(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_fetch_with_ties_tail(&self) -> Option<&PsqlFetchWithTiesTail> {
+        match &self {
+            Self::PsqlFetchWithTiesTail(item) => Some(item),
             _ => None,
         }
     }
@@ -8869,6 +9023,158 @@ impl From<PsqlExistsExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlFetchClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FETCH_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FETCH_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlFetchClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlFetchClause")
+                .field(
+                    "fetch_token",
+                    &support::DebugSyntaxResult(self.fetch_token()),
+                )
+                .field("quantifier", &support::DebugSyntaxResult(self.quantifier()))
+                .field("count", &support::DebugOptionalElement(self.count()))
+                .field(
+                    "row_or_rows",
+                    &support::DebugSyntaxResult(self.row_or_rows()),
+                )
+                .field("tail", &support::DebugSyntaxResult(self.tail()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlFetchClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlFetchClause> for SyntaxNode {
+    fn from(n: PsqlFetchClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlFetchClause> for SyntaxElement {
+    fn from(n: PsqlFetchClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlFetchOnlyTail {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FETCH_ONLY_TAIL as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FETCH_ONLY_TAIL
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlFetchOnlyTail {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlFetchOnlyTail")
+                .field("only_token", &support::DebugSyntaxResult(self.only_token()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlFetchOnlyTail").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlFetchOnlyTail> for SyntaxNode {
+    fn from(n: PsqlFetchOnlyTail) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlFetchOnlyTail> for SyntaxElement {
+    fn from(n: PsqlFetchOnlyTail) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlFetchWithTiesTail {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FETCH_WITH_TIES_TAIL as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FETCH_WITH_TIES_TAIL
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlFetchWithTiesTail {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlFetchWithTiesTail")
+                .field("with_token", &support::DebugSyntaxResult(self.with_token()))
+                .field("ties_token", &support::DebugSyntaxResult(self.ties_token()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlFetchWithTiesTail").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlFetchWithTiesTail> for SyntaxNode {
+    fn from(n: PsqlFetchWithTiesTail) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlFetchWithTiesTail> for SyntaxElement {
+    fn from(n: PsqlFetchWithTiesTail) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlFilterClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11389,6 +11695,10 @@ impl std::fmt::Debug for PsqlSelectStatement {
                 .field(
                     "offset_clause",
                     &support::DebugOptionalElement(self.offset_clause()),
+                )
+                .field(
+                    "fetch_clause",
+                    &support::DebugOptionalElement(self.fetch_clause()),
                 )
                 .field(
                     "semicolon_token",
@@ -14159,6 +14469,68 @@ impl From<AnyPsqlExpression> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlFetchOnlyTail> for AnyPsqlFetchTail {
+    fn from(node: PsqlFetchOnlyTail) -> Self {
+        Self::PsqlFetchOnlyTail(node)
+    }
+}
+impl From<PsqlFetchWithTiesTail> for AnyPsqlFetchTail {
+    fn from(node: PsqlFetchWithTiesTail) -> Self {
+        Self::PsqlFetchWithTiesTail(node)
+    }
+}
+impl AstNode for AnyPsqlFetchTail {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlFetchOnlyTail::KIND_SET.union(PsqlFetchWithTiesTail::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, PSQL_FETCH_ONLY_TAIL | PSQL_FETCH_WITH_TIES_TAIL)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_FETCH_ONLY_TAIL => Self::PsqlFetchOnlyTail(PsqlFetchOnlyTail { syntax }),
+            PSQL_FETCH_WITH_TIES_TAIL => {
+                Self::PsqlFetchWithTiesTail(PsqlFetchWithTiesTail { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlFetchOnlyTail(it) => &it.syntax,
+            Self::PsqlFetchWithTiesTail(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlFetchOnlyTail(it) => it.syntax,
+            Self::PsqlFetchWithTiesTail(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlFetchTail {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlFetchOnlyTail(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlFetchWithTiesTail(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlFetchTail> for SyntaxNode {
+    fn from(n: AnyPsqlFetchTail) -> Self {
+        match n {
+            AnyPsqlFetchTail::PsqlFetchOnlyTail(it) => it.into(),
+            AnyPsqlFetchTail::PsqlFetchWithTiesTail(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlFetchTail> for SyntaxElement {
+    fn from(n: AnyPsqlFetchTail) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<PsqlFunctionBinding> for AnyPsqlFromExpression {
     fn from(node: PsqlFunctionBinding) -> Self {
         Self::PsqlFunctionBinding(node)
@@ -15331,6 +15703,11 @@ impl std::fmt::Display for AnyPsqlExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlFetchTail {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlFromExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -15577,6 +15954,21 @@ impl std::fmt::Display for PsqlEmptyStatement {
     }
 }
 impl std::fmt::Display for PsqlExistsExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlFetchClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlFetchOnlyTail {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlFetchWithTiesTail {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
