@@ -247,6 +247,8 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                             | T ! [!~~]
                             | T ! [!~~*]
                             | T ! [||]
+                            | T ! [->]
+                            | T ! [->>]
                     )
                 {
                     slots.mark_present();

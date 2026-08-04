@@ -641,6 +641,19 @@ impl<'src> PsqlLexer<'src> {
 
     fn read_minus(&mut self) -> PsqlSyntaxKind {
         self.advance(1); // eats '-'
+
+        // `->`/`->>` (JSON field/text-extraction operators). Checked before
+        // the `--` comment case below since `>` and `-` are disjoint.
+        if self.current_byte() == Some(b'>') {
+            self.advance(1);
+            return if self.current_byte() == Some(b'>') {
+                self.advance(1);
+                T![->>]
+            } else {
+                T![->]
+            };
+        }
+
         if self.current_byte() != Some(b'-') {
             return T![-];
         }

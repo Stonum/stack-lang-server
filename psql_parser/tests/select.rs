@@ -150,6 +150,59 @@ fn test_select_concat_inside_case_expression() {
 }
 
 #[test]
+fn test_select_json_field_operator() {
+    let res = parse("select data -> 'a' from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_json_text_operator() {
+    let res = parse("select data ->> 'a' from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_chained_json_operators() {
+    let res = parse(
+        "select data -> 'a' ->> 'b' from t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_json_operator_no_spaces() {
+    let res = parse("select data->'a'->>'b' from t", PsqlFileSource::script());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_json_operator_binds_tighter_than_comparison() {
+    let res = parse(
+        "select a from t where data -> 'a' = 'x'",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_select_minus_and_comment_still_work_after_arrow_operator() {
+    // Regression test: `-` and `--` (line comments) must still lex
+    // correctly now that `read_minus` also checks for a following `>`.
+    let res = parse(
+        "-- a comment\nselect 1 - 2, a - -b from t",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
 fn test_select_col_references() {
     let res = parse("select a, t.a, s.t.a, d.s.t.a", PsqlFileSource::script());
 
