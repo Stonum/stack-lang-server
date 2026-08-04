@@ -6,11 +6,19 @@ use psql_syntax::PsqlAliasFields;
 pub(crate) struct FormatPsqlAlias;
 impl FormatNodeRule<PsqlAlias> for FormatPsqlAlias {
     fn fmt_fields(&self, node: &PsqlAlias, f: &mut PsqlFormatter) -> FormatResult<()> {
-        let PsqlAliasFields { as_token, value } = node.as_fields();
+        let PsqlAliasFields {
+            as_token,
+            value,
+            columns,
+        } = node.as_fields();
 
         if let Some(as_token) = as_token {
             write!(f, [as_token.format(), space()])?;
         }
-        write!(f, [value.format()])
+        write!(f, [value.format()])?;
+        if let Some(columns) = columns {
+            write!(f, [columns.format()])?;
+        }
+        Ok(())
     }
 }

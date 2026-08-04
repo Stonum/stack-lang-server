@@ -36,6 +36,76 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlAlias {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlAliasColumnDefinition>
+    for crate::psql::auxiliary::alias_column_definition::FormatPsqlAliasColumnDefinition
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlAliasColumnDefinition,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlAliasColumnDefinition>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlAliasColumnDefinition {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlAliasColumnDefinition,
+        crate::psql::auxiliary::alias_column_definition::FormatPsqlAliasColumnDefinition,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: alias_column_definition :: FormatPsqlAliasColumnDefinition :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlAliasColumnDefinition {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlAliasColumnDefinition,
+        crate::psql::auxiliary::alias_column_definition::FormatPsqlAliasColumnDefinition,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: alias_column_definition :: FormatPsqlAliasColumnDefinition :: default ())
+    }
+}
+impl FormatRule<psql_syntax::PsqlAliasColumnList>
+    for crate::psql::auxiliary::alias_column_list::FormatPsqlAliasColumnList
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &psql_syntax::PsqlAliasColumnList,
+        f: &mut PsqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlAliasColumnList>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlAliasColumnList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlAliasColumnList,
+        crate::psql::auxiliary::alias_column_list::FormatPsqlAliasColumnList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::alias_column_list::FormatPsqlAliasColumnList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlAliasColumnList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlAliasColumnList,
+        crate::psql::auxiliary::alias_column_list::FormatPsqlAliasColumnList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::alias_column_list::FormatPsqlAliasColumnList::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlAnyAllExpression>
     for crate::psql::expressions::any_all_expression::FormatPsqlAnyAllExpression
 {
@@ -4659,6 +4729,25 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlWithClause {
             self,
             crate::psql::clauses::with_clause::FormatPsqlWithClause::default(),
         )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlAliasColumnDefinitionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlAliasColumnDefinitionList,
+        crate::psql::lists::alias_column_definition_list::FormatPsqlAliasColumnDefinitionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: lists :: alias_column_definition_list :: FormatPsqlAliasColumnDefinitionList :: default ())
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlAliasColumnDefinitionList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlAliasColumnDefinitionList,
+        crate::psql::lists::alias_column_definition_list::FormatPsqlAliasColumnDefinitionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: lists :: alias_column_definition_list :: FormatPsqlAliasColumnDefinitionList :: default ())
     }
 }
 impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlCaseWhenClauseList {

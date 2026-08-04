@@ -790,9 +790,32 @@ PsqlTableColReference =
 PsqlColReference =
    name: PsqlName
 
-PsqlAlias = 
+PsqlAlias =
    'as'?
    value: PsqlName
+   columns: PsqlAliasColumnList?
+
+// `AS alias(col1 [type1], col2 [type2], ...)` -- an explicit column
+// definition list attached to a table/function/subquery alias. Real
+// Postgres allows this in two shapes: a plain rename list (`AS t(a, b)`,
+// no types -- renames a subquery's/VALUES list's own columns) and a typed
+// list (`AS t(a int, b text)` -- required for a function returning
+// `record`, since the function's own signature doesn't fix the column
+// types, e.g. `json_to_recordset(...) AS x(a int, b text)`). Modeled as one
+// shared node with an optional per-column type rather than two separate
+// node kinds, since both shapes share identical parenthesized
+// comma-separated syntax and only differ in whether a type follows each
+// name.
+PsqlAliasColumnList =
+   '('
+   items: PsqlAliasColumnDefinitionList
+   ')'
+
+PsqlAliasColumnDefinitionList = (PsqlAliasColumnDefinition (',' PsqlAliasColumnDefinition)*)
+
+PsqlAliasColumnDefinition =
+   name: PsqlName
+   type: PsqlTypeName?
 
 PsqlDataBaseName =
    name: PsqlName

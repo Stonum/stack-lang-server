@@ -23,7 +23,7 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             | PSQL_BOGUS_STATEMENT => RawSyntaxNode::new(kind, children.into_iter().map(Some)),
             PSQL_ALIAS => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![as]
@@ -39,6 +39,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     current_element = elements.next();
                 }
                 slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlAliasColumnList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
                 if current_element.is_some() {
                     return RawSyntaxNode::new(
                         PSQL_ALIAS.to_bogus(),
@@ -46,6 +53,65 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_ALIAS, children)
+            }
+            PSQL_ALIAS_COLUMN_DEFINITION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && PsqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlTypeName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_ALIAS_COLUMN_DEFINITION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_ALIAS_COLUMN_DEFINITION, children)
+            }
+            PSQL_ALIAS_COLUMN_LIST => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T!['(']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlAliasColumnDefinitionList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![')']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_ALIAS_COLUMN_LIST.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_ALIAS_COLUMN_LIST, children)
             }
             PSQL_ANY_ALL_EXPRESSION => {
                 let mut elements = (&children).into_iter();
@@ -4944,6 +5010,13 @@ impl SyntaxFactory for PsqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_WITH_CLAUSE, children)
             }
+            PSQL_ALIAS_COLUMN_DEFINITION_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                PsqlAliasColumnDefinition::can_cast,
+                T ! [,],
+                false,
+            ),
             PSQL_CASE_WHEN_CLAUSE_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlCaseWhenClause::can_cast)
             }

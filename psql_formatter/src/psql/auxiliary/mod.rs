@@ -1,6 +1,8 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
 pub(crate) mod alias;
+pub(crate) mod alias_column_definition;
+pub(crate) mod alias_column_list;
 pub(crate) mod col_reference;
 pub(crate) mod column_definition;
 pub(crate) mod column_list;

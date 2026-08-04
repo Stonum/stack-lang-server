@@ -20,6 +20,15 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlAlias::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_ALIAS_COLUMN_DEFINITION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlAliasColumnDefinition::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_ALIAS_COLUMN_LIST => {
+                    let $pattern = unsafe { $crate::PsqlAliasColumnList::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_ANY_ALL_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlAnyAllExpression::new_unchecked(node) };
                     $body
@@ -581,6 +590,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_BOGUS_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlBogusStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_ALIAS_COLUMN_DEFINITION_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlAliasColumnDefinitionList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_CASE_WHEN_CLAUSE_LIST => {

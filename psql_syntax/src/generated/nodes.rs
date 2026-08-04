@@ -37,6 +37,7 @@ impl PsqlAlias {
         PsqlAliasFields {
             as_token: self.as_token(),
             value: self.value(),
+            columns: self.columns(),
         }
     }
     pub fn as_token(&self) -> Option<SyntaxToken> {
@@ -44,6 +45,9 @@ impl PsqlAlias {
     }
     pub fn value(&self) -> SyntaxResult<PsqlName> {
         support::required_node(&self.syntax, 1usize)
+    }
+    pub fn columns(&self) -> Option<PsqlAliasColumnList> {
+        support::node(&self.syntax, 2usize)
     }
 }
 impl Serialize for PsqlAlias {
@@ -58,6 +62,92 @@ impl Serialize for PsqlAlias {
 pub struct PsqlAliasFields {
     pub as_token: Option<SyntaxToken>,
     pub value: SyntaxResult<PsqlName>,
+    pub columns: Option<PsqlAliasColumnList>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlAliasColumnDefinition {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlAliasColumnDefinition {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlAliasColumnDefinitionFields {
+        PsqlAliasColumnDefinitionFields {
+            name: self.name(),
+            ty: self.ty(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<PsqlName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn ty(&self) -> Option<PsqlTypeName> {
+        support::node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlAliasColumnDefinition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlAliasColumnDefinitionFields {
+    pub name: SyntaxResult<PsqlName>,
+    pub ty: Option<PsqlTypeName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlAliasColumnList {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlAliasColumnList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlAliasColumnListFields {
+        PsqlAliasColumnListFields {
+            l_paren_token: self.l_paren_token(),
+            items: self.items(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn items(&self) -> PsqlAliasColumnDefinitionList {
+        support::list(&self.syntax, 1usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlAliasColumnList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlAliasColumnListFields {
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlAliasColumnDefinitionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlAnyAllExpression {
@@ -6999,6 +7089,7 @@ impl std::fmt::Debug for PsqlAlias {
             f.debug_struct("PsqlAlias")
                 .field("as_token", &support::DebugOptionalElement(self.as_token()))
                 .field("value", &support::DebugSyntaxResult(self.value()))
+                .field("columns", &support::DebugOptionalElement(self.columns()))
                 .finish()
         } else {
             f.debug_struct("PsqlAlias").finish()
@@ -7014,6 +7105,109 @@ impl From<PsqlAlias> for SyntaxNode {
 }
 impl From<PsqlAlias> for SyntaxElement {
     fn from(n: PsqlAlias) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlAliasColumnDefinition {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ALIAS_COLUMN_DEFINITION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ALIAS_COLUMN_DEFINITION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlAliasColumnDefinition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlAliasColumnDefinition")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("ty", &support::DebugOptionalElement(self.ty()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlAliasColumnDefinition").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlAliasColumnDefinition> for SyntaxNode {
+    fn from(n: PsqlAliasColumnDefinition) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlAliasColumnDefinition> for SyntaxElement {
+    fn from(n: PsqlAliasColumnDefinition) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlAliasColumnList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ALIAS_COLUMN_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ALIAS_COLUMN_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlAliasColumnList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlAliasColumnList")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlAliasColumnList").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlAliasColumnList> for SyntaxNode {
+    fn from(n: PsqlAliasColumnList) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlAliasColumnList> for SyntaxElement {
+    fn from(n: PsqlAliasColumnList) -> Self {
         n.syntax.into()
     }
 }
@@ -15990,6 +16184,16 @@ impl std::fmt::Display for PsqlAlias {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlAliasColumnDefinition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlAliasColumnList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlAnyAllExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -17028,6 +17232,88 @@ impl From<PsqlBogusStatement> for SyntaxElement {
     }
 }
 biome_rowan::declare_node_union! { pub AnyPsqlBogusNode = PsqlBogus | PsqlBogusAssignment | PsqlBogusBinding | PsqlBogusExpression | PsqlBogusMember | PsqlBogusParameter | PsqlBogusStatement }
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlAliasColumnDefinitionList {
+    syntax_list: SyntaxList,
+}
+impl PsqlAliasColumnDefinitionList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlAliasColumnDefinitionList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ALIAS_COLUMN_DEFINITION_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ALIAS_COLUMN_DEFINITION_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlAliasColumnDefinitionList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlAliasColumnDefinitionList {
+    type Language = Language;
+    type Node = PsqlAliasColumnDefinition;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlAliasColumnDefinitionList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlAliasColumnDefinitionList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlAliasColumnDefinitionList {
+    type Item = SyntaxResult<PsqlAliasColumnDefinition>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlAliasColumnDefinition>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlAliasColumnDefinitionList {
+    type Item = SyntaxResult<PsqlAliasColumnDefinition>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlAliasColumnDefinition>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct PsqlCaseWhenClauseList {
     syntax_list: SyntaxList,

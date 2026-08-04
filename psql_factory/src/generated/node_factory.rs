@@ -11,15 +11,21 @@ pub fn psql_alias(value: PsqlName) -> PsqlAliasBuilder {
     PsqlAliasBuilder {
         value,
         as_token: None,
+        columns: None,
     }
 }
 pub struct PsqlAliasBuilder {
     value: PsqlName,
     as_token: Option<SyntaxToken>,
+    columns: Option<PsqlAliasColumnList>,
 }
 impl PsqlAliasBuilder {
     pub fn with_as_token(mut self, as_token: SyntaxToken) -> Self {
         self.as_token = Some(as_token);
+        self
+    }
+    pub fn with_columns(mut self, columns: PsqlAliasColumnList) -> Self {
+        self.columns = Some(columns);
         self
     }
     pub fn build(self) -> PsqlAlias {
@@ -28,9 +34,48 @@ impl PsqlAliasBuilder {
             [
                 self.as_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.value.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }
+}
+pub fn psql_alias_column_definition(name: PsqlName) -> PsqlAliasColumnDefinitionBuilder {
+    PsqlAliasColumnDefinitionBuilder { name, ty: None }
+}
+pub struct PsqlAliasColumnDefinitionBuilder {
+    name: PsqlName,
+    ty: Option<PsqlTypeName>,
+}
+impl PsqlAliasColumnDefinitionBuilder {
+    pub fn with_ty(mut self, ty: PsqlTypeName) -> Self {
+        self.ty = Some(ty);
+        self
+    }
+    pub fn build(self) -> PsqlAliasColumnDefinition {
+        PsqlAliasColumnDefinition::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_ALIAS_COLUMN_DEFINITION,
+            [
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.ty
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_alias_column_list(
+    l_paren_token: SyntaxToken,
+    items: PsqlAliasColumnDefinitionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlAliasColumnList {
+    PsqlAliasColumnList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_ALIAS_COLUMN_LIST,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
 }
 pub fn psql_any_all_expression(
     quantifier_token: SyntaxToken,
@@ -3201,6 +3246,30 @@ impl PsqlWithClauseBuilder {
             ],
         ))
     }
+}
+pub fn psql_alias_column_definition_list<I, S>(
+    items: I,
+    separators: S,
+) -> PsqlAliasColumnDefinitionList
+where
+    I: IntoIterator<Item = PsqlAliasColumnDefinition>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlAliasColumnDefinitionList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_ALIAS_COLUMN_DEFINITION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
 }
 pub fn psql_case_when_clause_list<I>(items: I) -> PsqlCaseWhenClauseList
 where

@@ -1174,7 +1174,88 @@ pub(crate) fn parse_alias(p: &mut PsqlParser) {
     } else {
         parse_name(p).unwrap();
     }
+    let _ = parse_alias_column_list(p);
     m.complete(p, PSQL_ALIAS);
+}
+
+/// `(col1 [type1], col2 [type2], ...)` -- an explicit column definition
+/// list attached to a table/function/subquery alias, e.g.
+/// `json_to_recordset(...) AS x(a int, b text)` or a plain rename list
+/// `(select a, b from t) x(c, d)`.
+fn parse_alias_column_list(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+    PsqlAliasColumnDefinitionList.parse_list(p);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_ALIAS_COLUMN_LIST))
+}
+
+struct PsqlAliasColumnDefinitionList;
+
+impl ParseSeparatedList for PsqlAliasColumnDefinitionList {
+    type Kind = PsqlSyntaxKind;
+    type Parser<'source> = PsqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_ALIAS_COLUMN_DEFINITION_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_alias_column_definition(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(PSQL_BOGUS, token_set![T![')']]),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+/// `true` if the parser is at a name for [parse_alias_column_definition] --
+/// wider than [is_at_name_start]: an alias column name is application-chosen
+/// (renaming an arbitrary source column), so it collides with this
+/// grammar's reserved words far more often than a type name does
+/// (real-world confirmed, e.g. `key`) -- any keyword is accepted, the same
+/// way [is_at_parameter_start] accepts any keyword as a bind parameter name.
+fn is_at_alias_column_name_start(p: &mut PsqlParser) -> bool {
+    is_at_name_start(p) || p.cur().is_keyword()
+}
+
+/// A single `col [type]` entry in an alias column list -- unlike
+/// [parse_column_definition]'s `CREATE TABLE` columns, the type here is
+/// optional: real Postgres only requires it when the alias attaches to a
+/// function returning `record` (the function signature alone doesn't fix
+/// the column types); a plain subquery/table column rename doesn't need one.
+fn parse_alias_column_definition(p: &mut PsqlParser) -> ParsedSyntax {
+    if !is_at_alias_column_name_start(p) {
+        return Absent;
+    }
+
+    let m = p.start();
+    let name_m = p.start();
+    if p.at(T![ident]) {
+        p.bump(T![ident]);
+    } else {
+        p.bump_remap(T![ident]);
+    }
+    name_m.complete(p, PSQL_NAME);
+    let _ = parse_type_name(p);
+    Present(m.complete(p, PSQL_ALIAS_COLUMN_DEFINITION))
 }
 
 /// A parenthesized, comma-separated expression list with no trailing comma,
