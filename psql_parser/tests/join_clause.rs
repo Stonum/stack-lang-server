@@ -120,3 +120,33 @@ fn test_cross_join_then_inner_join() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_join_lateral_subquery() {
+    let res = parse(
+        "select a from t join lateral (select max(b) from u where u.t_id = t.id) x on true",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_left_join_lateral_function() {
+    let res = parse(
+        "select a from t left join lateral unnest(t.arr) x on true",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_join_lateral_qualified_function() {
+    let res = parse(
+        "select a from t join lateral myschema.some_func(t.id) x on true",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

@@ -68,3 +68,46 @@ join t2 on t1.id = t2.id
 "#
     );
 }
+
+#[test]
+fn format_join_lateral_subquery() {
+    assert_fmt!(
+        r#"--
+select a
+from t1
+join lateral (select max(b) from t2 where t2.t1_id = t1.id) x on true
+"#
+    );
+}
+
+#[test]
+fn format_left_join_lateral_function() {
+    assert_fmt!(
+        r#"--
+select a
+from t1
+left join lateral unnest(t1.arr) x on true
+"#
+    );
+}
+
+#[test]
+fn format_from_with_lateral_subquery() {
+    assert_fmt!(
+        r#"--
+select a from t1, lateral (select max(b) from t2 where t2.t1_id = t1.id) x
+"#
+    );
+}
+
+#[test]
+fn format_lateral_normalizes_case() {
+    assert_fmt_eq!(
+        r#"--
+select a from t1, LATERAL generate_series(1, t1.n) g;
+"#,
+        r#"--
+select a from t1, lateral generate_series(1, t1.n) g;
+"#
+    );
+}

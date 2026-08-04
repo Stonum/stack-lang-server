@@ -1844,8 +1844,15 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_FUNCTION_BINDING => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![lateral]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
                 if let Some(element) = &current_element
                     && PsqlShemaName::can_cast(element.kind())
                 {
@@ -3568,8 +3575,15 @@ impl SyntaxFactory for PsqlSyntaxFactory {
             }
             PSQL_SUBQUERY_BINDING => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<5usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![lateral]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
                 if let Some(element) = &current_element
                     && element.kind() == T!['(']
                 {

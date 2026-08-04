@@ -2148,6 +2148,7 @@ impl PsqlFunctionBinding {
     }
     pub fn as_fields(&self) -> PsqlFunctionBindingFields {
         PsqlFunctionBindingFields {
+            lateral_token: self.lateral_token(),
             schema: self.schema(),
             name: self.name(),
             l_paren_token: self.l_paren_token(),
@@ -2156,23 +2157,26 @@ impl PsqlFunctionBinding {
             alias: self.alias(),
         }
     }
+    pub fn lateral_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
     pub fn schema(&self) -> Option<PsqlShemaName> {
-        support::node(&self.syntax, 0usize)
+        support::node(&self.syntax, 1usize)
     }
     pub fn name(&self) -> SyntaxResult<AnyPsqlName> {
-        support::required_node(&self.syntax, 1usize)
+        support::required_node(&self.syntax, 2usize)
     }
     pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 2usize)
+        support::required_token(&self.syntax, 3usize)
     }
     pub fn arguments(&self) -> PsqlExpressionList {
-        support::list(&self.syntax, 3usize)
+        support::list(&self.syntax, 4usize)
     }
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 4usize)
+        support::required_token(&self.syntax, 5usize)
     }
     pub fn alias(&self) -> Option<PsqlAlias> {
-        support::node(&self.syntax, 5usize)
+        support::node(&self.syntax, 6usize)
     }
 }
 impl Serialize for PsqlFunctionBinding {
@@ -2185,6 +2189,7 @@ impl Serialize for PsqlFunctionBinding {
 }
 #[derive(Serialize)]
 pub struct PsqlFunctionBindingFields {
+    pub lateral_token: Option<SyntaxToken>,
     pub schema: Option<PsqlShemaName>,
     pub name: SyntaxResult<AnyPsqlName>,
     pub l_paren_token: SyntaxResult<SyntaxToken>,
@@ -4468,23 +4473,27 @@ impl PsqlSubqueryBinding {
     }
     pub fn as_fields(&self) -> PsqlSubqueryBindingFields {
         PsqlSubqueryBindingFields {
+            lateral_token: self.lateral_token(),
             l_paren_token: self.l_paren_token(),
             query: self.query(),
             r_paren_token: self.r_paren_token(),
             alias: self.alias(),
         }
     }
+    pub fn lateral_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
     pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 0usize)
+        support::required_token(&self.syntax, 1usize)
     }
     pub fn query(&self) -> SyntaxResult<PsqlSelectStatement> {
-        support::required_node(&self.syntax, 1usize)
+        support::required_node(&self.syntax, 2usize)
     }
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 2usize)
+        support::required_token(&self.syntax, 3usize)
     }
     pub fn alias(&self) -> Option<PsqlAlias> {
-        support::node(&self.syntax, 3usize)
+        support::node(&self.syntax, 4usize)
     }
 }
 impl Serialize for PsqlSubqueryBinding {
@@ -4497,6 +4506,7 @@ impl Serialize for PsqlSubqueryBinding {
 }
 #[derive(Serialize)]
 pub struct PsqlSubqueryBindingFields {
+    pub lateral_token: Option<SyntaxToken>,
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub query: SyntaxResult<PsqlSelectStatement>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
@@ -8919,6 +8929,10 @@ impl std::fmt::Debug for PsqlFunctionBinding {
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlFunctionBinding")
+                .field(
+                    "lateral_token",
+                    &support::DebugOptionalElement(self.lateral_token()),
+                )
                 .field("schema", &support::DebugOptionalElement(self.schema()))
                 .field("name", &support::DebugSyntaxResult(self.name()))
                 .field(
@@ -11669,6 +11683,10 @@ impl std::fmt::Debug for PsqlSubqueryBinding {
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
             f.debug_struct("PsqlSubqueryBinding")
+                .field(
+                    "lateral_token",
+                    &support::DebugOptionalElement(self.lateral_token()),
+                )
                 .field(
                     "l_paren_token",
                     &support::DebugSyntaxResult(self.l_paren_token()),

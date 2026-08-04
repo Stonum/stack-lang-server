@@ -79,7 +79,8 @@ impl ParseSeparatedList for PsqlFromItemList {
 }
 
 fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) && !p.at(T!['(']) && !is_at_tilde_name_start(p) {
+    if !p.at(T![ident]) && !p.at(T!['(']) && !is_at_lateral_source(p) && !is_at_tilde_name_start(p)
+    {
         return Absent;
     }
 
@@ -133,6 +134,22 @@ fn parse_join_clause(p: &mut PsqlParser) -> ParsedSyntax {
 /// Distinguishes them by looking ahead past the qualified name for a `(`,
 /// or by checking for a leading `(select` for subqueries.
 pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    // `lateral` only ever precedes a subquery or a (possibly
+    // dotted/tilde-wrapped) function call in real Postgres -- never a
+    // plain table name. [is_at_lateral_source] verifies that via lookahead
+    // *before* this commits to consuming it, so a stray `lateral` before
+    // anything else falls through to the ordinary dispatch below and fails
+    // there with a normal diagnostic instead of this branch eating a token
+    // it shouldn't (and, critically, instead of returning `Absent` here
+    // without having consumed anything -- see [parse_from_item], which
+    // relies on this function always making progress once its own gate,
+    // built from the very same check, has committed).
+    if is_at_lateral_source(p) {
+        let m = p.start();
+        p.bump(T![lateral]);
+        return parse_subquery_or_function_binding(p, m);
+    }
+
     if p.at(T!['(']) {
         return parse_subquery_binding(p);
     }
@@ -179,6 +196,64 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
     }
 }
 
+/// `true` if positioned at `lateral` genuinely followed by a subquery or
+/// function call (the only two shapes it can legally precede) -- `false`
+/// for a stray `lateral` before anything else, including a plain table
+/// name. Doesn't consume anything either way.
+fn is_at_lateral_source(p: &mut PsqlParser) -> bool {
+    p.at(T![lateral])
+        && p.lookahead(|p| {
+            p.bump(T![lateral]);
+            is_at_subquery_or_function_start(p)
+        })
+}
+
+/// `true` if positioned at the start of a subquery `(` or a (possibly
+/// dotted/tilde-wrapped) function call -- the two shapes `lateral` can
+/// legally precede. Doesn't consume anything.
+fn is_at_subquery_or_function_start(p: &mut PsqlParser) -> bool {
+    if p.at(T!['(']) {
+        return true;
+    }
+    if is_at_tilde_name_start(p) {
+        return p.lookahead(|p| {
+            p.re_lex(PsqlReLexContext::TildeName) == PSQL_TILDE_NAME_LITERAL && {
+                p.bump(PSQL_TILDE_NAME_LITERAL);
+                p.at(T!['('])
+            }
+        });
+    }
+    if p.at(T![ident]) {
+        let segment_count = count_dotted_name_segments(p).min(3);
+        return p.lookahead(|p| {
+            for i in 0..segment_count {
+                if i > 0 {
+                    p.bump(T![.]);
+                }
+                p.bump(T![ident]);
+            }
+            p.at(T!['('])
+        });
+    }
+    false
+}
+
+/// Parses whichever of the two `lateral`-eligible shapes actually follows,
+/// re-running the same dispatch [is_at_subquery_or_function_start] just
+/// confirmed -- `lateral` itself has already been bumped into the
+/// still-open marker `m` by the caller, so it ends up as that node's own
+/// first child slot.
+fn parse_subquery_or_function_binding(p: &mut PsqlParser, m: Marker) -> ParsedSyntax {
+    if p.at(T!['(']) {
+        return parse_subquery_binding_body(p, m);
+    }
+    if is_at_tilde_name_start(p) {
+        return parse_function_binding_body(p, m, 0);
+    }
+    let segment_count = count_dotted_name_segments(p).min(3);
+    parse_function_binding_body(p, m, segment_count)
+}
+
 /// A plain table binding, e.g. `table` or `schema.table as t`. Unlike
 /// [parse_from_expression], never resolves to a function binding — used by
 /// statements whose grammar requires a `PsqlTableBinding` directly (e.g.
@@ -205,6 +280,16 @@ fn build_table_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax
 
 fn parse_function_binding(p: &mut PsqlParser, segment_count: usize) -> ParsedSyntax {
     let m = p.start();
+    parse_function_binding_body(p, m, segment_count)
+}
+
+/// Assumes any leading `lateral` has already been bumped into the
+/// still-open marker `m` by the caller (see [parse_subquery_or_function_binding]).
+fn parse_function_binding_body(
+    p: &mut PsqlParser,
+    m: Marker,
+    segment_count: usize,
+) -> ParsedSyntax {
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
     parse_any_name(p).or_add_diagnostic(p, expected_identifier);
 
@@ -223,6 +308,12 @@ fn parse_subquery_binding(p: &mut PsqlParser) -> ParsedSyntax {
     }
 
     let m = p.start();
+    parse_subquery_binding_body(p, m)
+}
+
+/// Assumes any leading `lateral` has already been bumped into the
+/// still-open marker `m` by the caller (see [parse_subquery_or_function_binding]).
+fn parse_subquery_binding_body(p: &mut PsqlParser, m: Marker) -> ParsedSyntax {
     p.bump(T!['(']);
     parse_with_prefixed_select_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);

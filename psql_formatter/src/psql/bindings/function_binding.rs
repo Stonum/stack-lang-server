@@ -8,6 +8,7 @@ pub(crate) struct FormatPsqlFunctionBinding;
 impl FormatNodeRule<PsqlFunctionBinding> for FormatPsqlFunctionBinding {
     fn fmt_fields(&self, node: &PsqlFunctionBinding, f: &mut PsqlFormatter) -> FormatResult<()> {
         let PsqlFunctionBindingFields {
+            lateral_token,
             schema,
             name,
             l_paren_token,
@@ -16,6 +17,9 @@ impl FormatNodeRule<PsqlFunctionBinding> for FormatPsqlFunctionBinding {
             alias,
         } = node.as_fields();
 
+        if let Some(lateral_token) = lateral_token {
+            write!(f, [lateral_token.format(), space()])?;
+        }
         if let Some(schema) = schema {
             write!(f, [schema.format()])?;
         }

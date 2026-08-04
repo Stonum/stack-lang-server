@@ -1293,6 +1293,7 @@ pub fn psql_function_binding(
         l_paren_token,
         arguments,
         r_paren_token,
+        lateral_token: None,
         schema: None,
         alias: None,
     }
@@ -1302,10 +1303,15 @@ pub struct PsqlFunctionBindingBuilder {
     l_paren_token: SyntaxToken,
     arguments: PsqlExpressionList,
     r_paren_token: SyntaxToken,
+    lateral_token: Option<SyntaxToken>,
     schema: Option<PsqlShemaName>,
     alias: Option<PsqlAlias>,
 }
 impl PsqlFunctionBindingBuilder {
+    pub fn with_lateral_token(mut self, lateral_token: SyntaxToken) -> Self {
+        self.lateral_token = Some(lateral_token);
+        self
+    }
     pub fn with_schema(mut self, schema: PsqlShemaName) -> Self {
         self.schema = Some(schema);
         self
@@ -1318,6 +1324,7 @@ impl PsqlFunctionBindingBuilder {
         PsqlFunctionBinding::unwrap_cast(SyntaxNode::new_detached(
             PsqlSyntaxKind::PSQL_FUNCTION_BINDING,
             [
+                self.lateral_token.map(|token| SyntaxElement::Token(token)),
                 self.schema
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.name.into_syntax())),
@@ -2403,6 +2410,7 @@ pub fn psql_subquery_binding(
         l_paren_token,
         query,
         r_paren_token,
+        lateral_token: None,
         alias: None,
     }
 }
@@ -2410,9 +2418,14 @@ pub struct PsqlSubqueryBindingBuilder {
     l_paren_token: SyntaxToken,
     query: PsqlSelectStatement,
     r_paren_token: SyntaxToken,
+    lateral_token: Option<SyntaxToken>,
     alias: Option<PsqlAlias>,
 }
 impl PsqlSubqueryBindingBuilder {
+    pub fn with_lateral_token(mut self, lateral_token: SyntaxToken) -> Self {
+        self.lateral_token = Some(lateral_token);
+        self
+    }
     pub fn with_alias(mut self, alias: PsqlAlias) -> Self {
         self.alias = Some(alias);
         self
@@ -2421,6 +2434,7 @@ impl PsqlSubqueryBindingBuilder {
         PsqlSubqueryBinding::unwrap_cast(SyntaxNode::new_detached(
             PsqlSyntaxKind::PSQL_SUBQUERY_BINDING,
             [
+                self.lateral_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.query.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
