@@ -68,3 +68,30 @@ fn test_colon_colon_cast_still_works_in_mlang_dialect() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_parameter_name_colliding_with_a_reserved_keyword() {
+    // Real-world confirmed: application code names bind parameters
+    // independently of this grammar's own reserved words, so a parameter
+    // can legitimately be spelled the same as a keyword (`check`, `to`,
+    // ...). The `:` prefix already disambiguates unambiguously, so any
+    // keyword is accepted here the same way [parse_name] lets a keyword
+    // stand in for a name elsewhere.
+    let res = parse("select a from t where id = :check", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_another_parameter_name_colliding_with_a_reserved_keyword() {
+    let res = parse("select a from t where id = :to", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_keyword_named_parameter_in_limit() {
+    let res = parse("select a from t limit :key", mlang());
+
+    assert_parser!(res);
+}

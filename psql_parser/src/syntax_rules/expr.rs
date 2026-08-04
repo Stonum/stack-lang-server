@@ -249,10 +249,17 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
 /// etc.), available in both dialects, not an mlang-specific extension.
 /// Unlike `~name~`, `:` is otherwise unused anywhere in this grammar (only
 /// `::` cast is a real operator), so there's no ambiguity to disambiguate
-/// via re-lex -- seeing `:` immediately followed by an identifier or
-/// number literal is always unambiguously a parameter.
+/// via re-lex -- seeing `:` immediately followed by an identifier, number
+/// literal, or keyword is always unambiguously a parameter. Keywords are
+/// accepted too (real-world confirmed: application code picks parameter
+/// names independently of this grammar's reserved words, e.g. `:to`/
+/// `:check`), the same way [parse_name] lets a keyword stand in for a name.
 fn is_at_parameter_start(p: &mut PsqlParser) -> bool {
-    p.at(T![:]) && matches!(p.nth(1), T![ident] | PSQL_NUMBER_LITERAL)
+    if !p.at(T![:]) {
+        return false;
+    }
+    let next = p.nth(1);
+    matches!(next, T![ident] | PSQL_NUMBER_LITERAL) || next.is_keyword()
 }
 
 fn parse_parameter_expression(p: &mut PsqlParser) -> ParsedSyntax {
@@ -262,7 +269,11 @@ fn parse_parameter_expression(p: &mut PsqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![:]);
-    p.bump_any();
+    if p.at(T![ident]) || p.at(PSQL_NUMBER_LITERAL) {
+        p.bump_any();
+    } else {
+        p.bump_remap(T![ident]);
+    }
     Present(m.complete(p, PSQL_PARAMETER_EXPRESSION))
 }
 

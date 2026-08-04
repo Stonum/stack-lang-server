@@ -54,3 +54,23 @@ select a from t where a = :ls
         PsqlDialect::Standard
     );
 }
+
+#[test]
+fn format_parameter_name_colliding_with_a_reserved_keyword() {
+    assert_fmt_node!(
+        "select a from t where id = :check",
+        PsqlSyntaxKind::PSQL_PARAMETER_EXPRESSION,
+        ":check",
+        PsqlDialect::Mlang
+    );
+}
+
+#[test]
+fn format_query_with_keyword_named_parameter() {
+    assert_fmt!(
+        r#"--
+select a from t where id = :to
+"#,
+        PsqlDialect::Mlang
+    );
+}
