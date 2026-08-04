@@ -13,12 +13,17 @@ impl FormatNodeRule<PsqlCallExpression> for FormatPsqlCallExpression {
             l_paren_token,
             arguments,
             r_paren_token,
+            filter_clause,
         } = node.as_fields();
 
         if let Some(schema) = schema {
             write!(f, [schema.format()])?;
         }
         write!(f, [name.format()])?;
-        write_bracketed_fill_list(l_paren_token, &arguments, r_paren_token, f)
+        write_bracketed_fill_list(l_paren_token, &arguments, r_paren_token, f)?;
+        if let Some(filter_clause) = filter_clause {
+            write!(f, [space(), filter_clause.format()])?;
+        }
+        Ok(())
     }
 }

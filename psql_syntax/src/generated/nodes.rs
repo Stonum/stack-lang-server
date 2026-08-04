@@ -360,6 +360,7 @@ impl PsqlCallExpression {
             l_paren_token: self.l_paren_token(),
             arguments: self.arguments(),
             r_paren_token: self.r_paren_token(),
+            filter_clause: self.filter_clause(),
         }
     }
     pub fn schema(&self) -> Option<PsqlShemaName> {
@@ -377,6 +378,9 @@ impl PsqlCallExpression {
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 4usize)
     }
+    pub fn filter_clause(&self) -> Option<PsqlFilterClause> {
+        support::node(&self.syntax, 5usize)
+    }
 }
 impl Serialize for PsqlCallExpression {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -393,6 +397,7 @@ pub struct PsqlCallExpressionFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub arguments: PsqlExpressionList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub filter_clause: Option<PsqlFilterClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCaseElseClause {
@@ -2051,6 +2056,61 @@ impl Serialize for PsqlExistsExpression {
 pub struct PsqlExistsExpressionFields {
     pub exists_token: SyntaxResult<SyntaxToken>,
     pub subquery: SyntaxResult<PsqlSubqueryExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlFilterClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlFilterClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlFilterClauseFields {
+        PsqlFilterClauseFields {
+            filter_token: self.filter_token(),
+            l_paren_token: self.l_paren_token(),
+            where_token: self.where_token(),
+            condition: self.condition(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn filter_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn where_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnyPsqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlFilterClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlFilterClauseFields {
+    pub filter_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub where_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnyPsqlExpression>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlFromClause {
@@ -7070,6 +7130,10 @@ impl std::fmt::Debug for PsqlCallExpression {
                     "r_paren_token",
                     &support::DebugSyntaxResult(self.r_paren_token()),
                 )
+                .field(
+                    "filter_clause",
+                    &support::DebugOptionalElement(self.filter_clause()),
+                )
                 .finish()
         } else {
             f.debug_struct("PsqlCallExpression").finish()
@@ -8802,6 +8866,69 @@ impl From<PsqlExistsExpression> for SyntaxNode {
 }
 impl From<PsqlExistsExpression> for SyntaxElement {
     fn from(n: PsqlExistsExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlFilterClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FILTER_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FILTER_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlFilterClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlFilterClause")
+                .field(
+                    "filter_token",
+                    &support::DebugSyntaxResult(self.filter_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "where_token",
+                    &support::DebugSyntaxResult(self.where_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlFilterClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlFilterClause> for SyntaxNode {
+    fn from(n: PsqlFilterClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlFilterClause> for SyntaxElement {
+    fn from(n: PsqlFilterClause) -> Self {
         n.syntax.into()
     }
 }
@@ -15450,6 +15577,11 @@ impl std::fmt::Display for PsqlEmptyStatement {
     }
 }
 impl std::fmt::Display for PsqlExistsExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlFilterClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

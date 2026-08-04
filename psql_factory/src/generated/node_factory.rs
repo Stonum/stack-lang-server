@@ -151,6 +151,7 @@ pub fn psql_call_expression(
         arguments,
         r_paren_token,
         schema: None,
+        filter_clause: None,
     }
 }
 pub struct PsqlCallExpressionBuilder {
@@ -159,10 +160,15 @@ pub struct PsqlCallExpressionBuilder {
     arguments: PsqlExpressionList,
     r_paren_token: SyntaxToken,
     schema: Option<PsqlShemaName>,
+    filter_clause: Option<PsqlFilterClause>,
 }
 impl PsqlCallExpressionBuilder {
     pub fn with_schema(mut self, schema: PsqlShemaName) -> Self {
         self.schema = Some(schema);
+        self
+    }
+    pub fn with_filter_clause(mut self, filter_clause: PsqlFilterClause) -> Self {
+        self.filter_clause = Some(filter_clause);
         self
     }
     pub fn build(self) -> PsqlCallExpression {
@@ -175,6 +181,8 @@ impl PsqlCallExpressionBuilder {
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.arguments.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
+                self.filter_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }
@@ -1261,6 +1269,24 @@ pub fn psql_exists_expression(
         [
             Some(SyntaxElement::Token(exists_token)),
             Some(SyntaxElement::Node(subquery.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_filter_clause(
+    filter_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    where_token: SyntaxToken,
+    condition: AnyPsqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlFilterClause {
+    PsqlFilterClause::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_FILTER_CLAUSE,
+        [
+            Some(SyntaxElement::Token(filter_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Token(where_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
 }

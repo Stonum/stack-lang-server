@@ -1004,6 +1004,21 @@ PsqlCallExpression =
    '('
    arguments: PsqlExpressionList
    ')'
+   filter_clause: PsqlFilterClause?
+
+// `count(x) filter (where cond)` -- restricts an aggregate call to only
+// the rows matching `cond`, instead of the whole group. A purely
+// syntactic modifier on the call itself (real Postgres doesn't
+// distinguish "aggregate" from other functions grammatically), so it also
+// composes for free with `PsqlWindowFunctionExpression` --
+// `count(x) filter (where cond) over (...)` is just this field on the
+// `call` field there, followed by `over`.
+PsqlFilterClause =
+   'filter'
+   '('
+   'where'
+   condition: AnyPsqlExpression
+   ')'
 
 PsqlWindowFunctionExpression =
    call: PsqlCallExpression

@@ -6,6 +6,7 @@ pub(crate) mod delete_using_clause;
 pub(crate) mod distinct_on_clause;
 pub(crate) mod do_nothing_clause;
 pub(crate) mod do_update_clause;
+pub(crate) mod filter_clause;
 pub(crate) mod from_clause;
 pub(crate) mod group_by_clause;
 pub(crate) mod having_clause;

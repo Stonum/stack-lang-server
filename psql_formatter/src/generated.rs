@@ -1336,6 +1336,40 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlExistsExpression {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlFilterClause>
+    for crate::psql::clauses::filter_clause::FormatPsqlFilterClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlFilterClause, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlFilterClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlFilterClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlFilterClause,
+        crate::psql::clauses::filter_clause::FormatPsqlFilterClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::filter_clause::FormatPsqlFilterClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlFilterClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlFilterClause,
+        crate::psql::clauses::filter_clause::FormatPsqlFilterClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::filter_clause::FormatPsqlFilterClause::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlFromClause>
     for crate::psql::clauses::from_clause::FormatPsqlFromClause
 {

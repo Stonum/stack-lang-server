@@ -599,8 +599,25 @@ pub(crate) fn parse_call_expression(p: &mut PsqlParser, segment_count: usize) ->
     p.expect(T!['(']);
     PsqlExpressionList.parse_list(p);
     p.expect(T![')']);
+    let _ = parse_filter_clause(p);
 
     Present(m.complete(p, PSQL_CALL_EXPRESSION))
+}
+
+/// `filter (where cond)`, restricting an aggregate call to only the rows
+/// matching `cond` instead of the whole group.
+fn parse_filter_clause(p: &mut PsqlParser) -> ParsedSyntax {
+    if !p.at(T![filter]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![filter]);
+    p.expect(T!['(']);
+    p.expect(T![where]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_FILTER_CLAUSE))
 }
 
 /// `true` if the parser is at a `substring(...)` call using the SQL-
