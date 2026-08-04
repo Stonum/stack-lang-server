@@ -864,6 +864,7 @@ PsqlExpressionList = (AnyPsqlExpression (',' AnyPsqlExpression)* )
 AnyPsqlExpression =
    PsqlName
    | PsqlStar
+   | PsqlTableStar
    | PsqlParameterExpression
    | PsqlTableColReference
    | PsqlColReference

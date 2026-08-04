@@ -4,8 +4,8 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, parse_alias,
-    parse_expression, parse_limit_offset_value, parse_table_name,
+    EXPR_RECOVERY_SET, PsqlExpressionList, is_at_table_star, parse_alias, parse_expression,
+    parse_limit_offset_value, parse_table_star,
 };
 use super::from::parse_from_clause;
 use super::parse_error::*;
@@ -375,47 +375,21 @@ impl ParseSeparatedList for PsqlSelectItemList {
 }
 
 pub(crate) fn parse_select_item(p: &mut PsqlParser) -> ParsedSyntax {
-    let m = p.start();
     if p.at(T![*]) {
+        let m = p.start();
         p.bump(T![*]);
-        Present(m.complete(p, PSQL_STAR))
-    } else if is_at_table_star(p) {
-        let segment_count = count_dotted_name_segments(p).min(3);
-        parse_table_name(p, segment_count);
-        p.bump(T![.]);
-        let star = p.start();
-        p.bump(T![*]);
-        star.complete(p, PSQL_STAR);
-        Present(m.complete(p, PSQL_TABLE_STAR))
-    } else if parse_expression(p).is_present() {
+        return Present(m.complete(p, PSQL_STAR));
+    }
+    if is_at_table_star(p) {
+        return parse_table_star(p);
+    }
+
+    let m = p.start();
+    if parse_expression(p).is_present() {
         parse_alias(p);
         Present(m.complete(p, PSQL_SELECT_EXPRESSION))
     } else {
         m.abandon(p);
         Absent
     }
-}
-
-/// `true` if the parser is at `name(.name)*.*` -- a qualified star
-/// (`table.*`/`schema.table.*`), distinct from the bare `*` and from an
-/// ordinary dotted column reference (which never ends in `.*`).
-fn is_at_table_star(p: &mut PsqlParser) -> bool {
-    if !p.at(T![ident]) {
-        return false;
-    }
-    p.lookahead(|p| {
-        loop {
-            if !p.at(T![ident]) {
-                return false;
-            }
-            p.bump(T![ident]);
-            if !p.at(T![.]) {
-                return false;
-            }
-            p.bump(T![.]);
-            if p.at(T![*]) {
-                return true;
-            }
-        }
-    })
 }

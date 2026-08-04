@@ -29,6 +29,7 @@ impl NeedsParentheses for AnyPsqlExpression {
             // it's nested inside.
             Self::PsqlName(_)
             | Self::PsqlStar(_)
+            | Self::PsqlTableStar(_)
             | Self::PsqlParameterExpression(_)
             | Self::PsqlTableColReference(_)
             | Self::PsqlColReference(_)

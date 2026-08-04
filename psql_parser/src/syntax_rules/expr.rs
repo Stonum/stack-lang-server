@@ -587,6 +587,17 @@ fn parse_star(p: &mut PsqlParser) -> ParsedSyntax {
 /// `schema.func(...)`) or a column reference, by looking ahead past the
 /// qualified name for a `(`.
 fn parse_ident_expression(p: &mut PsqlParser) -> ParsedSyntax {
+    // `table.*` (real-world confirmed as a function argument, e.g.
+    // `count(t.*)`) must be checked before the call-vs-column-reference
+    // dispatch below: a name segment count that stops at `.` followed by
+    // `*` isn't a call (`*` never follows `(`) and isn't an ordinary column
+    // reference either (`parse_col_reference` has no way to consume a
+    // trailing `.*`, which would otherwise strand it for the caller to
+    // choke on).
+    if is_at_table_star(p) {
+        return parse_table_star(p);
+    }
+
     let segment_count = count_dotted_name_segments(p).min(3);
     let is_call = p.lookahead(|p| {
         for i in 0..segment_count {
@@ -1007,6 +1018,53 @@ fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
     p.bump(T![.]);
     parse_name(p).or_add_diagnostic(p, expected_identifier);
     Present(table_col_reference.complete(p, PSQL_TABLE_COL_REFERENCE))
+}
+
+/// `true` if the parser is at `name(.name)*.*` -- a qualified star
+/// (`table.*`/`schema.table.*`), distinct from the bare `*` and from an
+/// ordinary dotted column reference (which never ends in `.*`). Shared by
+/// [parse_table_star] (used both in select-item position and, since
+/// `table.*` is real-world confirmed as a function call argument like
+/// `count(t.*)`, in ordinary expression position) and select-item parsing,
+/// kept in sync deliberately -- the earlier `lateral` bug (see
+/// [is_at_lateral_source] in `from.rs`) is exactly what duplicating this
+/// check risks.
+pub(crate) fn is_at_table_star(p: &mut PsqlParser) -> bool {
+    if !p.at(T![ident]) {
+        return false;
+    }
+    p.lookahead(|p| {
+        loop {
+            if !p.at(T![ident]) {
+                return false;
+            }
+            p.bump(T![ident]);
+            if !p.at(T![.]) {
+                return false;
+            }
+            p.bump(T![.]);
+            if p.at(T![*]) {
+                return true;
+            }
+        }
+    })
+}
+
+/// `table.*`/`schema.table.*`, e.g. as a function argument (`count(t.*)`)
+/// or a select-list item (`select t.* from t`).
+pub(crate) fn parse_table_star(p: &mut PsqlParser) -> ParsedSyntax {
+    if !is_at_table_star(p) {
+        return Absent;
+    }
+
+    let m = p.start();
+    let segment_count = count_dotted_name_segments(p).min(3);
+    parse_table_name(p, segment_count);
+    p.bump(T![.]);
+    let star = p.start();
+    p.bump(T![*]);
+    star.complete(p, PSQL_STAR);
+    Present(m.complete(p, PSQL_TABLE_STAR))
 }
 
 /// A tilde name in expression position: `~name~.col` (table-qualified

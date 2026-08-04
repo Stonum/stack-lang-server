@@ -6505,6 +6505,7 @@ pub enum AnyPsqlExpression {
     PsqlSubqueryExpression(PsqlSubqueryExpression),
     PsqlSubstringExpression(PsqlSubstringExpression),
     PsqlTableColReference(PsqlTableColReference),
+    PsqlTableStar(PsqlTableStar),
     PsqlTildeArrayExpression(PsqlTildeArrayExpression),
     PsqlUnaryExpression(PsqlUnaryExpression),
     PsqlWindowFunctionExpression(PsqlWindowFunctionExpression),
@@ -6651,6 +6652,12 @@ impl AnyPsqlExpression {
     pub fn as_psql_table_col_reference(&self) -> Option<&PsqlTableColReference> {
         match &self {
             Self::PsqlTableColReference(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_table_star(&self) -> Option<&PsqlTableStar> {
+        match &self {
+            Self::PsqlTableStar(item) => Some(item),
             _ => None,
         }
     }
@@ -14722,6 +14729,11 @@ impl From<PsqlTableColReference> for AnyPsqlExpression {
         Self::PsqlTableColReference(node)
     }
 }
+impl From<PsqlTableStar> for AnyPsqlExpression {
+    fn from(node: PsqlTableStar) -> Self {
+        Self::PsqlTableStar(node)
+    }
+}
 impl From<PsqlTildeArrayExpression> for AnyPsqlExpression {
     fn from(node: PsqlTildeArrayExpression) -> Self {
         Self::PsqlTildeArrayExpression(node)
@@ -14763,6 +14775,7 @@ impl AstNode for AnyPsqlExpression {
         .union(PsqlSubqueryExpression::KIND_SET)
         .union(PsqlSubstringExpression::KIND_SET)
         .union(PsqlTableColReference::KIND_SET)
+        .union(PsqlTableStar::KIND_SET)
         .union(PsqlTildeArrayExpression::KIND_SET)
         .union(PsqlUnaryExpression::KIND_SET)
         .union(PsqlWindowFunctionExpression::KIND_SET);
@@ -14791,6 +14804,7 @@ impl AstNode for AnyPsqlExpression {
             | PSQL_SUBQUERY_EXPRESSION
             | PSQL_SUBSTRING_EXPRESSION
             | PSQL_TABLE_COL_REFERENCE
+            | PSQL_TABLE_STAR
             | PSQL_TILDE_ARRAY_EXPRESSION
             | PSQL_UNARY_EXPRESSION
             | PSQL_WINDOW_FUNCTION_EXPRESSION => true,
@@ -14843,6 +14857,7 @@ impl AstNode for AnyPsqlExpression {
             PSQL_TABLE_COL_REFERENCE => {
                 Self::PsqlTableColReference(PsqlTableColReference { syntax })
             }
+            PSQL_TABLE_STAR => Self::PsqlTableStar(PsqlTableStar { syntax }),
             PSQL_TILDE_ARRAY_EXPRESSION => {
                 Self::PsqlTildeArrayExpression(PsqlTildeArrayExpression { syntax })
             }
@@ -14884,6 +14899,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlSubqueryExpression(it) => &it.syntax,
             Self::PsqlSubstringExpression(it) => &it.syntax,
             Self::PsqlTableColReference(it) => &it.syntax,
+            Self::PsqlTableStar(it) => &it.syntax,
             Self::PsqlTildeArrayExpression(it) => &it.syntax,
             Self::PsqlUnaryExpression(it) => &it.syntax,
             Self::PsqlWindowFunctionExpression(it) => &it.syntax,
@@ -14915,6 +14931,7 @@ impl AstNode for AnyPsqlExpression {
             Self::PsqlSubqueryExpression(it) => it.syntax,
             Self::PsqlSubstringExpression(it) => it.syntax,
             Self::PsqlTableColReference(it) => it.syntax,
+            Self::PsqlTableStar(it) => it.syntax,
             Self::PsqlTildeArrayExpression(it) => it.syntax,
             Self::PsqlUnaryExpression(it) => it.syntax,
             Self::PsqlWindowFunctionExpression(it) => it.syntax,
@@ -14949,6 +14966,7 @@ impl std::fmt::Debug for AnyPsqlExpression {
             Self::PsqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSubstringExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTableColReference(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTableStar(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlWindowFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -14982,6 +15000,7 @@ impl From<AnyPsqlExpression> for SyntaxNode {
             AnyPsqlExpression::PsqlSubqueryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlSubstringExpression(it) => it.into(),
             AnyPsqlExpression::PsqlTableColReference(it) => it.into(),
+            AnyPsqlExpression::PsqlTableStar(it) => it.into(),
             AnyPsqlExpression::PsqlTildeArrayExpression(it) => it.into(),
             AnyPsqlExpression::PsqlUnaryExpression(it) => it.into(),
             AnyPsqlExpression::PsqlWindowFunctionExpression(it) => it.into(),
