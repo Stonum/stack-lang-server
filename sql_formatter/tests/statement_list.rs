@@ -35,7 +35,9 @@ fn format_go_batch_separator_recovers_without_swallowing_the_next_statement() {
     use sql_syntax::{SqlDialect, SqlFileSource};
 
     let src = "drop function if exists foo;\nGO\ncreate function foo() as 'select 1';\nselect 1;\n";
-    let syntax = SqlFileSource::query().with_dialect(SqlDialect::Mlang);
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
     let tree = parse(src, syntax);
     assert!(tree.has_errors());
 

@@ -6,7 +6,7 @@ use biome_parser::token_source::{
 use biome_rowan::{TextRange, TextSize, TriviaPieceKind};
 
 use crate::lexer::{SqlLexContext, SqlLexer, SqlReLexContext};
-use sql_syntax::SqlDialect;
+use sql_syntax::SqlFileSource;
 use sql_syntax::SqlSyntaxKind::{self, EOF};
 
 /// Token source for the parser that skips over any non-trivia token.
@@ -29,8 +29,8 @@ impl<'l> SqlTokenSource<'l> {
     }
 
     /// Creates a new token source for the given string
-    pub fn from_str(source: &'l str, dialect: SqlDialect) -> SqlTokenSource<'l> {
-        let lexer = SqlLexer::from_str(source, dialect);
+    pub fn from_str(source: &'l str, source_type: SqlFileSource) -> SqlTokenSource<'l> {
+        let lexer = SqlLexer::from_str(source, source_type);
         let buffered = BufferedLexer::new(lexer);
         let mut source = SqlTokenSource::new(buffered);
 

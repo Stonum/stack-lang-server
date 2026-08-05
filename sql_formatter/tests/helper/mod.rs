@@ -11,16 +11,22 @@
 #[macro_export]
 macro_rules! assert_fmt_node {
     ($src:expr, $kind:expr, $dest:expr) => {{
-        assert_fmt_node!($src, $kind, $dest, sql_syntax::SqlDialect::Mlang);
+        assert_fmt_node!(
+            $src,
+            $kind,
+            $dest,
+            sql_syntax::SqlFileSource::query()
+                .with_dialect(sql_syntax::SqlDialect::Postgres)
+                .with_mlang_extension(true)
+        );
     }};
 
-    ($src:expr, $kind:expr, $dest:expr, $dialect:expr) => {{
+    ($src:expr, $kind:expr, $dest:expr, $syntax:expr) => {{
         use biome_formatter::LineWidth;
         use sql_formatter::{SqlFormatOptions, format_node};
         use sql_parser::parse;
-        use sql_syntax::SqlFileSource;
 
-        let syntax = SqlFileSource::query().with_dialect($dialect);
+        let syntax = $syntax;
         let tree = parse($src, syntax);
         assert!(
             !tree.has_errors(),
@@ -56,16 +62,15 @@ macro_rules! assert_fmt_node {
 #[macro_export]
 macro_rules! assert_fmt {
     ($src:expr) => {{
-        assert_fmt!($src, sql_syntax::SqlDialect::Mlang);
+        assert_fmt!($src, sql_syntax::SqlFileSource::query().with_dialect(sql_syntax::SqlDialect::Postgres).with_mlang_extension(true));
     }};
 
-    ($src:expr, $dialect:expr) => {{
+    ($src:expr, $syntax:expr) => {{
         use biome_formatter::LineWidth;
         use sql_formatter::{SqlFormatOptions, format_node};
         use sql_parser::parse;
-        use sql_syntax::SqlFileSource;
 
-        let syntax = SqlFileSource::query().with_dialect($dialect);
+        let syntax = $syntax;
         let tree = parse($src, syntax);
         assert!(
             !tree.has_errors(),
@@ -121,16 +126,15 @@ macro_rules! assert_fmt {
 #[macro_export]
 macro_rules! assert_fmt_eq {
     ($src:expr, $dest:expr) => {{
-        assert_fmt_eq!($src, $dest, sql_syntax::SqlDialect::Mlang);
+        assert_fmt_eq!($src, $dest, sql_syntax::SqlFileSource::query().with_dialect(sql_syntax::SqlDialect::Postgres).with_mlang_extension(true));
     }};
 
-    ($src:expr, $dest:expr, $dialect:expr) => {{
+    ($src:expr, $dest:expr, $syntax:expr) => {{
         use biome_formatter::LineWidth;
         use sql_formatter::{SqlFormatOptions, format_node};
         use sql_parser::parse;
-        use sql_syntax::SqlFileSource;
 
-        let syntax = SqlFileSource::query().with_dialect($dialect);
+        let syntax = $syntax;
         let src: &str = $src;
         let tree = parse(src, syntax);
         assert!(

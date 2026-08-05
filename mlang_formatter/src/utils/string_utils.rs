@@ -183,8 +183,8 @@ impl<'token> LiteralStringNormaliser<'token> {
 /// Tries to parse `token`'s raw (still-escaped, as written in source --
 /// `LiteralStringNormaliser` doesn't decode escapes either, it only
 /// normalises `\r\n`/`\r` line endings) string content as embedded SQL
-/// (mlang dialect, so `~table~`/`#temp`/`:param` are understood) and
-/// reformat it with `sql_formatter`.
+/// (Postgres dialect + the `mlang` extension, so `~table~`/`#temp`/`:param`
+/// are understood) and reformat it with `sql_formatter`.
 ///
 /// Returns `None` if the content doesn't parse cleanly, in which case the
 /// caller must leave the string exactly as written. This is a deliberate
@@ -195,7 +195,9 @@ pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> O
     let content = token.text_trimmed();
     let raw_content = content.get(1..content.len().saturating_sub(1))?;
 
-    let syntax = sql_syntax::SqlFileSource::query().with_dialect(sql_syntax::SqlDialect::Mlang);
+    let syntax = sql_syntax::SqlFileSource::query()
+        .with_dialect(sql_syntax::SqlDialect::Postgres)
+        .with_mlang_extension(true);
     let parsed = sql_parser::parse(raw_content, syntax);
     if parsed.has_errors() {
         return None;
@@ -207,7 +209,14 @@ pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> O
     // otherwise mix, say, mlang's spaces with sql_formatter's default tabs.
     let options = sql_formatter::SqlFormatOptions::new(syntax)
         .with_indent_style(f.options().indent_style())
-        .with_indent_width(f.options().indent_width());
+        .with_indent_width(f.options().indent_width())
+        // Legacy mlang queries use SQL-Server-style `[bracket]` identifiers
+        // even where they're otherwise ordinary, valid Postgres -- always
+        // normalize those to Postgres's own `"..."` spelling when
+        // reformatting embedded SQL (matches `FormatSqlStringToken`'s own
+        // delimiter-switching logic just below, which already assumes `"`
+        // may appear in the output).
+        .with_bracket_identifier_style(sql_formatter::BracketIdentifierStyle::ConvertToQuotes);
     let formatted = sql_formatter::format_node(options, &parsed.syntax()).ok()?;
     let printed = formatted.print().ok()?;
 

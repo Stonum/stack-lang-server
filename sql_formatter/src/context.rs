@@ -56,6 +56,36 @@ impl CstFormatContext for SqlFormatContext {
     }
 }
 
+/// What to do with a mlang-extension `[bracket]` identifier (see
+/// `SqlExtensions::mlang`) when printing it back out. Independent of
+/// dialect/extension selection itself -- a tree can only ever *contain* a
+/// bracket-identifier token if it was parsed with the `mlang` extension on,
+/// but formatting is a separate concern: legacy mlang queries that are
+/// otherwise ordinary, valid Postgres use `[bracket]` quoting out of habit,
+/// and normalizing those to Postgres's own `"..."` spelling is a stylistic
+/// choice a caller should be able to opt into or out of explicitly, not
+/// something baked unconditionally into parsing support for the syntax.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
+pub enum BracketIdentifierStyle {
+    /// Print `[Foo]` exactly as written.
+    #[default]
+    Preserve,
+
+    /// Print `[Foo]` as `"Foo"` (Postgres's own quoted-identifier spelling;
+    /// `"` inside `Foo` is escaped as `""`). This is `mlang_formatter`'s
+    /// own choice for reformatting embedded SQL today.
+    ConvertToQuotes,
+}
+
+impl BracketIdentifierStyle {
+    pub const fn is_preserve(&self) -> bool {
+        matches!(self, Self::Preserve)
+    }
+    pub const fn is_convert_to_quotes(&self) -> bool {
+        matches!(self, Self::ConvertToQuotes)
+    }
+}
+
 /// SQL doesn't have JS-style stylistic choices like quote style (string
 /// literals are always single-quoted) or trailing commas (a comma after the
 /// last item in a list is a syntax error, not a style option) -- this is
@@ -77,6 +107,9 @@ pub struct SqlFormatOptions {
 
     /// Information related to the current file
     source_type: SqlFileSource,
+
+    /// See [BracketIdentifierStyle].
+    bracket_identifier_style: BracketIdentifierStyle,
 }
 
 impl SqlFormatOptions {
@@ -87,6 +120,7 @@ impl SqlFormatOptions {
             indent_width: IndentWidth::default(),
             line_ending: LineEnding::default(),
             line_width: LineWidth::default(),
+            bracket_identifier_style: BracketIdentifierStyle::default(),
         }
     }
 
@@ -110,6 +144,11 @@ impl SqlFormatOptions {
         self
     }
 
+    pub fn with_bracket_identifier_style(mut self, style: BracketIdentifierStyle) -> Self {
+        self.bracket_identifier_style = style;
+        self
+    }
+
     pub fn set_indent_style(&mut self, indent_style: IndentStyle) {
         self.indent_style = indent_style;
     }
@@ -126,8 +165,16 @@ impl SqlFormatOptions {
         self.line_width = line_width;
     }
 
+    pub fn set_bracket_identifier_style(&mut self, style: BracketIdentifierStyle) {
+        self.bracket_identifier_style = style;
+    }
+
     pub fn source_type(&self) -> SqlFileSource {
         self.source_type
+    }
+
+    pub fn bracket_identifier_style(&self) -> BracketIdentifierStyle {
+        self.bracket_identifier_style
     }
 }
 

@@ -1,6 +1,6 @@
 mod tests;
 
-use sql_syntax::SqlDialect;
+use sql_syntax::SqlFileSource;
 use sql_syntax::SqlSyntaxKind;
 use sql_syntax::SqlSyntaxKind::*;
 use sql_syntax::T;
@@ -61,7 +61,7 @@ pub struct SqlLexer<'src> {
     current_kind: SqlSyntaxKind,
     current_flags: TokenFlags,
     diagnostics: Vec<ParseDiagnostic>,
-    dialect: SqlDialect,
+    source_type: SqlFileSource,
 }
 
 impl<'src> Lexer<'src> for SqlLexer<'src> {
@@ -205,7 +205,7 @@ impl<'src> LexerWithCheckpoint<'src> for SqlLexer<'src> {
 }
 
 impl<'src> SqlLexer<'src> {
-    pub fn from_str(source: &'src str, dialect: SqlDialect) -> Self {
+    pub fn from_str(source: &'src str, source_type: SqlFileSource) -> Self {
         Self {
             source,
             position: 0,
@@ -215,7 +215,7 @@ impl<'src> SqlLexer<'src> {
             current_start: TextSize::from(0),
             current_flags: TokenFlags::empty(),
             diagnostics: vec![],
-            dialect,
+            source_type,
         }
     }
 
@@ -781,7 +781,7 @@ impl<'src> SqlLexer<'src> {
                 self.push_diagnostic(err);
                 ERROR_TOKEN
             }
-            HAS if self.dialect.is_mlang() => self.resolve_hash_identifier(),
+            HAS if self.source_type.has_mlang_extension() => self.resolve_hash_identifier(),
             DOL => self.read_dollar_string(),
             DIG | ZER => self.resolve_number(),
             PNO => self.eat_byte(T!['(']),

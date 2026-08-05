@@ -1,7 +1,7 @@
 #[macro_use]
 mod helper;
 
-use sql_syntax::{SqlDialect, SqlSyntaxKind};
+use sql_syntax::{SqlDialect, SqlFileSource, SqlSyntaxKind};
 
 #[test]
 fn format_named_parameter() {
@@ -9,7 +9,9 @@ fn format_named_parameter() {
         "select a from t where a = :ls",
         SqlSyntaxKind::SQL_PARAMETER_EXPRESSION,
         ":ls",
-        SqlDialect::Mlang
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true)
     );
 }
 
@@ -19,7 +21,9 @@ fn format_positional_parameter() {
         "select a from t where a = :1",
         SqlSyntaxKind::SQL_PARAMETER_EXPRESSION,
         ":1",
-        SqlDialect::Mlang
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true)
     );
 }
 
@@ -29,7 +33,9 @@ fn format_query_with_multiple_parameters() {
         r#"--
 select a from t where a = :ls and b = :usl
 "#,
-        SqlDialect::Mlang
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true)
     );
 }
 
@@ -39,7 +45,9 @@ fn format_limit_offset_with_parameters() {
         r#"--
 select a from t limit :n offset :o
 "#,
-        SqlDialect::Mlang
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true)
     );
 }
 
@@ -51,7 +59,7 @@ fn format_parameter_in_standard_dialect() {
         r#"--
 select a from t where a = :ls
 "#,
-        SqlDialect::Standard
+        SqlFileSource::query()
     );
 }
 
@@ -61,7 +69,9 @@ fn format_parameter_name_colliding_with_a_reserved_keyword() {
         "select a from t where id = :check",
         SqlSyntaxKind::SQL_PARAMETER_EXPRESSION,
         ":check",
-        SqlDialect::Mlang
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true)
     );
 }
 
@@ -71,6 +81,8 @@ fn format_query_with_keyword_named_parameter() {
         r#"--
 select a from t where id = :to
 "#,
-        SqlDialect::Mlang
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true)
     );
 }

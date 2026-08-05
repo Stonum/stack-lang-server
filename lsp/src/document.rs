@@ -33,7 +33,9 @@ pub struct CurrentDocument {
 impl CurrentDocument {
     pub fn new(uri: Url, path: &Path, text: &str) -> Result<CurrentDocument, FileSourceError> {
         if let Ok(file_source) = SqlFileSource::try_from(path) {
-            let file_source = file_source.with_dialect(SqlDialect::Mlang);
+            let file_source = file_source
+                .with_dialect(SqlDialect::Postgres)
+                .with_mlang_extension(true);
             return Ok(CurrentDocument::new_sql(uri, text, file_source));
         }
 

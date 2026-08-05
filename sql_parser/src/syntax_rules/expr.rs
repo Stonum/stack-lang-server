@@ -297,7 +297,7 @@ fn parse_array_expression(p: &mut SqlParser) -> ParsedSyntax {
     // `~` immediately after it can only be the mlang dialect's `~[...]~`
     // bracket escaping -- no lookahead needed to disambiguate, unlike
     // `~name~` or the array-type-suffix case.
-    if p.source_type().is_mlang_dialect() && p.at(T![~]) {
+    if p.source_type().has_mlang_extension() && p.at(T![~]) {
         p.bump(T![~]);
         p.expect(T!['[']);
         SqlExpressionList.parse_list(p);
@@ -471,7 +471,7 @@ fn parse_type_array_suffix(p: &mut SqlParser) -> ParsedSyntax {
 /// `x::int ~ y`), which must not be misread as the start of an array
 /// suffix.
 fn is_at_tilde_array_suffix_start(p: &mut SqlParser) -> bool {
-    if !p.source_type().is_mlang_dialect() || !p.at(T![~]) {
+    if !p.source_type().has_mlang_extension() || !p.at(T![~]) {
         return false;
     }
 
@@ -1208,7 +1208,7 @@ pub(crate) fn is_at_name_start(p: &mut SqlParser) -> bool {
 /// [is_at_tilde_name_start] does: a `[` with no matching `]` ahead must not
 /// count as a bracket-name start.
 pub(crate) fn is_at_bracket_name_start(p: &mut SqlParser) -> bool {
-    if !p.source_type().is_mlang_dialect() || !p.at(T!['[']) {
+    if !p.source_type().has_mlang_extension() || !p.at(T!['[']) {
         return false;
     }
 
@@ -1252,7 +1252,7 @@ pub(crate) fn bump_name_segment(p: &mut SqlParser) {
 /// strength of this check alone would recurse back into themselves without
 /// ever consuming a token, since nothing else stops them from retrying.
 pub(crate) fn is_at_tilde_name_start(p: &mut SqlParser) -> bool {
-    if !p.source_type().is_mlang_dialect() || !p.at(T![~]) {
+    if !p.source_type().has_mlang_extension() || !p.at(T![~]) {
         return false;
     }
 
