@@ -1,7 +1,7 @@
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{parse_column_name_list, parse_name};
+use super::expr::{at_subquery, parse_column_name_list, parse_name, parse_subquery_expression};
 use super::from::parse_table_binding;
 use super::parse_error::*;
 use super::returning_clause::parse_returning_clause;
@@ -38,9 +38,16 @@ pub(crate) fn parse_insert_statement_body(p: &mut PsqlParser, insert_stmt: Marke
     Present(insert_stmt.complete(p, PSQL_INSERT_STATEMENT))
 }
 
-/// The source of the inserted rows: either `VALUES (...), (...), ...` or a
-/// `SELECT` statement (`INSERT INTO t SELECT ...`).
+/// The source of the inserted rows: `VALUES (...), (...), ...`, a `SELECT`
+/// statement (`INSERT INTO t SELECT ...`), or a parenthesized `SELECT`
+/// (`INSERT INTO t (a, b) (SELECT ...)`, real-world confirmed -- redundant
+/// parens around the source, distinct from the unparenthesized `SELECT`
+/// case only in spelling).
 fn parse_insert_source(p: &mut PsqlParser) -> ParsedSyntax {
+    if at_subquery(p) {
+        return parse_subquery_expression(p);
+    }
+
     match p.cur() {
         T![values] => parse_values_clause(p),
         T![select] => parse_select_statement(p),

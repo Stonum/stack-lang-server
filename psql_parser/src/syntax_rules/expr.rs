@@ -932,7 +932,7 @@ fn parse_parenthesized_expression(p: &mut PsqlParser) -> ParsedSyntax {
 /// Checks whether the parser is at `(` immediately followed by `select` or
 /// `with` (a `with`-prefixed subquery, e.g. `(with cte as (...) select ...)`),
 /// i.e. a subquery rather than a plain parenthesized expression or value list.
-fn at_subquery(p: &mut PsqlParser) -> bool {
+pub(crate) fn at_subquery(p: &mut PsqlParser) -> bool {
     p.at(T!['('])
         && p.lookahead(|p| {
             p.bump(T!['(']);
@@ -940,7 +940,7 @@ fn at_subquery(p: &mut PsqlParser) -> bool {
         })
 }
 
-fn parse_subquery_expression(p: &mut PsqlParser) -> ParsedSyntax {
+pub(crate) fn parse_subquery_expression(p: &mut PsqlParser) -> ParsedSyntax {
     if !at_subquery(p) {
         return Absent;
     }

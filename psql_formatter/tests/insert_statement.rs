@@ -79,6 +79,16 @@ on conflict on constraint t_pkey do nothing
 }
 
 #[test]
+fn format_insert_parenthesized_select_source() {
+    assert_fmt!(
+        r#"--
+insert into t (a, b)
+(select a, b from u)
+"#
+    );
+}
+
+#[test]
 fn format_insert_values_wrap_when_too_long() {
     // PsqlExpressionList fill-packs simple values instead of always one per
     // line -- see array_expression.rs's format_array_literal_wraps_when_too_long.

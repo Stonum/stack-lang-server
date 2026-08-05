@@ -378,6 +378,7 @@ PsqlColumnNameList = (PsqlName (',' PsqlName)*)
 AnyPsqlInsertSource =
    PsqlValuesClause
    | PsqlSelectStatement
+   | PsqlSubqueryExpression
 
 // `VALUES (...), (...), ...` -- a standalone multi-row values clause. Used
 // both as `INSERT INTO t VALUES (...), (...)`'s source and, since real

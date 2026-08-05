@@ -80,3 +80,25 @@ fn test_multiple_insert_select_statements() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_insert_parenthesized_select_source() {
+    // Real-world confirmed: redundant parens around the `SELECT` source,
+    // always alongside an explicit column list.
+    let res = parse(
+        "insert into t (a, b) (select a, b from u)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_insert_parenthesized_select_distinct_source() {
+    let res = parse(
+        "insert into t (a, b) (select distinct a, b from u)",
+        PsqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

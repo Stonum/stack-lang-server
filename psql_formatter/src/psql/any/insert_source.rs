@@ -10,6 +10,7 @@ impl FormatRule<AnyPsqlInsertSource> for FormatAnyPsqlInsertSource {
         match node {
             AnyPsqlInsertSource::PsqlSelectStatement(node) => node.format().fmt(f),
             AnyPsqlInsertSource::PsqlValuesClause(node) => node.format().fmt(f),
+            AnyPsqlInsertSource::PsqlSubqueryExpression(node) => node.format().fmt(f),
         }
     }
 }

@@ -6839,12 +6839,19 @@ impl AnyPsqlInSource {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlInsertSource {
     PsqlSelectStatement(PsqlSelectStatement),
+    PsqlSubqueryExpression(PsqlSubqueryExpression),
     PsqlValuesClause(PsqlValuesClause),
 }
 impl AnyPsqlInsertSource {
     pub fn as_psql_select_statement(&self) -> Option<&PsqlSelectStatement> {
         match &self {
             Self::PsqlSelectStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_subquery_expression(&self) -> Option<&PsqlSubqueryExpression> {
+        match &self {
+            Self::PsqlSubqueryExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -15460,6 +15467,11 @@ impl From<PsqlSelectStatement> for AnyPsqlInsertSource {
         Self::PsqlSelectStatement(node)
     }
 }
+impl From<PsqlSubqueryExpression> for AnyPsqlInsertSource {
+    fn from(node: PsqlSubqueryExpression) -> Self {
+        Self::PsqlSubqueryExpression(node)
+    }
+}
 impl From<PsqlValuesClause> for AnyPsqlInsertSource {
     fn from(node: PsqlValuesClause) -> Self {
         Self::PsqlValuesClause(node)
@@ -15467,14 +15479,21 @@ impl From<PsqlValuesClause> for AnyPsqlInsertSource {
 }
 impl AstNode for AnyPsqlInsertSource {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        PsqlSelectStatement::KIND_SET.union(PsqlValuesClause::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = PsqlSelectStatement::KIND_SET
+        .union(PsqlSubqueryExpression::KIND_SET)
+        .union(PsqlValuesClause::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, PSQL_SELECT_STATEMENT | PSQL_VALUES_CLAUSE)
+        matches!(
+            kind,
+            PSQL_SELECT_STATEMENT | PSQL_SUBQUERY_EXPRESSION | PSQL_VALUES_CLAUSE
+        )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             PSQL_SELECT_STATEMENT => Self::PsqlSelectStatement(PsqlSelectStatement { syntax }),
+            PSQL_SUBQUERY_EXPRESSION => {
+                Self::PsqlSubqueryExpression(PsqlSubqueryExpression { syntax })
+            }
             PSQL_VALUES_CLAUSE => Self::PsqlValuesClause(PsqlValuesClause { syntax }),
             _ => return None,
         };
@@ -15483,12 +15502,14 @@ impl AstNode for AnyPsqlInsertSource {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::PsqlSelectStatement(it) => &it.syntax,
+            Self::PsqlSubqueryExpression(it) => &it.syntax,
             Self::PsqlValuesClause(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::PsqlSelectStatement(it) => it.syntax,
+            Self::PsqlSubqueryExpression(it) => it.syntax,
             Self::PsqlValuesClause(it) => it.syntax,
         }
     }
@@ -15497,6 +15518,7 @@ impl std::fmt::Debug for AnyPsqlInsertSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PsqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlValuesClause(it) => std::fmt::Debug::fmt(it, f),
         }
     }
@@ -15505,6 +15527,7 @@ impl From<AnyPsqlInsertSource> for SyntaxNode {
     fn from(n: AnyPsqlInsertSource) -> Self {
         match n {
             AnyPsqlInsertSource::PsqlSelectStatement(it) => it.into(),
+            AnyPsqlInsertSource::PsqlSubqueryExpression(it) => it.into(),
             AnyPsqlInsertSource::PsqlValuesClause(it) => it.into(),
         }
     }
