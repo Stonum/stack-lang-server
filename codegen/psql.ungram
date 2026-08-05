@@ -113,6 +113,7 @@ PsqlStatementList = AnyPsqlStatement*
 
 AnyPsqlStatement =
    PsqlSelectStatement
+   | PsqlValuesClause
    | PsqlInsertStatement
    | PsqlDeleteStatement
    | PsqlUpdateStatement
@@ -286,9 +287,16 @@ PsqlParenthesizedJoinBinding =
 PsqlSubqueryBinding =
    'lateral'?
    '('
-   query: PsqlSelectStatement
+   query: AnyPsqlSubqueryBody
    ')'
    alias: PsqlAlias?
+
+// A subquery's body -- ordinarily a `SELECT`, but real Postgres also
+// allows a bare `VALUES (...), (...)` wherever a subquery/derived table is
+// expected (e.g. `FROM (VALUES (1, 2), (3, 4)) AS v(a, b)`).
+AnyPsqlSubqueryBody =
+   PsqlSelectStatement
+   | PsqlValuesClause
 
 PsqlWhereClause =
    'where'
@@ -368,11 +376,24 @@ PsqlColumnList =
 PsqlColumnNameList = (PsqlName (',' PsqlName)*)
 
 AnyPsqlInsertSource =
-   PsqlInsertValues 
+   PsqlValuesClause
    | PsqlSelectStatement
 
-PsqlInsertValues =
+// `VALUES (...), (...), ...` -- a standalone multi-row values clause. Used
+// both as `INSERT INTO t VALUES (...), (...)`'s source and, since real
+// Postgres allows it wherever a `SELECT` can appear (a subquery/derived
+// table, a CTE body, or a bare top-level statement), unioned into
+// [AnyPsqlStatement] and [AnyPsqlSubqueryBody] too rather than modeled as
+// an insert-only node.
+PsqlValuesClause =
+   with_clause: PsqlWithClause?
    'values'
+   rows: PsqlValuesRowList
+   ';'?
+
+PsqlValuesRowList = (PsqlValuesRow (',' PsqlValuesRow)*)
+
+PsqlValuesRow =
    '('
    items: PsqlExpressionList
    ')'
@@ -1024,7 +1045,7 @@ PsqlTildeArraySuffix =
 
 PsqlSubqueryExpression =
    '('
-   query: PsqlSelectStatement
+   query: AnyPsqlSubqueryBody
    ')'
 
 PsqlUnaryExpression =

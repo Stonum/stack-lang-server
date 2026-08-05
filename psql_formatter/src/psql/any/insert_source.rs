@@ -8,8 +8,8 @@ impl FormatRule<AnyPsqlInsertSource> for FormatAnyPsqlInsertSource {
     type Context = PsqlFormatContext;
     fn fmt(&self, node: &AnyPsqlInsertSource, f: &mut PsqlFormatter) -> FormatResult<()> {
         match node {
-            AnyPsqlInsertSource::PsqlInsertValues(node) => node.format().fmt(f),
             AnyPsqlInsertSource::PsqlSelectStatement(node) => node.format().fmt(f),
+            AnyPsqlInsertSource::PsqlValuesClause(node) => node.format().fmt(f),
         }
     }
 }

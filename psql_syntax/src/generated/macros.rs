@@ -237,10 +237,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlInsertStatement::new_unchecked(node) };
                     $body
                 }
-                $crate::PsqlSyntaxKind::PSQL_INSERT_VALUES => {
-                    let $pattern = unsafe { $crate::PsqlInsertValues::new_unchecked(node) };
-                    $body
-                }
                 $crate::PsqlSyntaxKind::PSQL_INTERVAL_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlIntervalExpression::new_unchecked(node) };
                     $body
@@ -531,6 +527,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlUpdateStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::PsqlSyntaxKind::PSQL_VALUES_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlValuesClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_VALUES_ROW => {
+                    let $pattern = unsafe { $crate::PsqlValuesRow::new_unchecked(node) };
+                    $body
+                }
                 $crate::PsqlSyntaxKind::PSQL_VARYING_MODIFIER => {
                     let $pattern = unsafe { $crate::PsqlVaryingModifier::new_unchecked(node) };
                     $body
@@ -692,6 +696,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::PsqlSyntaxKind::PSQL_TYPE_NAME_LIST => {
                     let $pattern = unsafe { $crate::PsqlTypeNameList::new_unchecked(node) };
+                    $body
+                }
+                $crate::PsqlSyntaxKind::PSQL_VALUES_ROW_LIST => {
+                    let $pattern = unsafe { $crate::PsqlValuesRowList::new_unchecked(node) };
                     $body
                 }
                 $crate::PsqlSyntaxKind::PSQL_VIEW_OPTION_LIST => {

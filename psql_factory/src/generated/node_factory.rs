@@ -1707,22 +1707,6 @@ impl PsqlInsertStatementBuilder {
         ))
     }
 }
-pub fn psql_insert_values(
-    values_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    items: PsqlExpressionList,
-    r_paren_token: SyntaxToken,
-) -> PsqlInsertValues {
-    PsqlInsertValues::unwrap_cast(SyntaxNode::new_detached(
-        PsqlSyntaxKind::PSQL_INSERT_VALUES,
-        [
-            Some(SyntaxElement::Token(values_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
 pub fn psql_interval_expression(
     interval_token: SyntaxToken,
     value: PsqlStringLiteralExpression,
@@ -2612,7 +2596,7 @@ pub fn psql_string_literal_expression(value_token: SyntaxToken) -> PsqlStringLit
 }
 pub fn psql_subquery_binding(
     l_paren_token: SyntaxToken,
-    query: PsqlSelectStatement,
+    query: AnyPsqlSubqueryBody,
     r_paren_token: SyntaxToken,
 ) -> PsqlSubqueryBindingBuilder {
     PsqlSubqueryBindingBuilder {
@@ -2625,7 +2609,7 @@ pub fn psql_subquery_binding(
 }
 pub struct PsqlSubqueryBindingBuilder {
     l_paren_token: SyntaxToken,
-    query: PsqlSelectStatement,
+    query: AnyPsqlSubqueryBody,
     r_paren_token: SyntaxToken,
     lateral_token: Option<SyntaxToken>,
     alias: Option<PsqlAlias>,
@@ -2655,7 +2639,7 @@ impl PsqlSubqueryBindingBuilder {
 }
 pub fn psql_subquery_expression(
     l_paren_token: SyntaxToken,
-    query: PsqlSelectStatement,
+    query: AnyPsqlSubqueryBody,
     r_paren_token: SyntaxToken,
 ) -> PsqlSubqueryExpression {
     PsqlSubqueryExpression::unwrap_cast(SyntaxNode::new_detached(
@@ -3131,6 +3115,60 @@ impl PsqlUpdateStatementBuilder {
             ],
         ))
     }
+}
+pub fn psql_values_clause(
+    values_token: SyntaxToken,
+    rows: PsqlValuesRowList,
+) -> PsqlValuesClauseBuilder {
+    PsqlValuesClauseBuilder {
+        values_token,
+        rows,
+        with_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlValuesClauseBuilder {
+    values_token: SyntaxToken,
+    rows: PsqlValuesRowList,
+    with_clause: Option<PsqlWithClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlValuesClauseBuilder {
+    pub fn with_with_clause(mut self, with_clause: PsqlWithClause) -> Self {
+        self.with_clause = Some(with_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlValuesClause {
+        PsqlValuesClause::unwrap_cast(SyntaxNode::new_detached(
+            PsqlSyntaxKind::PSQL_VALUES_CLAUSE,
+            [
+                self.with_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.values_token)),
+                Some(SyntaxElement::Node(self.rows.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_values_row(
+    l_paren_token: SyntaxToken,
+    items: PsqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlValuesRow {
+    PsqlValuesRow::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VALUES_ROW,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
 }
 pub fn psql_varying_modifier(varying_token: SyntaxToken) -> PsqlVaryingModifier {
     PsqlVaryingModifier::unwrap_cast(SyntaxNode::new_detached(
@@ -3701,6 +3739,27 @@ where
     let length = items.len() + separators.len();
     PsqlTypeNameList::unwrap_cast(SyntaxNode::new_detached(
         PsqlSyntaxKind::PSQL_TYPE_NAME_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_values_row_list<I, S>(items: I, separators: S) -> PsqlValuesRowList
+where
+    I: IntoIterator<Item = PsqlValuesRow>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = PsqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlValuesRowList::unwrap_cast(SyntaxNode::new_detached(
+        PsqlSyntaxKind::PSQL_VALUES_ROW_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

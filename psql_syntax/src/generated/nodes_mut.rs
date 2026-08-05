@@ -1597,32 +1597,6 @@ impl PsqlInsertStatement {
         )
     }
 }
-impl PsqlInsertValues {
-    pub fn with_values_token(self, element: SyntaxToken) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(0usize..=0usize, once(Some(element.into()))),
-        )
-    }
-    pub fn with_l_paren_token(self, element: SyntaxToken) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(1usize..=1usize, once(Some(element.into()))),
-        )
-    }
-    pub fn with_items(self, element: PsqlExpressionList) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
-        )
-    }
-    pub fn with_r_paren_token(self, element: SyntaxToken) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(3usize..=3usize, once(Some(element.into()))),
-        )
-    }
-}
 impl PsqlIntervalExpression {
     pub fn with_interval_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -2488,7 +2462,7 @@ impl PsqlSubqueryBinding {
                 .splice_slots(1usize..=1usize, once(Some(element.into()))),
         )
     }
-    pub fn with_query(self, element: PsqlSelectStatement) -> Self {
+    pub fn with_query(self, element: AnyPsqlSubqueryBody) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
@@ -2514,7 +2488,7 @@ impl PsqlSubqueryExpression {
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
-    pub fn with_query(self, element: PsqlSelectStatement) -> Self {
+    pub fn with_query(self, element: AnyPsqlSubqueryBody) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
@@ -3008,6 +2982,52 @@ impl PsqlUpdateStatement {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(7usize..=7usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
+impl PsqlValuesClause {
+    pub fn with_with_clause(self, element: Option<PsqlWithClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            0usize..=0usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_values_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_rows(self, element: PsqlValuesRowList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
+impl PsqlValuesRow {
+    pub fn with_l_paren_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_items(self, element: PsqlExpressionList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_r_paren_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
         )
     }
 }

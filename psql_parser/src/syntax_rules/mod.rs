@@ -9,5 +9,6 @@ mod returning_clause;
 mod select;
 mod stmt;
 mod update;
+mod values;
 mod where_clause;
 mod with_clause;

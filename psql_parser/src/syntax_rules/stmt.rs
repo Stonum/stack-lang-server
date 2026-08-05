@@ -9,6 +9,7 @@ use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
 use super::select::{parse_select_statement, parse_select_statement_body};
 use super::update::{parse_update_statement, parse_update_statement_body};
+use super::values::{parse_values_clause, parse_values_clause_body};
 use super::with_clause::parse_with_clause;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
@@ -22,6 +23,7 @@ pub const STMT_RECOVERY_SET: TokenSet<PsqlSyntaxKind> = token_set![
     T![;],
     T![with],
     T![select],
+    T![values],
     T![delete],
     T![update],
     T![insert],
@@ -71,6 +73,7 @@ pub(crate) fn parse_statement(p: &mut PsqlParser) -> ParsedSyntax {
 
     match p.cur() {
         T![select] => parse_select_statement(p),
+        T![values] => parse_values_clause(p),
         T![delete] => parse_delete_statement(p),
         T![update] => parse_update_statement(p),
         T![insert] => parse_insert_statement(p),
@@ -91,6 +94,7 @@ fn parse_with_prefixed_statement(p: &mut PsqlParser) -> ParsedSyntax {
 
     match p.cur() {
         T![select] => parse_select_statement_body(p, m),
+        T![values] => parse_values_clause_body(p, m),
         T![insert] => parse_insert_statement_body(p, m),
         T![update] => parse_update_statement_body(p, m),
         T![delete] => parse_delete_statement_body(p, m),
@@ -98,7 +102,7 @@ fn parse_with_prefixed_statement(p: &mut PsqlParser) -> ParsedSyntax {
             let range = p.cur_range();
             let err = p
                 .err_builder(
-                    "Expected `select`, `insert`, `update` or `delete` after a `with` clause",
+                    "Expected `select`, `values`, `insert`, `update` or `delete` after a `with` clause",
                     range,
                 )
                 .with_hint("A `with` clause must be followed by a statement");

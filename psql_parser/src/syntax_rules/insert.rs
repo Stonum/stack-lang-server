@@ -1,13 +1,13 @@
-use biome_parser::parse_lists::ParseSeparatedList;
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{PsqlExpressionList, parse_column_name_list, parse_name};
+use super::expr::{parse_column_name_list, parse_name};
 use super::from::parse_table_binding;
 use super::parse_error::*;
 use super::returning_clause::parse_returning_clause;
 use super::select::parse_select_statement;
 use super::update::parse_set_clause;
+use super::values::parse_values_clause;
 use super::where_clause::parse_where_clause;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T};
@@ -38,27 +38,14 @@ pub(crate) fn parse_insert_statement_body(p: &mut PsqlParser, insert_stmt: Marke
     Present(insert_stmt.complete(p, PSQL_INSERT_STATEMENT))
 }
 
-/// The source of the inserted rows: either `VALUES (...)` or a `SELECT`
-/// statement (`INSERT INTO t SELECT ...`).
+/// The source of the inserted rows: either `VALUES (...), (...), ...` or a
+/// `SELECT` statement (`INSERT INTO t SELECT ...`).
 fn parse_insert_source(p: &mut PsqlParser) -> ParsedSyntax {
     match p.cur() {
-        T![values] => parse_insert_values(p),
+        T![values] => parse_values_clause(p),
         T![select] => parse_select_statement(p),
         _ => Absent,
     }
-}
-
-fn parse_insert_values(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![values]) {
-        return Absent;
-    }
-
-    let m = p.start();
-    p.bump(T![values]);
-    p.expect(T!['(']);
-    PsqlExpressionList.parse_list(p);
-    p.expect(T![')']);
-    Present(m.complete(p, PSQL_INSERT_VALUES))
 }
 
 /// `ON CONFLICT [target] DO NOTHING | DO UPDATE SET ... [WHERE ...]`,

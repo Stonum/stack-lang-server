@@ -936,7 +936,7 @@ fn at_subquery(p: &mut PsqlParser) -> bool {
     p.at(T!['('])
         && p.lookahead(|p| {
             p.bump(T!['(']);
-            p.at(T![select]) || p.at(T![with])
+            p.at(T![select]) || p.at(T![with]) || p.at(T![values])
         })
 }
 

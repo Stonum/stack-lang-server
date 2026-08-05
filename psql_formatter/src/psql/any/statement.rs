@@ -25,6 +25,7 @@ impl FormatRule<AnyPsqlStatement> for FormatAnyPsqlStatement {
             AnyPsqlStatement::PsqlInsertStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlSelectStatement(node) => node.format().fmt(f),
             AnyPsqlStatement::PsqlUpdateStatement(node) => node.format().fmt(f),
+            AnyPsqlStatement::PsqlValuesClause(node) => node.format().fmt(f),
         }
     }
 }

@@ -244,7 +244,9 @@ pub enum PsqlSyntaxKind {
     PSQL_INSERT_STATEMENT,
     PSQL_COLUMN_LIST,
     PSQL_COLUMN_NAME_LIST,
-    PSQL_INSERT_VALUES,
+    PSQL_VALUES_CLAUSE,
+    PSQL_VALUES_ROW_LIST,
+    PSQL_VALUES_ROW,
     PSQL_ON_CONFLICT_CLAUSE,
     PSQL_ON_CONSTRAINT_CLAUSE,
     PSQL_DO_NOTHING_CLAUSE,
@@ -441,6 +443,7 @@ impl PsqlSyntaxKind {
                 | PSQL_ORDER_BY_EXPRESSION_LIST
                 | PSQL_COLUMN_LIST
                 | PSQL_COLUMN_NAME_LIST
+                | PSQL_VALUES_ROW_LIST
                 | PSQL_SET_ITEM_LIST
                 | PSQL_TYPE_NAME_LIST
                 | PSQL_TABLE_NAME_LIST

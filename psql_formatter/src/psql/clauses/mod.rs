@@ -35,6 +35,7 @@ pub(crate) mod trigger_referencing_clause;
 pub(crate) mod trigger_update_of_clause;
 pub(crate) mod trigger_when_clause;
 pub(crate) mod update_from_clause;
+pub(crate) mod values_clause;
 pub(crate) mod where_clause;
 pub(crate) mod window_partition_by_clause;
 pub(crate) mod with_clause;

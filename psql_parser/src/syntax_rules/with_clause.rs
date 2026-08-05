@@ -7,6 +7,7 @@ use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, p
 use super::parse_error::*;
 use super::select::parse_select_statement_body;
 use super::stmt::parse_statement;
+use super::values::parse_values_clause_body;
 use crate::PsqlParser;
 use psql_syntax::{PsqlSyntaxKind::*, T, *};
 
@@ -24,15 +25,20 @@ pub(crate) fn parse_with_clause(p: &mut PsqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_WITH_CLAUSE))
 }
 
-/// A `select` statement with an optional leading `with` clause, e.g. the
-/// contents of a subquery `(...)`. Unlike a top-level statement (which can
-/// dispatch to `select`/`insert`/`update`/`delete` after `with`), a
-/// subquery's body can only ever be a `select`, so no dispatch is needed
-/// here -- but parsing `with` still can't live inside `select.rs` itself,
-/// same as the top-level case in `stmt.rs`.
+/// A `select` or `values` body with an optional leading `with` clause,
+/// e.g. the contents of a subquery `(...)`. Unlike a top-level statement
+/// (which can dispatch to `select`/`values`/`insert`/`update`/`delete`
+/// after `with`), a subquery's body can only ever be a `select` or a bare
+/// `values (...), (...)` (real Postgres allows a `VALUES` list wherever a
+/// derived table is expected, e.g. `FROM (VALUES (1, 2), (3, 4)) AS
+/// v(a, b)`) -- but parsing `with` still can't live inside `select.rs`
+/// itself, same as the top-level case in `stmt.rs`.
 pub(crate) fn parse_with_prefixed_select_statement(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     let _ = parse_with_clause(p);
+    if p.at(T![values]) {
+        return parse_values_clause_body(p, m);
+    }
     parse_select_statement_body(p, m)
 }
 
@@ -52,7 +58,12 @@ impl ParseSeparatedList for PsqlCteDefinitionList {
         // separator (before it's consumed), so it must recognize the
         // statement keywords that follow the whole `with` clause rather
         // than "not at an identifier" (which would misfire on `,`).
-        p.at(EOF) || p.at(T![select]) || p.at(T![insert]) || p.at(T![update]) || p.at(T![delete])
+        p.at(EOF)
+            || p.at(T![select])
+            || p.at(T![values])
+            || p.at(T![insert])
+            || p.at(T![update])
+            || p.at(T![delete])
     }
 
     fn recover(

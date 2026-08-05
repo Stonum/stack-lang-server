@@ -1910,40 +1910,6 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlInsertStatement {
         )
     }
 }
-impl FormatRule<psql_syntax::PsqlInsertValues>
-    for crate::psql::auxiliary::insert_values::FormatPsqlInsertValues
-{
-    type Context = PsqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &psql_syntax::PsqlInsertValues, f: &mut PsqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<psql_syntax::PsqlInsertValues>::fmt(self, node, f)
-    }
-}
-impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlInsertValues {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        psql_syntax::PsqlInsertValues,
-        crate::psql::auxiliary::insert_values::FormatPsqlInsertValues,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::psql::auxiliary::insert_values::FormatPsqlInsertValues::default(),
-        )
-    }
-}
-impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlInsertValues {
-    type Format = FormatOwnedWithRule<
-        psql_syntax::PsqlInsertValues,
-        crate::psql::auxiliary::insert_values::FormatPsqlInsertValues,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::psql::auxiliary::insert_values::FormatPsqlInsertValues::default(),
-        )
-    }
-}
 impl FormatRule<psql_syntax::PsqlIntervalExpression>
     for crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression
 {
@@ -4449,6 +4415,74 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlUpdateStatement {
         )
     }
 }
+impl FormatRule<psql_syntax::PsqlValuesClause>
+    for crate::psql::clauses::values_clause::FormatPsqlValuesClause
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlValuesClause, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlValuesClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlValuesClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlValuesClause,
+        crate::psql::clauses::values_clause::FormatPsqlValuesClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::values_clause::FormatPsqlValuesClause::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlValuesClause {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlValuesClause,
+        crate::psql::clauses::values_clause::FormatPsqlValuesClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::values_clause::FormatPsqlValuesClause::default(),
+        )
+    }
+}
+impl FormatRule<psql_syntax::PsqlValuesRow>
+    for crate::psql::auxiliary::values_row::FormatPsqlValuesRow
+{
+    type Context = PsqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &psql_syntax::PsqlValuesRow, f: &mut PsqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<psql_syntax::PsqlValuesRow>::fmt(self, node, f)
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlValuesRow {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlValuesRow,
+        crate::psql::auxiliary::values_row::FormatPsqlValuesRow,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::values_row::FormatPsqlValuesRow::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlValuesRow {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlValuesRow,
+        crate::psql::auxiliary::values_row::FormatPsqlValuesRow,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::values_row::FormatPsqlValuesRow::default(),
+        )
+    }
+}
 impl FormatRule<psql_syntax::PsqlVaryingModifier>
     for crate::psql::auxiliary::varying_modifier::FormatPsqlVaryingModifier
 {
@@ -5322,6 +5356,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlTypeNameList {
         )
     }
 }
+impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlValuesRowList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::PsqlValuesRowList,
+        crate::psql::lists::values_row_list::FormatPsqlValuesRowList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::values_row_list::FormatPsqlValuesRowList::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::PsqlValuesRowList {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::PsqlValuesRowList,
+        crate::psql::lists::values_row_list::FormatPsqlValuesRowList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::values_row_list::FormatPsqlValuesRowList::default(),
+        )
+    }
+}
 impl AsFormat<PsqlFormatContext> for psql_syntax::PsqlViewOptionList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -5993,6 +6052,31 @@ impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::statement::FormatAnyPsqlStatement::default(),
+        )
+    }
+}
+impl AsFormat<PsqlFormatContext> for psql_syntax::AnyPsqlSubqueryBody {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        psql_syntax::AnyPsqlSubqueryBody,
+        crate::psql::any::subquery_body::FormatAnyPsqlSubqueryBody,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::subquery_body::FormatAnyPsqlSubqueryBody::default(),
+        )
+    }
+}
+impl IntoFormat<PsqlFormatContext> for psql_syntax::AnyPsqlSubqueryBody {
+    type Format = FormatOwnedWithRule<
+        psql_syntax::AnyPsqlSubqueryBody,
+        crate::psql::any::subquery_body::FormatAnyPsqlSubqueryBody,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::subquery_body::FormatAnyPsqlSubqueryBody::default(),
         )
     }
 }

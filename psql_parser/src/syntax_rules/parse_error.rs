@@ -61,3 +61,7 @@ pub fn expected_string_literal(p: &PsqlParser, range: TextRange) -> ParseDiagnos
 pub fn expected_column_list(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("column list", range, p)
 }
+
+pub fn expected_values_row(p: &PsqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("values row (...)", range, p)
+}
