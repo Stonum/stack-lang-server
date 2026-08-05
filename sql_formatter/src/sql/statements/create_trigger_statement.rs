@@ -1,0 +1,94 @@
+use crate::prelude::*;
+use biome_formatter::write;
+use sql_syntax::SqlCreateTriggerStatement;
+use sql_syntax::SqlCreateTriggerStatementFields;
+#[derive(Debug, Clone, Default)]
+pub(crate) struct FormatSqlCreateTriggerStatement;
+impl FormatNodeRule<SqlCreateTriggerStatement> for FormatSqlCreateTriggerStatement {
+    fn fmt_fields(
+        &self,
+        node: &SqlCreateTriggerStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        let SqlCreateTriggerStatementFields {
+            create_token,
+            trigger_token,
+            name,
+            timing,
+            events,
+            on_token,
+            table,
+            referencing_clause,
+            for_each_clause,
+            when_clause,
+            execute_token,
+            function_kind,
+            function,
+            semicolon_token,
+        } = node.as_fields();
+
+        write!(
+            f,
+            [
+                create_token.format(),
+                space(),
+                trigger_token.format(),
+                space(),
+                name.format(),
+                space(),
+                timing.format(),
+                space(),
+                events.format(),
+            ]
+        )?;
+
+        // `on table [referencing ...] [for each ...] [when (...)] execute
+        // ... name(...)` all wrapped in one group, each present clause
+        // joined by `soft_line_break_or_space` -- a short header collapses
+        // onto a single line (matching most real scripts), while a long
+        // `execute function(...)` argument list (which forces this group to
+        // expand) puts each clause on its own line instead of collapsing
+        // onto whatever's left of the previous line, the way a flat,
+        // ungrouped `write!` chain would. Same shape as
+        // `write_select_body_clauses`.
+        write!(
+            f,
+            [group(&format_with(|f: &mut SqlFormatter| {
+                write!(
+                    f,
+                    [
+                        soft_line_break_or_space(),
+                        on_token.format(),
+                        space(),
+                        table.format()
+                    ]
+                )?;
+                if let Some(referencing_clause) = &referencing_clause {
+                    write!(f, [soft_line_break_or_space(), referencing_clause.format()])?;
+                }
+                if let Some(for_each_clause) = &for_each_clause {
+                    write!(f, [soft_line_break_or_space(), for_each_clause.format()])?;
+                }
+                if let Some(when_clause) = &when_clause {
+                    write!(f, [soft_line_break_or_space(), when_clause.format()])?;
+                }
+                write!(
+                    f,
+                    [
+                        soft_line_break_or_space(),
+                        execute_token.format(),
+                        space(),
+                        function_kind.format(),
+                        space(),
+                        function.format(),
+                    ]
+                )
+            }))]
+        )?;
+
+        if let Some(semicolon_token) = semicolon_token {
+            write!(f, [semicolon_token.format()])?;
+        }
+        Ok(())
+    }
+}

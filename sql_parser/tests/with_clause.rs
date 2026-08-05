@@ -1,0 +1,200 @@
+#[macro_use]
+mod helper;
+
+use sql_parser::parse;
+use sql_syntax::SqlFileSource;
+
+#[test]
+fn test_with_select() {
+    let res = parse(
+        "with cte as (select a from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_cte_named_after_type_keyword() {
+    // Same `full`-class collision, for a CTE name. The CTE is deliberately
+    // not referenced by name afterwards -- unlike *defining* a name,
+    // *referencing* one in a `from` clause doesn't accept a bare type
+    // keyword yet (`parse_table_binding` has its own, narrower, unwidened
+    // gate), so `from date` would fail for an unrelated reason.
+    let res = parse(
+        "with date as (select a from t) select a from other_table",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_recursive() {
+    let res = parse(
+        "with recursive cte as (select a from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_column_list() {
+    let res = parse(
+        "with cte (a, b) as (select a, b from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_multiple_ctes() {
+    let res = parse(
+        "with cte1 as (select a from t), cte2 as (select b from u) select a from cte1 join cte2 on cte1.a = cte2.b",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_insert() {
+    let res = parse(
+        "with cte as (select a from t) insert into u select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_update() {
+    let res = parse(
+        "with cte as (select id from t) update u set a = 1 where u.id in (select id from cte)",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_delete() {
+    let res = parse(
+        "with cte as (select id from t) delete from u where u.id in (select id from cte)",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_trailing_semicolon() {
+    let res = parse(
+        "with cte as (select a from t) select a from cte;",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_multiple_with_statements() {
+    let res = parse(
+        "with cte as (select a from t) select a from cte; with cte2 as (select b from u) select b from cte2;",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_data_modifying_cte_insert() {
+    let res = parse(
+        "with moved as (insert into archive select * from t returning id) select id from moved",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_data_modifying_cte_update() {
+    let res = parse(
+        "with updated as (update t set a = 1 where id = 1 returning id) select id from updated",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_data_modifying_cte_delete() {
+    let res = parse(
+        "with deleted as (delete from t where id = 1 returning id) select id from deleted",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_inside_subquery_in_from() {
+    let res = parse(
+        "select a from (with cte as (select a from t) select a from cte) as sub",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_inside_subquery_in_expression() {
+    let res = parse(
+        "select a from t where a in (with cte as (select id from u) select id from cte)",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_inside_subquery_scalar() {
+    let res = parse(
+        "select (with cte as (select count(*) as c from t) select c from cte) as total",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_cte_materialized_hint() {
+    let res = parse(
+        "with cte as materialized (select a from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_cte_not_materialized_hint() {
+    let res = parse(
+        "with cte as not materialized (select a from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_with_multiple_ctes_mixed_materialized_hints() {
+    let res = parse(
+        "with cte1 as materialized (select a from t), cte2 as not materialized (select b from u), cte3 as (select c from v) select a from cte1 join cte2 on cte1.a = cte2.b join cte3 on cte2.b = cte3.c",
+        SqlFileSource::script(),
+    );
+
+    assert_parser!(res);
+}

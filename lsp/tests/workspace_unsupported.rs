@@ -1,4 +1,4 @@
-//! Files whose extension isn't recognized as either mlang or psql (e.g. a
+//! Files whose extension isn't recognized as either mlang or sql (e.g. a
 //! plain `.txt`, or no extension at all). The extension is the *only*
 //! thing `CurrentDocument::new` needs to route a document, so these must
 //! fail cleanly with a `WorkspaceError` -- never panic -- both when opening

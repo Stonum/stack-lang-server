@@ -184,7 +184,7 @@ impl<'token> LiteralStringNormaliser<'token> {
 /// `LiteralStringNormaliser` doesn't decode escapes either, it only
 /// normalises `\r\n`/`\r` line endings) string content as embedded SQL
 /// (mlang dialect, so `~table~`/`#temp`/`:param` are understood) and
-/// reformat it with `psql_formatter`.
+/// reformat it with `sql_formatter`.
 ///
 /// Returns `None` if the content doesn't parse cleanly, in which case the
 /// caller must leave the string exactly as written. This is a deliberate
@@ -195,8 +195,8 @@ pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> O
     let content = token.text_trimmed();
     let raw_content = content.get(1..content.len().saturating_sub(1))?;
 
-    let syntax = psql_syntax::PsqlFileSource::query().with_dialect(psql_syntax::PsqlDialect::Mlang);
-    let parsed = psql_parser::parse(raw_content, syntax);
+    let syntax = sql_syntax::SqlFileSource::query().with_dialect(sql_syntax::SqlDialect::Mlang);
+    let parsed = sql_parser::parse(raw_content, syntax);
     if parsed.has_errors() {
         return None;
     }
@@ -204,11 +204,11 @@ pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> O
     // Match the embedded query's own indentation to the surrounding mlang
     // code's style/width, since the resulting lines get spliced in as raw
     // text (see `format_reformatted_multi_line_query`) -- a mismatch would
-    // otherwise mix, say, mlang's spaces with psql_formatter's default tabs.
-    let options = psql_formatter::PsqlFormatOptions::new(syntax)
+    // otherwise mix, say, mlang's spaces with sql_formatter's default tabs.
+    let options = sql_formatter::SqlFormatOptions::new(syntax)
         .with_indent_style(f.options().indent_style())
         .with_indent_width(f.options().indent_width());
-    let formatted = psql_formatter::format_node(options, &parsed.syntax()).ok()?;
+    let formatted = sql_formatter::format_node(options, &parsed.syntax()).ok()?;
     let printed = formatted.print().ok()?;
 
     Some(printed.as_code().trim_end().to_string())
@@ -305,7 +305,7 @@ impl<'token> FormatSqlStringToken<'token> {
         )
     }
 
-    /// Splices freshly `psql_formatter`-formatted SQL text in as this
+    /// Splices freshly `sql_formatter`-formatted SQL text in as this
     /// token's new content, using `preferred_quote` -- the token's own
     /// original delimiter (`` ` `` or `"`; mlang lexes both identically,
     /// including support for literal embedded newlines, so there's no
@@ -315,7 +315,7 @@ impl<'token> FormatSqlStringToken<'token> {
     /// -- the per-line block-indent-vs-dedent branching there exists to
     /// approximate the *original* author's own indentation style when
     /// reproducing raw content close to verbatim, which doesn't apply here
-    /// since `psql_formatter`'s own output is already internally consistent.
+    /// since `sql_formatter`'s own output is already internally consistent.
     fn format_reformatted_multi_line_query(
         &self,
         formatted_sql: String,
@@ -403,7 +403,7 @@ impl Format<MFormatContext> for FormatSqlStringToken<'_> {
         if let Some(formatted_sql) = try_format_embedded_sql(self.token(), f) {
             // Reformatting can introduce `"`-quoted identifiers (e.g. an
             // mlang `[bracket]` identifier canonicalized by
-            // `psql_formatter` to Postgres's own `"..."` spelling) that
+            // `sql_formatter` to Postgres's own `"..."` spelling) that
             // would otherwise have to be escaped to fit inside a
             // `"`-delimited mlang string. Since mlang's `` ` `` and `"`
             // delimiters are interchangeable (see `quote_as_static_str`'s

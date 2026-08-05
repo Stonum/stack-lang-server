@@ -1,7 +1,7 @@
 //! Shared helpers for `Workspace` end-to-end tests. Named `common/mod.rs`
 //! (not a bare `tests/common.rs`) so Cargo doesn't pick it up as its own
 //! standalone test binary -- same convention already used for
-//! `psql_parser`/`mlang_formatter`'s own `tests/helper/mod.rs`.
+//! `sql_parser`/`mlang_formatter`'s own `tests/helper/mod.rs`.
 //!
 //! Each `tests/*.rs` file compiles `mod common;` as its own separate crate,
 //! so a helper unused by one particular test file (but used by others)

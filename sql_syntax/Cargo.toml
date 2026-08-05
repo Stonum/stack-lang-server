@@ -1,0 +1,12 @@
+[package]
+name = "sql_syntax"
+version = "0.0.1"
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+biome_rowan ={ workspace = true }
+
+[dev-dependencies]
+sql_parser = { workspace = true }

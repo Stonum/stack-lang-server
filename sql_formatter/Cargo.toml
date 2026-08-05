@@ -1,0 +1,16 @@
+[package]
+name = "sql_formatter"
+version = "0.0.1"
+edition.workspace = true
+
+[dependencies]
+sql_syntax = { workspace = true }
+sql_factory = { workspace = true }
+
+serde = { workspace = true }
+biome_rowan = { workspace = true }
+biome_formatter = { workspace = true }
+biome_unicode_table = { workspace = true }
+
+[dev-dependencies]
+sql_parser = { workspace = true }

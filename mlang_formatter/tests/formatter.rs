@@ -63,7 +63,7 @@ switch(val)
 fn format_query_like_expressions() {
     // The embedded SQL inside `Query`/`Command`/etc.'s first string
     // argument is now actually parsed and reformatted with
-    // `psql_formatter` (mlang dialect) instead of left byte-for-byte as
+    // `sql_formatter` (mlang dialect) instead of left byte-for-byte as
     // written: short queries collapse onto one line, longer ones wrap with
     // real SQL formatting rules (here, a 3-condition `and` chain), and the
     // embedded indentation matches the surrounding mlang code's own style
