@@ -17,6 +17,36 @@ mod lexer;
 mod syntax_rules;
 mod token_source;
 
+/// Optional syntax capabilities a piece of the grammar can require, checked
+/// uniformly via [SyntaxFeature] -- mirrors `biome_js_parser`'s own
+/// `JsSyntaxFeature` (dialect/extension gates as a small enum + a shared
+/// `is_supported` check, rather than each parse site re-deriving its own
+/// `p.source_type()...` condition). Not yet applied to gate any specific
+/// node: `Postgres`/`Mssql` exist so a future dialect-specific grammar rule
+/// (e.g. `TOP` under `Mssql`, `ON CONFLICT` restricted to `Postgres`) has
+/// something to check against, via [SyntaxFeature::exclusive_syntax]/
+/// [SyntaxFeature::parse_exclusive_syntax] -- both let a node parse the
+/// same way regardless of dialect and only turn it into a diagnostic +
+/// bogus node afterward if the active dialect doesn't support it, so
+/// grammar rules themselves don't need per-dialect branches.
+pub enum SqlSyntaxFeature {
+    Postgres,
+    Mssql,
+    Mlang,
+}
+
+impl SyntaxFeature for SqlSyntaxFeature {
+    type Parser<'source> = SqlParser<'source>;
+
+    fn is_supported(&self, p: &SqlParser) -> bool {
+        match self {
+            Self::Postgres => p.source_type().dialect().is_postgres(),
+            Self::Mssql => p.source_type().dialect().is_mssql(),
+            Self::Mlang => p.source_type().has_mlang_extension(),
+        }
+    }
+}
+
 pub type SqlLosslessTreeSink<'source> = LosslessTreeSink<'source, SqlLanguage, SqlSyntaxFactory>;
 pub struct SqlParser<'source> {
     pub source_type: SqlFileSource,
@@ -29,7 +59,7 @@ impl<'source> SqlParser<'source> {
         Self {
             source_type,
             context: ParserContext::default(),
-            source: SqlTokenSource::from_str(source, source_type.dialect()),
+            source: SqlTokenSource::from_str(source, source_type),
         }
     }
 

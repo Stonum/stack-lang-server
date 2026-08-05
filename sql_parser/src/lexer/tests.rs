@@ -2,9 +2,9 @@
 #![allow(unused_mut, unused_variables, unused_assignments)]
 
 use super::{SqlLexContext, SqlLexer};
-use sql_syntax::SqlDialect;
 use sql_syntax::SqlSyntaxKind::{self, EOF};
 use sql_syntax::T;
+use sql_syntax::{SqlDialect, SqlFileSource};
 
 use biome_parser::lexer::{BufferedLexer, Lexer};
 use biome_rowan::TextSize;
@@ -12,7 +12,7 @@ use biome_rowan::TextSize;
 // Макрос для проверки лексирования
 macro_rules! assert_lex {
     ($src:expr, $($kind:ident:$len:expr $(,)?)*) => {{
-        let mut lexer = SqlLexer::from_str($src, SqlDialect::Standard);
+        let mut lexer = SqlLexer::from_str($src, SqlFileSource::query());
         let mut idx = 0;
         let mut new_str = String::with_capacity($src.len());
         let mut tokens = vec![];
@@ -78,12 +78,17 @@ fn identifiers() {
 
 #[test]
 fn hash_identifier_only_in_mlang_dialect() {
-    let mut lexer = SqlLexer::from_str("#tmptable", SqlDialect::Mlang);
+    let mut lexer = SqlLexer::from_str(
+        "#tmptable",
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true),
+    );
     lexer.next_token(SqlLexContext);
     assert_eq!(lexer.current(), SqlSyntaxKind::IDENT);
     assert_eq!(lexer.current_range().len(), TextSize::from(9));
 
-    let mut lexer = SqlLexer::from_str("#tmptable", SqlDialect::Standard);
+    let mut lexer = SqlLexer::from_str("#tmptable", SqlFileSource::query());
     lexer.next_token(SqlLexContext);
     assert_eq!(lexer.current(), SqlSyntaxKind::ERROR_TOKEN);
 }
@@ -164,7 +169,7 @@ fn keywords() {
             panic!("Expected `SqlSyntaxKind::from_keyword` to return a kind for keyword {keyword}.")
         });
 
-        let mut lexer = SqlLexer::from_str(keyword, SqlDialect::Standard);
+        let mut lexer = SqlLexer::from_str(keyword, SqlFileSource::query());
         lexer.next_token(SqlLexContext);
 
         let lexed_kind = lexer.current();
@@ -496,7 +501,7 @@ fn case_expression() {
 fn lookahead_buffer() {
     use sql_syntax::SqlSyntaxKind::{FROM_KW, IDENT, STAR, WHITESPACE};
 
-    let lexer = SqlLexer::from_str("SELECT * FROM t", SqlDialect::Standard);
+    let lexer = SqlLexer::from_str("SELECT * FROM t", SqlFileSource::query());
     let mut buffered = BufferedLexer::new(lexer);
 
     buffered.next_token(SqlLexContext);

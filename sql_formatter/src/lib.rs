@@ -25,7 +25,7 @@ use biome_rowan::{AstNode, SyntaxNode};
 
 use comments::SqlCommentStyle;
 pub(crate) use context::SqlFormatContext;
-pub use context::SqlFormatOptions;
+pub use context::{BracketIdentifierStyle, SqlFormatOptions};
 use cst::FormatSqlSyntaxNode;
 
 /// Used to get an object that knows how to format this object.

@@ -18,25 +18,62 @@ impl SqlModuleKind {
     }
 }
 
-/// Which SQL dialect to accept.
+/// Which real SQL dialect to accept.
 ///
-/// `Standard` accepts plain Postgres syntax. `Mlang` additionally accepts
-/// syntax specific to SQL embedded in mlang source (e.g. `query("...")`
-/// calls): `~name~`/`~$name~` table and function names, `#name` temp table
-/// names, and `~[]~` as an escaped array-type suffix. These aren't real
-/// Postgres syntax -- they're mlang's own conventions, presumably expanded
-/// by mlang's runtime before the query text reaches an actual database.
+/// `Standard` accepts a common core shared by real Postgres and T-SQL
+/// (MSSQL), without either's own extras. `Postgres`/`Mssql` each
+/// additionally accept that engine's own syntax on top of the common core
+/// (`::` casts, `RETURNING`, `ON CONFLICT`, arrays, `ILIKE`, `LATERAL`,
+/// `DISTINCT ON` for Postgres; `TOP`, `CROSS`/`OUTER APPLY`, T-SQL type
+/// names for Mssql). Independent of [SqlExtensions] -- see its own doc
+/// comment for why.
 #[derive(Debug, Clone, Default, Copy, Eq, PartialEq, Hash)]
 pub enum SqlDialect {
     #[default]
     Standard,
 
-    Mlang,
+    Postgres,
+
+    Mssql,
 }
 
 impl SqlDialect {
-    pub const fn is_mlang(&self) -> bool {
-        matches!(self, SqlDialect::Mlang)
+    pub const fn is_standard(&self) -> bool {
+        matches!(self, SqlDialect::Standard)
+    }
+    pub const fn is_postgres(&self) -> bool {
+        matches!(self, SqlDialect::Postgres)
+    }
+    pub const fn is_mssql(&self) -> bool {
+        matches!(self, SqlDialect::Mssql)
+    }
+}
+
+/// Optional syntax extensions layered on top of whichever [SqlDialect] is
+/// selected -- independent of it, unlike `Postgres`/`Mssql` themselves.
+///
+/// Currently just `mlang`: the conventions SQL embedded in mlang source
+/// (`query("...")` calls) uses -- `~name~`/`~$name~` table/function names,
+/// `~[]~` array-type-suffix escaping, `#name` temp table names, and
+/// `[bracket]` identifiers. These are mlang's own runtime conventions, not
+/// part of any real SQL dialect -- and (real-world confirmed) show up in
+/// queries that are otherwise ordinary, valid Postgres, so they're modeled
+/// as an extension orthogonal to the dialect rather than tied to one
+/// (unlike, say, `[bracket]` identifiers being folded into `Mssql` --
+/// legacy mlang queries use them under a Postgres-flavored dialect too).
+#[derive(Debug, Clone, Default, Copy, Eq, PartialEq, Hash)]
+pub struct SqlExtensions {
+    mlang: bool,
+}
+
+impl SqlExtensions {
+    pub const fn with_mlang(mut self, mlang: bool) -> Self {
+        self.mlang = mlang;
+        self
+    }
+
+    pub const fn mlang(&self) -> bool {
+        self.mlang
     }
 }
 
@@ -44,6 +81,7 @@ impl SqlDialect {
 pub struct SqlFileSource {
     module_kind: SqlModuleKind,
     dialect: SqlDialect,
+    extensions: SqlExtensions,
 }
 
 impl SqlFileSource {
@@ -89,8 +127,26 @@ impl SqlFileSource {
         self.dialect
     }
 
-    pub const fn is_mlang_dialect(&self) -> bool {
-        self.dialect.is_mlang()
+    pub const fn with_extensions(mut self, extensions: SqlExtensions) -> Self {
+        self.extensions = extensions;
+        self
+    }
+
+    pub fn set_extensions(&mut self, extensions: SqlExtensions) {
+        self.extensions = extensions;
+    }
+
+    pub const fn extensions(&self) -> SqlExtensions {
+        self.extensions
+    }
+
+    pub const fn with_mlang_extension(mut self, mlang: bool) -> Self {
+        self.extensions = self.extensions.with_mlang(mlang);
+        self
+    }
+
+    pub const fn has_mlang_extension(&self) -> bool {
+        self.extensions.mlang()
     }
 
     pub fn file_extension(&self) -> &str {

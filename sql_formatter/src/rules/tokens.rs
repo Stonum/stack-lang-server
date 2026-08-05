@@ -28,17 +28,22 @@ impl FormatRule<SqlSyntaxToken> for FormatSqlSyntaxToken {
         }
 
         let text = token.text_trimmed();
-        // The mlang dialect's SQL-Server-style `[identifier]` bracket
+        // The mlang extension's SQL-Server-style `[identifier]` bracket
         // quoting (re-lexed to plain `IDENT`, see
-        // `SqlReLexContext::BracketName`) isn't valid Postgres syntax --
-        // canonicalize it to Postgres's own `"identifier"` quoting on
-        // output, same spirit as keyword canonicalization above. `""`
+        // `SqlReLexContext::BracketName`) isn't valid Postgres syntax.
+        // Whether to canonicalize it to Postgres's own `"identifier"`
+        // quoting on output, same spirit as keyword canonicalization above,
+        // is a formatting *style* choice independent of parsing support --
+        // see `BracketIdentifierStyle`'s own doc comment for why. `""`
         // escapes any literal `"` in the content, matching how Postgres
         // itself escapes a quote inside a quoted identifier.
         if token.kind() == SqlSyntaxKind::IDENT
             && text.len() >= 2
             && text.starts_with('[')
             && text.ends_with(']')
+            && f.options()
+                .bracket_identifier_style()
+                .is_convert_to_quotes()
         {
             let inner = &text[1..text.len() - 1];
             let canonical = std::format!("\"{}\"", inner.replace('"', "\"\""));

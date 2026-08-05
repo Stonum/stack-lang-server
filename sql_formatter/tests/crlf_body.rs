@@ -18,7 +18,9 @@ use sql_syntax::{SqlDialect, SqlFileSource};
 #[test]
 fn format_crlf_dollar_quoted_body_does_not_panic() {
     let src = "create function foo() returns int as $$\r\nbegin\r\n  return 1;\r\nend;\r\n$$ language plpgsql;\n";
-    let syntax = SqlFileSource::query().with_dialect(SqlDialect::Mlang);
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
     let tree = parse(src, syntax);
     assert!(!tree.has_errors());
 
@@ -45,7 +47,9 @@ fn format_crlf_plain_string_literal_does_not_panic() {
     // allows embedded newlines inside `'...'`), so it's covered by the
     // same fix, not just dollar-quoted bodies.
     let src = "select 'line one\r\nline two' from t\n";
-    let syntax = SqlFileSource::query().with_dialect(SqlDialect::Mlang);
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
     let tree = parse(src, syntax);
     assert!(!tree.has_errors());
 

@@ -5,7 +5,9 @@ use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
 fn mlang() -> SqlFileSource {
-    SqlFileSource::script().with_dialect(SqlDialect::Mlang)
+    SqlFileSource::script()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true)
 }
 
 #[test]
