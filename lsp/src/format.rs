@@ -1,7 +1,7 @@
 use line_index::{LineCol, LineColRange};
 use mlang_formatter::{IndentStyle, IndentWidth, LineWidth};
 use mlang_syntax::MFileSource;
-use psql_syntax::PsqlFileSource;
+use sql_syntax::SqlFileSource;
 
 use tower_lsp::lsp_types::{FormattingOptions, Position};
 use tower_lsp::lsp_types::{Range, TextEdit};
@@ -51,14 +51,13 @@ pub fn format(
             mlang_formatter::format_range(format_options, &document.mlang_syntax()?, text_range)
                 .ok()?
         }
-        DocumentLanguage::Psql => {
-            let format_options = psql_formatter::PsqlFormatOptions::new(PsqlFileSource::script())
+        DocumentLanguage::Sql => {
+            let format_options = sql_formatter::SqlFormatOptions::new(SqlFileSource::script())
                 .with_indent_style(indent_style)
                 .with_line_width(line_width)
                 .with_indent_width(indent_width);
 
-            psql_formatter::format_range(format_options, &document.psql_syntax()?, text_range)
-                .ok()?
+            sql_formatter::format_range(format_options, &document.sql_syntax()?, text_range).ok()?
         }
     };
 
@@ -102,13 +101,13 @@ mod tests {
     }
 
     #[test]
-    fn formats_a_psql_document() {
+    fn formats_a_sql_document() {
         let uri = Url::parse("file:///test.sql").unwrap();
         let text = "select   a,b   from t\n";
-        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+        let document = CurrentDocument::new_sql(uri, text, SqlFileSource::script());
 
         let edits = format(&document, formatting_options(), whole_document_range(text))
-            .expect("psql document should format");
+            .expect("sql document should format");
 
         assert_eq!(edits.len(), 1);
         assert_eq!(edits[0].new_text, "select a, b from t");
@@ -131,7 +130,7 @@ mod tests {
     fn range_past_end_of_document_returns_none_not_a_panic() {
         let uri = Url::parse("file:///test.sql").unwrap();
         let text = "select a from t\n";
-        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+        let document = CurrentDocument::new_sql(uri, text, SqlFileSource::script());
 
         // The document only has 2 lines (0 and the trailing empty one); a
         // stale range from a client that hasn't caught up with a recent
@@ -145,10 +144,10 @@ mod tests {
     }
 
     #[test]
-    fn empty_psql_document_does_not_panic() {
+    fn empty_sql_document_does_not_panic() {
         let uri = Url::parse("file:///test.sql").unwrap();
         let text = "";
-        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+        let document = CurrentDocument::new_sql(uri, text, SqlFileSource::script());
 
         let edits = format(&document, formatting_options(), whole_document_range(text))
             .expect("an empty document still produces a (no-op) edit");
@@ -174,9 +173,9 @@ mod tests {
     fn malformed_sql_falls_back_to_the_original_text() {
         let uri = Url::parse("file:///test.sql").unwrap();
         let text = "select from where;;;\n";
-        let document = CurrentDocument::new_psql(uri, text, PsqlFileSource::script());
+        let document = CurrentDocument::new_sql(uri, text, SqlFileSource::script());
 
-        // Doesn't parse cleanly, so psql_formatter's own verbatim safety
+        // Doesn't parse cleanly, so sql_formatter's own verbatim safety
         // net kicks in -- reproduces the text unchanged rather than
         // guessing at a "prettier" but potentially wrong structure.
         let edits = format(&document, formatting_options(), whole_document_range(text))
@@ -192,7 +191,7 @@ mod tests {
         let text = "var a = ;;;\n";
         let document = CurrentDocument::new_mlang(uri, text, MFileSource::module());
 
-        // mlang's parser has real error recovery (unlike psql's verbatim
+        // mlang's parser has real error recovery (unlike sql's verbatim
         // fallback): it drops the stray extra `;`s and formats what's left.
         let edits = format(&document, formatting_options(), whole_document_range(text))
             .expect("malformed input should not panic");

@@ -1012,10 +1012,10 @@ dependencies = [
  "mlang_factory",
  "mlang_parser",
  "mlang_syntax",
- "psql_formatter",
- "psql_parser",
- "psql_syntax",
  "serde",
+ "sql_formatter",
+ "sql_parser",
+ "sql_syntax",
 ]
 
 [[package]]
@@ -1261,49 +1261,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89ae43fd86e4158d6db51ad8e2b80f313af9cc74f5c0e03ccb87de09998732de"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "psql_factory"
-version = "0.0.1"
-dependencies = [
- "biome_rowan",
- "psql_syntax",
-]
-
-[[package]]
-name = "psql_formatter"
-version = "0.0.1"
-dependencies = [
- "biome_formatter",
- "biome_rowan",
- "biome_unicode_table",
- "psql_factory",
- "psql_parser",
- "psql_syntax",
- "serde",
-]
-
-[[package]]
-name = "psql_parser"
-version = "0.0.1"
-dependencies = [
- "biome_parser",
- "biome_rowan",
- "biome_unicode_table",
- "enumflags2",
- "psql_factory",
- "psql_syntax",
-]
-
-[[package]]
-name = "psql_syntax"
-version = "0.0.1"
-dependencies = [
- "biome_rowan",
- "psql_parser",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -1584,6 +1541,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "sql_factory"
+version = "0.0.1"
+dependencies = [
+ "biome_rowan",
+ "sql_syntax",
+]
+
+[[package]]
+name = "sql_formatter"
+version = "0.0.1"
+dependencies = [
+ "biome_formatter",
+ "biome_rowan",
+ "biome_unicode_table",
+ "serde",
+ "sql_factory",
+ "sql_parser",
+ "sql_syntax",
+]
+
+[[package]]
+name = "sql_parser"
+version = "0.0.1"
+dependencies = [
+ "biome_parser",
+ "biome_rowan",
+ "biome_unicode_table",
+ "enumflags2",
+ "sql_factory",
+ "sql_syntax",
+]
+
+[[package]]
+name = "sql_syntax"
+version = "0.0.1"
+dependencies = [
+ "biome_rowan",
+ "serde",
+ "serde_json",
+ "sql_parser",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1607,12 +1607,12 @@ dependencies = [
  "mlang_parser",
  "mlang_semantic",
  "mlang_syntax",
- "psql_formatter",
- "psql_parser",
- "psql_syntax",
  "rust-ini",
  "serde",
  "serde_json",
+ "sql_formatter",
+ "sql_parser",
+ "sql_syntax",
  "thiserror 2.0.18",
  "tokio",
  "tower-lsp",

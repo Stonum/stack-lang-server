@@ -1,4 +1,4 @@
-//! Mirror of `workspace_psql.rs`, but for mlang (`.prg`) documents -- the
+//! Mirror of `workspace_sql.rs`, but for mlang (`.prg`) documents -- the
 //! "home" language, so these are mostly regression coverage (make sure the
 //! multi-language refactor didn't break the existing working path) rather
 //! than fixing new bugs. Same rule: everything works off in-memory
@@ -97,7 +97,7 @@ async fn semantic_tokens_on_an_mlang_document_returns_tokens() {
         .await
         .expect("semantic_tokens should not error on an mlang document");
 
-    // Unlike psql (no mlang tree at all -- always None), an mlang document
+    // Unlike sql (no mlang tree at all -- always None), an mlang document
     // is exactly what this feature is for.
     assert!(tokens.is_some());
 }

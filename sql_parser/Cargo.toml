@@ -1,0 +1,15 @@
+
+[package]
+name = "sql_parser"
+version = "0.0.1"
+edition.workspace = true
+
+[dependencies]
+sql_syntax = { workspace = true }
+sql_factory = { workspace = true }
+
+biome_parser = { workspace = true }
+biome_rowan = { workspace = true }
+biome_unicode_table = { workspace = true }
+
+enumflags2 = { workspace = true }

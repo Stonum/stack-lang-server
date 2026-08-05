@@ -16,9 +16,9 @@ mlang_core = { workspace = true }
 mlang_lsp_definition = { workspace =  true }
 mlang_lint = { workspace = true }
 
-psql_syntax = { workspace = true }
-psql_parser = { workspace = true }
-psql_formatter = { workspace = true }
+sql_syntax = { workspace = true }
+sql_parser = { workspace = true }
+sql_formatter = { workspace = true }
 
 env_logger = { workspace = true }
 serde_json = { workspace = true }

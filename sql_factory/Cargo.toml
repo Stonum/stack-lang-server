@@ -1,0 +1,8 @@
+[package]
+name = "sql_factory"
+version = "0.0.1"
+edition.workspace = true
+
+[dependencies]
+biome_rowan ={ workspace = true }
+sql_syntax = { workspace = true }

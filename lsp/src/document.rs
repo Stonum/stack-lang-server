@@ -7,7 +7,7 @@ use mlang_syntax::{
     FileSourceError, MFileSource, MLanguage, MSyntaxNode, SendNode, SyntaxNode, TextRange,
 };
 
-use psql_syntax::{PsqlDialect, PsqlFileSource, PsqlLanguage, PsqlSyntaxNode};
+use sql_syntax::{SqlDialect, SqlFileSource, SqlLanguage, SqlSyntaxNode};
 
 use std::{
     any::type_name,
@@ -18,7 +18,7 @@ use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Posit
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum DocumentLanguage {
     Mlang,
-    Psql,
+    Sql,
 }
 
 pub struct CurrentDocument {
@@ -32,9 +32,9 @@ pub struct CurrentDocument {
 
 impl CurrentDocument {
     pub fn new(uri: Url, path: &Path, text: &str) -> Result<CurrentDocument, FileSourceError> {
-        if let Ok(file_source) = PsqlFileSource::try_from(path) {
-            let file_source = file_source.with_dialect(PsqlDialect::Mlang);
-            return Ok(CurrentDocument::new_psql(uri, text, file_source));
+        if let Ok(file_source) = SqlFileSource::try_from(path) {
+            let file_source = file_source.with_dialect(SqlDialect::Mlang);
+            return Ok(CurrentDocument::new_sql(uri, text, file_source));
         }
 
         let file_source = MFileSource::try_from(path)?;
@@ -75,23 +75,23 @@ impl CurrentDocument {
         }
     }
 
-    pub fn new_psql(uri: Url, text: &str, file_source: PsqlFileSource) -> CurrentDocument {
-        let parsed = psql_parser::parse(text, file_source);
+    pub fn new_sql(uri: Url, text: &str, file_source: SqlFileSource) -> CurrentDocument {
+        let parsed = sql_parser::parse(text, file_source);
         let diagnostics = parsed.diagnostics();
 
-        Self::from_psql_root(uri, text, parsed.syntax(), diagnostics)
+        Self::from_sql_root(uri, text, parsed.syntax(), diagnostics)
     }
 
-    pub fn from_psql_root(
+    pub fn from_sql_root(
         uri: Url,
         text: &str,
-        root: PsqlSyntaxNode,
+        root: SqlSyntaxNode,
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
-                type_name::<PsqlLanguage>()
+                type_name::<SqlLanguage>()
             )
         });
         let line_index = LineIndex::new(text);
@@ -100,7 +100,7 @@ impl CurrentDocument {
         CurrentDocument {
             uri,
             root,
-            language: DocumentLanguage::Psql,
+            language: DocumentLanguage::Sql,
             semantics: None,
             line_index,
             parse_diagnostics,
@@ -123,7 +123,7 @@ impl CurrentDocument {
         self.root.clone().into_node()
     }
 
-    pub fn psql_syntax(&self) -> Option<SyntaxNode<PsqlLanguage>> {
+    pub fn sql_syntax(&self) -> Option<SyntaxNode<SqlLanguage>> {
         self.root.clone().into_node()
     }
 
@@ -143,7 +143,7 @@ impl CurrentDocument {
 
         let source = match self.language {
             DocumentLanguage::Mlang => "mlang",
-            DocumentLanguage::Psql => "psql",
+            DocumentLanguage::Sql => "sql",
         };
 
         let from_parser = self.parse_diagnostics.iter().filter_map(|error| {
