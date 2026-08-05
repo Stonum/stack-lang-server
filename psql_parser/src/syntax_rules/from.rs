@@ -4,9 +4,9 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, PsqlExpressionList, count_dotted_name_segments, is_at_tilde_name_start,
-    parse_alias, parse_any_name, parse_column_name_list, parse_expression, parse_shema_qualifier,
-    parse_table_name,
+    EXPR_RECOVERY_SET, PsqlExpressionList, bump_name_segment, count_dotted_name_segments,
+    is_at_name_segment_start, is_at_tilde_name_start, parse_alias, parse_any_name,
+    parse_column_name_list, parse_expression, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -100,7 +100,10 @@ fn parse_from_item(p: &mut PsqlParser) -> ParsedSyntax {
 /// [is_at_lateral_source]'s doc comment for why that drift is a real,
 /// previously-hit bug (a stuck-parser panic) and not just tidiness.
 fn is_at_from_expression_start(p: &mut PsqlParser) -> bool {
-    p.at(T![ident]) || p.at(T!['(']) || is_at_lateral_source(p) || is_at_tilde_name_start(p)
+    is_at_name_segment_start(p)
+        || p.at(T!['('])
+        || is_at_lateral_source(p)
+        || is_at_tilde_name_start(p)
 }
 
 fn parse_join_clause_list(p: &mut PsqlParser) -> CompletedMarker {
@@ -207,7 +210,7 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
         };
     }
 
-    if !p.at(T![ident]) {
+    if !is_at_name_segment_start(p) {
         return Absent;
     }
 
@@ -217,7 +220,7 @@ pub(crate) fn parse_from_expression(p: &mut PsqlParser) -> ParsedSyntax {
             if i > 0 {
                 p.bump(T![.]);
             }
-            p.bump(T![ident]);
+            bump_name_segment(p);
         }
         p.at(T!['('])
     });

@@ -37,6 +37,17 @@ pub enum PsqlReLexContext {
     /// *between* two operands, never at the start of a name, so the default
     /// lexing (operator) is always safe elsewhere.
     TildeName,
+    /// Reinterprets the current `[` punctuation token as the start of the
+    /// mlang dialect's SQL-Server-style `[identifier]` bracket-quoted
+    /// identifier instead, consuming through the matching `]` and producing
+    /// a plain `IDENT` (the same kind a `"quoted"` identifier already lexes
+    /// to -- the formatter canonicalizes the spelling to Postgres's own
+    /// `"..."` on output, see `FormatPsqlSyntaxToken`). Requested by the
+    /// parser only at name-start grammar points -- `[` is real punctuation
+    /// everywhere else (`arr[1]` subscript, `int[]` type suffix,
+    /// `ARRAY[...]` literal), so the default lexing (`L_BRACK`) stays
+    /// authoritative there.
+    BracketName,
 }
 
 /// Лексер для PostgreSQL SQL
@@ -165,6 +176,7 @@ impl<'src> ReLexer<'src> for PsqlLexer<'src> {
 
         let re_lexed_kind = match context {
             PsqlReLexContext::TildeName => self.re_lex_tilde_name(),
+            PsqlReLexContext::BracketName => self.re_lex_bracket_name(),
         };
 
         if self.current() == re_lexed_kind {
@@ -594,6 +606,31 @@ impl<'src> PsqlLexer<'src> {
             if b == b'~' {
                 self.advance(1);
                 return PSQL_TILDE_NAME_LITERAL;
+            }
+            self.advance_byte_or_char(b);
+        }
+
+        self.current_kind
+    }
+
+    /// Re-lexes a `[` as the start of the mlang dialect's SQL-Server-style
+    /// `[identifier]` bracket-quoted identifier, consuming through the
+    /// matching closing `]` and producing `IDENT`. Only called via
+    /// [PsqlReLexContext::BracketName] at grammar points where a name is
+    /// expected -- if there's no closing `]` before EOF, this "fails"
+    /// (returns the unchanged current kind), leaving the `[` as the plain
+    /// punctuation token it was already lexed as.
+    fn re_lex_bracket_name(&mut self) -> PsqlSyntaxKind {
+        if self.current_byte() != Some(b'[') {
+            return self.current_kind;
+        }
+
+        self.advance(1); // opening '['
+
+        while let Some(b) = self.current_byte() {
+            if b == b']' {
+                self.advance(1);
+                return IDENT;
             }
             self.advance_byte_or_char(b);
         }

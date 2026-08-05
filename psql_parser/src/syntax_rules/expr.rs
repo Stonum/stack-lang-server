@@ -226,6 +226,13 @@ fn parse_primary_expression(p: &mut PsqlParser) -> ParsedSyntax {
         T!['('] => parse_parenthesized_expression(p),
         T![ident] if is_at_substring_from_form(p) => parse_substring_expression(p),
         T![ident] => parse_ident_expression(p),
+        // A bare mlang-dialect `[bracket name]` column reference, e.g.
+        // `where [Col-Name] = :1` -- everywhere else `[` only ever appears
+        // *after* another expression (subscript/type-suffix), never at the
+        // very start of a primary expression, so [is_at_bracket_name_start]
+        // (itself dialect-gated) can't misfire on real Postgres array
+        // syntax here.
+        T!['['] if is_at_bracket_name_start(p) => parse_ident_expression(p),
         T![*] => parse_star(p),
         T![case] => parse_case_expression(p),
         T![array] => parse_array_expression(p),
@@ -604,7 +611,7 @@ fn parse_ident_expression(p: &mut PsqlParser) -> ParsedSyntax {
             if i > 0 {
                 p.bump(T![.]);
             }
-            p.bump(T![ident]);
+            bump_name_segment(p);
         }
         p.at(T!['('])
     });
@@ -1001,7 +1008,7 @@ fn parse_in_source(p: &mut PsqlParser) -> ParsedSyntax {
 /// as `db.schema.table.col` and anything past that is left for the caller
 /// to report as an unexpected token.
 fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
-    if !p.at(T![ident]) {
+    if !is_at_name_segment_start(p) {
         return Absent;
     }
 
@@ -1030,15 +1037,15 @@ fn parse_col_reference(p: &mut PsqlParser) -> ParsedSyntax {
 /// [is_at_lateral_source] in `from.rs`) is exactly what duplicating this
 /// check risks.
 pub(crate) fn is_at_table_star(p: &mut PsqlParser) -> bool {
-    if !p.at(T![ident]) {
+    if !is_at_name_segment_start(p) {
         return false;
     }
     p.lookahead(|p| {
         loop {
-            if !p.at(T![ident]) {
+            if !is_at_name_segment_start(p) {
                 return false;
             }
-            p.bump(T![ident]);
+            bump_name_segment(p);
             if !p.at(T![.]) {
                 return false;
             }
@@ -1128,13 +1135,15 @@ pub(crate) fn parse_shema_qualifier(p: &mut PsqlParser, qualifier_count: usize) 
     }
 }
 
-/// Counts the number of `ident (. ident)*` segments ahead without consuming them.
+/// Counts the number of dotted name segments ahead without consuming them
+/// -- each segment a plain `ident` or (mlang dialect) a `[bracket name]`,
+/// see [is_at_name_segment_start].
 pub(crate) fn count_dotted_name_segments(p: &mut PsqlParser) -> usize {
     p.lookahead(|p| {
         let mut count = 0;
-        while p.at(T![ident]) {
+        while is_at_name_segment_start(p) {
             count += 1;
-            p.bump(T![ident]);
+            bump_name_segment(p);
             if !p.at(T![.]) {
                 break;
             }
@@ -1172,6 +1181,8 @@ pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
     let m = p.start();
     if p.at(T![ident]) {
         p.bump(T![ident]);
+    } else if p.at(T!['[']) {
+        bump_name_segment(p);
     } else {
         p.bump_remap(T![ident]);
     }
@@ -1183,7 +1194,51 @@ pub(crate) fn parse_name(p: &mut PsqlParser) -> ParsedSyntax {
 /// sync with `parse_name`'s own acceptance check, rather than each call
 /// site re-deriving (and risking drifting from) the same condition.
 pub(crate) fn is_at_name_start(p: &mut PsqlParser) -> bool {
-    p.at(T![ident]) || p.at(T![full]) || p.at_ts(TYPE_NAME_TOKEN_SET)
+    p.at(T![ident]) || p.at(T![full]) || p.at_ts(TYPE_NAME_TOKEN_SET) || is_at_bracket_name_start(p)
+}
+
+/// `true` if the parser is at a `[` that could be the start of the mlang
+/// dialect's SQL-Server-style `[identifier]` bracket-quoted identifier --
+/// i.e. only in the mlang dialect at all, mirroring [is_at_tilde_name_start].
+/// A bare `[` never legitimately starts a name/primary expression in
+/// standard Postgres (array subscripts/type suffixes are always *postfix*,
+/// never at the start of a primary expression), so this can't misfire
+/// there. Actually attempts the re-lex (inside a lookahead, so nothing is
+/// consumed) rather than just checking `p.at(T!['['])`, for the same reason
+/// [is_at_tilde_name_start] does: a `[` with no matching `]` ahead must not
+/// count as a bracket-name start.
+pub(crate) fn is_at_bracket_name_start(p: &mut PsqlParser) -> bool {
+    if !p.source_type().is_mlang_dialect() || !p.at(T!['[']) {
+        return false;
+    }
+
+    p.lookahead(|p| p.re_lex(PsqlReLexContext::BracketName) == IDENT)
+}
+
+/// `true` if the parser is at a single dotted-name segment -- a plain
+/// `ident` or (mlang dialect) a `[bracket name]`. The shared gate behind
+/// every "how many `a.b.c`-style segments are ahead" scan
+/// ([count_dotted_name_segments], [is_at_table_star]) and every actual
+/// per-segment consumer ([bump_name_segment]), so a bracket-quoted segment
+/// is recognized consistently regardless of *where* in a dotted path it
+/// appears (`[Table].col`, `t.[Col]`, `[Table].[Col]`) instead of only at
+/// whichever position a given call site happened to check for it.
+pub(crate) fn is_at_name_segment_start(p: &mut PsqlParser) -> bool {
+    p.at(T![ident]) || is_at_bracket_name_start(p)
+}
+
+/// Consumes one dotted-name segment already confirmed present by
+/// [is_at_name_segment_start] -- a plain `ident`, or (mlang dialect) a
+/// `[bracket name]` re-lexed into an `IDENT`-kind token in place (the
+/// bracket-delimited source text stays as the token's own text; the
+/// formatter canonicalizes it to `"..."` on output).
+pub(crate) fn bump_name_segment(p: &mut PsqlParser) {
+    if p.at(T![ident]) {
+        p.bump(T![ident]);
+    } else {
+        p.re_lex(PsqlReLexContext::BracketName);
+        p.bump(IDENT);
+    }
 }
 
 /// `true` if the parser is at a `~` that could be the start of a
