@@ -401,12 +401,28 @@ impl Format<MFormatContext> for FormatSqlStringToken<'_> {
         let preferred_quote = self.token().text_trimmed().chars().next().unwrap_or('`');
 
         if let Some(formatted_sql) = try_format_embedded_sql(self.token(), f) {
-            return if formatted_sql.lines().count() > 1 {
-                self.format_reformatted_multi_line_query(formatted_sql, preferred_quote, f)
+            // Reformatting can introduce `"`-quoted identifiers (e.g. an
+            // mlang `[bracket]` identifier canonicalized by
+            // `psql_formatter` to Postgres's own `"..."` spelling) that
+            // would otherwise have to be escaped to fit inside a
+            // `"`-delimited mlang string. Since mlang's `` ` `` and `"`
+            // delimiters are interchangeable (see `quote_as_static_str`'s
+            // doc comment), prefer switching to `` ` `` over escaping --
+            // but only when the formatted SQL actually contains the
+            // conflicting quote; a query that stays clean in double quotes
+            // keeps its original delimiter untouched.
+            let effective_quote = if preferred_quote == '"' && formatted_sql.contains('"') {
+                '`'
             } else {
-                let escaped = escape_for_string_literal(&formatted_sql, preferred_quote);
+                preferred_quote
+            };
+
+            return if formatted_sql.lines().count() > 1 {
+                self.format_reformatted_multi_line_query(formatted_sql, effective_quote, f)
+            } else {
+                let escaped = escape_for_string_literal(&formatted_sql, effective_quote);
                 let content: Cow<str> =
-                    Cow::Owned(std::format!("{preferred_quote}{escaped}{preferred_quote}"));
+                    Cow::Owned(std::format!("{effective_quote}{escaped}{effective_quote}"));
                 self.format_single_line_query(content, f)
             };
         }

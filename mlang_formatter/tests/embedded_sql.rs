@@ -72,6 +72,48 @@ var qq = Query(`
 }
 
 #[test]
+fn embedded_sql_bracket_identifier_switches_double_quoted_string_to_backtick() {
+    // Reformatting canonicalizes mlang's `[bracket]` identifiers to
+    // Postgres's own `"..."` spelling -- which would otherwise clash with
+    // (and have to be escaped inside) the query string's own `"`
+    // delimiter. Since mlang treats `` ` `` and `"` as interchangeable
+    // string delimiters, switching to `` ` `` avoids that entirely.
+    assert_fmt_eq!(
+        r#"#
+var qq = query("select [a] from [b]");
+"#,
+        r#"#
+var qq = query(`select "a" from "b"`);"#
+    );
+}
+
+#[test]
+fn embedded_sql_without_bracket_identifiers_keeps_double_quote_delimiter() {
+    // No conflicting `"` introduced by reformatting -- the original `"`
+    // delimiter must stay untouched, not switch to backtick unnecessarily.
+    assert_fmt!(
+        r#"#
+var qq = query("select a from b");
+"#
+    );
+}
+
+#[test]
+fn embedded_sql_backtick_delimited_bracket_identifier_stays_backtick() {
+    // Already backtick-delimited -- the canonicalized `"..."` identifiers
+    // never conflict with `` ` ``, so the delimiter is simply preserved
+    // (only the bracket-to-quote identifier canonicalization changes
+    // anything here).
+    assert_fmt_eq!(
+        r#"#
+var qq = query(`select [a] from [b]`);
+"#,
+        r#"#
+var qq = query(`select "a" from "b"`);"#
+    );
+}
+
+#[test]
 fn embedded_sql_multi_line_indent_matches_nested_context() {
     // The embedded query's own lines must pick up the *ambient* indent at
     // the point it's written, not always the top level -- here, one extra
