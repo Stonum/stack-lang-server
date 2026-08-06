@@ -2,7 +2,7 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
 
 #[test]
 fn test_right_as_function_name() {
@@ -92,7 +92,7 @@ fn test_replace_in_update_set() {
 fn test_create_or_replace_function_still_works() {
     let res = parse(
         "create or replace function f() returns int as $$ select 1 $$ language sql",
-        SqlFileSource::script(),
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
     );
 
     assert_parser!(res);

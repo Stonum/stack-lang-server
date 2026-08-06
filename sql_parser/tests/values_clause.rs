@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `RETURNING` and `ON CONFLICT` are both Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_standalone_values_statement() {
@@ -86,7 +91,7 @@ fn test_insert_values_single_row_still_works() {
 fn test_insert_values_multiple_rows_with_returning() {
     let res = parse(
         "insert into t (a, b) values (1, 2), (3, 4) returning a",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -96,7 +101,7 @@ fn test_insert_values_multiple_rows_with_returning() {
 fn test_insert_values_multiple_rows_with_on_conflict() {
     let res = parse(
         "insert into t (a, b) values (1, 2), (3, 4) on conflict (a) do nothing",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

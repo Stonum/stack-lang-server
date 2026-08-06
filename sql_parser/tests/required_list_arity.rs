@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// Array literals are Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_from_requires_at_least_one_item() {
@@ -81,7 +86,7 @@ fn test_call_arguments_still_allow_zero() {
 
 #[test]
 fn test_array_literal_still_allows_zero() {
-    let res = parse("select array[] from t", SqlFileSource::script());
+    let res = parse("select array[] from t", postgres());
 
     assert_parser!(res);
 }

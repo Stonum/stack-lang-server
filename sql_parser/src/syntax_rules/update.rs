@@ -6,7 +6,7 @@ use biome_parser::prelude::*;
 use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_expression, parse_name};
 use super::from::{SqlFromItemList, parse_table_binding};
 use super::parse_error::*;
-use super::returning_clause::parse_returning_clause;
+use super::postgres::returning_clause::parse_returning_clause;
 use super::where_clause::parse_where_clause;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T, *};

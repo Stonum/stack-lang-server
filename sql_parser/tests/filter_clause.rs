@@ -2,14 +2,16 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `FILTER (WHERE ...)` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_filter_clause_on_aggregate() {
-    let res = parse(
-        "select count(x) filter (where a > 1) from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select count(x) filter (where a > 1) from t", postgres());
 
     assert_parser!(res);
 }
@@ -18,7 +20,7 @@ fn test_filter_clause_on_aggregate() {
 fn test_filter_clause_multiple_aggregates() {
     let res = parse(
         "select count(x) filter (where a > 1), sum(y) filter (where b < 2) from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -28,7 +30,7 @@ fn test_filter_clause_multiple_aggregates() {
 fn test_filter_clause_with_window_function() {
     let res = parse(
         "select count(x) filter (where a > 1) over (partition by b) from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

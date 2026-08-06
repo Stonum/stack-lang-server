@@ -10,19 +10,21 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// `SUBSTRING(... FROM ...)` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_substring_from_position() {
-    let res = parse("select substring(str from 3)", SqlFileSource::script());
+    let res = parse("select substring(str from 3)", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_substring_from_for() {
-    let res = parse(
-        "select substring(str from 3 for 5)",
-        SqlFileSource::script(),
-    );
+    let res = parse("select substring(str from 3 for 5)", postgres());
 
     assert_parser!(res);
 }
@@ -32,20 +34,14 @@ fn test_substring_from_pattern() {
     // The SQL-standard `from` argument doesn't have to be a start
     // position -- a string literal is a POSIX-regex extract in real
     // Postgres, but syntactically it's just another expression.
-    let res = parse(
-        r"select substring(col from '^\d+')",
-        SqlFileSource::script(),
-    );
+    let res = parse(r"select substring(col from '^\d+')", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_substring_case_insensitive_keyword() {
-    let res = parse(
-        "select SUBSTRING(str FROM 3 FOR 5)",
-        SqlFileSource::script(),
-    );
+    let res = parse("select SUBSTRING(str FROM 3 FOR 5)", postgres());
 
     assert_parser!(res);
 }
@@ -71,7 +67,7 @@ fn test_substring_single_argument_call_still_parses_as_plain_call() {
 fn test_realistic_regex_extract_with_cast() {
     let res = parse(
         r"select substring(cfg.value from '^\d+')::int from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -81,7 +77,7 @@ fn test_realistic_regex_extract_with_cast() {
 fn test_realistic_nested_call_argument() {
     let res = parse(
         r"select substring(split_part(sumshare, '/', 1) from '^\d+$')::numeric from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

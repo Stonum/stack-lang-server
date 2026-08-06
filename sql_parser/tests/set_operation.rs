@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `LIMIT` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_union() {
@@ -78,7 +83,7 @@ fn test_union_with_where_and_group_by_on_both_sides() {
 fn test_union_with_trailing_order_by_limit_offset() {
     let res = parse(
         "select a from t union select a from u order by a limit 5 offset 1",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

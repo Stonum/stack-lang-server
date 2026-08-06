@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `DELETE ... USING` and `LATERAL` are both Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_multiple_from_sources() {
@@ -43,10 +48,7 @@ fn test_multiple_from_sources_with_aliases() {
 
 #[test]
 fn test_delete_using_multiple_sources() {
-    let res = parse(
-        "delete from t using u, v where t.id = u.id",
-        SqlFileSource::script(),
-    );
+    let res = parse("delete from t using u, v where t.id = u.id", postgres());
 
     assert_parser!(res);
 }
@@ -55,7 +57,7 @@ fn test_delete_using_multiple_sources() {
 fn test_from_with_lateral_subquery() {
     let res = parse(
         "select a from t, lateral (select max(b) from u where u.t_id = t.id) x",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -65,7 +67,7 @@ fn test_from_with_lateral_subquery() {
 fn test_from_with_lateral_function() {
     let res = parse(
         "select a from t, lateral generate_series(1, t.n) g",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

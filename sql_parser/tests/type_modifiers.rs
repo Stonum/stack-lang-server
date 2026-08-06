@@ -2,7 +2,7 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
 
 #[test]
 fn test_cast_character_varying() {
@@ -64,7 +64,7 @@ fn test_create_function_parameter_character_varying_with_default() {
     // empty string cast to its own type.
     let res = parse(
         "create function foo(a character varying default ''::character varying) as 'select 1'",
-        SqlFileSource::script(),
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
     );
 
     assert_parser!(res);

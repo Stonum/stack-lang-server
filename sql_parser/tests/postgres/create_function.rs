@@ -1,6 +1,4 @@
-#[macro_use]
-mod helper;
-
+use crate::helper;
 use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
@@ -10,22 +8,21 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// `CREATE FUNCTION`/`CREATE PROCEDURE` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_create_function_no_params_no_returns() {
-    let res = parse(
-        "create function foo() as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo() as 'select 1'", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_procedure_no_params() {
-    let res = parse(
-        "create procedure foo() as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create procedure foo() as 'select 1'", postgres());
 
     assert_parser!(res);
 }
@@ -34,7 +31,7 @@ fn test_create_procedure_no_params() {
 fn test_create_function_with_parameters() {
     let res = parse(
         "create function foo(a int, b text) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -44,7 +41,7 @@ fn test_create_function_with_parameters() {
 fn test_create_function_returns_scalar() {
     let res = parse(
         "create function foo(a int) returns boolean as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -54,7 +51,7 @@ fn test_create_function_returns_scalar() {
 fn test_create_function_with_language() {
     let res = parse(
         "create function foo(a int) returns boolean as 'select 1' language plpgsql;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -64,7 +61,7 @@ fn test_create_function_with_language() {
 fn test_create_function_dollar_quoted_body() {
     let res = parse(
         "create function foo(a int) returns boolean as $$ select 1 $$ language plpgsql;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -74,7 +71,7 @@ fn test_create_function_dollar_quoted_body() {
 fn test_create_function_tagged_dollar_quoted_body() {
     let res = parse(
         "create function foo(a int) returns boolean as $func$ select 1 $func$ language plpgsql;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -84,7 +81,7 @@ fn test_create_function_tagged_dollar_quoted_body() {
 fn test_create_function_followed_by_another_statement() {
     let res = parse(
         "create function foo() as 'select 1'; select a from t;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -94,7 +91,7 @@ fn test_create_function_followed_by_another_statement() {
 fn test_create_and_drop_function_do_not_shadow_each_other() {
     let res = parse(
         "drop function if exists foo; create function foo() as 'select 1';",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -109,30 +106,21 @@ fn test_create_function_tilde_name_in_mlang_dialect() {
 
 #[test]
 fn test_create_function_parameter_mode_in() {
-    let res = parse(
-        "create function foo(in a int) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(in a int) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_parameter_mode_out() {
-    let res = parse(
-        "create function foo(out a int) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(out a int) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_parameter_mode_inout() {
-    let res = parse(
-        "create function foo(inout a int) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(inout a int) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
@@ -141,20 +129,14 @@ fn test_create_function_parameter_mode_inout() {
 fn test_create_function_anonymous_parameter() {
     // Postgres allows a parameter with just a type and no name -- referenced
     // inside the (opaque, never parsed) body only via `$1`/`$2`.
-    let res = parse(
-        "create function foo(text) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(text) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_multiple_anonymous_parameters() {
-    let res = parse(
-        "create function foo(text, int) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(text, int) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
@@ -165,7 +147,7 @@ fn test_create_function_anonymous_parameter_custom_type() {
     // (a user-defined type name), not a name with a missing type.
     let res = parse(
         "create function foo(my_custom_type) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -173,20 +155,14 @@ fn test_create_function_anonymous_parameter_custom_type() {
 
 #[test]
 fn test_create_function_mixed_named_and_anonymous_parameters() {
-    let res = parse(
-        "create function foo(a int, text) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(a int, text) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_anonymous_parameter_with_mode() {
-    let res = parse(
-        "create function foo(in text) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(in text) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
@@ -195,7 +171,7 @@ fn test_create_function_anonymous_parameter_with_mode() {
 fn test_create_function_parameter_default() {
     let res = parse(
         "create function foo(a text default '') as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -205,10 +181,7 @@ fn test_create_function_parameter_default() {
 fn test_create_function_parameter_default_eq_shorthand() {
     // Postgres accepts `= expr` as a shorthand for `DEFAULT expr`; real
     // scripts use both spellings.
-    let res = parse(
-        "create function foo(a text = '') as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(a text = '') as 'select 1'", postgres());
 
     assert_parser!(res);
 }
@@ -217,7 +190,7 @@ fn test_create_function_parameter_default_eq_shorthand() {
 fn test_create_function_multiple_parameters_eq_shorthand() {
     let res = parse(
         "create function foo(a text = null, b int = 0) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -229,7 +202,7 @@ fn test_create_function_parameter_default_with_cast() {
     // own type (`DEFAULT ''::type`) is a common pattern for text params.
     let res = parse(
         "create function foo(a varchar default ''::varchar) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -239,7 +212,7 @@ fn test_create_function_parameter_default_with_cast() {
 fn test_create_function_mode_and_default_combined() {
     let res = parse(
         "create function foo(in a text default 'x', out b int) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -249,7 +222,7 @@ fn test_create_function_mode_and_default_combined() {
 fn test_create_function_returns_table_single_column() {
     let res = parse(
         "create function foo() returns table(a int) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -259,7 +232,7 @@ fn test_create_function_returns_table_single_column() {
 fn test_create_function_returns_table_multiple_columns() {
     let res = parse(
         "create function foo() returns table(a int, b text, c boolean) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -274,7 +247,7 @@ fn test_create_function_returns_table_column_named_full() {
     // named `full`.
     let res = parse(
         "create function foo() returns table(full text, shot text) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -285,7 +258,7 @@ fn test_create_function_returns_table_column_named_after_type_keyword() {
     // Same class of collision as `full` above, for a type-name keyword.
     let res = parse(
         "create function foo() returns table(date timestamp, amount numeric) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -293,10 +266,7 @@ fn test_create_function_returns_table_column_named_after_type_keyword() {
 
 #[test]
 fn test_create_function_parameter_named_full() {
-    let res = parse(
-        "create function foo(full text) as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo(full text) as 'select 1'", postgres());
 
     assert_parser!(res);
 }
@@ -308,7 +278,7 @@ fn test_create_function_parameter_named_after_type_keyword() {
     // same class of collision the `full` fix above already covers.
     let res = parse(
         "create function foo(account_id int, date timestamp) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -318,7 +288,7 @@ fn test_create_function_parameter_named_after_type_keyword() {
 fn test_create_function_multiple_parameters_named_after_type_keywords() {
     let res = parse(
         "create function foo(text text, numeric numeric, date date) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -328,7 +298,7 @@ fn test_create_function_multiple_parameters_named_after_type_keywords() {
 fn test_create_function_returns_table_typed_column_with_arguments() {
     let res = parse(
         "create function foo() returns table(a numeric(10, 2)) as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -336,40 +306,28 @@ fn test_create_function_returns_table_typed_column_with_arguments() {
 
 #[test]
 fn test_create_or_replace_function() {
-    let res = parse(
-        "create or replace function foo() as 'select 1'",
-        SqlFileSource::script(),
-    );
+    let res = parse("create or replace function foo() as 'select 1'", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_trailing_volatility_option() {
-    let res = parse(
-        "create function foo() as 'select 1' stable;",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo() as 'select 1' stable;", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_immutable() {
-    let res = parse(
-        "create function foo() as 'select 1' immutable;",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo() as 'select 1' immutable;", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_function_volatile() {
-    let res = parse(
-        "create function foo() as 'select 1' volatile;",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo() as 'select 1' volatile;", postgres());
 
     assert_parser!(res);
 }
@@ -378,7 +336,7 @@ fn test_create_function_volatile() {
 fn test_create_function_security_definer() {
     let res = parse(
         "create function foo() as 'select 1' security definer;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -388,7 +346,7 @@ fn test_create_function_security_definer() {
 fn test_create_function_security_invoker() {
     let res = parse(
         "create function foo() as 'select 1' security invoker;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -396,10 +354,7 @@ fn test_create_function_security_invoker() {
 
 #[test]
 fn test_create_function_strict() {
-    let res = parse(
-        "create function foo() as 'select 1' strict;",
-        SqlFileSource::script(),
-    );
+    let res = parse("create function foo() as 'select 1' strict;", postgres());
 
     assert_parser!(res);
 }
@@ -408,7 +363,7 @@ fn test_create_function_strict() {
 fn test_create_function_returns_null_on_null_input_trailing() {
     let res = parse(
         "create function foo() returns text as 'select 1' returns null on null input;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -418,7 +373,7 @@ fn test_create_function_returns_null_on_null_input_trailing() {
 fn test_create_function_returns_null_on_null_input_leading() {
     let res = parse(
         "create function foo() returns text returns null on null input as 'select 1';",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -428,7 +383,7 @@ fn test_create_function_returns_null_on_null_input_leading() {
 fn test_create_function_returns_null_on_null_input_with_other_options() {
     let res = parse(
         "create function foo() returns text returns null on null input language plpgsql as 'select 1';",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -438,7 +393,7 @@ fn test_create_function_returns_null_on_null_input_with_other_options() {
 fn test_create_function_leading_options_before_as() {
     let res = parse(
         "create function foo() language plpgsql stable as 'select 1';",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -450,7 +405,7 @@ fn test_create_function_options_on_both_sides_of_as() {
     // one side -- e.g. `LANGUAGE`+`SECURITY DEFINER` before, `STABLE` after.
     let res = parse(
         "create function foo() language plpgsql security definer as 'select 1' stable;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -460,7 +415,7 @@ fn test_create_function_options_on_both_sides_of_as() {
 fn test_create_function_multiple_trailing_options_any_order() {
     let res = parse(
         "create function foo() as 'select 1' language plpgsql stable strict;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -470,7 +425,7 @@ fn test_create_function_multiple_trailing_options_any_order() {
 fn test_create_function_returns_trigger() {
     let res = parse(
         "create function foo() returns trigger as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -480,7 +435,7 @@ fn test_create_function_returns_trigger() {
 fn test_create_function_returns_setof_scalar() {
     let res = parse(
         "create function foo() returns setof int as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -490,7 +445,7 @@ fn test_create_function_returns_setof_scalar() {
 fn test_create_function_returns_setof_with_trailing_options() {
     let res = parse(
         "create function foo() returns setof int language plpgsql stable as 'select 1';",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -500,7 +455,7 @@ fn test_create_function_returns_setof_with_trailing_options() {
 fn test_create_function_returns_setof_named_type() {
     let res = parse(
         "create function foo() returns setof mytype as 'select 1'",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

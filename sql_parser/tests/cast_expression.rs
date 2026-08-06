@@ -2,7 +2,13 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// Arrays are Postgres-only -- needed by the two tests below that combine
+/// `::` casts with array syntax specifically.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_cast_operator_on_column() {
@@ -37,7 +43,7 @@ fn test_cast_operator_with_type_arguments() {
 
 #[test]
 fn test_cast_operator_with_array_suffix() {
-    let res = parse("select tags::text[] from t", SqlFileSource::script());
+    let res = parse("select tags::text[] from t", postgres());
 
     assert_parser!(res);
 }
@@ -58,7 +64,7 @@ fn test_cast_operator_binds_tighter_than_unary_minus() {
 
 #[test]
 fn test_cast_operator_on_array_subscript() {
-    let res = parse("select a[0]::text from t", SqlFileSource::script());
+    let res = parse("select a[0]::text from t", postgres());
 
     assert_parser!(res);
 }

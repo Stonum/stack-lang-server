@@ -1,6 +1,4 @@
-#[macro_use]
-mod helper;
-
+use crate::helper;
 use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
@@ -10,23 +8,28 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// `CREATE POLICY`/`DROP POLICY` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_create_policy_bare() {
-    let res = parse("create policy p on t", SqlFileSource::script());
+    let res = parse("create policy p on t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_policy_for_all() {
-    let res = parse("create policy p on t for all", SqlFileSource::script());
+    let res = parse("create policy p on t for all", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_policy_for_select() {
-    let res = parse("create policy p on t for select", SqlFileSource::script());
+    let res = parse("create policy p on t for select", postgres());
 
     assert_parser!(res);
 }
@@ -35,7 +38,7 @@ fn test_create_policy_for_select() {
 fn test_create_policy_for_insert_update_delete() {
     for command in ["insert", "update", "delete"] {
         let src = format!("create policy p on t for {command}");
-        let res = parse(&src, SqlFileSource::script());
+        let res = parse(&src, postgres());
 
         assert_parser!(res);
     }
@@ -43,20 +46,14 @@ fn test_create_policy_for_insert_update_delete() {
 
 #[test]
 fn test_create_policy_using_clause() {
-    let res = parse(
-        "create policy p on t using (a = 1)",
-        SqlFileSource::script(),
-    );
+    let res = parse("create policy p on t using (a = 1)", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_create_policy_for_and_using() {
-    let res = parse(
-        "create policy p on t for all using (a = 1);",
-        SqlFileSource::script(),
-    );
+    let res = parse("create policy p on t for all using (a = 1);", postgres());
 
     assert_parser!(res);
 }
@@ -65,7 +62,7 @@ fn test_create_policy_for_and_using() {
 fn test_create_policy_using_subquery_condition() {
     let res = parse(
         "create policy p on t using (a is null or a = (select f(g(h()))))",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -73,10 +70,7 @@ fn test_create_policy_using_subquery_condition() {
 
 #[test]
 fn test_create_policy_with_check_clause() {
-    let res = parse(
-        "create policy p on t with check (a = 1)",
-        SqlFileSource::script(),
-    );
+    let res = parse("create policy p on t with check (a = 1)", postgres());
 
     assert_parser!(res);
 }
@@ -85,7 +79,7 @@ fn test_create_policy_with_check_clause() {
 fn test_create_policy_using_and_with_check() {
     let res = parse(
         "create policy p on t for all using (a = 1) with check (b = 2);",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -95,7 +89,7 @@ fn test_create_policy_using_and_with_check() {
 fn test_create_policy_with_check_subquery_condition() {
     let res = parse(
         "create policy p on t with check (a is null or a = (select f(g(h()))))",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -103,10 +97,7 @@ fn test_create_policy_with_check_subquery_condition() {
 
 #[test]
 fn test_create_policy_followed_by_another_statement() {
-    let res = parse(
-        "create policy p on t for all; select a from t;",
-        SqlFileSource::script(),
-    );
+    let res = parse("create policy p on t for all; select a from t;", postgres());
 
     assert_parser!(res);
 }
@@ -120,14 +111,14 @@ fn test_create_policy_tilde_name_in_mlang_dialect() {
 
 #[test]
 fn test_drop_policy_bare() {
-    let res = parse("drop policy p on t", SqlFileSource::script());
+    let res = parse("drop policy p on t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_drop_policy_if_exists() {
-    let res = parse("drop policy if exists p on t;", SqlFileSource::script());
+    let res = parse("drop policy if exists p on t;", postgres());
 
     assert_parser!(res);
 }
@@ -143,7 +134,7 @@ fn test_drop_policy_tilde_name_in_mlang_dialect() {
 fn test_create_and_drop_policy_do_not_shadow_view_table() {
     let res = parse(
         "drop table if exists foo; drop policy if exists p on foo; create table foo (a int); create policy p on foo for all;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

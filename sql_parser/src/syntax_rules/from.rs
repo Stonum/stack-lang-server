@@ -6,9 +6,12 @@ use biome_parser::prelude::*;
 use super::expr::{
     EXPR_RECOVERY_SET, SqlExpressionList, bump_name_segment, count_dotted_name_segments,
     is_at_name_segment_start, is_at_tilde_name_start, parse_alias, parse_any_name,
-    parse_column_name_list, parse_expression, parse_shema_qualifier, parse_table_name,
+    parse_expression, parse_shema_qualifier, parse_table_name,
 };
 use super::parse_error::*;
+use super::postgres::from::{
+    is_at_lateral_source, parse_join_using_clause, parse_lateral_from_expression,
+};
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{SqlParser, lexer::SqlReLexContext};
 use sql_syntax::{SqlSyntaxKind::*, T, *};
@@ -149,19 +152,6 @@ fn parse_join_clause(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_JOIN_CLAUSE))
 }
 
-/// `JOIN t2 USING (col1, col2)` -- an alternative to `ON`, matching rows by
-/// equality on the listed columns instead of an arbitrary condition.
-fn parse_join_using_clause(p: &mut SqlParser) -> ParsedSyntax {
-    if !p.at(T![using]) {
-        return Absent;
-    }
-
-    let m = p.start();
-    p.bump(T![using]);
-    parse_column_name_list(p).or_add_diagnostic(p, expected_column_list);
-    Present(m.complete(p, SQL_JOIN_USING_CLAUSE))
-}
-
 /// A table binding, function binding, or subquery binding, e.g. `table`,
 /// `schema.table t`, `some_func(1, 2) as t`, or `(select ...) as t`.
 /// Distinguishes them by looking ahead past the qualified name for a `(`,
@@ -178,9 +168,7 @@ pub(crate) fn parse_from_expression(p: &mut SqlParser) -> ParsedSyntax {
     // relies on this function always making progress once its own gate,
     // built from the very same check, has committed).
     if is_at_lateral_source(p) {
-        let m = p.start();
-        p.bump(T![lateral]);
-        return parse_subquery_or_function_binding(p, m);
+        return parse_lateral_from_expression(p);
     }
 
     if p.at(T!['(']) {
@@ -232,64 +220,6 @@ pub(crate) fn parse_from_expression(p: &mut SqlParser) -> ParsedSyntax {
     }
 }
 
-/// `true` if positioned at `lateral` genuinely followed by a subquery or
-/// function call (the only two shapes it can legally precede) -- `false`
-/// for a stray `lateral` before anything else, including a plain table
-/// name. Doesn't consume anything either way.
-fn is_at_lateral_source(p: &mut SqlParser) -> bool {
-    p.at(T![lateral])
-        && p.lookahead(|p| {
-            p.bump(T![lateral]);
-            is_at_subquery_or_function_start(p)
-        })
-}
-
-/// `true` if positioned at the start of a subquery `(` or a (possibly
-/// dotted/tilde-wrapped) function call -- the two shapes `lateral` can
-/// legally precede. Doesn't consume anything.
-fn is_at_subquery_or_function_start(p: &mut SqlParser) -> bool {
-    if p.at(T!['(']) {
-        return true;
-    }
-    if is_at_tilde_name_start(p) {
-        return p.lookahead(|p| {
-            p.re_lex(SqlReLexContext::TildeName) == SQL_TILDE_NAME_LITERAL && {
-                p.bump(SQL_TILDE_NAME_LITERAL);
-                p.at(T!['('])
-            }
-        });
-    }
-    if p.at(T![ident]) {
-        let segment_count = count_dotted_name_segments(p).min(3);
-        return p.lookahead(|p| {
-            for i in 0..segment_count {
-                if i > 0 {
-                    p.bump(T![.]);
-                }
-                p.bump(T![ident]);
-            }
-            p.at(T!['('])
-        });
-    }
-    false
-}
-
-/// Parses whichever of the two `lateral`-eligible shapes actually follows,
-/// re-running the same dispatch [is_at_subquery_or_function_start] just
-/// confirmed -- `lateral` itself has already been bumped into the
-/// still-open marker `m` by the caller, so it ends up as that node's own
-/// first child slot.
-fn parse_subquery_or_function_binding(p: &mut SqlParser, m: Marker) -> ParsedSyntax {
-    if p.at(T!['(']) {
-        return parse_subquery_binding_body(p, m);
-    }
-    if is_at_tilde_name_start(p) {
-        return parse_function_binding_body(p, m, 0);
-    }
-    let segment_count = count_dotted_name_segments(p).min(3);
-    parse_function_binding_body(p, m, segment_count)
-}
-
 /// A plain table binding, e.g. `table` or `schema.table as t`. Unlike
 /// [parse_from_expression], never resolves to a function binding — used by
 /// statements whose grammar requires a `SqlTableBinding` directly (e.g.
@@ -321,7 +251,11 @@ fn parse_function_binding(p: &mut SqlParser, segment_count: usize) -> ParsedSynt
 
 /// Assumes any leading `lateral` has already been bumped into the
 /// still-open marker `m` by the caller (see [parse_subquery_or_function_binding]).
-fn parse_function_binding_body(p: &mut SqlParser, m: Marker, segment_count: usize) -> ParsedSyntax {
+pub(crate) fn parse_function_binding_body(
+    p: &mut SqlParser,
+    m: Marker,
+    segment_count: usize,
+) -> ParsedSyntax {
     parse_shema_qualifier(p, segment_count.saturating_sub(1));
     parse_any_name(p).or_add_diagnostic(p, expected_identifier);
 
@@ -345,7 +279,7 @@ fn parse_subquery_binding(p: &mut SqlParser) -> ParsedSyntax {
 
 /// Assumes any leading `lateral` has already been bumped into the
 /// still-open marker `m` by the caller (see [parse_subquery_or_function_binding]).
-fn parse_subquery_binding_body(p: &mut SqlParser, m: Marker) -> ParsedSyntax {
+pub(crate) fn parse_subquery_binding_body(p: &mut SqlParser, m: Marker) -> ParsedSyntax {
     p.bump(T!['(']);
     parse_with_prefixed_select_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);

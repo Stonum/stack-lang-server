@@ -10,6 +10,11 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// `CASCADE`/`RESTRICT` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_drop_table_bare_name() {
     let res = parse("drop table foo", SqlFileSource::script());
@@ -40,19 +45,23 @@ fn test_drop_table_multiple_names() {
 
 #[test]
 fn test_drop_table_cascade() {
-    let res = parse("drop table if exists foo cascade;", SqlFileSource::script());
+    let res = parse("drop table if exists foo cascade;", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_drop_table_restrict() {
-    let res = parse(
-        "drop table if exists foo restrict;",
-        SqlFileSource::script(),
-    );
+    let res = parse("drop table if exists foo restrict;", postgres());
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_drop_table_cascade_rejected_under_standard_dialect() {
+    let res = parse("drop table if exists foo cascade;", SqlFileSource::script());
+
+    assert!(res.has_errors());
 }
 
 #[test]

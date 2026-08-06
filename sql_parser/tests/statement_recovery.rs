@@ -2,7 +2,7 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
 
 #[test]
 fn test_double_semicolon_does_not_drop_following_statement() {
@@ -76,7 +76,7 @@ fn test_go_batch_separator_does_not_swallow_the_next_statement() {
     // its own, properly formattable node.
     let res = parse(
         "drop function if exists foo;\nGO\ncreate function foo() as 'select 1';\nselect 1;",
-        SqlFileSource::script(),
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
     );
 
     assert!(res.has_errors());

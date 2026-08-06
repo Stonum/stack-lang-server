@@ -5,6 +5,7 @@ use biome_parser::prelude::*;
 
 use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, parse_name};
 use super::parse_error::*;
+use super::postgres::with_clause::{eat_recursive_modifier, parse_cte_materialized_hint};
 use super::select::parse_select_statement_body;
 use super::stmt::parse_statement;
 use super::values::parse_values_clause_body;
@@ -20,7 +21,7 @@ pub(crate) fn parse_with_clause(p: &mut SqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![with]);
-    p.eat(T![recursive]);
+    eat_recursive_modifier(p);
     SqlCteDefinitionList.parse_list(p);
     Present(m.complete(p, SQL_WITH_CLAUSE))
 }
@@ -100,19 +101,4 @@ fn parse_cte_definition(p: &mut SqlParser) -> ParsedSyntax {
     parse_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
     Present(m.complete(p, SQL_CTE_DEFINITION))
-}
-
-/// `[not] materialized`, a purely-informational planner hint on a CTE
-/// (`with x as materialized (...)` / `with x as not materialized (...)`)
-/// -- doesn't change what the query means, so the parser just accepts and
-/// preserves it rather than acting on it.
-fn parse_cte_materialized_hint(p: &mut SqlParser) -> ParsedSyntax {
-    if !(p.at(T![materialized]) || p.at(T![not]) && p.nth_at(1, T![materialized])) {
-        return Absent;
-    }
-
-    let m = p.start();
-    p.eat(T![not]);
-    p.expect(T![materialized]);
-    Present(m.complete(p, SQL_CTE_MATERIALIZED_HINT))
 }

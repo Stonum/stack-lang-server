@@ -10,6 +10,13 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// The parenthesized parameter type list and `CASCADE`/`RESTRICT` are
+/// Postgres-only extensions on top of the otherwise-Standard bare
+/// `DROP FUNCTION name`.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_drop_function_bare_name() {
     let res = parse("drop function foo", SqlFileSource::script());
@@ -33,36 +40,37 @@ fn test_drop_function_if_exists() {
 
 #[test]
 fn test_drop_function_with_empty_parameter_list() {
-    let res = parse("drop function foo()", SqlFileSource::script());
+    let res = parse("drop function foo()", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_drop_function_with_typed_parameters() {
-    let res = parse("drop function foo(int, text)", SqlFileSource::script());
+    let res = parse("drop function foo(int, text)", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_drop_function_cascade() {
-    let res = parse(
-        "drop function if exists foo cascade;",
-        SqlFileSource::script(),
-    );
+    let res = parse("drop function if exists foo cascade;", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_drop_function_restrict() {
-    let res = parse(
-        "drop function if exists foo restrict;",
-        SqlFileSource::script(),
-    );
+    let res = parse("drop function if exists foo restrict;", postgres());
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_drop_function_type_list_rejected_under_standard_dialect() {
+    let res = parse("drop function foo(int, text)", SqlFileSource::script());
+
+    assert!(res.has_errors());
 }
 
 #[test]

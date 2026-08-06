@@ -10,6 +10,11 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// Arrays are Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_any_with_subquery() {
     let res = parse(
@@ -42,10 +47,7 @@ fn test_some_with_subquery() {
 
 #[test]
 fn test_any_with_array_expression() {
-    let res = parse(
-        "select a from t where a = any(array[1, 2, 3])",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a from t where a = any(array[1, 2, 3])", postgres());
 
     assert_parser!(res);
 }
