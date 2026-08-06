@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `RETURNING` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_update_single_set_item() {
@@ -84,7 +89,7 @@ fn test_update_with_from_clause_multiple_items() {
 fn test_update_from_clause_with_returning() {
     let res = parse(
         "update t set a = u.a from u where t.id = u.id returning t.id;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

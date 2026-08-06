@@ -10,6 +10,11 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// `WITH (...)` view storage options are Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_create_view_simple() {
     let res = parse(
@@ -44,7 +49,7 @@ fn test_create_view_qualified_name() {
 fn test_create_view_with_options() {
     let res = parse(
         "create view foo with (security_invoker=true) as select a from t;",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -54,10 +59,20 @@ fn test_create_view_with_options() {
 fn test_create_view_with_multiple_options() {
     let res = parse(
         "create view foo with (security_invoker=true, check_option=cascaded) as select a from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_create_view_with_options_rejected_under_standard_dialect() {
+    let res = parse(
+        "create view foo with (security_invoker=true) as select a from t;",
+        SqlFileSource::script(),
+    );
+
+    assert!(res.has_errors());
 }
 
 #[test]
@@ -110,7 +125,7 @@ fn test_drop_view_multiple_names() {
 
 #[test]
 fn test_drop_view_cascade() {
-    let res = parse("drop view if exists foo cascade;", SqlFileSource::script());
+    let res = parse("drop view if exists foo cascade;", postgres());
 
     assert_parser!(res);
 }

@@ -10,70 +10,82 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// Arrays (literal, type suffix, subscript) are Postgres-only -- gated
+/// behind `SqlSyntaxFeature::Postgres`, so every positive test in this file
+/// needs the dialect explicitly selected, not just the mlang-extension
+/// combination `mlang()` gives.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_array_literal() {
-    let res = parse("select array[1, 2, 3] from t", SqlFileSource::script());
+    let res = parse("select array[1, 2, 3] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_empty_array_literal() {
-    let res = parse("select array[] from t", SqlFileSource::script());
+    let res = parse("select array[] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_array_subscript_on_column() {
-    let res = parse("select a[1] from t", SqlFileSource::script());
+    let res = parse("select a[1] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_array_subscript_on_array_literal() {
-    let res = parse("select array[1, 2, 3][1] from t", SqlFileSource::script());
+    let res = parse("select array[1, 2, 3][1] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_chained_array_subscript() {
-    let res = parse("select matrix[0][1] from t", SqlFileSource::script());
+    let res = parse("select matrix[0][1] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_array_subscript_binds_tighter_than_binary_operators() {
-    let res = parse("select a[0] + b[0] from t", SqlFileSource::script());
+    let res = parse("select a[0] + b[0] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_array_subscript_on_call_expression() {
-    let res = parse("select get_array()[0] from t", SqlFileSource::script());
+    let res = parse("select get_array()[0] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_array_subscript_with_expression_index() {
-    let res = parse("select a[i + 1] from t", SqlFileSource::script());
+    let res = parse("select a[i + 1] from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_array_of_expressions() {
-    let res = parse(
-        "select array[a + 1, upper(b)] from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select array[a + 1, upper(b)] from t", postgres());
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_array_rejected_under_standard_dialect() {
+    let res = parse("select array[1, 2, 3] from t", SqlFileSource::script());
+
+    assert!(res.has_errors());
 }
 
 #[test]

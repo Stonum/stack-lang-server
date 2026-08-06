@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `DELETE ... USING` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_delete_from_table() {
@@ -27,10 +32,7 @@ fn test_delete_where_clause() {
 
 #[test]
 fn test_delete_using_clause() {
-    let res = parse(
-        "delete from t using u where t.a = u.a",
-        SqlFileSource::script(),
-    );
+    let res = parse("delete from t using u where t.a = u.a", postgres());
 
     assert_parser!(res);
 }
@@ -39,10 +41,20 @@ fn test_delete_using_clause() {
 fn test_delete_using_function_binding() {
     let res = parse(
         "delete from t using some_func(1) as f where t.a = f.a",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_delete_using_rejected_under_standard_dialect() {
+    let res = parse(
+        "delete from t using u where t.a = u.a",
+        SqlFileSource::script(),
+    );
+
+    assert!(res.has_errors());
 }
 
 #[test]

@@ -2,7 +2,13 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `RETURNING`, `WITH RECURSIVE` and `[NOT] MATERIALIZED` are all
+/// Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_with_select() {
@@ -33,10 +39,20 @@ fn test_with_cte_named_after_type_keyword() {
 fn test_with_recursive() {
     let res = parse(
         "with recursive cte as (select a from t) select a from cte",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
+}
+
+#[test]
+fn test_with_recursive_rejected_under_standard_dialect() {
+    let res = parse(
+        "with recursive cte as (select a from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert!(res.has_errors());
 }
 
 #[test]
@@ -113,7 +129,7 @@ fn test_multiple_with_statements() {
 fn test_data_modifying_cte_insert() {
     let res = parse(
         "with moved as (insert into archive select * from t returning id) select id from moved",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -123,7 +139,7 @@ fn test_data_modifying_cte_insert() {
 fn test_data_modifying_cte_update() {
     let res = parse(
         "with updated as (update t set a = 1 where id = 1 returning id) select id from updated",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -133,7 +149,7 @@ fn test_data_modifying_cte_update() {
 fn test_data_modifying_cte_delete() {
     let res = parse(
         "with deleted as (delete from t where id = 1 returning id) select id from deleted",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -173,7 +189,7 @@ fn test_with_inside_subquery_scalar() {
 fn test_with_cte_materialized_hint() {
     let res = parse(
         "with cte as materialized (select a from t) select a from cte",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -183,17 +199,27 @@ fn test_with_cte_materialized_hint() {
 fn test_with_cte_not_materialized_hint() {
     let res = parse(
         "with cte as not materialized (select a from t) select a from cte",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
 }
 
 #[test]
+fn test_with_cte_materialized_hint_rejected_under_standard_dialect() {
+    let res = parse(
+        "with cte as materialized (select a from t) select a from cte",
+        SqlFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
 fn test_with_multiple_ctes_mixed_materialized_hints() {
     let res = parse(
         "with cte1 as materialized (select a from t), cte2 as not materialized (select b from u), cte3 as (select c from v) select a from cte1 join cte2 on cte1.a = cte2.b join cte3 on cte2.b = cte3.c",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

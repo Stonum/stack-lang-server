@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `DELETE ... USING` is Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_subquery_as_from_source() {
@@ -95,7 +100,7 @@ fn test_nested_subquery() {
 fn test_delete_using_subquery() {
     let res = parse(
         "delete from t using (select id from u) as sub where t.id = sub.id",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

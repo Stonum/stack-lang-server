@@ -1,10 +1,10 @@
-use biome_parser::parse_lists::ParseSeparatedList;
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::from::{SqlFromItemList, parse_table_binding};
+use super::from::parse_table_binding;
 use super::parse_error::*;
-use super::returning_clause::parse_returning_clause;
+use super::postgres::delete_using_clause::parse_delete_using_clause;
+use super::postgres::returning_clause::parse_returning_clause;
 use super::where_clause::parse_where_clause;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T};
@@ -32,15 +32,4 @@ pub(crate) fn parse_delete_statement_body(p: &mut SqlParser, delete_stmt: Marker
     p.eat(T![;]);
 
     Present(delete_stmt.complete(p, SQL_DELETE_STATEMENT))
-}
-
-fn parse_delete_using_clause(p: &mut SqlParser) -> ParsedSyntax {
-    if !p.at(T![using]) {
-        return Absent;
-    }
-
-    let m = p.start();
-    p.bump(T![using]);
-    SqlFromItemList.parse_list(p);
-    Present(m.complete(p, SQL_DELETE_USING_CLAUSE))
 }

@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `DISTINCT ON` and `LIMIT` are both Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_select_literal_list() {
@@ -306,20 +311,14 @@ fn test_select_order_by_after_having() {
 
 #[test]
 fn test_select_limit_offset() {
-    let res = parse(
-        "select a from t limit 10 offset 20",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a from t limit 10 offset 20", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_select_limit_offset_after_order_by() {
-    let res = parse(
-        "select a from t order by a limit 10 offset 20",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a from t order by a limit 10 offset 20", postgres());
 
     assert_parser!(res);
 }
@@ -340,10 +339,7 @@ fn test_select_all() {
 
 #[test]
 fn test_select_distinct_on() {
-    let res = parse(
-        "select distinct on (a, b) a, b, c from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select distinct on (a, b) a, b, c from t", postgres());
 
     assert_parser!(res);
 }
@@ -352,7 +348,7 @@ fn test_select_distinct_on() {
 fn test_select_distinct_on_single_column() {
     let res = parse(
         "select distinct on (a) a, b from t order by a, b",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

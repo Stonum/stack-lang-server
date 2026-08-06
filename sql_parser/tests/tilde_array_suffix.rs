@@ -49,10 +49,12 @@ fn test_tilde_array_suffix_rejected_in_standard_dialect() {
 }
 
 #[test]
-fn test_plain_array_suffix_still_works_in_standard_dialect() {
+fn test_plain_array_suffix_rejected_in_standard_dialect() {
+    // Array types (`int[]`) are Postgres-only, gated the same as the
+    // tilde-escaped spelling above -- Standard rejects both.
     let res = parse("select x::int[] from t", SqlFileSource::script());
 
-    assert_parser!(res);
+    assert!(res.has_errors());
 }
 
 #[test]

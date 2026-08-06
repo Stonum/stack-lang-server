@@ -2,7 +2,12 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
+
+/// `LATERAL` and `JOIN ... USING` are both Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
 
 #[test]
 fn test_bare_join() {
@@ -125,7 +130,7 @@ fn test_cross_join_then_inner_join() {
 fn test_join_lateral_subquery() {
     let res = parse(
         "select a from t join lateral (select max(b) from u where u.t_id = t.id) x on true",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -135,7 +140,7 @@ fn test_join_lateral_subquery() {
 fn test_left_join_lateral_function() {
     let res = parse(
         "select a from t left join lateral unnest(t.arr) x on true",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -145,7 +150,7 @@ fn test_left_join_lateral_function() {
 fn test_join_lateral_qualified_function() {
     let res = parse(
         "select a from t join lateral myschema.some_func(t.id) x on true",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -153,27 +158,21 @@ fn test_join_lateral_qualified_function() {
 
 #[test]
 fn test_join_using_single_column() {
-    let res = parse("select a from t join u using (id)", SqlFileSource::script());
+    let res = parse("select a from t join u using (id)", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_join_using_multiple_columns() {
-    let res = parse(
-        "select a from t join u using (id, name)",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a from t join u using (id, name)", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_left_join_using() {
-    let res = parse(
-        "select a from t left join u using (id)",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a from t left join u using (id)", postgres());
 
     assert_parser!(res);
 }
@@ -182,7 +181,7 @@ fn test_left_join_using() {
 fn test_multiple_joins_using() {
     let res = parse(
         "select a from t join u using (id) join v using (id)",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

@@ -4,11 +4,12 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, SqlExpressionList, is_at_table_star, parse_alias, parse_expression,
-    parse_limit_offset_value, parse_table_star,
+    EXPR_RECOVERY_SET, is_at_table_star, parse_alias, parse_expression, parse_limit_offset_value,
+    parse_table_star,
 };
 use super::from::parse_from_clause;
 use super::parse_error::*;
+use super::postgres::select::{parse_distinct_on_clause, parse_limit_clause};
 use super::where_clause::parse_where_clause;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T, *};
@@ -68,19 +69,6 @@ fn parse_select_quantifier(p: &mut SqlParser) -> ParsedSyntax {
     } else {
         Absent
     }
-}
-
-fn parse_distinct_on_clause(p: &mut SqlParser) -> ParsedSyntax {
-    if !p.at(T![on]) {
-        return Absent;
-    }
-
-    let m = p.start();
-    p.bump(T![on]);
-    p.expect(T!['(']);
-    SqlExpressionList.parse_list(p);
-    p.expect(T![')']);
-    Present(m.complete(p, SQL_DISTINCT_ON_CLAUSE))
 }
 
 /// Zero or more `union`/`intersect`/`except` branches following the leading
@@ -252,17 +240,6 @@ fn parse_order_by_expression(p: &mut SqlParser) -> ParsedSyntax {
         m.abandon(p);
         Absent
     }
-}
-
-fn parse_limit_clause(p: &mut SqlParser) -> ParsedSyntax {
-    if !p.at(T![limit]) {
-        return Absent;
-    }
-
-    let m = p.start();
-    p.bump(T![limit]);
-    parse_limit_offset_value(p).or_add_diagnostic(p, expected_limit_value);
-    Present(m.complete(p, SQL_LIMIT_CLAUSE))
 }
 
 fn parse_offset_clause(p: &mut SqlParser) -> ParsedSyntax {

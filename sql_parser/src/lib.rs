@@ -21,14 +21,15 @@ mod token_source;
 /// uniformly via [SyntaxFeature] -- mirrors `biome_js_parser`'s own
 /// `JsSyntaxFeature` (dialect/extension gates as a small enum + a shared
 /// `is_supported` check, rather than each parse site re-deriving its own
-/// `p.source_type()...` condition). Not yet applied to gate any specific
-/// node: `Postgres`/`Mssql` exist so a future dialect-specific grammar rule
-/// (e.g. `TOP` under `Mssql`, `ON CONFLICT` restricted to `Postgres`) has
-/// something to check against, via [SyntaxFeature::exclusive_syntax]/
+/// `p.source_type()...` condition). `Postgres` gates the growing set of
+/// Postgres-only constructs (`RETURNING`, `ON CONFLICT`, `LATERAL`, arrays,
+/// `WITH RECURSIVE`, ...) via [SyntaxFeature::exclusive_syntax]/
 /// [SyntaxFeature::parse_exclusive_syntax] -- both let a node parse the
 /// same way regardless of dialect and only turn it into a diagnostic +
 /// bogus node afterward if the active dialect doesn't support it, so
-/// grammar rules themselves don't need per-dialect branches.
+/// grammar rules themselves don't need per-dialect branches. `Mssql` exists
+/// for a future dialect-specific rule (e.g. `TOP`) with nothing gated on it
+/// yet.
 pub enum SqlSyntaxFeature {
     Postgres,
     Mssql,
