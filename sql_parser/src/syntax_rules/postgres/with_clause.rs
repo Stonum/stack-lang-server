@@ -44,5 +44,5 @@ fn parse_cte_materialized_hint_body(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.eat(T![not]);
     p.expect(T![materialized]);
-    Present(m.complete(p, SQL_CTE_MATERIALIZED_HINT))
+    Present(m.complete(p, PSQL_CTE_MATERIALIZED_HINT))
 }

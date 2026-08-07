@@ -8,8 +8,8 @@ impl FormatRule<AnySqlTypeArraySuffix> for FormatAnySqlTypeArraySuffix {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &AnySqlTypeArraySuffix, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
-            AnySqlTypeArraySuffix::SqlTildeArraySuffix(node) => node.format().fmt(f),
-            AnySqlTypeArraySuffix::SqlTypeArraySuffix(node) => node.format().fmt(f),
+            AnySqlTypeArraySuffix::PsqlTildeArraySuffix(node) => node.format().fmt(f),
+            AnySqlTypeArraySuffix::PsqlTypeArraySuffix(node) => node.format().fmt(f),
         }
     }
 }

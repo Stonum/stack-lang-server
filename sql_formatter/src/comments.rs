@@ -78,7 +78,7 @@ impl CommentStyle for SqlCommentStyle {
 fn handle_create_function_body_comment(
     comment: DecoratedComment<SqlLanguage>,
 ) -> CommentPlacement<SqlLanguage> {
-    if comment.enclosing_node().kind() != SqlSyntaxKind::SQL_CREATE_FUNCTION_STATEMENT {
+    if comment.enclosing_node().kind() != SqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT {
         return CommentPlacement::Default(comment);
     }
 

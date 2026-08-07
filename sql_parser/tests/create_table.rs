@@ -10,6 +10,11 @@ fn mlang() -> SqlFileSource {
         .with_mlang_extension(true)
 }
 
+/// `boolean` is a Postgres-only type keyword.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_create_table_single_column() {
     let res = parse("create table foo (a int)", SqlFileSource::script());
@@ -19,10 +24,7 @@ fn test_create_table_single_column() {
 
 #[test]
 fn test_create_table_multiple_columns() {
-    let res = parse(
-        "create table foo (a int, b text, c boolean)",
-        SqlFileSource::script(),
-    );
+    let res = parse("create table foo (a int, b text, c boolean)", postgres());
 
     assert_parser!(res);
 }

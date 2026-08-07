@@ -8,8 +8,8 @@ impl FormatRule<AnySqlConflictAction> for FormatAnySqlConflictAction {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &AnySqlConflictAction, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
-            AnySqlConflictAction::SqlDoNothingClause(node) => node.format().fmt(f),
-            AnySqlConflictAction::SqlDoUpdateClause(node) => node.format().fmt(f),
+            AnySqlConflictAction::PsqlDoNothingClause(node) => node.format().fmt(f),
+            AnySqlConflictAction::PsqlDoUpdateClause(node) => node.format().fmt(f),
         }
     }
 }

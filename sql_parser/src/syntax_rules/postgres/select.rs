@@ -28,7 +28,7 @@ fn parse_distinct_on_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T!['(']);
     SqlExpressionList.parse_list(p);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_DISTINCT_ON_CLAUSE))
+    Present(m.complete(p, PSQL_DISTINCT_ON_CLAUSE))
 }
 
 /// Postgres/MySQL-style row-limiting -- T-SQL has no `LIMIT` keyword at all
@@ -53,5 +53,5 @@ fn parse_limit_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![limit]);
     parse_limit_offset_value(p).or_add_diagnostic(p, expected_limit_value);
-    Present(m.complete(p, SQL_LIMIT_CLAUSE))
+    Present(m.complete(p, PSQL_LIMIT_CLAUSE))
 }

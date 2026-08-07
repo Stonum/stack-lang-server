@@ -9,7 +9,7 @@ impl FormatRule<AnySqlConflictTarget> for FormatAnySqlConflictTarget {
     fn fmt(&self, node: &AnySqlConflictTarget, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
             AnySqlConflictTarget::SqlColumnList(node) => node.format().fmt(f),
-            AnySqlConflictTarget::SqlOnConstraintClause(node) => node.format().fmt(f),
+            AnySqlConflictTarget::PsqlOnConstraintClause(node) => node.format().fmt(f),
         }
     }
 }

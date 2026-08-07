@@ -1,0 +1,25 @@
+//! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
+
+pub(crate) mod delete_using_clause;
+pub(crate) mod distinct_on_clause;
+pub(crate) mod do_nothing_clause;
+pub(crate) mod do_update_clause;
+pub(crate) mod filter_clause;
+pub(crate) mod join_using_clause;
+pub(crate) mod limit_clause;
+pub(crate) mod on_conflict_clause;
+pub(crate) mod on_constraint_clause;
+pub(crate) mod policy_for_clause;
+pub(crate) mod policy_using_clause;
+pub(crate) mod policy_with_check_clause;
+pub(crate) mod returning_clause;
+pub(crate) mod returns_clause;
+pub(crate) mod returns_setof_clause;
+pub(crate) mod returns_table_clause;
+pub(crate) mod returns_trigger_clause;
+pub(crate) mod substring_for_clause;
+pub(crate) mod substring_from_clause;
+pub(crate) mod trigger_for_each_clause;
+pub(crate) mod trigger_referencing_clause;
+pub(crate) mod trigger_update_of_clause;
+pub(crate) mod trigger_when_clause;

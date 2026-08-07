@@ -3,8 +3,12 @@ use biome_parser::prelude::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::parse_error::postgres_only_syntax_error;
-use crate::syntax_rules::expr::{SqlExpressionList, parse_expression};
-use crate::syntax_rules::parse_error::expected_expression;
+use crate::syntax_rules::expr::{
+    SqlExpressionList, parse_expression, parse_string_literal_expression, parse_type_name,
+};
+use crate::syntax_rules::parse_error::{
+    expected_expression, expected_string_literal, expected_type_name,
+};
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind::*, T};
 
@@ -37,13 +41,13 @@ fn parse_array_expression_body(p: &mut SqlParser) -> ParsedSyntax {
         SqlExpressionList.parse_list(p);
         p.expect(T![']']);
         p.expect(T![~]);
-        return Present(m.complete(p, SQL_TILDE_ARRAY_EXPRESSION));
+        return Present(m.complete(p, PSQL_TILDE_ARRAY_EXPRESSION));
     }
 
     p.expect(T!['[']);
     SqlExpressionList.parse_list(p);
     p.expect(T![']']);
-    Present(m.complete(p, SQL_ARRAY_EXPRESSION))
+    Present(m.complete(p, PSQL_ARRAY_EXPRESSION))
 }
 
 /// Wraps `expression` in zero or more `[index]` subscripts (e.g. `a[0]`,
@@ -68,7 +72,7 @@ pub(crate) fn parse_array_subscript_tail(
         p.bump(T!['[']);
         parse_expression(p).or_add_diagnostic(p, expected_expression);
         p.expect(T![']']);
-        let completed = m.complete(p, SQL_ARRAY_SUBSCRIPT_EXPRESSION);
+        let completed = m.complete(p, PSQL_ARRAY_SUBSCRIPT_EXPRESSION);
         expression = SqlSyntaxFeature::Postgres.exclusive_syntax(p, completed, |p, marker| {
             postgres_only_syntax_error(p, "Array subscripting", marker.range(p))
         });
@@ -93,7 +97,7 @@ fn parse_type_array_suffix_unchecked(p: &mut SqlParser) -> ParsedSyntax {
         let m = p.start();
         p.bump(T!['[']);
         p.expect(T![']']);
-        return Present(m.complete(p, SQL_TYPE_ARRAY_SUFFIX));
+        return Present(m.complete(p, PSQL_TYPE_ARRAY_SUFFIX));
     }
 
     if is_at_tilde_array_suffix_start(p) {
@@ -102,7 +106,7 @@ fn parse_type_array_suffix_unchecked(p: &mut SqlParser) -> ParsedSyntax {
         p.expect(T!['[']);
         p.expect(T![']']);
         p.expect(T![~]);
-        return Present(m.complete(p, SQL_TILDE_ARRAY_SUFFIX));
+        return Present(m.complete(p, PSQL_TILDE_ARRAY_SUFFIX));
     }
 
     Absent
@@ -154,7 +158,7 @@ fn parse_filter_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![where]);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_FILTER_CLAUSE))
+    Present(m.complete(p, PSQL_FILTER_CLAUSE))
 }
 
 /// `true` if the parser is at a `substring(...)` call using the SQL-
@@ -217,7 +221,7 @@ fn parse_substring_expression_body(p: &mut SqlParser) -> ParsedSyntax {
     let _ = parse_substring_from_clause(p);
     let _ = parse_substring_for_clause(p);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_SUBSTRING_EXPRESSION))
+    Present(m.complete(p, PSQL_SUBSTRING_EXPRESSION))
 }
 
 fn parse_substring_from_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -227,7 +231,7 @@ fn parse_substring_from_clause(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![from]);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
-    Present(m.complete(p, SQL_SUBSTRING_FROM_CLAUSE))
+    Present(m.complete(p, PSQL_SUBSTRING_FROM_CLAUSE))
 }
 
 fn parse_substring_for_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -237,5 +241,77 @@ fn parse_substring_for_clause(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![for]);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
-    Present(m.complete(p, SQL_SUBSTRING_FOR_CLAUSE))
+    Present(m.complete(p, PSQL_SUBSTRING_FOR_CLAUSE))
+}
+
+/// Wraps `expression` in zero or more `::type` casts (e.g. `1::text`,
+/// `a::int::text`). Like array subscripting, `::` binds tighter than every
+/// other operator, so it's applied directly around the primary expression
+/// rather than through the binary/logical precedence-climbing chain.
+/// Postgres-only -- T-SQL casts only via `CAST(x AS type)`. Gated
+/// per-cast via [SyntaxFeature::exclusive_syntax] on the already-completed
+/// node rather than [SyntaxFeature::parse_exclusive_syntax], since this
+/// wraps an expression already parsed by the caller rather than parsing
+/// from scratch (same shape as [parse_array_subscript_tail]).
+pub(crate) fn parse_cast_tail(p: &mut SqlParser, mut expression: ParsedSyntax) -> ParsedSyntax {
+    while p.at(T![::]) {
+        if expression.is_absent() {
+            break;
+        }
+
+        let m = expression.precede(p);
+        p.bump(T![::]);
+        parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+        let completed = m.complete(p, PSQL_CAST_EXPRESSION);
+        expression = SqlSyntaxFeature::Postgres.exclusive_syntax(p, completed, |p, marker| {
+            postgres_only_syntax_error(p, "The `::` cast operator", marker.range(p))
+        });
+    }
+
+    expression
+}
+
+/// `interval 'value'`, an interval literal in expression position (as
+/// opposed to `interval` as a bare type name in a cast/column-type
+/// position, parsed elsewhere and never reaching this function). Every
+/// real-world occurrence embeds the field (`interval '1 second'`) in the
+/// string itself, so this deliberately doesn't support a trailing field
+/// qualifier (`interval '1' second`) or leading precision
+/// (`interval(3) '...'`) -- narrower than real Postgres, matching how
+/// `parse_limit_offset_value` and others intentionally narrow to only the
+/// forms actually seen. Postgres-only -- T-SQL has no interval literal at
+/// all. Only ever reached from `parse_primary_expression`'s own `T![interval]`
+/// match arm, so it parses unconditionally rather than re-checking its own
+/// "is at" gate (same shape as [parse_substring_expression]).
+pub(crate) fn parse_interval_expression(p: &mut SqlParser) -> ParsedSyntax {
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        parse_interval_expression_body,
+        |p, marker| postgres_only_syntax_error(p, "`INTERVAL` literals", marker.range(p)),
+    )
+}
+
+fn parse_interval_expression_body(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![interval]);
+    parse_string_literal_expression(p).or_add_diagnostic(p, expected_string_literal);
+    Present(m.complete(p, PSQL_INTERVAL_EXPRESSION))
+}
+
+/// Gates an already-completed `SQL_TYPE_NAME` node when the keyword it
+/// starts with is Postgres-only (`json`/`jsonb`/`uuid`/`bytea`/`boolean`/
+/// `interval`/`array`) -- see `parse_type_name`'s doc comment for why the
+/// gate lives here, post-hoc on the completed node, rather than filtering
+/// `TYPE_NAME_TOKEN_SET` itself.
+pub(crate) fn gate_type_name(
+    p: &mut SqlParser,
+    marker: CompletedMarker,
+    is_postgres_only_keyword: bool,
+) -> ParsedSyntax {
+    if !is_postgres_only_keyword {
+        return Present(marker);
+    }
+    SqlSyntaxFeature::Postgres.exclusive_syntax(p, marker, |p, marker| {
+        postgres_only_syntax_error(p, "This type", marker.range(p))
+    })
 }

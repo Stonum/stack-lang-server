@@ -8,11 +8,11 @@ impl FormatRule<AnySqlFunctionOption> for FormatAnySqlFunctionOption {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &AnySqlFunctionOption, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
-            AnySqlFunctionOption::SqlLanguageOption(node) => node.format().fmt(f),
-            AnySqlFunctionOption::SqlReturnsNullOption(node) => node.format().fmt(f),
-            AnySqlFunctionOption::SqlSecurityOption(node) => node.format().fmt(f),
-            AnySqlFunctionOption::SqlStrictOption(node) => node.format().fmt(f),
-            AnySqlFunctionOption::SqlVolatilityOption(node) => node.format().fmt(f),
+            AnySqlFunctionOption::PsqlLanguageOption(node) => node.format().fmt(f),
+            AnySqlFunctionOption::PsqlReturnsNullOption(node) => node.format().fmt(f),
+            AnySqlFunctionOption::PsqlSecurityOption(node) => node.format().fmt(f),
+            AnySqlFunctionOption::PsqlStrictOption(node) => node.format().fmt(f),
+            AnySqlFunctionOption::PsqlVolatilityOption(node) => node.format().fmt(f),
         }
     }
 }
