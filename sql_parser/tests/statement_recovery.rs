@@ -85,7 +85,7 @@ fn test_go_batch_separator_does_not_swallow_the_next_statement() {
     // Exactly one diagnostic, for `GO` alone -- not for the `CREATE
     // FUNCTION` statement that follows it.
     assert_eq!(res.diagnostics().len(), 1);
-    assert!(tree.contains("SQL_CREATE_FUNCTION_STATEMENT"));
+    assert!(tree.contains("PSQL_CREATE_FUNCTION_STATEMENT"));
     assert_eq!(tree.matches("SELECT_KW").count(), 1);
 }
 

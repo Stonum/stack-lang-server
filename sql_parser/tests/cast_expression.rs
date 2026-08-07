@@ -4,39 +4,35 @@ mod helper;
 use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
-/// Arrays are Postgres-only -- needed by the two tests below that combine
-/// `::` casts with array syntax specifically.
+/// `::` casts and arrays are Postgres-only.
 fn postgres() -> SqlFileSource {
     SqlFileSource::script().with_dialect(SqlDialect::Postgres)
 }
 
 #[test]
 fn test_cast_operator_on_column() {
-    let res = parse("select a::text from t", SqlFileSource::script());
+    let res = parse("select a::text from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_operator_on_literal() {
-    let res = parse("select 1::numeric from t", SqlFileSource::script());
+    let res = parse("select 1::numeric from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_chained_cast_operator() {
-    let res = parse("select a::int::text from t", SqlFileSource::script());
+    let res = parse("select a::int::text from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_operator_with_type_arguments() {
-    let res = parse(
-        "select price::numeric(10, 2) from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select price::numeric(10, 2) from t", postgres());
 
     assert_parser!(res);
 }
@@ -50,14 +46,14 @@ fn test_cast_operator_with_array_suffix() {
 
 #[test]
 fn test_cast_operator_on_custom_type() {
-    let res = parse("select a::my_enum from t", SqlFileSource::script());
+    let res = parse("select a::my_enum from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_operator_binds_tighter_than_unary_minus() {
-    let res = parse("select -1::text from t", SqlFileSource::script());
+    let res = parse("select -1::text from t", postgres());
 
     assert_parser!(res);
 }
@@ -88,7 +84,7 @@ fn test_cast_function_expression_with_arguments() {
 
 #[test]
 fn test_cast_operator_in_where_clause() {
-    let res = parse("select a from t where a::int = 1", SqlFileSource::script());
+    let res = parse("select a from t where a::int = 1", postgres());
 
     assert_parser!(res);
 }

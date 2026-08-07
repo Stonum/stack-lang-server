@@ -4,8 +4,9 @@ use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
 use super::postgres::expr::{
-    is_at_substring_from_form, parse_array_expression, parse_array_subscript_tail,
-    parse_filter_clause, parse_substring_expression, parse_type_array_suffix,
+    gate_type_name, is_at_substring_from_form, parse_array_expression, parse_array_subscript_tail,
+    parse_cast_tail, parse_filter_clause, parse_interval_expression, parse_substring_expression,
+    parse_type_array_suffix,
 };
 use super::select::parse_order_by_clause;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -14,7 +15,7 @@ use crate::{
     lexer::SqlReLexContext,
     syntax_rules::parse_error::{
         expected_expression, expected_identifier, expected_number_literal, expected_statement,
-        expected_string_literal, expected_type_name, expected_window_specification,
+        expected_type_name, expected_window_specification,
     },
 };
 use sql_syntax::{SqlSyntaxKind::*, T, *};
@@ -305,25 +306,6 @@ fn parse_cast_function_expression(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_CAST_FUNCTION_EXPRESSION))
 }
 
-/// Wraps `expression` in zero or more `::type` casts (e.g. `1::text`,
-/// `a::int::text`). Like array subscripting, `::` binds tighter than every
-/// other operator, so it's applied directly around the primary expression
-/// rather than through the binary/logical precedence-climbing chain.
-fn parse_cast_tail(p: &mut SqlParser, mut expression: ParsedSyntax) -> ParsedSyntax {
-    while p.at(T![::]) {
-        if expression.is_absent() {
-            break;
-        }
-
-        let m = expression.precede(p);
-        p.bump(T![::]);
-        parse_type_name(p).or_add_diagnostic(p, expected_type_name);
-        expression = Present(m.complete(p, SQL_CAST_EXPRESSION));
-    }
-
-    expression
-}
-
 pub(crate) const TYPE_NAME_TOKEN_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![ident],
     T![integer],
@@ -348,19 +330,43 @@ pub(crate) const TYPE_NAME_TOKEN_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![bit]
 ];
 
+/// The subset of [TYPE_NAME_TOKEN_SET] that's Postgres-only (no T-SQL
+/// equivalent type) -- `bit`/`varchar`/`char`/`text`/`integer`/`bigint`/
+/// `numeric`/`decimal`/`double`/`real`/`date`/`time`/`timestamp` all stay
+/// out of this set, either real ANSI/T-SQL types or close enough T-SQL
+/// equivalents. Deliberately NOT used to filter [TYPE_NAME_TOKEN_SET]
+/// itself -- see [parse_type_name]'s doc comment for why.
+pub(crate) const PSQL_ONLY_TYPE_NAME_TOKEN_SET: TokenSet<SqlSyntaxKind> = token_set![
+    T![json],
+    T![jsonb],
+    T![uuid],
+    T![bytea],
+    T![boolean],
+    T![interval],
+    T![array]
+];
+
 /// A type name such as `text`, `numeric(10, 2)` or `int[]`, used as the
-/// target of a `::` or `CAST(... AS ...)` type cast.
+/// target of a `::` or `CAST(... AS ...)` type cast. `TYPE_NAME_TOKEN_SET`
+/// itself stays dialect-independent (it's also read by [is_at_name_start]
+/// to decide whether a token can start an ordinary *name*, e.g. `create
+/// table foo (jsonb int)` using `jsonb` as a column name must keep working
+/// under every dialect) -- so the Postgres-only keywords in it are gated
+/// *after* this completes its own node instead, via [gate_type_name].
 pub(crate) fn parse_type_name(p: &mut SqlParser) -> ParsedSyntax {
     if !p.at_ts(TYPE_NAME_TOKEN_SET) {
         return Absent;
     }
+
+    let is_postgres_only_keyword = p.at_ts(PSQL_ONLY_TYPE_NAME_TOKEN_SET);
 
     let m = p.start();
     p.bump_any();
     let _ = parse_type_arguments(p);
     let _ = parse_type_modifier(p);
     let _ = parse_type_array_suffix(p);
-    Present(m.complete(p, SQL_TYPE_NAME))
+    let completed = m.complete(p, SQL_TYPE_NAME);
+    gate_type_name(p, completed, is_postgres_only_keyword)
 }
 
 /// The handful of multi-word SQL-standard type spellings real scripts use:
@@ -690,22 +696,6 @@ pub(crate) fn parse_string_literal_expression(p: &mut SqlParser) -> ParsedSyntax
     let m = p.start();
     p.bump(SQL_STRING_LITERAL);
     Present(m.complete(p, SQL_STRING_LITERAL_EXPRESSION))
-}
-
-/// `interval 'value'`, an interval literal in expression position (as
-/// opposed to `interval` as a bare type name in a cast/column-type
-/// position, parsed elsewhere and never reaching this function). Every
-/// real-world occurrence embeds the field (`interval '1 second'`) in the
-/// string itself, so this deliberately doesn't support a trailing field
-/// qualifier (`interval '1' second`) or leading precision
-/// (`interval(3) '...'`) -- narrower than real Postgres, matching how
-/// [parse_limit_offset_value] and others intentionally narrow to only the
-/// forms actually seen.
-fn parse_interval_expression(p: &mut SqlParser) -> ParsedSyntax {
-    let m = p.start();
-    p.bump(T![interval]);
-    parse_string_literal_expression(p).or_add_diagnostic(p, expected_string_literal);
-    Present(m.complete(p, SQL_INTERVAL_EXPRESSION))
 }
 
 /// A `LIMIT`/`OFFSET` value (`AnySqlLimitValue`): a bare number literal,

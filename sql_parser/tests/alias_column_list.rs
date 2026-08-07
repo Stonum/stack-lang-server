@@ -2,16 +2,16 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
 
 #[test]
 fn test_function_alias_with_typed_column_list() {
     // The canonical real-world use: a record-returning function's own
     // signature doesn't fix the output columns, so the caller must spell
-    // them out.
+    // them out. `::jsonb` is Postgres-only.
     let res = parse(
         "select * from json_to_recordset(:1::jsonb) as x(a int, b text)",
-        SqlFileSource::script(),
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
     );
 
     assert_parser!(res);

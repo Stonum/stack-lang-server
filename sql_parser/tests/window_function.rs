@@ -2,7 +2,7 @@
 mod helper;
 
 use sql_parser::parse;
-use sql_syntax::SqlFileSource;
+use sql_syntax::{SqlDialect, SqlFileSource};
 
 #[test]
 fn test_window_function_empty_spec() {
@@ -88,7 +88,7 @@ fn test_window_function_with_call_arguments() {
 fn test_window_function_cast_result() {
     let res = parse(
         "select row_number() over ()::text from t",
-        SqlFileSource::script(),
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
     );
 
     assert_parser!(res);

@@ -16,6 +16,215 @@ macro_rules! map_syntax_node {
     ($ node : expr , $ pattern : pat => $ body : expr) => {
         match $node {
             node => match $crate::SqlSyntaxNode::kind(&node) {
+                $crate::SqlSyntaxKind::PSQL_ARRAY_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlArrayExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_ARRAY_SUBSCRIPT_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlArraySubscriptExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CAST_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlCastExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreateFunctionStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CREATE_POLICY_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreatePolicyStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CREATE_TRIGGER_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreateTriggerStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CTE_MATERIALIZED_HINT => {
+                    let $pattern = unsafe { $crate::PsqlCteMaterializedHint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DELETE_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDeleteUsingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DISTINCT_ON_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDistinctOnClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DO_NOTHING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDoNothingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DO_UPDATE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlDoUpdateClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DROP_FUNCTION_PARAMETERS => {
+                    let $pattern =
+                        unsafe { $crate::PsqlDropFunctionParameters::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DROP_POLICY_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDropPolicyStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DROP_TRIGGER_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDropTriggerStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_FILTER_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlFilterClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_FUNCTION_PARAMETER => {
+                    let $pattern = unsafe { $crate::PsqlFunctionParameter::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_INTERVAL_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlIntervalExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_JOIN_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlJoinUsingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_LANGUAGE_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlLanguageOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_LIMIT_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlLimitClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_ON_CONFLICT_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlOnConflictClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_ON_CONSTRAINT_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlOnConstraintClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARAMETER_DEFAULT => {
+                    let $pattern = unsafe { $crate::PsqlParameterDefault::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPolicyForClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_POLICY_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPolicyUsingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_POLICY_WITH_CHECK_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPolicyWithCheckClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlReturningClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlReturnsClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_NULL_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlReturnsNullOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_SETOF_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlReturnsSetofClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_TABLE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlReturnsTableClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN => {
+                    let $pattern = unsafe { $crate::PsqlReturnsTableColumn::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_TRIGGER_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlReturnsTriggerClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SECURITY_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlSecurityOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_STRICT_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlStrictOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SUBSTRING_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlSubstringExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SUBSTRING_FOR_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlSubstringForClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SUBSTRING_FROM_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlSubstringFromClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TILDE_ARRAY_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlTildeArrayExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TILDE_ARRAY_SUFFIX => {
+                    let $pattern = unsafe { $crate::PsqlTildeArraySuffix::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_EVENT => {
+                    let $pattern = unsafe { $crate::PsqlTriggerEvent::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_FOR_EACH_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlTriggerForEachClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_REFERENCING_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerReferencingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerReferencingItem::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_UPDATE_OF_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerUpdateOfClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_WHEN_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlTriggerWhenClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TYPE_ARRAY_SUFFIX => {
+                    let $pattern = unsafe { $crate::PsqlTypeArraySuffix::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_VIEW_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlViewOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_VIEW_OPTIONS => {
+                    let $pattern = unsafe { $crate::PsqlViewOptions::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_VOLATILITY_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlVolatilityOption::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ALIAS => {
                     let $pattern = unsafe { $crate::SqlAlias::new_unchecked(node) };
                     $body
@@ -30,15 +239,6 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_ANY_ALL_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlAnyAllExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_ARRAY_EXPRESSION => {
-                    let $pattern = unsafe { $crate::SqlArrayExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_ARRAY_SUBSCRIPT_EXPRESSION => {
-                    let $pattern =
-                        unsafe { $crate::SqlArraySubscriptExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_BETWEEN_EXPRESSION => {
@@ -70,10 +270,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlCaseWhenClause::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_CAST_EXPRESSION => {
-                    let $pattern = unsafe { $crate::SqlCastExpression::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_CAST_FUNCTION_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::SqlCastFunctionExpression::new_unchecked(node) };
@@ -91,22 +287,8 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlColumnList::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_CREATE_FUNCTION_STATEMENT => {
-                    let $pattern =
-                        unsafe { $crate::SqlCreateFunctionStatement::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_CREATE_POLICY_STATEMENT => {
-                    let $pattern = unsafe { $crate::SqlCreatePolicyStatement::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_CREATE_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlCreateTableStatement::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_CREATE_TRIGGER_STATEMENT => {
-                    let $pattern =
-                        unsafe { $crate::SqlCreateTriggerStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_CREATE_VIEW_STATEMENT => {
@@ -117,10 +299,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlCteDefinition::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_CTE_MATERIALIZED_HINT => {
-                    let $pattern = unsafe { $crate::SqlCteMaterializedHint::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_DATA_BASE_NAME => {
                     let $pattern = unsafe { $crate::SqlDataBaseName::new_unchecked(node) };
                     $body
@@ -129,41 +307,12 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlDeleteStatement::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_DELETE_USING_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlDeleteUsingClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_DISTINCT_ON_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlDistinctOnClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_DO_NOTHING_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlDoNothingClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_DO_UPDATE_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlDoUpdateClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_DROP_FUNCTION_PARAMETERS => {
-                    let $pattern =
-                        unsafe { $crate::SqlDropFunctionParameters::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_DROP_FUNCTION_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlDropFunctionStatement::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_DROP_POLICY_STATEMENT => {
-                    let $pattern = unsafe { $crate::SqlDropPolicyStatement::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_DROP_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlDropTableStatement::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_DROP_TRIGGER_STATEMENT => {
-                    let $pattern = unsafe { $crate::SqlDropTriggerStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_VIEW_STATEMENT => {
@@ -190,10 +339,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlFetchWithTiesTail::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_FILTER_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlFilterClause::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_FROM_CLAUSE => {
                     let $pattern = unsafe { $crate::SqlFromClause::new_unchecked(node) };
                     $body
@@ -204,10 +349,6 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_FUNCTION_BINDING => {
                     let $pattern = unsafe { $crate::SqlFunctionBinding::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_FUNCTION_PARAMETER => {
-                    let $pattern = unsafe { $crate::SqlFunctionParameter::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_GRANT_STATEMENT => {
@@ -234,10 +375,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlInsertStatement::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_INTERVAL_EXPRESSION => {
-                    let $pattern = unsafe { $crate::SqlIntervalExpression::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_IS_NULL_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlIsNullExpression::new_unchecked(node) };
                     $body
@@ -246,20 +383,8 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlJoinClause::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_JOIN_USING_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlJoinUsingClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_LANGUAGE_OPTION => {
-                    let $pattern = unsafe { $crate::SqlLanguageOption::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_LIKE_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlLikeExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_LIMIT_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlLimitClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_LOGICAL_EXPRESSION => {
@@ -283,24 +408,12 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlOffsetClause::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_ON_CONFLICT_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlOnConflictClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_ON_CONSTRAINT_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlOnConstraintClause::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_ORDER_BY_CLAUSE => {
                     let $pattern = unsafe { $crate::SqlOrderByClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_ORDER_BY_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlOrderByExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_PARAMETER_DEFAULT => {
-                    let $pattern = unsafe { $crate::SqlParameterDefault::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_PARAMETER_EXPRESSION => {
@@ -317,56 +430,12 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::SqlParenthesizedJoinBinding::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_POLICY_FOR_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlPolicyForClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_POLICY_USING_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlPolicyUsingClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_POLICY_WITH_CHECK_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlPolicyWithCheckClause::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_PRECISION_MODIFIER => {
                     let $pattern = unsafe { $crate::SqlPrecisionModifier::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_RETURNING_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlReturningClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlReturnsClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_NULL_OPTION => {
-                    let $pattern = unsafe { $crate::SqlReturnsNullOption::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_SETOF_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlReturnsSetofClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_TABLE_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlReturnsTableClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_TABLE_COLUMN => {
-                    let $pattern = unsafe { $crate::SqlReturnsTableColumn::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_TRIGGER_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlReturnsTriggerClause::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_ROOT => {
                     let $pattern = unsafe { $crate::SqlRoot::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_SECURITY_OPTION => {
-                    let $pattern = unsafe { $crate::SqlSecurityOption::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_SELECT_ALL_QUANTIFIER => {
@@ -410,10 +479,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlStar::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_STRICT_OPTION => {
-                    let $pattern = unsafe { $crate::SqlStrictOption::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_STRING_LITERAL_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::SqlStringLiteralExpression::new_unchecked(node) };
@@ -425,18 +490,6 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_SUBQUERY_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlSubqueryExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_SUBSTRING_EXPRESSION => {
-                    let $pattern = unsafe { $crate::SqlSubstringExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_SUBSTRING_FOR_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlSubstringForClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_SUBSTRING_FROM_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlSubstringFromClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_TABLE_BINDING => {
@@ -455,14 +508,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlTableStar::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_TILDE_ARRAY_EXPRESSION => {
-                    let $pattern = unsafe { $crate::SqlTildeArrayExpression::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TILDE_ARRAY_SUFFIX => {
-                    let $pattern = unsafe { $crate::SqlTildeArraySuffix::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_TILDE_NAME => {
                     let $pattern = unsafe { $crate::SqlTildeName::new_unchecked(node) };
                     $body
@@ -471,38 +516,8 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlTimeZoneModifier::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_EVENT => {
-                    let $pattern = unsafe { $crate::SqlTriggerEvent::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_FOR_EACH_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlTriggerForEachClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_REFERENCING_CLAUSE => {
-                    let $pattern =
-                        unsafe { $crate::SqlTriggerReferencingClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_REFERENCING_ITEM => {
-                    let $pattern =
-                        unsafe { $crate::SqlTriggerReferencingItem::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_UPDATE_OF_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlTriggerUpdateOfClause::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_WHEN_CLAUSE => {
-                    let $pattern = unsafe { $crate::SqlTriggerWhenClause::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_TYPE_ARGUMENTS => {
                     let $pattern = unsafe { $crate::SqlTypeArguments::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TYPE_ARRAY_SUFFIX => {
-                    let $pattern = unsafe { $crate::SqlTypeArraySuffix::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_TYPE_NAME => {
@@ -531,18 +546,6 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_VARYING_MODIFIER => {
                     let $pattern = unsafe { $crate::SqlVaryingModifier::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_VIEW_OPTION => {
-                    let $pattern = unsafe { $crate::SqlViewOption::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_VIEW_OPTIONS => {
-                    let $pattern = unsafe { $crate::SqlViewOptions::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_VOLATILITY_OPTION => {
-                    let $pattern = unsafe { $crate::SqlVolatilityOption::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_WHERE_CLAUSE => {
@@ -595,6 +598,37 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlBogusStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_FUNCTION_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlFunctionOptionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlFunctionParameterList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlReturnsTableColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_EVENT_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTriggerEventList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTriggerReferencingItemList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TYPE_NAME_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTypeNameList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_VIEW_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlViewOptionList::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ALIAS_COLUMN_DEFINITION_LIST => {
                     let $pattern =
                         unsafe { $crate::SqlAliasColumnDefinitionList::new_unchecked(node) };
@@ -624,14 +658,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlFromItemList::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_FUNCTION_OPTION_LIST => {
-                    let $pattern = unsafe { $crate::SqlFunctionOptionList::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_FUNCTION_PARAMETER_LIST => {
-                    let $pattern = unsafe { $crate::SqlFunctionParameterList::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_GRANTEE_LIST => {
                     let $pattern = unsafe { $crate::SqlGranteeList::new_unchecked(node) };
                     $body
@@ -646,11 +672,6 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_ORDER_BY_EXPRESSION_LIST => {
                     let $pattern = unsafe { $crate::SqlOrderByExpressionList::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_RETURNS_TABLE_COLUMN_LIST => {
-                    let $pattern =
-                        unsafe { $crate::SqlReturnsTableColumnList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_SELECT_ITEM_LIST => {
@@ -673,29 +694,12 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlTableNameList::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_EVENT_LIST => {
-                    let $pattern = unsafe { $crate::SqlTriggerEventList::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_TRIGGER_REFERENCING_ITEM_LIST => {
-                    let $pattern =
-                        unsafe { $crate::SqlTriggerReferencingItemList::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_TYPE_ARGUMENT_LIST => {
                     let $pattern = unsafe { $crate::SqlTypeArgumentList::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_TYPE_NAME_LIST => {
-                    let $pattern = unsafe { $crate::SqlTypeNameList::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_VALUES_ROW_LIST => {
                     let $pattern = unsafe { $crate::SqlValuesRowList::new_unchecked(node) };
-                    $body
-                }
-                $crate::SqlSyntaxKind::SQL_VIEW_OPTION_LIST => {
-                    let $pattern = unsafe { $crate::SqlViewOptionList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_WINDOW_PARTITION_BY_ITEM_LIST => {

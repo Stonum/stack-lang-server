@@ -36,7 +36,7 @@ fn parse_returning_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![returning]);
     SqlReturningItemList.parse_list(p);
-    Present(m.complete(p, SQL_RETURNING_CLAUSE))
+    Present(m.complete(p, PSQL_RETURNING_CLAUSE))
 }
 
 struct SqlReturningItemList;

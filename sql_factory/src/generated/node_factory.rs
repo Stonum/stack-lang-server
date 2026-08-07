@@ -7,6 +7,1109 @@ use sql_syntax::{
     SqlSyntaxElement as SyntaxElement, SqlSyntaxNode as SyntaxNode, SqlSyntaxToken as SyntaxToken,
     *,
 };
+pub fn psql_array_expression(
+    array_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    items: SqlExpressionList,
+    r_brack_token: SyntaxToken,
+) -> PsqlArrayExpression {
+    PsqlArrayExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ARRAY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(array_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
+pub fn psql_array_subscript_expression(
+    expression: AnySqlExpression,
+    l_brack_token: SyntaxToken,
+    index: AnySqlExpression,
+    r_brack_token: SyntaxToken,
+) -> PsqlArraySubscriptExpression {
+    PsqlArraySubscriptExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ARRAY_SUBSCRIPT_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(index.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
+pub fn psql_cast_expression(
+    expression: AnySqlExpression,
+    double_colon_token: SyntaxToken,
+    ty: SqlTypeName,
+) -> PsqlCastExpression {
+    PsqlCastExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_CAST_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(double_colon_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_create_function_statement(
+    create_token: SyntaxToken,
+    kind_token: SyntaxToken,
+    name: AnySqlName,
+    l_paren_token: SyntaxToken,
+    parameters: PsqlFunctionParameterList,
+    r_paren_token: SyntaxToken,
+    leading_options: PsqlFunctionOptionList,
+    as_token: SyntaxToken,
+    body: SqlStringLiteralExpression,
+    trailing_options: PsqlFunctionOptionList,
+) -> PsqlCreateFunctionStatementBuilder {
+    PsqlCreateFunctionStatementBuilder {
+        create_token,
+        kind_token,
+        name,
+        l_paren_token,
+        parameters,
+        r_paren_token,
+        leading_options,
+        as_token,
+        body,
+        trailing_options,
+        or_token: None,
+        replace_token: None,
+        returns_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateFunctionStatementBuilder {
+    create_token: SyntaxToken,
+    kind_token: SyntaxToken,
+    name: AnySqlName,
+    l_paren_token: SyntaxToken,
+    parameters: PsqlFunctionParameterList,
+    r_paren_token: SyntaxToken,
+    leading_options: PsqlFunctionOptionList,
+    as_token: SyntaxToken,
+    body: SqlStringLiteralExpression,
+    trailing_options: PsqlFunctionOptionList,
+    or_token: Option<SyntaxToken>,
+    replace_token: Option<SyntaxToken>,
+    returns_clause: Option<PsqlReturnsClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateFunctionStatementBuilder {
+    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
+        self.or_token = Some(or_token);
+        self
+    }
+    pub fn with_replace_token(mut self, replace_token: SyntaxToken) -> Self {
+        self.replace_token = Some(replace_token);
+        self
+    }
+    pub fn with_returns_clause(mut self, returns_clause: PsqlReturnsClause) -> Self {
+        self.returns_clause = Some(returns_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateFunctionStatement {
+        PsqlCreateFunctionStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                self.or_token.map(|token| SyntaxElement::Token(token)),
+                self.replace_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.kind_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.parameters.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.returns_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.leading_options.into_syntax())),
+                Some(SyntaxElement::Token(self.as_token)),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
+                Some(SyntaxElement::Node(self.trailing_options.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_create_policy_statement(
+    create_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: SqlName,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+) -> PsqlCreatePolicyStatementBuilder {
+    PsqlCreatePolicyStatementBuilder {
+        create_token,
+        policy_token,
+        name,
+        on_token,
+        table,
+        for_clause: None,
+        using_clause: None,
+        with_check_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreatePolicyStatementBuilder {
+    create_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: SqlName,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    for_clause: Option<PsqlPolicyForClause>,
+    using_clause: Option<PsqlPolicyUsingClause>,
+    with_check_clause: Option<PsqlPolicyWithCheckClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreatePolicyStatementBuilder {
+    pub fn with_for_clause(mut self, for_clause: PsqlPolicyForClause) -> Self {
+        self.for_clause = Some(for_clause);
+        self
+    }
+    pub fn with_using_clause(mut self, using_clause: PsqlPolicyUsingClause) -> Self {
+        self.using_clause = Some(using_clause);
+        self
+    }
+    pub fn with_with_check_clause(mut self, with_check_clause: PsqlPolicyWithCheckClause) -> Self {
+        self.with_check_clause = Some(with_check_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreatePolicyStatement {
+        PsqlCreatePolicyStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CREATE_POLICY_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.policy_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.for_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.with_check_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_create_trigger_statement(
+    create_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnySqlName,
+    timing_token: SyntaxToken,
+    events: PsqlTriggerEventList,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    execute_token: SyntaxToken,
+    function_kind_token: SyntaxToken,
+    function: SqlCallExpression,
+) -> PsqlCreateTriggerStatementBuilder {
+    PsqlCreateTriggerStatementBuilder {
+        create_token,
+        trigger_token,
+        name,
+        timing_token,
+        events,
+        on_token,
+        table,
+        execute_token,
+        function_kind_token,
+        function,
+        referencing_clause: None,
+        for_each_clause: None,
+        when_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateTriggerStatementBuilder {
+    create_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnySqlName,
+    timing_token: SyntaxToken,
+    events: PsqlTriggerEventList,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    execute_token: SyntaxToken,
+    function_kind_token: SyntaxToken,
+    function: SqlCallExpression,
+    referencing_clause: Option<PsqlTriggerReferencingClause>,
+    for_each_clause: Option<PsqlTriggerForEachClause>,
+    when_clause: Option<PsqlTriggerWhenClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateTriggerStatementBuilder {
+    pub fn with_referencing_clause(
+        mut self,
+        referencing_clause: PsqlTriggerReferencingClause,
+    ) -> Self {
+        self.referencing_clause = Some(referencing_clause);
+        self
+    }
+    pub fn with_for_each_clause(mut self, for_each_clause: PsqlTriggerForEachClause) -> Self {
+        self.for_each_clause = Some(for_each_clause);
+        self
+    }
+    pub fn with_when_clause(mut self, when_clause: PsqlTriggerWhenClause) -> Self {
+        self.when_clause = Some(when_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateTriggerStatement {
+        PsqlCreateTriggerStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CREATE_TRIGGER_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.trigger_token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.timing_token)),
+                Some(SyntaxElement::Node(self.events.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.referencing_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.for_each_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.when_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.execute_token)),
+                Some(SyntaxElement::Token(self.function_kind_token)),
+                Some(SyntaxElement::Node(self.function.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_cte_materialized_hint(
+    materialized_token: SyntaxToken,
+) -> PsqlCteMaterializedHintBuilder {
+    PsqlCteMaterializedHintBuilder {
+        materialized_token,
+        not_token: None,
+    }
+}
+pub struct PsqlCteMaterializedHintBuilder {
+    materialized_token: SyntaxToken,
+    not_token: Option<SyntaxToken>,
+}
+impl PsqlCteMaterializedHintBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> PsqlCteMaterializedHint {
+        PsqlCteMaterializedHint::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CTE_MATERIALIZED_HINT,
+            [
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.materialized_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_delete_using_clause(
+    using_token: SyntaxToken,
+    items: SqlFromItemList,
+) -> PsqlDeleteUsingClause {
+    PsqlDeleteUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_DELETE_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_distinct_on_clause(
+    on_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: SqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlDistinctOnClause {
+    PsqlDistinctOnClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_DISTINCT_ON_CLAUSE,
+        [
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_do_nothing_clause(
+    do_token: SyntaxToken,
+    nothing_token: SyntaxToken,
+) -> PsqlDoNothingClause {
+    PsqlDoNothingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_DO_NOTHING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(do_token)),
+            Some(SyntaxElement::Token(nothing_token)),
+        ],
+    ))
+}
+pub fn psql_do_update_clause(
+    do_token: SyntaxToken,
+    update_token: SyntaxToken,
+    set_clause: SqlSetClause,
+) -> PsqlDoUpdateClauseBuilder {
+    PsqlDoUpdateClauseBuilder {
+        do_token,
+        update_token,
+        set_clause,
+        where_clause: None,
+    }
+}
+pub struct PsqlDoUpdateClauseBuilder {
+    do_token: SyntaxToken,
+    update_token: SyntaxToken,
+    set_clause: SqlSetClause,
+    where_clause: Option<SqlWhereClause>,
+}
+impl PsqlDoUpdateClauseBuilder {
+    pub fn with_where_clause(mut self, where_clause: SqlWhereClause) -> Self {
+        self.where_clause = Some(where_clause);
+        self
+    }
+    pub fn build(self) -> PsqlDoUpdateClause {
+        PsqlDoUpdateClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DO_UPDATE_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.do_token)),
+                Some(SyntaxElement::Token(self.update_token)),
+                Some(SyntaxElement::Node(self.set_clause.into_syntax())),
+                self.where_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_drop_function_parameters(
+    l_paren_token: SyntaxToken,
+    items: PsqlTypeNameList,
+    r_paren_token: SyntaxToken,
+) -> PsqlDropFunctionParameters {
+    PsqlDropFunctionParameters::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_DROP_FUNCTION_PARAMETERS,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_drop_policy_statement(
+    drop_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: SqlName,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+) -> PsqlDropPolicyStatementBuilder {
+    PsqlDropPolicyStatementBuilder {
+        drop_token,
+        policy_token,
+        name,
+        on_token,
+        table,
+        if_token: None,
+        exists_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropPolicyStatementBuilder {
+    drop_token: SyntaxToken,
+    policy_token: SyntaxToken,
+    name: SqlName,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropPolicyStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropPolicyStatement {
+        PsqlDropPolicyStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DROP_POLICY_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.policy_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_drop_trigger_statement(
+    drop_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnySqlName,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+) -> PsqlDropTriggerStatementBuilder {
+    PsqlDropTriggerStatementBuilder {
+        drop_token,
+        trigger_token,
+        name,
+        on_token,
+        table,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropTriggerStatementBuilder {
+    drop_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    name: AnySqlName,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropTriggerStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropTriggerStatement {
+        PsqlDropTriggerStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DROP_TRIGGER_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.trigger_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_filter_clause(
+    filter_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    where_token: SyntaxToken,
+    condition: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlFilterClause {
+    PsqlFilterClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_FILTER_CLAUSE,
+        [
+            Some(SyntaxElement::Token(filter_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Token(where_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_function_parameter(ty: SqlTypeName) -> PsqlFunctionParameterBuilder {
+    PsqlFunctionParameterBuilder {
+        ty,
+        mode_token: None,
+        name: None,
+        default: None,
+    }
+}
+pub struct PsqlFunctionParameterBuilder {
+    ty: SqlTypeName,
+    mode_token: Option<SyntaxToken>,
+    name: Option<SqlName>,
+    default: Option<PsqlParameterDefault>,
+}
+impl PsqlFunctionParameterBuilder {
+    pub fn with_mode_token(mut self, mode_token: SyntaxToken) -> Self {
+        self.mode_token = Some(mode_token);
+        self
+    }
+    pub fn with_name(mut self, name: SqlName) -> Self {
+        self.name = Some(name);
+        self
+    }
+    pub fn with_default(mut self, default: PsqlParameterDefault) -> Self {
+        self.default = Some(default);
+        self
+    }
+    pub fn build(self) -> PsqlFunctionParameter {
+        PsqlFunctionParameter::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_FUNCTION_PARAMETER,
+            [
+                self.mode_token.map(|token| SyntaxElement::Token(token)),
+                self.name
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.ty.into_syntax())),
+                self.default
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_interval_expression(
+    interval_token: SyntaxToken,
+    value: SqlStringLiteralExpression,
+) -> PsqlIntervalExpression {
+    PsqlIntervalExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_INTERVAL_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(interval_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_join_using_clause(
+    using_token: SyntaxToken,
+    columns: SqlColumnList,
+) -> PsqlJoinUsingClause {
+    PsqlJoinUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_JOIN_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_language_option(language_token: SyntaxToken, name: SqlName) -> PsqlLanguageOption {
+    PsqlLanguageOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_LANGUAGE_OPTION,
+        [
+            Some(SyntaxElement::Token(language_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_limit_clause(
+    limit_token: SyntaxToken,
+    limit_count: AnySqlLimitValue,
+) -> PsqlLimitClause {
+    PsqlLimitClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_LIMIT_CLAUSE,
+        [
+            Some(SyntaxElement::Token(limit_token)),
+            Some(SyntaxElement::Node(limit_count.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_on_conflict_clause(
+    on_token: SyntaxToken,
+    conflict_token: SyntaxToken,
+    action: AnySqlConflictAction,
+) -> PsqlOnConflictClauseBuilder {
+    PsqlOnConflictClauseBuilder {
+        on_token,
+        conflict_token,
+        action,
+        target: None,
+    }
+}
+pub struct PsqlOnConflictClauseBuilder {
+    on_token: SyntaxToken,
+    conflict_token: SyntaxToken,
+    action: AnySqlConflictAction,
+    target: Option<AnySqlConflictTarget>,
+}
+impl PsqlOnConflictClauseBuilder {
+    pub fn with_target(mut self, target: AnySqlConflictTarget) -> Self {
+        self.target = Some(target);
+        self
+    }
+    pub fn build(self) -> PsqlOnConflictClause {
+        PsqlOnConflictClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_ON_CONFLICT_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Token(self.conflict_token)),
+                self.target
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.action.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_on_constraint_clause(
+    on_token: SyntaxToken,
+    constraint_token: SyntaxToken,
+    name: SqlName,
+) -> PsqlOnConstraintClause {
+    PsqlOnConstraintClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ON_CONSTRAINT_CLAUSE,
+        [
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(constraint_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_parameter_default(
+    marker_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlParameterDefault {
+    PsqlParameterDefault::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARAMETER_DEFAULT,
+        [
+            Some(SyntaxElement::Token(marker_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_policy_for_clause(
+    for_token: SyntaxToken,
+    command_token: SyntaxToken,
+) -> PsqlPolicyForClause {
+    PsqlPolicyForClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Token(command_token)),
+        ],
+    ))
+}
+pub fn psql_policy_using_clause(
+    using_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlPolicyUsingClause {
+    PsqlPolicyUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_POLICY_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_policy_with_check_clause(
+    with_token: SyntaxToken,
+    check_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlPolicyWithCheckClause {
+    PsqlPolicyWithCheckClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_POLICY_WITH_CHECK_CLAUSE,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(check_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_returning_clause(
+    returning_token: SyntaxToken,
+    items: SqlSelectItemList,
+) -> PsqlReturningClause {
+    PsqlReturningClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(returning_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_returns_clause(returns_token: SyntaxToken, ty: AnySqlReturnsType) -> PsqlReturnsClause {
+    PsqlReturnsClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_CLAUSE,
+        [
+            Some(SyntaxElement::Token(returns_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_returns_null_option(
+    returns_token: SyntaxToken,
+    first_null_token: SyntaxToken,
+    on_token: SyntaxToken,
+    second_null_token: SyntaxToken,
+    input_token: SyntaxToken,
+) -> PsqlReturnsNullOption {
+    PsqlReturnsNullOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_NULL_OPTION,
+        [
+            Some(SyntaxElement::Token(returns_token)),
+            Some(SyntaxElement::Token(first_null_token)),
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(second_null_token)),
+            Some(SyntaxElement::Token(input_token)),
+        ],
+    ))
+}
+pub fn psql_returns_setof_clause(
+    setof_token: SyntaxToken,
+    ty: SqlTypeName,
+) -> PsqlReturnsSetofClause {
+    PsqlReturnsSetofClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_SETOF_CLAUSE,
+        [
+            Some(SyntaxElement::Token(setof_token)),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_returns_table_clause(
+    table_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    columns: PsqlReturnsTableColumnList,
+    r_paren_token: SyntaxToken,
+) -> PsqlReturnsTableClause {
+    PsqlReturnsTableClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_TABLE_CLAUSE,
+        [
+            Some(SyntaxElement::Token(table_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_returns_table_column(name: SqlName, ty: SqlTypeName) -> PsqlReturnsTableColumn {
+    PsqlReturnsTableColumn::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_returns_trigger_clause(trigger_token: SyntaxToken) -> PsqlReturnsTriggerClause {
+    PsqlReturnsTriggerClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_TRIGGER_CLAUSE,
+        [Some(SyntaxElement::Token(trigger_token))],
+    ))
+}
+pub fn psql_security_option(
+    security_token: SyntaxToken,
+    value_token: SyntaxToken,
+) -> PsqlSecurityOption {
+    PsqlSecurityOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SECURITY_OPTION,
+        [
+            Some(SyntaxElement::Token(security_token)),
+            Some(SyntaxElement::Token(value_token)),
+        ],
+    ))
+}
+pub fn psql_strict_option(strict_token: SyntaxToken) -> PsqlStrictOption {
+    PsqlStrictOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_STRICT_OPTION,
+        [Some(SyntaxElement::Token(strict_token))],
+    ))
+}
+pub fn psql_substring_expression(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    expression: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlSubstringExpressionBuilder {
+    PsqlSubstringExpressionBuilder {
+        name_token,
+        l_paren_token,
+        expression,
+        r_paren_token,
+        from_clause: None,
+        for_clause: None,
+    }
+}
+pub struct PsqlSubstringExpressionBuilder {
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    expression: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+    from_clause: Option<PsqlSubstringFromClause>,
+    for_clause: Option<PsqlSubstringForClause>,
+}
+impl PsqlSubstringExpressionBuilder {
+    pub fn with_from_clause(mut self, from_clause: PsqlSubstringFromClause) -> Self {
+        self.from_clause = Some(from_clause);
+        self
+    }
+    pub fn with_for_clause(mut self, for_clause: PsqlSubstringForClause) -> Self {
+        self.for_clause = Some(for_clause);
+        self
+    }
+    pub fn build(self) -> PsqlSubstringExpression {
+        PsqlSubstringExpression::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_SUBSTRING_EXPRESSION,
+            [
+                Some(SyntaxElement::Token(self.name_token)),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.expression.into_syntax())),
+                self.from_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.for_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_substring_for_clause(
+    for_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlSubstringForClause {
+    PsqlSubstringForClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SUBSTRING_FOR_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_substring_from_clause(
+    from_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlSubstringFromClause {
+    PsqlSubstringFromClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SUBSTRING_FROM_CLAUSE,
+        [
+            Some(SyntaxElement::Token(from_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_tilde_array_expression(
+    array_token: SyntaxToken,
+    open_tilde_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    items: SqlExpressionList,
+    r_brack_token: SyntaxToken,
+    close_tilde_token: SyntaxToken,
+) -> PsqlTildeArrayExpression {
+    PsqlTildeArrayExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TILDE_ARRAY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(array_token)),
+            Some(SyntaxElement::Token(open_tilde_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+            Some(SyntaxElement::Token(close_tilde_token)),
+        ],
+    ))
+}
+pub fn psql_tilde_array_suffix(
+    open_tilde_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    r_brack_token: SyntaxToken,
+    close_tilde_token: SyntaxToken,
+) -> PsqlTildeArraySuffix {
+    PsqlTildeArraySuffix::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TILDE_ARRAY_SUFFIX,
+        [
+            Some(SyntaxElement::Token(open_tilde_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Token(r_brack_token)),
+            Some(SyntaxElement::Token(close_tilde_token)),
+        ],
+    ))
+}
+pub fn psql_trigger_event(kind_token: SyntaxToken) -> PsqlTriggerEventBuilder {
+    PsqlTriggerEventBuilder {
+        kind_token,
+        or_token: None,
+        of_clause: None,
+    }
+}
+pub struct PsqlTriggerEventBuilder {
+    kind_token: SyntaxToken,
+    or_token: Option<SyntaxToken>,
+    of_clause: Option<PsqlTriggerUpdateOfClause>,
+}
+impl PsqlTriggerEventBuilder {
+    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
+        self.or_token = Some(or_token);
+        self
+    }
+    pub fn with_of_clause(mut self, of_clause: PsqlTriggerUpdateOfClause) -> Self {
+        self.of_clause = Some(of_clause);
+        self
+    }
+    pub fn build(self) -> PsqlTriggerEvent {
+        PsqlTriggerEvent::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_TRIGGER_EVENT,
+            [
+                self.or_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.kind_token)),
+                self.of_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_trigger_for_each_clause(
+    for_token: SyntaxToken,
+    each_token: SyntaxToken,
+    granularity_token: SyntaxToken,
+) -> PsqlTriggerForEachClause {
+    PsqlTriggerForEachClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_FOR_EACH_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Token(each_token)),
+            Some(SyntaxElement::Token(granularity_token)),
+        ],
+    ))
+}
+pub fn psql_trigger_referencing_clause(
+    referencing_token: SyntaxToken,
+    items: PsqlTriggerReferencingItemList,
+) -> PsqlTriggerReferencingClause {
+    PsqlTriggerReferencingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_REFERENCING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(referencing_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_trigger_referencing_item(
+    which_token: SyntaxToken,
+    table_token: SyntaxToken,
+    as_token: SyntaxToken,
+    name: SqlName,
+) -> PsqlTriggerReferencingItem {
+    PsqlTriggerReferencingItem::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM,
+        [
+            Some(SyntaxElement::Token(which_token)),
+            Some(SyntaxElement::Token(table_token)),
+            Some(SyntaxElement::Token(as_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_trigger_update_of_clause(
+    of_token: SyntaxToken,
+    columns: SqlColumnNameList,
+) -> PsqlTriggerUpdateOfClause {
+    PsqlTriggerUpdateOfClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_UPDATE_OF_CLAUSE,
+        [
+            Some(SyntaxElement::Token(of_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_trigger_when_clause(
+    when_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlTriggerWhenClause {
+    PsqlTriggerWhenClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_WHEN_CLAUSE,
+        [
+            Some(SyntaxElement::Token(when_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_type_array_suffix(
+    l_brack_token: SyntaxToken,
+    r_brack_token: SyntaxToken,
+) -> PsqlTypeArraySuffix {
+    PsqlTypeArraySuffix::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TYPE_ARRAY_SUFFIX,
+        [
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
+pub fn psql_view_option(
+    name: SqlName,
+    eq_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlViewOption {
+    PsqlViewOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_VIEW_OPTION,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Token(eq_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_view_options(
+    with_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: PsqlViewOptionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlViewOptions {
+    PsqlViewOptions::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_VIEW_OPTIONS,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_volatility_option(value_token: SyntaxToken) -> PsqlVolatilityOption {
+    PsqlVolatilityOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_VOLATILITY_OPTION,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
+}
 pub fn sql_alias(value: SqlName) -> SqlAliasBuilder {
     SqlAliasBuilder {
         value,
@@ -86,38 +1189,6 @@ pub fn sql_any_all_expression(
         [
             Some(SyntaxElement::Token(quantifier_token)),
             Some(SyntaxElement::Node(source.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_array_expression(
-    array_token: SyntaxToken,
-    l_brack_token: SyntaxToken,
-    items: SqlExpressionList,
-    r_brack_token: SyntaxToken,
-) -> SqlArrayExpression {
-    SqlArrayExpression::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_ARRAY_EXPRESSION,
-        [
-            Some(SyntaxElement::Token(array_token)),
-            Some(SyntaxElement::Token(l_brack_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-            Some(SyntaxElement::Token(r_brack_token)),
-        ],
-    ))
-}
-pub fn sql_array_subscript_expression(
-    expression: AnySqlExpression,
-    l_brack_token: SyntaxToken,
-    index: AnySqlExpression,
-    r_brack_token: SyntaxToken,
-) -> SqlArraySubscriptExpression {
-    SqlArraySubscriptExpression::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_ARRAY_SUBSCRIPT_EXPRESSION,
-        [
-            Some(SyntaxElement::Node(expression.into_syntax())),
-            Some(SyntaxElement::Token(l_brack_token)),
-            Some(SyntaxElement::Node(index.into_syntax())),
-            Some(SyntaxElement::Token(r_brack_token)),
         ],
     ))
 }
@@ -205,14 +1276,14 @@ pub struct SqlCallExpressionBuilder {
     arguments: SqlExpressionList,
     r_paren_token: SyntaxToken,
     schema: Option<SqlShemaName>,
-    filter_clause: Option<SqlFilterClause>,
+    filter_clause: Option<PsqlFilterClause>,
 }
 impl SqlCallExpressionBuilder {
     pub fn with_schema(mut self, schema: SqlShemaName) -> Self {
         self.schema = Some(schema);
         self
     }
-    pub fn with_filter_clause(mut self, filter_clause: SqlFilterClause) -> Self {
+    pub fn with_filter_clause(mut self, filter_clause: PsqlFilterClause) -> Self {
         self.filter_clause = Some(filter_clause);
         self
     }
@@ -304,20 +1375,6 @@ pub fn sql_case_when_clause(
         ],
     ))
 }
-pub fn sql_cast_expression(
-    expression: AnySqlExpression,
-    double_colon_token: SyntaxToken,
-    ty: SqlTypeName,
-) -> SqlCastExpression {
-    SqlCastExpression::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_CAST_EXPRESSION,
-        [
-            Some(SyntaxElement::Node(expression.into_syntax())),
-            Some(SyntaxElement::Token(double_colon_token)),
-            Some(SyntaxElement::Node(ty.into_syntax())),
-        ],
-    ))
-}
 pub fn sql_cast_function_expression(
     cast_token: SyntaxToken,
     l_paren_token: SyntaxToken,
@@ -366,160 +1423,6 @@ pub fn sql_column_list(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
-}
-pub fn sql_create_function_statement(
-    create_token: SyntaxToken,
-    kind_token: SyntaxToken,
-    name: AnySqlName,
-    l_paren_token: SyntaxToken,
-    parameters: SqlFunctionParameterList,
-    r_paren_token: SyntaxToken,
-    leading_options: SqlFunctionOptionList,
-    as_token: SyntaxToken,
-    body: SqlStringLiteralExpression,
-    trailing_options: SqlFunctionOptionList,
-) -> SqlCreateFunctionStatementBuilder {
-    SqlCreateFunctionStatementBuilder {
-        create_token,
-        kind_token,
-        name,
-        l_paren_token,
-        parameters,
-        r_paren_token,
-        leading_options,
-        as_token,
-        body,
-        trailing_options,
-        or_token: None,
-        replace_token: None,
-        returns_clause: None,
-        semicolon_token: None,
-    }
-}
-pub struct SqlCreateFunctionStatementBuilder {
-    create_token: SyntaxToken,
-    kind_token: SyntaxToken,
-    name: AnySqlName,
-    l_paren_token: SyntaxToken,
-    parameters: SqlFunctionParameterList,
-    r_paren_token: SyntaxToken,
-    leading_options: SqlFunctionOptionList,
-    as_token: SyntaxToken,
-    body: SqlStringLiteralExpression,
-    trailing_options: SqlFunctionOptionList,
-    or_token: Option<SyntaxToken>,
-    replace_token: Option<SyntaxToken>,
-    returns_clause: Option<SqlReturnsClause>,
-    semicolon_token: Option<SyntaxToken>,
-}
-impl SqlCreateFunctionStatementBuilder {
-    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
-        self.or_token = Some(or_token);
-        self
-    }
-    pub fn with_replace_token(mut self, replace_token: SyntaxToken) -> Self {
-        self.replace_token = Some(replace_token);
-        self
-    }
-    pub fn with_returns_clause(mut self, returns_clause: SqlReturnsClause) -> Self {
-        self.returns_clause = Some(returns_clause);
-        self
-    }
-    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
-        self.semicolon_token = Some(semicolon_token);
-        self
-    }
-    pub fn build(self) -> SqlCreateFunctionStatement {
-        SqlCreateFunctionStatement::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_CREATE_FUNCTION_STATEMENT,
-            [
-                Some(SyntaxElement::Token(self.create_token)),
-                self.or_token.map(|token| SyntaxElement::Token(token)),
-                self.replace_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Token(self.kind_token)),
-                Some(SyntaxElement::Node(self.name.into_syntax())),
-                Some(SyntaxElement::Token(self.l_paren_token)),
-                Some(SyntaxElement::Node(self.parameters.into_syntax())),
-                Some(SyntaxElement::Token(self.r_paren_token)),
-                self.returns_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                Some(SyntaxElement::Node(self.leading_options.into_syntax())),
-                Some(SyntaxElement::Token(self.as_token)),
-                Some(SyntaxElement::Node(self.body.into_syntax())),
-                Some(SyntaxElement::Node(self.trailing_options.into_syntax())),
-                self.semicolon_token
-                    .map(|token| SyntaxElement::Token(token)),
-            ],
-        ))
-    }
-}
-pub fn sql_create_policy_statement(
-    create_token: SyntaxToken,
-    policy_token: SyntaxToken,
-    name: SqlName,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-) -> SqlCreatePolicyStatementBuilder {
-    SqlCreatePolicyStatementBuilder {
-        create_token,
-        policy_token,
-        name,
-        on_token,
-        table,
-        for_clause: None,
-        using_clause: None,
-        with_check_clause: None,
-        semicolon_token: None,
-    }
-}
-pub struct SqlCreatePolicyStatementBuilder {
-    create_token: SyntaxToken,
-    policy_token: SyntaxToken,
-    name: SqlName,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-    for_clause: Option<SqlPolicyForClause>,
-    using_clause: Option<SqlPolicyUsingClause>,
-    with_check_clause: Option<SqlPolicyWithCheckClause>,
-    semicolon_token: Option<SyntaxToken>,
-}
-impl SqlCreatePolicyStatementBuilder {
-    pub fn with_for_clause(mut self, for_clause: SqlPolicyForClause) -> Self {
-        self.for_clause = Some(for_clause);
-        self
-    }
-    pub fn with_using_clause(mut self, using_clause: SqlPolicyUsingClause) -> Self {
-        self.using_clause = Some(using_clause);
-        self
-    }
-    pub fn with_with_check_clause(mut self, with_check_clause: SqlPolicyWithCheckClause) -> Self {
-        self.with_check_clause = Some(with_check_clause);
-        self
-    }
-    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
-        self.semicolon_token = Some(semicolon_token);
-        self
-    }
-    pub fn build(self) -> SqlCreatePolicyStatement {
-        SqlCreatePolicyStatement::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_CREATE_POLICY_STATEMENT,
-            [
-                Some(SyntaxElement::Token(self.create_token)),
-                Some(SyntaxElement::Token(self.policy_token)),
-                Some(SyntaxElement::Node(self.name.into_syntax())),
-                Some(SyntaxElement::Token(self.on_token)),
-                Some(SyntaxElement::Node(self.table.into_syntax())),
-                self.for_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                self.using_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                self.with_check_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                self.semicolon_token
-                    .map(|token| SyntaxElement::Token(token)),
-            ],
-        ))
-    }
 }
 pub fn sql_create_table_statement(
     create_token: SyntaxToken,
@@ -590,97 +1493,6 @@ impl SqlCreateTableStatementBuilder {
         ))
     }
 }
-pub fn sql_create_trigger_statement(
-    create_token: SyntaxToken,
-    trigger_token: SyntaxToken,
-    name: AnySqlName,
-    timing_token: SyntaxToken,
-    events: SqlTriggerEventList,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-    execute_token: SyntaxToken,
-    function_kind_token: SyntaxToken,
-    function: SqlCallExpression,
-) -> SqlCreateTriggerStatementBuilder {
-    SqlCreateTriggerStatementBuilder {
-        create_token,
-        trigger_token,
-        name,
-        timing_token,
-        events,
-        on_token,
-        table,
-        execute_token,
-        function_kind_token,
-        function,
-        referencing_clause: None,
-        for_each_clause: None,
-        when_clause: None,
-        semicolon_token: None,
-    }
-}
-pub struct SqlCreateTriggerStatementBuilder {
-    create_token: SyntaxToken,
-    trigger_token: SyntaxToken,
-    name: AnySqlName,
-    timing_token: SyntaxToken,
-    events: SqlTriggerEventList,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-    execute_token: SyntaxToken,
-    function_kind_token: SyntaxToken,
-    function: SqlCallExpression,
-    referencing_clause: Option<SqlTriggerReferencingClause>,
-    for_each_clause: Option<SqlTriggerForEachClause>,
-    when_clause: Option<SqlTriggerWhenClause>,
-    semicolon_token: Option<SyntaxToken>,
-}
-impl SqlCreateTriggerStatementBuilder {
-    pub fn with_referencing_clause(
-        mut self,
-        referencing_clause: SqlTriggerReferencingClause,
-    ) -> Self {
-        self.referencing_clause = Some(referencing_clause);
-        self
-    }
-    pub fn with_for_each_clause(mut self, for_each_clause: SqlTriggerForEachClause) -> Self {
-        self.for_each_clause = Some(for_each_clause);
-        self
-    }
-    pub fn with_when_clause(mut self, when_clause: SqlTriggerWhenClause) -> Self {
-        self.when_clause = Some(when_clause);
-        self
-    }
-    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
-        self.semicolon_token = Some(semicolon_token);
-        self
-    }
-    pub fn build(self) -> SqlCreateTriggerStatement {
-        SqlCreateTriggerStatement::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_CREATE_TRIGGER_STATEMENT,
-            [
-                Some(SyntaxElement::Token(self.create_token)),
-                Some(SyntaxElement::Token(self.trigger_token)),
-                Some(SyntaxElement::Node(self.name.into_syntax())),
-                Some(SyntaxElement::Token(self.timing_token)),
-                Some(SyntaxElement::Node(self.events.into_syntax())),
-                Some(SyntaxElement::Token(self.on_token)),
-                Some(SyntaxElement::Node(self.table.into_syntax())),
-                self.referencing_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                self.for_each_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                self.when_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                Some(SyntaxElement::Token(self.execute_token)),
-                Some(SyntaxElement::Token(self.function_kind_token)),
-                Some(SyntaxElement::Node(self.function.into_syntax())),
-                self.semicolon_token
-                    .map(|token| SyntaxElement::Token(token)),
-            ],
-        ))
-    }
-}
 pub fn sql_create_view_statement(
     create_token: SyntaxToken,
     view_token: SyntaxToken,
@@ -708,7 +1520,7 @@ pub struct SqlCreateViewStatementBuilder {
     query: SqlSelectStatement,
     or_token: Option<SyntaxToken>,
     replace_token: Option<SyntaxToken>,
-    options: Option<SqlViewOptions>,
+    options: Option<PsqlViewOptions>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlCreateViewStatementBuilder {
@@ -720,7 +1532,7 @@ impl SqlCreateViewStatementBuilder {
         self.replace_token = Some(replace_token);
         self
     }
-    pub fn with_options(mut self, options: SqlViewOptions) -> Self {
+    pub fn with_options(mut self, options: PsqlViewOptions) -> Self {
         self.options = Some(options);
         self
     }
@@ -771,14 +1583,14 @@ pub struct SqlCteDefinitionBuilder {
     query: AnySqlStatement,
     r_paren_token: SyntaxToken,
     columns: Option<SqlColumnList>,
-    materialized: Option<SqlCteMaterializedHint>,
+    materialized: Option<PsqlCteMaterializedHint>,
 }
 impl SqlCteDefinitionBuilder {
     pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
         self.columns = Some(columns);
         self
     }
-    pub fn with_materialized(mut self, materialized: SqlCteMaterializedHint) -> Self {
+    pub fn with_materialized(mut self, materialized: PsqlCteMaterializedHint) -> Self {
         self.materialized = Some(materialized);
         self
     }
@@ -795,31 +1607,6 @@ impl SqlCteDefinitionBuilder {
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.query.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
-            ],
-        ))
-    }
-}
-pub fn sql_cte_materialized_hint(materialized_token: SyntaxToken) -> SqlCteMaterializedHintBuilder {
-    SqlCteMaterializedHintBuilder {
-        materialized_token,
-        not_token: None,
-    }
-}
-pub struct SqlCteMaterializedHintBuilder {
-    materialized_token: SyntaxToken,
-    not_token: Option<SyntaxToken>,
-}
-impl SqlCteMaterializedHintBuilder {
-    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
-        self.not_token = Some(not_token);
-        self
-    }
-    pub fn build(self) -> SqlCteMaterializedHint {
-        SqlCteMaterializedHint::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_CTE_MATERIALIZED_HINT,
-            [
-                self.not_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Token(self.materialized_token)),
             ],
         ))
     }
@@ -854,9 +1641,9 @@ pub struct SqlDeleteStatementBuilder {
     from_token: SyntaxToken,
     table: SqlTableBinding,
     with_clause: Option<SqlWithClause>,
-    using: Option<SqlDeleteUsingClause>,
+    using: Option<PsqlDeleteUsingClause>,
     where_clause: Option<SqlWhereClause>,
-    returning_clause: Option<SqlReturningClause>,
+    returning_clause: Option<PsqlReturningClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlDeleteStatementBuilder {
@@ -864,7 +1651,7 @@ impl SqlDeleteStatementBuilder {
         self.with_clause = Some(with_clause);
         self
     }
-    pub fn with_using(mut self, using: SqlDeleteUsingClause) -> Self {
+    pub fn with_using(mut self, using: PsqlDeleteUsingClause) -> Self {
         self.using = Some(using);
         self
     }
@@ -872,7 +1659,7 @@ impl SqlDeleteStatementBuilder {
         self.where_clause = Some(where_clause);
         self
     }
-    pub fn with_returning_clause(mut self, returning_clause: SqlReturningClause) -> Self {
+    pub fn with_returning_clause(mut self, returning_clause: PsqlReturningClause) -> Self {
         self.returning_clause = Some(returning_clause);
         self
     }
@@ -901,96 +1688,6 @@ impl SqlDeleteStatementBuilder {
         ))
     }
 }
-pub fn sql_delete_using_clause(
-    using_token: SyntaxToken,
-    items: SqlFromItemList,
-) -> SqlDeleteUsingClause {
-    SqlDeleteUsingClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_DELETE_USING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(using_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_distinct_on_clause(
-    on_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    items: SqlExpressionList,
-    r_paren_token: SyntaxToken,
-) -> SqlDistinctOnClause {
-    SqlDistinctOnClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_DISTINCT_ON_CLAUSE,
-        [
-            Some(SyntaxElement::Token(on_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
-pub fn sql_do_nothing_clause(
-    do_token: SyntaxToken,
-    nothing_token: SyntaxToken,
-) -> SqlDoNothingClause {
-    SqlDoNothingClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_DO_NOTHING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(do_token)),
-            Some(SyntaxElement::Token(nothing_token)),
-        ],
-    ))
-}
-pub fn sql_do_update_clause(
-    do_token: SyntaxToken,
-    update_token: SyntaxToken,
-    set_clause: SqlSetClause,
-) -> SqlDoUpdateClauseBuilder {
-    SqlDoUpdateClauseBuilder {
-        do_token,
-        update_token,
-        set_clause,
-        where_clause: None,
-    }
-}
-pub struct SqlDoUpdateClauseBuilder {
-    do_token: SyntaxToken,
-    update_token: SyntaxToken,
-    set_clause: SqlSetClause,
-    where_clause: Option<SqlWhereClause>,
-}
-impl SqlDoUpdateClauseBuilder {
-    pub fn with_where_clause(mut self, where_clause: SqlWhereClause) -> Self {
-        self.where_clause = Some(where_clause);
-        self
-    }
-    pub fn build(self) -> SqlDoUpdateClause {
-        SqlDoUpdateClause::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_DO_UPDATE_CLAUSE,
-            [
-                Some(SyntaxElement::Token(self.do_token)),
-                Some(SyntaxElement::Token(self.update_token)),
-                Some(SyntaxElement::Node(self.set_clause.into_syntax())),
-                self.where_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-            ],
-        ))
-    }
-}
-pub fn sql_drop_function_parameters(
-    l_paren_token: SyntaxToken,
-    items: SqlTypeNameList,
-    r_paren_token: SyntaxToken,
-) -> SqlDropFunctionParameters {
-    SqlDropFunctionParameters::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_DROP_FUNCTION_PARAMETERS,
-        [
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
 pub fn sql_drop_function_statement(
     drop_token: SyntaxToken,
     kind_token: SyntaxToken,
@@ -1013,7 +1710,7 @@ pub struct SqlDropFunctionStatementBuilder {
     name: AnySqlName,
     if_token: Option<SyntaxToken>,
     exists_token: Option<SyntaxToken>,
-    parameters: Option<SqlDropFunctionParameters>,
+    parameters: Option<PsqlDropFunctionParameters>,
     drop_behavior_token: Option<SyntaxToken>,
     semicolon_token: Option<SyntaxToken>,
 }
@@ -1026,7 +1723,7 @@ impl SqlDropFunctionStatementBuilder {
         self.exists_token = Some(exists_token);
         self
     }
-    pub fn with_parameters(mut self, parameters: SqlDropFunctionParameters) -> Self {
+    pub fn with_parameters(mut self, parameters: PsqlDropFunctionParameters) -> Self {
         self.parameters = Some(parameters);
         self
     }
@@ -1051,64 +1748,6 @@ impl SqlDropFunctionStatementBuilder {
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
-                self.semicolon_token
-                    .map(|token| SyntaxElement::Token(token)),
-            ],
-        ))
-    }
-}
-pub fn sql_drop_policy_statement(
-    drop_token: SyntaxToken,
-    policy_token: SyntaxToken,
-    name: SqlName,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-) -> SqlDropPolicyStatementBuilder {
-    SqlDropPolicyStatementBuilder {
-        drop_token,
-        policy_token,
-        name,
-        on_token,
-        table,
-        if_token: None,
-        exists_token: None,
-        semicolon_token: None,
-    }
-}
-pub struct SqlDropPolicyStatementBuilder {
-    drop_token: SyntaxToken,
-    policy_token: SyntaxToken,
-    name: SqlName,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-    if_token: Option<SyntaxToken>,
-    exists_token: Option<SyntaxToken>,
-    semicolon_token: Option<SyntaxToken>,
-}
-impl SqlDropPolicyStatementBuilder {
-    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
-        self.if_token = Some(if_token);
-        self
-    }
-    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
-        self.exists_token = Some(exists_token);
-        self
-    }
-    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
-        self.semicolon_token = Some(semicolon_token);
-        self
-    }
-    pub fn build(self) -> SqlDropPolicyStatement {
-        SqlDropPolicyStatement::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_DROP_POLICY_STATEMENT,
-            [
-                Some(SyntaxElement::Token(self.drop_token)),
-                Some(SyntaxElement::Token(self.policy_token)),
-                self.if_token.map(|token| SyntaxElement::Token(token)),
-                self.exists_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Node(self.name.into_syntax())),
-                Some(SyntaxElement::Token(self.on_token)),
-                Some(SyntaxElement::Node(self.table.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
             ],
@@ -1165,72 +1804,6 @@ impl SqlDropTableStatementBuilder {
                 self.if_token.map(|token| SyntaxElement::Token(token)),
                 self.exists_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.tables.into_syntax())),
-                self.drop_behavior_token
-                    .map(|token| SyntaxElement::Token(token)),
-                self.semicolon_token
-                    .map(|token| SyntaxElement::Token(token)),
-            ],
-        ))
-    }
-}
-pub fn sql_drop_trigger_statement(
-    drop_token: SyntaxToken,
-    trigger_token: SyntaxToken,
-    name: AnySqlName,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-) -> SqlDropTriggerStatementBuilder {
-    SqlDropTriggerStatementBuilder {
-        drop_token,
-        trigger_token,
-        name,
-        on_token,
-        table,
-        if_token: None,
-        exists_token: None,
-        drop_behavior_token: None,
-        semicolon_token: None,
-    }
-}
-pub struct SqlDropTriggerStatementBuilder {
-    drop_token: SyntaxToken,
-    trigger_token: SyntaxToken,
-    name: AnySqlName,
-    on_token: SyntaxToken,
-    table: SqlTableName,
-    if_token: Option<SyntaxToken>,
-    exists_token: Option<SyntaxToken>,
-    drop_behavior_token: Option<SyntaxToken>,
-    semicolon_token: Option<SyntaxToken>,
-}
-impl SqlDropTriggerStatementBuilder {
-    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
-        self.if_token = Some(if_token);
-        self
-    }
-    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
-        self.exists_token = Some(exists_token);
-        self
-    }
-    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
-        self.drop_behavior_token = Some(drop_behavior_token);
-        self
-    }
-    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
-        self.semicolon_token = Some(semicolon_token);
-        self
-    }
-    pub fn build(self) -> SqlDropTriggerStatement {
-        SqlDropTriggerStatement::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_DROP_TRIGGER_STATEMENT,
-            [
-                Some(SyntaxElement::Token(self.drop_token)),
-                Some(SyntaxElement::Token(self.trigger_token)),
-                self.if_token.map(|token| SyntaxElement::Token(token)),
-                self.exists_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Node(self.name.into_syntax())),
-                Some(SyntaxElement::Token(self.on_token)),
-                Some(SyntaxElement::Node(self.table.into_syntax())),
                 self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
                 self.semicolon_token
@@ -1373,24 +1946,6 @@ pub fn sql_fetch_with_ties_tail(
         ],
     ))
 }
-pub fn sql_filter_clause(
-    filter_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    where_token: SyntaxToken,
-    condition: AnySqlExpression,
-    r_paren_token: SyntaxToken,
-) -> SqlFilterClause {
-    SqlFilterClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_FILTER_CLAUSE,
-        [
-            Some(SyntaxElement::Token(filter_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Token(where_token)),
-            Some(SyntaxElement::Node(condition.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
 pub fn sql_from_clause(from_token: SyntaxToken, items: SqlFromItemList) -> SqlFromClause {
     SqlFromClause::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_FROM_CLAUSE,
@@ -1459,47 +2014,6 @@ impl SqlFunctionBindingBuilder {
                 Some(SyntaxElement::Node(self.arguments.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
                 self.alias
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-            ],
-        ))
-    }
-}
-pub fn sql_function_parameter(ty: SqlTypeName) -> SqlFunctionParameterBuilder {
-    SqlFunctionParameterBuilder {
-        ty,
-        mode_token: None,
-        name: None,
-        default: None,
-    }
-}
-pub struct SqlFunctionParameterBuilder {
-    ty: SqlTypeName,
-    mode_token: Option<SyntaxToken>,
-    name: Option<SqlName>,
-    default: Option<SqlParameterDefault>,
-}
-impl SqlFunctionParameterBuilder {
-    pub fn with_mode_token(mut self, mode_token: SyntaxToken) -> Self {
-        self.mode_token = Some(mode_token);
-        self
-    }
-    pub fn with_name(mut self, name: SqlName) -> Self {
-        self.name = Some(name);
-        self
-    }
-    pub fn with_default(mut self, default: SqlParameterDefault) -> Self {
-        self.default = Some(default);
-        self
-    }
-    pub fn build(self) -> SqlFunctionParameter {
-        SqlFunctionParameter::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_FUNCTION_PARAMETER,
-            [
-                self.mode_token.map(|token| SyntaxElement::Token(token)),
-                self.name
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                Some(SyntaxElement::Node(self.ty.into_syntax())),
-                self.default
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
@@ -1658,8 +2172,8 @@ pub struct SqlInsertStatementBuilder {
     source: AnySqlInsertSource,
     with_clause: Option<SqlWithClause>,
     columns: Option<SqlColumnList>,
-    on_conflict_clause: Option<SqlOnConflictClause>,
-    returning_clause: Option<SqlReturningClause>,
+    on_conflict_clause: Option<PsqlOnConflictClause>,
+    returning_clause: Option<PsqlReturningClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlInsertStatementBuilder {
@@ -1671,11 +2185,11 @@ impl SqlInsertStatementBuilder {
         self.columns = Some(columns);
         self
     }
-    pub fn with_on_conflict_clause(mut self, on_conflict_clause: SqlOnConflictClause) -> Self {
+    pub fn with_on_conflict_clause(mut self, on_conflict_clause: PsqlOnConflictClause) -> Self {
         self.on_conflict_clause = Some(on_conflict_clause);
         self
     }
-    pub fn with_returning_clause(mut self, returning_clause: SqlReturningClause) -> Self {
+    pub fn with_returning_clause(mut self, returning_clause: PsqlReturningClause) -> Self {
         self.returning_clause = Some(returning_clause);
         self
     }
@@ -1704,18 +2218,6 @@ impl SqlInsertStatementBuilder {
             ],
         ))
     }
-}
-pub fn sql_interval_expression(
-    interval_token: SyntaxToken,
-    value: SqlStringLiteralExpression,
-) -> SqlIntervalExpression {
-    SqlIntervalExpression::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_INTERVAL_EXPRESSION,
-        [
-            Some(SyntaxElement::Token(interval_token)),
-            Some(SyntaxElement::Node(value.into_syntax())),
-        ],
-    ))
 }
 pub fn sql_is_null_expression(
     expression: AnySqlExpression,
@@ -1773,7 +2275,7 @@ pub struct SqlJoinClauseBuilder {
     outer_token: Option<SyntaxToken>,
     on_token: Option<SyntaxToken>,
     condition: Option<AnySqlExpression>,
-    using_clause: Option<SqlJoinUsingClause>,
+    using_clause: Option<PsqlJoinUsingClause>,
 }
 impl SqlJoinClauseBuilder {
     pub fn with_join_type_token(mut self, join_type_token: SyntaxToken) -> Self {
@@ -1792,7 +2294,7 @@ impl SqlJoinClauseBuilder {
         self.condition = Some(condition);
         self
     }
-    pub fn with_using_clause(mut self, using_clause: SqlJoinUsingClause) -> Self {
+    pub fn with_using_clause(mut self, using_clause: PsqlJoinUsingClause) -> Self {
         self.using_clause = Some(using_clause);
         self
     }
@@ -1813,27 +2315,6 @@ impl SqlJoinClauseBuilder {
             ],
         ))
     }
-}
-pub fn sql_join_using_clause(
-    using_token: SyntaxToken,
-    columns: SqlColumnList,
-) -> SqlJoinUsingClause {
-    SqlJoinUsingClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_JOIN_USING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(using_token)),
-            Some(SyntaxElement::Node(columns.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_language_option(language_token: SyntaxToken, name: SqlName) -> SqlLanguageOption {
-    SqlLanguageOption::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_LANGUAGE_OPTION,
-        [
-            Some(SyntaxElement::Token(language_token)),
-            Some(SyntaxElement::Node(name.into_syntax())),
-        ],
-    ))
 }
 pub fn sql_like_expression(
     expression: AnySqlExpression,
@@ -1869,15 +2350,6 @@ impl SqlLikeExpressionBuilder {
             ],
         ))
     }
-}
-pub fn sql_limit_clause(limit_token: SyntaxToken, limit_count: AnySqlLimitValue) -> SqlLimitClause {
-    SqlLimitClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_LIMIT_CLAUSE,
-        [
-            Some(SyntaxElement::Token(limit_token)),
-            Some(SyntaxElement::Node(limit_count.into_syntax())),
-        ],
-    ))
 }
 pub fn sql_logical_expression(
     left: AnySqlExpression,
@@ -1920,56 +2392,6 @@ pub fn sql_offset_clause(offset_token: SyntaxToken, start: AnySqlLimitValue) -> 
         ],
     ))
 }
-pub fn sql_on_conflict_clause(
-    on_token: SyntaxToken,
-    conflict_token: SyntaxToken,
-    action: AnySqlConflictAction,
-) -> SqlOnConflictClauseBuilder {
-    SqlOnConflictClauseBuilder {
-        on_token,
-        conflict_token,
-        action,
-        target: None,
-    }
-}
-pub struct SqlOnConflictClauseBuilder {
-    on_token: SyntaxToken,
-    conflict_token: SyntaxToken,
-    action: AnySqlConflictAction,
-    target: Option<AnySqlConflictTarget>,
-}
-impl SqlOnConflictClauseBuilder {
-    pub fn with_target(mut self, target: AnySqlConflictTarget) -> Self {
-        self.target = Some(target);
-        self
-    }
-    pub fn build(self) -> SqlOnConflictClause {
-        SqlOnConflictClause::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_ON_CONFLICT_CLAUSE,
-            [
-                Some(SyntaxElement::Token(self.on_token)),
-                Some(SyntaxElement::Token(self.conflict_token)),
-                self.target
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                Some(SyntaxElement::Node(self.action.into_syntax())),
-            ],
-        ))
-    }
-}
-pub fn sql_on_constraint_clause(
-    on_token: SyntaxToken,
-    constraint_token: SyntaxToken,
-    name: SqlName,
-) -> SqlOnConstraintClause {
-    SqlOnConstraintClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_ON_CONSTRAINT_CLAUSE,
-        [
-            Some(SyntaxElement::Token(on_token)),
-            Some(SyntaxElement::Token(constraint_token)),
-            Some(SyntaxElement::Node(name.into_syntax())),
-        ],
-    ))
-}
 pub fn sql_order_by_clause(
     order_by_token: SyntaxToken,
     items: SqlOrderByExpressionList,
@@ -2006,18 +2428,6 @@ impl SqlOrderByExpressionBuilder {
             ],
         ))
     }
-}
-pub fn sql_parameter_default(
-    marker_token: SyntaxToken,
-    value: AnySqlExpression,
-) -> SqlParameterDefault {
-    SqlParameterDefault::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_PARAMETER_DEFAULT,
-        [
-            Some(SyntaxElement::Token(marker_token)),
-            Some(SyntaxElement::Node(value.into_syntax())),
-        ],
-    ))
 }
 pub fn sql_parameter_expression(
     colon_token: SyntaxToken,
@@ -2085,138 +2495,10 @@ impl SqlParenthesizedJoinBindingBuilder {
         ))
     }
 }
-pub fn sql_policy_for_clause(
-    for_token: SyntaxToken,
-    command_token: SyntaxToken,
-) -> SqlPolicyForClause {
-    SqlPolicyForClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_POLICY_FOR_CLAUSE,
-        [
-            Some(SyntaxElement::Token(for_token)),
-            Some(SyntaxElement::Token(command_token)),
-        ],
-    ))
-}
-pub fn sql_policy_using_clause(
-    using_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    condition: AnySqlExpression,
-    r_paren_token: SyntaxToken,
-) -> SqlPolicyUsingClause {
-    SqlPolicyUsingClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_POLICY_USING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(using_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(condition.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
-pub fn sql_policy_with_check_clause(
-    with_token: SyntaxToken,
-    check_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    condition: AnySqlExpression,
-    r_paren_token: SyntaxToken,
-) -> SqlPolicyWithCheckClause {
-    SqlPolicyWithCheckClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_POLICY_WITH_CHECK_CLAUSE,
-        [
-            Some(SyntaxElement::Token(with_token)),
-            Some(SyntaxElement::Token(check_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(condition.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
 pub fn sql_precision_modifier(precision_token: SyntaxToken) -> SqlPrecisionModifier {
     SqlPrecisionModifier::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_PRECISION_MODIFIER,
         [Some(SyntaxElement::Token(precision_token))],
-    ))
-}
-pub fn sql_returning_clause(
-    returning_token: SyntaxToken,
-    items: SqlSelectItemList,
-) -> SqlReturningClause {
-    SqlReturningClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(returning_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_returns_clause(returns_token: SyntaxToken, ty: AnySqlReturnsType) -> SqlReturnsClause {
-    SqlReturnsClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_CLAUSE,
-        [
-            Some(SyntaxElement::Token(returns_token)),
-            Some(SyntaxElement::Node(ty.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_returns_null_option(
-    returns_token: SyntaxToken,
-    first_null_token: SyntaxToken,
-    on_token: SyntaxToken,
-    second_null_token: SyntaxToken,
-    input_token: SyntaxToken,
-) -> SqlReturnsNullOption {
-    SqlReturnsNullOption::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_NULL_OPTION,
-        [
-            Some(SyntaxElement::Token(returns_token)),
-            Some(SyntaxElement::Token(first_null_token)),
-            Some(SyntaxElement::Token(on_token)),
-            Some(SyntaxElement::Token(second_null_token)),
-            Some(SyntaxElement::Token(input_token)),
-        ],
-    ))
-}
-pub fn sql_returns_setof_clause(
-    setof_token: SyntaxToken,
-    ty: SqlTypeName,
-) -> SqlReturnsSetofClause {
-    SqlReturnsSetofClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_SETOF_CLAUSE,
-        [
-            Some(SyntaxElement::Token(setof_token)),
-            Some(SyntaxElement::Node(ty.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_returns_table_clause(
-    table_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    columns: SqlReturnsTableColumnList,
-    r_paren_token: SyntaxToken,
-) -> SqlReturnsTableClause {
-    SqlReturnsTableClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_TABLE_CLAUSE,
-        [
-            Some(SyntaxElement::Token(table_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(columns.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
-pub fn sql_returns_table_column(name: SqlName, ty: SqlTypeName) -> SqlReturnsTableColumn {
-    SqlReturnsTableColumn::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_TABLE_COLUMN,
-        [
-            Some(SyntaxElement::Node(name.into_syntax())),
-            Some(SyntaxElement::Node(ty.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_returns_trigger_clause(trigger_token: SyntaxToken) -> SqlReturnsTriggerClause {
-    SqlReturnsTriggerClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_TRIGGER_CLAUSE,
-        [Some(SyntaxElement::Token(trigger_token))],
     ))
 }
 pub fn sql_root(stmt: SqlStatementList, eof_token: SyntaxToken) -> SqlRootBuilder {
@@ -2246,18 +2528,6 @@ impl SqlRootBuilder {
             ],
         ))
     }
-}
-pub fn sql_security_option(
-    security_token: SyntaxToken,
-    value_token: SyntaxToken,
-) -> SqlSecurityOption {
-    SqlSecurityOption::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_SECURITY_OPTION,
-        [
-            Some(SyntaxElement::Token(security_token)),
-            Some(SyntaxElement::Token(value_token)),
-        ],
-    ))
 }
 pub fn sql_select_all_quantifier(all_token: SyntaxToken) -> SqlSelectAllQuantifier {
     SqlSelectAllQuantifier::unwrap_cast(SyntaxNode::new_detached(
@@ -2307,10 +2577,10 @@ pub fn sql_select_distinct_quantifier(
 }
 pub struct SqlSelectDistinctQuantifierBuilder {
     distinct_token: SyntaxToken,
-    on_clause: Option<SqlDistinctOnClause>,
+    on_clause: Option<PsqlDistinctOnClause>,
 }
 impl SqlSelectDistinctQuantifierBuilder {
-    pub fn with_on_clause(mut self, on_clause: SqlDistinctOnClause) -> Self {
+    pub fn with_on_clause(mut self, on_clause: PsqlDistinctOnClause) -> Self {
         self.on_clause = Some(on_clause);
         self
     }
@@ -2376,7 +2646,7 @@ pub struct SqlSelectStatementBuilder {
     group_by_clause: Option<SqlGroupByClause>,
     having_clause: Option<SqlHavingClause>,
     order_by_clause: Option<SqlOrderByClause>,
-    limit_clause: Option<SqlLimitClause>,
+    limit_clause: Option<PsqlLimitClause>,
     offset_clause: Option<SqlOffsetClause>,
     fetch_clause: Option<SqlFetchClause>,
     semicolon_token: Option<SyntaxToken>,
@@ -2406,7 +2676,7 @@ impl SqlSelectStatementBuilder {
         self.order_by_clause = Some(order_by_clause);
         self
     }
-    pub fn with_limit_clause(mut self, limit_clause: SqlLimitClause) -> Self {
+    pub fn with_limit_clause(mut self, limit_clause: PsqlLimitClause) -> Self {
         self.limit_clause = Some(limit_clause);
         self
     }
@@ -2570,12 +2840,6 @@ pub fn sql_star(value_token: SyntaxToken) -> SqlStar {
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
-pub fn sql_strict_option(strict_token: SyntaxToken) -> SqlStrictOption {
-    SqlStrictOption::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_STRICT_OPTION,
-        [Some(SyntaxElement::Token(strict_token))],
-    ))
-}
 pub fn sql_string_literal_expression(value_token: SyntaxToken) -> SqlStringLiteralExpression {
     SqlStringLiteralExpression::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_STRING_LITERAL_EXPRESSION,
@@ -2636,78 +2900,6 @@ pub fn sql_subquery_expression(
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(query.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
-pub fn sql_substring_expression(
-    name_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    expression: AnySqlExpression,
-    r_paren_token: SyntaxToken,
-) -> SqlSubstringExpressionBuilder {
-    SqlSubstringExpressionBuilder {
-        name_token,
-        l_paren_token,
-        expression,
-        r_paren_token,
-        from_clause: None,
-        for_clause: None,
-    }
-}
-pub struct SqlSubstringExpressionBuilder {
-    name_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    expression: AnySqlExpression,
-    r_paren_token: SyntaxToken,
-    from_clause: Option<SqlSubstringFromClause>,
-    for_clause: Option<SqlSubstringForClause>,
-}
-impl SqlSubstringExpressionBuilder {
-    pub fn with_from_clause(mut self, from_clause: SqlSubstringFromClause) -> Self {
-        self.from_clause = Some(from_clause);
-        self
-    }
-    pub fn with_for_clause(mut self, for_clause: SqlSubstringForClause) -> Self {
-        self.for_clause = Some(for_clause);
-        self
-    }
-    pub fn build(self) -> SqlSubstringExpression {
-        SqlSubstringExpression::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_SUBSTRING_EXPRESSION,
-            [
-                Some(SyntaxElement::Token(self.name_token)),
-                Some(SyntaxElement::Token(self.l_paren_token)),
-                Some(SyntaxElement::Node(self.expression.into_syntax())),
-                self.from_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                self.for_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-                Some(SyntaxElement::Token(self.r_paren_token)),
-            ],
-        ))
-    }
-}
-pub fn sql_substring_for_clause(
-    for_token: SyntaxToken,
-    value: AnySqlExpression,
-) -> SqlSubstringForClause {
-    SqlSubstringForClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_SUBSTRING_FOR_CLAUSE,
-        [
-            Some(SyntaxElement::Token(for_token)),
-            Some(SyntaxElement::Node(value.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_substring_from_clause(
-    from_token: SyntaxToken,
-    value: AnySqlExpression,
-) -> SqlSubstringFromClause {
-    SqlSubstringFromClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_SUBSTRING_FROM_CLAUSE,
-        [
-            Some(SyntaxElement::Token(from_token)),
-            Some(SyntaxElement::Node(value.into_syntax())),
         ],
     ))
 }
@@ -2781,42 +2973,6 @@ pub fn sql_table_star(table: SqlTableName, dot_token: SyntaxToken, star: SqlStar
         ],
     ))
 }
-pub fn sql_tilde_array_expression(
-    array_token: SyntaxToken,
-    open_tilde_token: SyntaxToken,
-    l_brack_token: SyntaxToken,
-    items: SqlExpressionList,
-    r_brack_token: SyntaxToken,
-    close_tilde_token: SyntaxToken,
-) -> SqlTildeArrayExpression {
-    SqlTildeArrayExpression::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TILDE_ARRAY_EXPRESSION,
-        [
-            Some(SyntaxElement::Token(array_token)),
-            Some(SyntaxElement::Token(open_tilde_token)),
-            Some(SyntaxElement::Token(l_brack_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-            Some(SyntaxElement::Token(r_brack_token)),
-            Some(SyntaxElement::Token(close_tilde_token)),
-        ],
-    ))
-}
-pub fn sql_tilde_array_suffix(
-    open_tilde_token: SyntaxToken,
-    l_brack_token: SyntaxToken,
-    r_brack_token: SyntaxToken,
-    close_tilde_token: SyntaxToken,
-) -> SqlTildeArraySuffix {
-    SqlTildeArraySuffix::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TILDE_ARRAY_SUFFIX,
-        [
-            Some(SyntaxElement::Token(open_tilde_token)),
-            Some(SyntaxElement::Token(l_brack_token)),
-            Some(SyntaxElement::Token(r_brack_token)),
-            Some(SyntaxElement::Token(close_tilde_token)),
-        ],
-    ))
-}
 pub fn sql_tilde_name(value_token: SyntaxToken) -> SqlTildeName {
     SqlTildeName::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_TILDE_NAME,
@@ -2837,109 +2993,6 @@ pub fn sql_time_zone_modifier(
         ],
     ))
 }
-pub fn sql_trigger_event(kind_token: SyntaxToken) -> SqlTriggerEventBuilder {
-    SqlTriggerEventBuilder {
-        kind_token,
-        or_token: None,
-        of_clause: None,
-    }
-}
-pub struct SqlTriggerEventBuilder {
-    kind_token: SyntaxToken,
-    or_token: Option<SyntaxToken>,
-    of_clause: Option<SqlTriggerUpdateOfClause>,
-}
-impl SqlTriggerEventBuilder {
-    pub fn with_or_token(mut self, or_token: SyntaxToken) -> Self {
-        self.or_token = Some(or_token);
-        self
-    }
-    pub fn with_of_clause(mut self, of_clause: SqlTriggerUpdateOfClause) -> Self {
-        self.of_clause = Some(of_clause);
-        self
-    }
-    pub fn build(self) -> SqlTriggerEvent {
-        SqlTriggerEvent::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_TRIGGER_EVENT,
-            [
-                self.or_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Token(self.kind_token)),
-                self.of_clause
-                    .map(|token| SyntaxElement::Node(token.into_syntax())),
-            ],
-        ))
-    }
-}
-pub fn sql_trigger_for_each_clause(
-    for_token: SyntaxToken,
-    each_token: SyntaxToken,
-    granularity_token: SyntaxToken,
-) -> SqlTriggerForEachClause {
-    SqlTriggerForEachClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_FOR_EACH_CLAUSE,
-        [
-            Some(SyntaxElement::Token(for_token)),
-            Some(SyntaxElement::Token(each_token)),
-            Some(SyntaxElement::Token(granularity_token)),
-        ],
-    ))
-}
-pub fn sql_trigger_referencing_clause(
-    referencing_token: SyntaxToken,
-    items: SqlTriggerReferencingItemList,
-) -> SqlTriggerReferencingClause {
-    SqlTriggerReferencingClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_REFERENCING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(referencing_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_trigger_referencing_item(
-    which_token: SyntaxToken,
-    table_token: SyntaxToken,
-    as_token: SyntaxToken,
-    name: SqlName,
-) -> SqlTriggerReferencingItem {
-    SqlTriggerReferencingItem::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_REFERENCING_ITEM,
-        [
-            Some(SyntaxElement::Token(which_token)),
-            Some(SyntaxElement::Token(table_token)),
-            Some(SyntaxElement::Token(as_token)),
-            Some(SyntaxElement::Node(name.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_trigger_update_of_clause(
-    of_token: SyntaxToken,
-    columns: SqlColumnNameList,
-) -> SqlTriggerUpdateOfClause {
-    SqlTriggerUpdateOfClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_UPDATE_OF_CLAUSE,
-        [
-            Some(SyntaxElement::Token(of_token)),
-            Some(SyntaxElement::Node(columns.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_trigger_when_clause(
-    when_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    condition: AnySqlExpression,
-    r_paren_token: SyntaxToken,
-) -> SqlTriggerWhenClause {
-    SqlTriggerWhenClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_WHEN_CLAUSE,
-        [
-            Some(SyntaxElement::Token(when_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(condition.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
 pub fn sql_type_arguments(
     l_paren_token: SyntaxToken,
     items: SqlTypeArgumentList,
@@ -2951,18 +3004,6 @@ pub fn sql_type_arguments(
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(items.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
-pub fn sql_type_array_suffix(
-    l_brack_token: SyntaxToken,
-    r_brack_token: SyntaxToken,
-) -> SqlTypeArraySuffix {
-    SqlTypeArraySuffix::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TYPE_ARRAY_SUFFIX,
-        [
-            Some(SyntaxElement::Token(l_brack_token)),
-            Some(SyntaxElement::Token(r_brack_token)),
         ],
     ))
 }
@@ -3055,7 +3096,7 @@ pub struct SqlUpdateStatementBuilder {
     with_clause: Option<SqlWithClause>,
     from_clause: Option<SqlUpdateFromClause>,
     where_clause: Option<SqlWhereClause>,
-    returning_clause: Option<SqlReturningClause>,
+    returning_clause: Option<PsqlReturningClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlUpdateStatementBuilder {
@@ -3071,7 +3112,7 @@ impl SqlUpdateStatementBuilder {
         self.where_clause = Some(where_clause);
         self
     }
-    pub fn with_returning_clause(mut self, returning_clause: SqlReturningClause) -> Self {
+    pub fn with_returning_clause(mut self, returning_clause: PsqlReturningClause) -> Self {
         self.returning_clause = Some(returning_clause);
         self
     }
@@ -3158,42 +3199,6 @@ pub fn sql_varying_modifier(varying_token: SyntaxToken) -> SqlVaryingModifier {
     SqlVaryingModifier::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_VARYING_MODIFIER,
         [Some(SyntaxElement::Token(varying_token))],
-    ))
-}
-pub fn sql_view_option(
-    name: SqlName,
-    eq_token: SyntaxToken,
-    value: AnySqlExpression,
-) -> SqlViewOption {
-    SqlViewOption::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_VIEW_OPTION,
-        [
-            Some(SyntaxElement::Node(name.into_syntax())),
-            Some(SyntaxElement::Token(eq_token)),
-            Some(SyntaxElement::Node(value.into_syntax())),
-        ],
-    ))
-}
-pub fn sql_view_options(
-    with_token: SyntaxToken,
-    l_paren_token: SyntaxToken,
-    items: SqlViewOptionList,
-    r_paren_token: SyntaxToken,
-) -> SqlViewOptions {
-    SqlViewOptions::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_VIEW_OPTIONS,
-        [
-            Some(SyntaxElement::Token(with_token)),
-            Some(SyntaxElement::Token(l_paren_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-            Some(SyntaxElement::Token(r_paren_token)),
-        ],
-    ))
-}
-pub fn sql_volatility_option(value_token: SyntaxToken) -> SqlVolatilityOption {
-    SqlVolatilityOption::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_VOLATILITY_OPTION,
-        [Some(SyntaxElement::Token(value_token))],
     ))
 }
 pub fn sql_where_clause(where_token: SyntaxToken, condition: AnySqlExpression) -> SqlWhereClause {
@@ -3305,6 +3310,126 @@ impl SqlWithClauseBuilder {
             ],
         ))
     }
+}
+pub fn psql_function_option_list<I>(items: I) -> PsqlFunctionOptionList
+where
+    I: IntoIterator<Item = AnySqlFunctionOption>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlFunctionOptionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_FUNCTION_OPTION_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_function_parameter_list<I, S>(items: I, separators: S) -> PsqlFunctionParameterList
+where
+    I: IntoIterator<Item = PsqlFunctionParameter>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlFunctionParameterList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_returns_table_column_list<I, S>(items: I, separators: S) -> PsqlReturnsTableColumnList
+where
+    I: IntoIterator<Item = PsqlReturnsTableColumn>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlReturnsTableColumnList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_trigger_event_list<I>(items: I) -> PsqlTriggerEventList
+where
+    I: IntoIterator<Item = PsqlTriggerEvent>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlTriggerEventList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_EVENT_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_trigger_referencing_item_list<I>(items: I) -> PsqlTriggerReferencingItemList
+where
+    I: IntoIterator<Item = PsqlTriggerReferencingItem>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlTriggerReferencingItemList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRIGGER_REFERENCING_ITEM_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_type_name_list<I, S>(items: I, separators: S) -> PsqlTypeNameList
+where
+    I: IntoIterator<Item = SqlTypeName>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlTypeNameList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TYPE_NAME_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_view_option_list<I, S>(items: I, separators: S) -> PsqlViewOptionList
+where
+    I: IntoIterator<Item = PsqlViewOption>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlViewOptionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_VIEW_OPTION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
 }
 pub fn sql_alias_column_definition_list<I, S>(
     items: I,
@@ -3447,39 +3572,6 @@ where
         }),
     ))
 }
-pub fn sql_function_option_list<I>(items: I) -> SqlFunctionOptionList
-where
-    I: IntoIterator<Item = AnySqlFunctionOption>,
-    I::IntoIter: ExactSizeIterator,
-{
-    SqlFunctionOptionList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_FUNCTION_OPTION_LIST,
-        items
-            .into_iter()
-            .map(|item| Some(item.into_syntax().into())),
-    ))
-}
-pub fn sql_function_parameter_list<I, S>(items: I, separators: S) -> SqlFunctionParameterList
-where
-    I: IntoIterator<Item = SqlFunctionParameter>,
-    I::IntoIter: ExactSizeIterator,
-    S: IntoIterator<Item = SqlSyntaxToken>,
-    S::IntoIter: ExactSizeIterator,
-{
-    let mut items = items.into_iter();
-    let mut separators = separators.into_iter();
-    let length = items.len() + separators.len();
-    SqlFunctionParameterList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_FUNCTION_PARAMETER_LIST,
-        (0..length).map(|index| {
-            if index % 2 == 0 {
-                Some(items.next()?.into_syntax().into())
-            } else {
-                Some(separators.next()?.into())
-            }
-        }),
-    ))
-}
 pub fn sql_grantee_list<I, S>(items: I, separators: S) -> SqlGranteeList
 where
     I: IntoIterator<Item = SqlName>,
@@ -3546,27 +3638,6 @@ where
     let length = items.len() + separators.len();
     SqlOrderByExpressionList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_ORDER_BY_EXPRESSION_LIST,
-        (0..length).map(|index| {
-            if index % 2 == 0 {
-                Some(items.next()?.into_syntax().into())
-            } else {
-                Some(separators.next()?.into())
-            }
-        }),
-    ))
-}
-pub fn sql_returns_table_column_list<I, S>(items: I, separators: S) -> SqlReturnsTableColumnList
-where
-    I: IntoIterator<Item = SqlReturnsTableColumn>,
-    I::IntoIter: ExactSizeIterator,
-    S: IntoIterator<Item = SqlSyntaxToken>,
-    S::IntoIter: ExactSizeIterator,
-{
-    let mut items = items.into_iter();
-    let mut separators = separators.into_iter();
-    let length = items.len() + separators.len();
-    SqlReturnsTableColumnList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_RETURNS_TABLE_COLUMN_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())
@@ -3663,30 +3734,6 @@ where
         }),
     ))
 }
-pub fn sql_trigger_event_list<I>(items: I) -> SqlTriggerEventList
-where
-    I: IntoIterator<Item = SqlTriggerEvent>,
-    I::IntoIter: ExactSizeIterator,
-{
-    SqlTriggerEventList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_EVENT_LIST,
-        items
-            .into_iter()
-            .map(|item| Some(item.into_syntax().into())),
-    ))
-}
-pub fn sql_trigger_referencing_item_list<I>(items: I) -> SqlTriggerReferencingItemList
-where
-    I: IntoIterator<Item = SqlTriggerReferencingItem>,
-    I::IntoIter: ExactSizeIterator,
-{
-    SqlTriggerReferencingItemList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TRIGGER_REFERENCING_ITEM_LIST,
-        items
-            .into_iter()
-            .map(|item| Some(item.into_syntax().into())),
-    ))
-}
 pub fn sql_type_argument_list<I, S>(items: I, separators: S) -> SqlTypeArgumentList
 where
     I: IntoIterator<Item = SqlNumberLiteralExpression>,
@@ -3708,27 +3755,6 @@ where
         }),
     ))
 }
-pub fn sql_type_name_list<I, S>(items: I, separators: S) -> SqlTypeNameList
-where
-    I: IntoIterator<Item = SqlTypeName>,
-    I::IntoIter: ExactSizeIterator,
-    S: IntoIterator<Item = SqlSyntaxToken>,
-    S::IntoIter: ExactSizeIterator,
-{
-    let mut items = items.into_iter();
-    let mut separators = separators.into_iter();
-    let length = items.len() + separators.len();
-    SqlTypeNameList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_TYPE_NAME_LIST,
-        (0..length).map(|index| {
-            if index % 2 == 0 {
-                Some(items.next()?.into_syntax().into())
-            } else {
-                Some(separators.next()?.into())
-            }
-        }),
-    ))
-}
 pub fn sql_values_row_list<I, S>(items: I, separators: S) -> SqlValuesRowList
 where
     I: IntoIterator<Item = SqlValuesRow>,
@@ -3741,27 +3767,6 @@ where
     let length = items.len() + separators.len();
     SqlValuesRowList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_VALUES_ROW_LIST,
-        (0..length).map(|index| {
-            if index % 2 == 0 {
-                Some(items.next()?.into_syntax().into())
-            } else {
-                Some(separators.next()?.into())
-            }
-        }),
-    ))
-}
-pub fn sql_view_option_list<I, S>(items: I, separators: S) -> SqlViewOptionList
-where
-    I: IntoIterator<Item = SqlViewOption>,
-    I::IntoIter: ExactSizeIterator,
-    S: IntoIterator<Item = SqlSyntaxToken>,
-    S::IntoIter: ExactSizeIterator,
-{
-    let mut items = items.into_iter();
-    let mut separators = separators.into_iter();
-    let length = items.len() + separators.len();
-    SqlViewOptionList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_VIEW_OPTION_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

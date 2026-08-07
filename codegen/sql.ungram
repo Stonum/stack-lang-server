@@ -25,7 +25,6 @@
 //   not part of the grammar but they will appear inside the green tree
 //
 
-
 ///////////////
 // Bogus NODES
 ///////////////
@@ -58,17 +57,6 @@ SqlStringLiteralExpression = value: 'Sql_string_literal'
 SqlNumberLiteralExpression = value: 'Sql_number_literal'
 SqlBooleanLiteralExpression = value: ( 'true' | 'false' )
 SqlNullLiteralExpression = value: 'null'
-
-// `interval '1 day'` -- an interval literal in expression position (as
-// opposed to `interval` as a bare type name, e.g. a column/cast type).
-// Real Postgres also allows a trailing field qualifier (`interval '1'
-// day`) and a leading precision (`interval(3) '...'`), but every
-// real-world occurrence found embeds the field in the string itself
-// (`interval '1 second'`), so only the minimal `interval 'string'` form
-// is supported for now.
-SqlIntervalExpression =
-   'interval'
-   value: SqlStringLiteralExpression
 
 ///////////////
 SqlName = value: 'ident'
@@ -121,14 +109,14 @@ AnySqlStatement =
    | SqlDropFunctionStatement
    | SqlDropTableStatement
    | SqlCreateTableStatement
-   | SqlCreateFunctionStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
-   | SqlCreatePolicyStatement
-   | SqlDropPolicyStatement
-   | SqlCreateTriggerStatement
-   | SqlDropTriggerStatement
    | SqlGrantStatement
+   | PsqlCreateFunctionStatement
+   | PsqlCreatePolicyStatement
+   | PsqlDropPolicyStatement
+   | PsqlCreateTriggerStatement
+   | PsqlDropTriggerStatement
    | SqlBogusStatement
 
 ///////////////
@@ -151,19 +139,10 @@ SqlCteDefinition =
    name: SqlName
    columns: SqlColumnList?
    'as'
-   materialized: SqlCteMaterializedHint?
+   materialized: PsqlCteMaterializedHint?
    '('
    query: AnySqlStatement
    ')'
-
-// `AS MATERIALIZED (...)` forces the CTE to be an optimization fence
-// (always materialized as a temp result); `AS NOT MATERIALIZED (...)`
-// forces the opposite (always inlined). Purely a planner hint -- doesn't
-// change what the query means, so the parser just needs to accept and
-// preserve it, not act on it.
-SqlCteMaterializedHint =
-   'not'?
-   'materialized'
 
 SqlSelectStatement =
    with_clause: SqlWithClause?
@@ -174,7 +153,7 @@ SqlSelectStatement =
    having_clause: SqlHavingClause?
    set_operations: SqlSetOperationList
    order_by_clause: SqlOrderByClause?
-   limit_clause: SqlLimitClause?
+   limit_clause: PsqlLimitClause?
    offset_clause: SqlOffsetClause?
    fetch_clause: SqlFetchClause?
    ';'?
@@ -206,13 +185,7 @@ SqlSelectAllQuantifier =
 // just those expressions instead of the whole row.
 SqlSelectDistinctQuantifier =
    'distinct'
-   on_clause: SqlDistinctOnClause?
-
-SqlDistinctOnClause =
-   'on'
-   '('
-   items: SqlExpressionList
-   ')'
+   on_clause: PsqlDistinctOnClause?
 
 SqlSelectItemList = (AnySqlSelectItem (',' AnySqlSelectItem)* ','?)
 
@@ -251,17 +224,7 @@ SqlJoinClause =
    'join'
    source: AnySqlFromExpression
    ('on' condition: AnySqlExpression)?
-   using_clause: SqlJoinUsingClause?
-
-// `JOIN t2 USING (col1, col2)` -- an alternative to `ON`, matching rows by
-// equality on the listed columns (which must exist in both sides) instead
-// of an arbitrary condition. Mutually exclusive with `ON` in practice
-// (never both), but modeled as its own independent optional field rather
-// than unioned with the pre-existing bare `('on' condition: ...)?` pair,
-// to avoid reshaping every existing `ON`-based join's tree.
-SqlJoinUsingClause =
-   'using'
-   columns: SqlColumnList
+   using_clause: PsqlJoinUsingClause?
 
 AnySqlFromExpression =
    SqlTableBinding
@@ -312,10 +275,6 @@ SqlHavingClause =
    'having'
    condition: AnySqlExpression
 
-SqlLimitClause =
-   'limit'
-   limit_count: AnySqlLimitValue
-
 SqlOrderByClause =
    'order_by'
    items: SqlOrderByExpressionList
@@ -360,13 +319,9 @@ SqlInsertStatement =
    table: SqlTableBinding
    columns: SqlColumnList?
    source: AnySqlInsertSource
-   on_conflict_clause: SqlOnConflictClause?
-   returning_clause: SqlReturningClause?
+   on_conflict_clause: PsqlOnConflictClause?
+   returning_clause: PsqlReturningClause?
    ';'?
-
-SqlReturningClause =
-   'returning'
-   items: SqlSelectItemList
 
 SqlColumnList =
    '('
@@ -399,48 +354,23 @@ SqlValuesRow =
    items: SqlExpressionList
    ')'
 
-SqlOnConflictClause =
-   'on'
-   'conflict'
-   target: AnySqlConflictTarget?
-   action: AnySqlConflictAction
-
 AnySqlConflictTarget =
    SqlColumnList
-   | SqlOnConstraintClause
-
-SqlOnConstraintClause =
-   'on'
-   'constraint'
-   name: SqlName
+   | PsqlOnConstraintClause
 
 AnySqlConflictAction =
-   SqlDoNothingClause
-   | SqlDoUpdateClause
-
-SqlDoNothingClause =
-   'do'
-   'nothing'
-
-SqlDoUpdateClause =
-   'do'
-   'update'
-   set_clause: SqlSetClause
-   where_clause: SqlWhereClause?
+   PsqlDoNothingClause
+   | PsqlDoUpdateClause
 
 SqlDeleteStatement =
    with_clause: SqlWithClause?
    'delete'
    'from'
    table: SqlTableBinding
-   using: SqlDeleteUsingClause?
+   using: PsqlDeleteUsingClause?
    where_clause: SqlWhereClause?
-   returning_clause: SqlReturningClause?
+   returning_clause: PsqlReturningClause?
    ';'?
-
-SqlDeleteUsingClause =
-   'using'
-   items: SqlFromItemList
 
 SqlUpdateStatement =
    with_clause: SqlWithClause?
@@ -449,13 +379,13 @@ SqlUpdateStatement =
    set_clause: SqlSetClause
    from_clause: SqlUpdateFromClause?
    where_clause: SqlWhereClause?
-   returning_clause: SqlReturningClause?
+   returning_clause: PsqlReturningClause?
    ';'?
 
 // `UPDATE t SET ... FROM other_table WHERE ...` -- brings extra tables
 // into scope for the `SET`/`WHERE` expressions, e.g. to update one table
 // using values joined from another. Reuses `SqlFromItemList`, same as
-// `SqlDeleteUsingClause` does for `DELETE ... USING ...` (semantically
+// `PsqlDeleteUsingClause` does for `DELETE ... USING ...` (semantically
 // the same "extra tables in scope" role, spelled with a different leading
 // keyword).
 SqlUpdateFromClause =
@@ -487,16 +417,9 @@ SqlDropFunctionStatement =
    kind: ('function' | 'procedure')
    ('if' 'exists')?
    name: AnySqlName
-   parameters: SqlDropFunctionParameters?
+   parameters: PsqlDropFunctionParameters?
    drop_behavior: ('cascade' | 'restrict')?
    ';'?
-
-SqlDropFunctionParameters =
-   '('
-   items: SqlTypeNameList
-   ')'
-
-SqlTypeNameList = (SqlTypeName (',' SqlTypeName)*)
 
 // `DROP TABLE [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
 SqlDropTableStatement =
@@ -531,111 +454,18 @@ SqlColumnDefinition =
    name: SqlName
    type: SqlTypeName
 
-// `CREATE [OR REPLACE] FUNCTION|PROCEDURE name(param type, ...) [RETURNS
-// type] <options>* AS body <options>* [;]` -- real scripts scatter options
-// (`LANGUAGE`, volatility, `SECURITY DEFINER`/`INVOKER`, `STRICT`) both
-// before and after `AS`, in any order, so both are the same repeatable
-// `SqlFunctionOptionList`, not a fixed sequence.
-// `body` is a plain string-literal expression (covers both `'...'` and the
-// dollar-quoted `$$...$$`/`$tag$...$tag$` spelling) and is printed verbatim
-// by the formatter -- PL/pgSQL body contents are never reparsed or
-// reformatted.
-SqlCreateFunctionStatement =
-   'create'
-   ('or' 'replace')?
-   kind: ('function' | 'procedure')
-   name: AnySqlName
-   '('
-   parameters: SqlFunctionParameterList
-   ')'
-   returns_clause: SqlReturnsClause?
-   leading_options: SqlFunctionOptionList
-   'as'
-   body: SqlStringLiteralExpression
-   trailing_options: SqlFunctionOptionList
-   ';'?
-
-SqlFunctionOptionList = AnySqlFunctionOption*
-
 AnySqlFunctionOption =
-   SqlLanguageOption
-   | SqlVolatilityOption
-   | SqlSecurityOption
-   | SqlStrictOption
-   | SqlReturnsNullOption
-
-// `RETURNS NULL ON NULL INPUT` -- a synonym for `STRICT`. The two `'null'`s
-// need distinct labels -- otherwise codegen gives both the same accessor
-// name and the generated struct doesn't compile (duplicate field), the
-// same issue `SqlTildeArraySuffix`'s two `~`s already ran into.
-SqlReturnsNullOption =
-   'returns'
-   first_null: 'null'
-   'on'
-   second_null: 'null'
-   'input'
-
-SqlVolatilityOption =
-   value: ('immutable' | 'stable' | 'volatile')
-
-SqlSecurityOption =
-   'security'
-   value: ('definer' | 'invoker')
-
-SqlStrictOption =
-   'strict'
-
-SqlFunctionParameterList = (SqlFunctionParameter (',' SqlFunctionParameter)*)
-
-// `name` is optional -- Postgres allows an anonymous parameter, just a
-// type (`create function f(text)`), referenced inside the (opaque, never
-// parsed) body only via `$1`/`$2`-style positional references.
-SqlFunctionParameter =
-   mode: ('in' | 'out' | 'inout')?
-   name: SqlName?
-   type: SqlTypeName
-   default: SqlParameterDefault?
-
-// Postgres allows either spelling for a parameter default -- `DEFAULT expr`
-// or the shorthand `= expr` -- both seen in real scripts.
-SqlParameterDefault =
-   marker: ('default' | '=')
-   value: AnySqlExpression
-
-SqlReturnsClause =
-   'returns'
-   type: AnySqlReturnsType
+   PsqlLanguageOption
+   | PsqlVolatilityOption
+   | PsqlSecurityOption
+   | PsqlStrictOption
+   | PsqlReturnsNullOption
 
 AnySqlReturnsType =
    SqlTypeName
-   | SqlReturnsTableClause
-   | SqlReturnsTriggerClause
-   | SqlReturnsSetofClause
-
-// `RETURNS SETOF type` -- a set-returning function's row type, given as a
-// single (usually scalar) type rather than an inline column list.
-SqlReturnsSetofClause =
-   'setof'
-   type: SqlTypeName
-
-// `RETURNS TABLE(col type, col type, ...)` -- a set-returning function's
-// result-row shape.
-SqlReturnsTableClause =
-   'table'
-   '('
-   columns: SqlReturnsTableColumnList
-   ')'
-
-// `RETURNS TRIGGER` -- the pseudo-type convention marking a function as a
-// trigger function, callable only via `CREATE TRIGGER ... EXECUTE FUNCTION`.
-SqlReturnsTriggerClause =
-   'trigger'
-
-SqlReturnsTableColumnList = (SqlReturnsTableColumn (',' SqlReturnsTableColumn)*)
-
-SqlReturnsTableColumn =
-   name: SqlName
-   type: SqlTypeName
+   | PsqlReturnsTableClause
+   | PsqlReturnsTriggerClause
+   | PsqlReturnsSetofClause
 
 // `CREATE [OR REPLACE] VIEW name [WITH (opt=val, ...)] AS <select>` -- the
 // view body is an ordinary `SELECT` statement, already fully supported;
@@ -645,23 +475,10 @@ SqlCreateViewStatement =
    ('or' 'replace')?
    'view'
    name: SqlTableName
-   options: SqlViewOptions?
+   options: PsqlViewOptions?
    'as'
    query: SqlSelectStatement
    ';'?
-
-SqlViewOptions =
-   'with'
-   '('
-   items: SqlViewOptionList
-   ')'
-
-SqlViewOptionList = (SqlViewOption (',' SqlViewOption)*)
-
-SqlViewOption =
-   name: SqlName
-   '='
-   value: AnySqlExpression
 
 // `DROP VIEW [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`
 SqlDropViewStatement =
@@ -669,129 +486,6 @@ SqlDropViewStatement =
    'view'
    ('if' 'exists')?
    views: SqlTableNameList
-   drop_behavior: ('cascade' | 'restrict')?
-   ';'?
-
-// `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
-// [USING (condition)] [WITH CHECK (condition)] [;]` -- `USING` applies to
-// rows already in the table (SELECT/UPDATE/DELETE), `WITH CHECK` applies to
-// rows being written (INSERT/UPDATE); both conditions are ordinary boolean
-// expressions, already fully supported.
-SqlCreatePolicyStatement =
-   'create'
-   'policy'
-   name: SqlName
-   'on'
-   table: SqlTableName
-   for_clause: SqlPolicyForClause?
-   using_clause: SqlPolicyUsingClause?
-   with_check_clause: SqlPolicyWithCheckClause?
-   ';'?
-
-SqlPolicyForClause =
-   'for'
-   command: ('all' | 'select' | 'insert' | 'update' | 'delete')
-
-SqlPolicyUsingClause =
-   'using'
-   '('
-   condition: AnySqlExpression
-   ')'
-
-SqlPolicyWithCheckClause =
-   'with'
-   'check'
-   '('
-   condition: AnySqlExpression
-   ')'
-
-// `DROP POLICY [IF EXISTS] name ON table [;]`
-SqlDropPolicyStatement =
-   'drop'
-   'policy'
-   ('if' 'exists')?
-   name: SqlName
-   'on'
-   table: SqlTableName
-   ';'?
-
-// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
-// [REFERENCING ...] [FOR EACH ROW|STATEMENT] EXECUTE FUNCTION|PROCEDURE
-// name(args) [;]` -- the trigger *function* itself is a separate
-// `CREATE FUNCTION ... RETURNS TRIGGER`; this is just the attachment.
-SqlCreateTriggerStatement =
-   'create'
-   'trigger'
-   name: AnySqlName
-   timing: ('before' | 'after')
-   events: SqlTriggerEventList
-   'on'
-   table: SqlTableName
-   referencing_clause: SqlTriggerReferencingClause?
-   for_each_clause: SqlTriggerForEachClause?
-   when_clause: SqlTriggerWhenClause?
-   'execute'
-   function_kind: ('function' | 'procedure')
-   function: SqlCallExpression
-   ';'?
-
-// `WHEN (condition)` -- restricts a row-level trigger to fire only when
-// `condition` holds (referencing `OLD`/`NEW` like the trigger body does).
-SqlTriggerWhenClause =
-   'when'
-   '('
-   condition: AnySqlExpression
-   ')'
-
-SqlTriggerEventList = SqlTriggerEvent*
-
-// The leading `'or'?` is only present on every event after the first (the
-// same "each element owns its own separator" shape as `SqlSetOperation`).
-SqlTriggerEvent =
-   'or'?
-   kind: ('insert' | 'update' | 'delete')
-   of_clause: SqlTriggerUpdateOfClause?
-
-// `UPDATE OF col, col, ...` -- narrows an `UPDATE` event to specific
-// columns; only ever follows an `update` event kind.
-SqlTriggerUpdateOfClause =
-   'of'
-   columns: SqlColumnNameList
-
-// `REFERENCING OLD TABLE AS old_name NEW TABLE AS new_name` (either or both,
-// in either order) -- names the transition tables for statement-level
-// triggers.
-SqlTriggerReferencingClause =
-   'referencing'
-   items: SqlTriggerReferencingItemList
-
-SqlTriggerReferencingItemList = SqlTriggerReferencingItem*
-
-// `which` holds the literal text `old`/`new` (checked at parse time, case
-// insensitively) rather than being a keyword-token alternation: unlike
-// `~name~`, real Postgres never reserves `OLD`/`NEW` as keywords at all --
-// they must still parse as ordinary identifiers everywhere outside a
-// `REFERENCING` item (e.g. `old.some_column` in a trigger's `WHEN (...)`
-// condition or body).
-SqlTriggerReferencingItem =
-   which: 'ident'
-   'table'
-   'as'
-   name: SqlName
-
-SqlTriggerForEachClause =
-   'for'
-   'each'
-   granularity: ('row' | 'statement')
-
-// `DROP TRIGGER [IF EXISTS] name ON table [CASCADE|RESTRICT] [;]`
-SqlDropTriggerStatement =
-   'drop'
-   'trigger'
-   ('if' 'exists')?
-   name: AnySqlName
-   'on'
-   table: SqlTableName
    drop_behavior: ('cascade' | 'restrict')?
    ';'?
 
@@ -811,10 +505,6 @@ SqlGrantStatement =
    ';'?
 
 SqlGranteeList = (SqlName (',' SqlName)*)
-
-SqlLanguageOption =
-   'language'
-   name: SqlName
 
 ///////////////////////
 // Parts of expressions
@@ -902,15 +592,15 @@ AnySqlExpression =
    | SqlSubqueryExpression
    | SqlCallExpression
    | SqlWindowFunctionExpression
-   | SqlArrayExpression
-   | SqlTildeArrayExpression
-   | SqlArraySubscriptExpression
-   | SqlCastExpression
    | SqlCastFunctionExpression
    | SqlAnyAllExpression
    | SqlExistsExpression
-   | SqlSubstringExpression
-   | SqlIntervalExpression
+   | PsqlArrayExpression
+   | PsqlTildeArrayExpression
+   | PsqlArraySubscriptExpression
+   | PsqlCastExpression
+   | PsqlSubstringExpression
+   | PsqlIntervalExpression
    | AnySqlLiteralExpression
 
 // `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --
@@ -932,60 +622,6 @@ AnySqlAnyAllSource =
 SqlExistsExpression =
    'exists'
    subquery: SqlSubqueryExpression
-
-// `substring(string from start [for count])` / `substring(string from
-// pattern)` -- the SQL-standard substring syntax. `substring` isn't a
-// reserved keyword in Postgres (recognized by text, case-insensitive, the
-// same way `old`/`new` are in a trigger's REFERENCING clause), so it
-// stays a plain `ident` in the grammar rather than a dedicated keyword
-// token -- this only ever gets parsed as this node when the argument list
-// actually contains a top-level `from`; the ordinary comma-separated call
-// syntax (`substring(string, start, count)`) is still just a plain
-// `SqlCallExpression`, unaffected.
-SqlSubstringExpression =
-   name: 'ident'
-   '('
-   expression: AnySqlExpression
-   from_clause: SqlSubstringFromClause?
-   for_clause: SqlSubstringForClause?
-   ')'
-
-SqlSubstringFromClause =
-   'from'
-   value: AnySqlExpression
-
-SqlSubstringForClause =
-   'for'
-   value: AnySqlExpression
-
-SqlArrayExpression =
-   'array'
-   '['
-   items: SqlExpressionList
-   ']'
-
-// `array~[...]~` -- mlang-dialect escaping of an array literal's brackets,
-// the same convention `SqlTildeArraySuffix` already uses for array *type*
-// suffixes (`int~[]~`). Unlike that suffix (always empty), the brackets
-// here can hold real elements, e.g. `array~[1, 2]~`.
-SqlTildeArrayExpression =
-   'array'
-   open_tilde: '~'
-   '['
-   items: SqlExpressionList
-   ']'
-   close_tilde: '~'
-
-SqlArraySubscriptExpression =
-   expression: AnySqlExpression
-   '['
-   index: AnySqlExpression
-   ']'
-
-SqlCastExpression =
-   expression: AnySqlExpression
-   '::'
-   type: SqlTypeName
 
 SqlCastFunctionExpression =
    'cast'
@@ -1026,23 +662,8 @@ SqlTypeArguments =
 SqlTypeArgumentList = (SqlNumberLiteralExpression (',' SqlNumberLiteralExpression)*)
 
 AnySqlTypeArraySuffix =
-   SqlTypeArraySuffix
-   | SqlTildeArraySuffix
-
-SqlTypeArraySuffix = '[' ']'
-
-// `int~[]~` -- mlang-dialect escaping of the array-type-suffix brackets, not
-// real Postgres syntax. Unlike `~name~`, this needs no re-lex: `~`, `[`, `]`
-// and `~` already lex correctly as four separate default tokens here (no
-// ambiguity with the regex/LIKE operators, since this position never
-// follows a complete left-hand expression). The two `~`s need explicit
-// labels -- otherwise codegen gives both the same accessor name and the
-// generated struct doesn't compile (duplicate field).
-SqlTildeArraySuffix =
-   open_tilde: '~'
-   '['
-   ']'
-   close_tilde: '~'
+   PsqlTypeArraySuffix
+   | PsqlTildeArraySuffix
 
 SqlSubqueryExpression =
    '('
@@ -1113,21 +734,7 @@ SqlCallExpression =
    '('
    arguments: SqlExpressionList
    ')'
-   filter_clause: SqlFilterClause?
-
-// `count(x) filter (where cond)` -- restricts an aggregate call to only
-// the rows matching `cond`, instead of the whole group. A purely
-// syntactic modifier on the call itself (real Postgres doesn't
-// distinguish "aggregate" from other functions grammatically), so it also
-// composes for free with `SqlWindowFunctionExpression` --
-// `count(x) filter (where cond) over (...)` is just this field on the
-// `call` field there, followed by `over`.
-SqlFilterClause =
-   'filter'
-   '('
-   'where'
-   condition: AnySqlExpression
-   ')'
+   filter_clause: PsqlFilterClause?
 
 SqlWindowFunctionExpression =
    call: SqlCallExpression
@@ -1164,3 +771,398 @@ SqlLogicalExpression =
 SqlParenthesizedExpression =
 	'(' expression: AnySqlExpression ')'
 
+///////////////////////////////
+// Postgres-only constructs
+///////////////////////////////
+
+// `interval '1 day'` -- an interval literal in expression position (as
+// opposed to `interval` as a bare type name, e.g. a column/cast type).
+// Real Postgres also allows a trailing field qualifier (`interval '1'
+// day`) and a leading precision (`interval(3) '...'`), but every
+// real-world occurrence found embeds the field in the string itself
+// (`interval '1 second'`), so only the minimal `interval 'string'` form
+// is supported for now.
+PsqlIntervalExpression =
+   'interval'
+   value: SqlStringLiteralExpression
+
+// `AS MATERIALIZED (...)` forces the CTE to be an optimization fence
+// (always materialized as a temp result); `AS NOT MATERIALIZED (...)`
+// forces the opposite (always inlined). Purely a planner hint -- doesn't
+// change what the query means, so the parser just needs to accept and
+// preserve it, not act on it.
+PsqlCteMaterializedHint =
+   'not'?
+   'materialized'
+
+PsqlDistinctOnClause =
+   'on'
+   '('
+   items: SqlExpressionList
+   ')'
+
+// `JOIN t2 USING (col1, col2)` -- an alternative to `ON`, matching rows by
+// equality on the listed columns (which must exist in both sides) instead
+// of an arbitrary condition. Mutually exclusive with `ON` in practice
+// (never both), but modeled as its own independent optional field rather
+// than unioned with the pre-existing bare `('on' condition: ...)?` pair,
+// to avoid reshaping every existing `ON`-based join's tree.
+PsqlJoinUsingClause =
+   'using'
+   columns: SqlColumnList
+
+PsqlLimitClause =
+   'limit'
+   limit_count: AnySqlLimitValue
+
+PsqlReturningClause =
+   'returning'
+   items: SqlSelectItemList
+
+PsqlOnConflictClause =
+   'on'
+   'conflict'
+   target: AnySqlConflictTarget?
+   action: AnySqlConflictAction
+
+PsqlOnConstraintClause =
+   'on'
+   'constraint'
+   name: SqlName
+
+PsqlDoNothingClause =
+   'do'
+   'nothing'
+
+PsqlDoUpdateClause =
+   'do'
+   'update'
+   set_clause: SqlSetClause
+   where_clause: SqlWhereClause?
+
+PsqlDeleteUsingClause =
+   'using'
+   items: SqlFromItemList
+
+PsqlDropFunctionParameters =
+   '('
+   items: PsqlTypeNameList
+   ')'
+
+PsqlTypeNameList = (SqlTypeName (',' SqlTypeName)*)
+
+// `CREATE [OR REPLACE] FUNCTION|PROCEDURE name(param type, ...) [RETURNS
+// type] <options>* AS body <options>* [;]` -- real scripts scatter options
+// (`LANGUAGE`, volatility, `SECURITY DEFINER`/`INVOKER`, `STRICT`) both
+// before and after `AS`, in any order, so both are the same repeatable
+// `PsqlFunctionOptionList`, not a fixed sequence.
+// `body` is a plain string-literal expression (covers both `'...'` and the
+// dollar-quoted `$$...$$`/`$tag$...$tag$` spelling) and is printed verbatim
+// by the formatter -- PL/pgSQL body contents are never reparsed or
+// reformatted.
+PsqlCreateFunctionStatement =
+   'create'
+   ('or' 'replace')?
+   kind: ('function' | 'procedure')
+   name: AnySqlName
+   '('
+   parameters: PsqlFunctionParameterList
+   ')'
+   returns_clause: PsqlReturnsClause?
+   leading_options: PsqlFunctionOptionList
+   'as'
+   body: SqlStringLiteralExpression
+   trailing_options: PsqlFunctionOptionList
+   ';'?
+
+PsqlFunctionOptionList = AnySqlFunctionOption*
+
+// `RETURNS NULL ON NULL INPUT` -- a synonym for `STRICT`. The two `'null'`s
+// need distinct labels -- otherwise codegen gives both the same accessor
+// name and the generated struct doesn't compile (duplicate field), the
+// same issue `PsqlTildeArraySuffix`'s two `~`s already ran into.
+PsqlReturnsNullOption =
+   'returns'
+   first_null: 'null'
+   'on'
+   second_null: 'null'
+   'input'
+
+PsqlVolatilityOption =
+   value: ('immutable' | 'stable' | 'volatile')
+
+PsqlSecurityOption =
+   'security'
+   value: ('definer' | 'invoker')
+
+PsqlStrictOption =
+   'strict'
+
+PsqlFunctionParameterList = (PsqlFunctionParameter (',' PsqlFunctionParameter)*)
+
+// `name` is optional -- Postgres allows an anonymous parameter, just a
+// type (`create function f(text)`), referenced inside the (opaque, never
+// parsed) body only via `$1`/`$2`-style positional references.
+PsqlFunctionParameter =
+   mode: ('in' | 'out' | 'inout')?
+   name: SqlName?
+   type: SqlTypeName
+   default: PsqlParameterDefault?
+
+// Postgres allows either spelling for a parameter default -- `DEFAULT expr`
+// or the shorthand `= expr` -- both seen in real scripts.
+PsqlParameterDefault =
+   marker: ('default' | '=')
+   value: AnySqlExpression
+
+PsqlReturnsClause =
+   'returns'
+   type: AnySqlReturnsType
+
+// `RETURNS SETOF type` -- a set-returning function's row type, given as a
+// single (usually scalar) type rather than an inline column list.
+PsqlReturnsSetofClause =
+   'setof'
+   type: SqlTypeName
+
+// `RETURNS TABLE(col type, col type, ...)` -- a set-returning function's
+// result-row shape.
+PsqlReturnsTableClause =
+   'table'
+   '('
+   columns: PsqlReturnsTableColumnList
+   ')'
+
+// `RETURNS TRIGGER` -- the pseudo-type convention marking a function as a
+// trigger function, callable only via `CREATE TRIGGER ... EXECUTE FUNCTION`.
+PsqlReturnsTriggerClause =
+   'trigger'
+
+PsqlReturnsTableColumnList = (PsqlReturnsTableColumn (',' PsqlReturnsTableColumn)*)
+
+PsqlReturnsTableColumn =
+   name: SqlName
+   type: SqlTypeName
+
+PsqlViewOptions =
+   'with'
+   '('
+   items: PsqlViewOptionList
+   ')'
+
+PsqlViewOptionList = (PsqlViewOption (',' PsqlViewOption)*)
+
+PsqlViewOption =
+   name: SqlName
+   '='
+   value: AnySqlExpression
+
+// `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
+// [USING (condition)] [WITH CHECK (condition)] [;]` -- `USING` applies to
+// rows already in the table (SELECT/UPDATE/DELETE), `WITH CHECK` applies to
+// rows being written (INSERT/UPDATE); both conditions are ordinary boolean
+// expressions, already fully supported.
+PsqlCreatePolicyStatement =
+   'create'
+   'policy'
+   name: SqlName
+   'on'
+   table: SqlTableName
+   for_clause: PsqlPolicyForClause?
+   using_clause: PsqlPolicyUsingClause?
+   with_check_clause: PsqlPolicyWithCheckClause?
+   ';'?
+
+PsqlPolicyForClause =
+   'for'
+   command: ('all' | 'select' | 'insert' | 'update' | 'delete')
+
+PsqlPolicyUsingClause =
+   'using'
+   '('
+   condition: AnySqlExpression
+   ')'
+
+PsqlPolicyWithCheckClause =
+   'with'
+   'check'
+   '('
+   condition: AnySqlExpression
+   ')'
+
+// `DROP POLICY [IF EXISTS] name ON table [;]`
+PsqlDropPolicyStatement =
+   'drop'
+   'policy'
+   ('if' 'exists')?
+   name: SqlName
+   'on'
+   table: SqlTableName
+   ';'?
+
+// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
+// [REFERENCING ...] [FOR EACH ROW|STATEMENT] EXECUTE FUNCTION|PROCEDURE
+// name(args) [;]` -- the trigger *function* itself is a separate
+// `CREATE FUNCTION ... RETURNS TRIGGER`; this is just the attachment.
+PsqlCreateTriggerStatement =
+   'create'
+   'trigger'
+   name: AnySqlName
+   timing: ('before' | 'after')
+   events: PsqlTriggerEventList
+   'on'
+   table: SqlTableName
+   referencing_clause: PsqlTriggerReferencingClause?
+   for_each_clause: PsqlTriggerForEachClause?
+   when_clause: PsqlTriggerWhenClause?
+   'execute'
+   function_kind: ('function' | 'procedure')
+   function: SqlCallExpression
+   ';'?
+
+// `WHEN (condition)` -- restricts a row-level trigger to fire only when
+// `condition` holds (referencing `OLD`/`NEW` like the trigger body does).
+PsqlTriggerWhenClause =
+   'when'
+   '('
+   condition: AnySqlExpression
+   ')'
+
+PsqlTriggerEventList = PsqlTriggerEvent*
+
+// The leading `'or'?` is only present on every event after the first (the
+// same "each element owns its own separator" shape as `SqlSetOperation`).
+PsqlTriggerEvent =
+   'or'?
+   kind: ('insert' | 'update' | 'delete')
+   of_clause: PsqlTriggerUpdateOfClause?
+
+// `UPDATE OF col, col, ...` -- narrows an `UPDATE` event to specific
+// columns; only ever follows an `update` event kind.
+PsqlTriggerUpdateOfClause =
+   'of'
+   columns: SqlColumnNameList
+
+// `REFERENCING OLD TABLE AS old_name NEW TABLE AS new_name` (either or both,
+// in either order) -- names the transition tables for statement-level
+// triggers.
+PsqlTriggerReferencingClause =
+   'referencing'
+   items: PsqlTriggerReferencingItemList
+
+PsqlTriggerReferencingItemList = PsqlTriggerReferencingItem*
+
+// `which` holds the literal text `old`/`new` (checked at parse time, case
+// insensitively) rather than being a keyword-token alternation: unlike
+// `~name~`, real Postgres never reserves `OLD`/`NEW` as keywords at all --
+// they must still parse as ordinary identifiers everywhere outside a
+// `REFERENCING` item (e.g. `old.some_column` in a trigger's `WHEN (...)`
+// condition or body).
+PsqlTriggerReferencingItem =
+   which: 'ident'
+   'table'
+   'as'
+   name: SqlName
+
+PsqlTriggerForEachClause =
+   'for'
+   'each'
+   granularity: ('row' | 'statement')
+
+// `DROP TRIGGER [IF EXISTS] name ON table [CASCADE|RESTRICT] [;]`
+PsqlDropTriggerStatement =
+   'drop'
+   'trigger'
+   ('if' 'exists')?
+   name: AnySqlName
+   'on'
+   table: SqlTableName
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+PsqlLanguageOption =
+   'language'
+   name: SqlName
+
+// `substring(string from start [for count])` / `substring(string from
+// pattern)` -- the SQL-standard substring syntax. `substring` isn't a
+// reserved keyword in Postgres (recognized by text, case-insensitive, the
+// same way `old`/`new` are in a trigger's REFERENCING clause), so it
+// stays a plain `ident` in the grammar rather than a dedicated keyword
+// token -- this only ever gets parsed as this node when the argument list
+// actually contains a top-level `from`; the ordinary comma-separated call
+// syntax (`substring(string, start, count)`) is still just a plain
+// `SqlCallExpression`, unaffected.
+PsqlSubstringExpression =
+   name: 'ident'
+   '('
+   expression: AnySqlExpression
+   from_clause: PsqlSubstringFromClause?
+   for_clause: PsqlSubstringForClause?
+   ')'
+
+PsqlSubstringFromClause =
+   'from'
+   value: AnySqlExpression
+
+PsqlSubstringForClause =
+   'for'
+   value: AnySqlExpression
+
+PsqlArrayExpression =
+   'array'
+   '['
+   items: SqlExpressionList
+   ']'
+
+// `array~[...]~` -- mlang-dialect escaping of an array literal's brackets,
+// the same convention `PsqlTildeArraySuffix` already uses for array *type*
+// suffixes (`int~[]~`). Unlike that suffix (always empty), the brackets
+// here can hold real elements, e.g. `array~[1, 2]~`.
+PsqlTildeArrayExpression =
+   'array'
+   open_tilde: '~'
+   '['
+   items: SqlExpressionList
+   ']'
+   close_tilde: '~'
+
+PsqlArraySubscriptExpression =
+   expression: AnySqlExpression
+   '['
+   index: AnySqlExpression
+   ']'
+
+PsqlCastExpression =
+   expression: AnySqlExpression
+   '::'
+   type: SqlTypeName
+
+PsqlTypeArraySuffix = '[' ']'
+
+// `int~[]~` -- mlang-dialect escaping of the array-type-suffix brackets, not
+// real Postgres syntax. Unlike `~name~`, this needs no re-lex: `~`, `[`, `]`
+// and `~` already lex correctly as four separate default tokens here (no
+// ambiguity with the regex/LIKE operators, since this position never
+// follows a complete left-hand expression). The two `~`s need explicit
+// labels -- otherwise codegen gives both the same accessor name and the
+// generated struct doesn't compile (duplicate field).
+PsqlTildeArraySuffix =
+   open_tilde: '~'
+   '['
+   ']'
+   close_tilde: '~'
+
+// `count(x) filter (where cond)` -- restricts an aggregate call to only
+// the rows matching `cond`, instead of the whole group. A purely
+// syntactic modifier on the call itself (real Postgres doesn't
+// distinguish "aggregate" from other functions grammatically), so it also
+// composes for free with `SqlWindowFunctionExpression` --
+// `count(x) filter (where cond) over (...)` is just this field on the
+// `call` field there, followed by `over`.
+PsqlFilterClause =
+   'filter'
+   '('
+   'where'
+   condition: AnySqlExpression
+   ')'

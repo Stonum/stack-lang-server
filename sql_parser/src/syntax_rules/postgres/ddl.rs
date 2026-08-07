@@ -92,7 +92,7 @@ fn parse_create_function_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     p.eat(T![;]);
 
-    Present(m.complete(p, SQL_CREATE_FUNCTION_STATEMENT))
+    Present(m.complete(p, PSQL_CREATE_FUNCTION_STATEMENT))
 }
 
 /// Zero or more options (`LANGUAGE`, volatility, `SECURITY DEFINER`/
@@ -103,7 +103,7 @@ fn parse_function_option_list(p: &mut SqlParser) -> CompletedMarker {
     while is_at_function_option(p) {
         let _ = parse_function_option(p);
     }
-    m.complete(p, SQL_FUNCTION_OPTION_LIST)
+    m.complete(p, PSQL_FUNCTION_OPTION_LIST)
 }
 
 fn is_at_function_option(p: &mut SqlParser) -> bool {
@@ -138,13 +138,13 @@ fn parse_returns_null_option(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![on]);
     p.expect(T![null]);
     p.expect(T![input]);
-    Present(m.complete(p, SQL_RETURNS_NULL_OPTION))
+    Present(m.complete(p, PSQL_RETURNS_NULL_OPTION))
 }
 
 fn parse_volatility_option(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump_any(); // 'immutable' | 'stable' | 'volatile'
-    Present(m.complete(p, SQL_VOLATILITY_OPTION))
+    Present(m.complete(p, PSQL_VOLATILITY_OPTION))
 }
 
 fn parse_security_option(p: &mut SqlParser) -> ParsedSyntax {
@@ -157,13 +157,13 @@ fn parse_security_option(p: &mut SqlParser) -> ParsedSyntax {
         let err = p.err_builder("Expected `definer` or `invoker` after `security`", range);
         p.error(err);
     }
-    Present(m.complete(p, SQL_SECURITY_OPTION))
+    Present(m.complete(p, PSQL_SECURITY_OPTION))
 }
 
 fn parse_strict_option(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![strict]);
-    Present(m.complete(p, SQL_STRICT_OPTION))
+    Present(m.complete(p, PSQL_STRICT_OPTION))
 }
 
 fn parse_returns_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -178,16 +178,16 @@ fn parse_returns_clause(p: &mut SqlParser) -> ParsedSyntax {
     } else if p.at(T![trigger]) {
         let trigger_clause = p.start();
         p.bump(T![trigger]);
-        trigger_clause.complete(p, SQL_RETURNS_TRIGGER_CLAUSE);
+        trigger_clause.complete(p, PSQL_RETURNS_TRIGGER_CLAUSE);
     } else if p.at(T![setof]) {
         let setof_clause = p.start();
         p.bump(T![setof]);
         parse_type_name(p).or_add_diagnostic(p, expected_type_name);
-        setof_clause.complete(p, SQL_RETURNS_SETOF_CLAUSE);
+        setof_clause.complete(p, PSQL_RETURNS_SETOF_CLAUSE);
     } else {
         parse_type_name(p).or_add_diagnostic(p, expected_type_name);
     }
-    Present(m.complete(p, SQL_RETURNS_CLAUSE))
+    Present(m.complete(p, PSQL_RETURNS_CLAUSE))
 }
 
 /// `TABLE(col type, col type, ...)` -- a set-returning function's
@@ -198,7 +198,7 @@ fn parse_returns_table_clause(p: &mut SqlParser) -> CompletedMarker {
     p.expect(T!['(']);
     SqlReturnsTableColumnList.parse_list(p);
     p.expect(T![')']);
-    m.complete(p, SQL_RETURNS_TABLE_CLAUSE)
+    m.complete(p, PSQL_RETURNS_TABLE_CLAUSE)
 }
 
 struct SqlReturnsTableColumnList;
@@ -206,7 +206,7 @@ struct SqlReturnsTableColumnList;
 impl ParseSeparatedList for SqlReturnsTableColumnList {
     type Kind = SqlSyntaxKind;
     type Parser<'source> = SqlParser<'source>;
-    const LIST_KIND: Self::Kind = SQL_RETURNS_TABLE_COLUMN_LIST;
+    const LIST_KIND: Self::Kind = PSQL_RETURNS_TABLE_COLUMN_LIST;
 
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
         parse_returns_table_column(p)
@@ -241,7 +241,7 @@ fn parse_returns_table_column(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     parse_name(p).unwrap();
     parse_type_name(p).or_add_diagnostic(p, expected_type_name);
-    Present(m.complete(p, SQL_RETURNS_TABLE_COLUMN))
+    Present(m.complete(p, PSQL_RETURNS_TABLE_COLUMN))
 }
 
 fn parse_language_option(p: &mut SqlParser) -> ParsedSyntax {
@@ -252,7 +252,7 @@ fn parse_language_option(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![language]);
     parse_name(p).or_add_diagnostic(p, expected_identifier);
-    Present(m.complete(p, SQL_LANGUAGE_OPTION))
+    Present(m.complete(p, PSQL_LANGUAGE_OPTION))
 }
 
 struct SqlFunctionParameterList;
@@ -260,7 +260,7 @@ struct SqlFunctionParameterList;
 impl ParseSeparatedList for SqlFunctionParameterList {
     type Kind = SqlSyntaxKind;
     type Parser<'source> = SqlParser<'source>;
-    const LIST_KIND: Self::Kind = SQL_FUNCTION_PARAMETER_LIST;
+    const LIST_KIND: Self::Kind = PSQL_FUNCTION_PARAMETER_LIST;
 
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
         parse_function_parameter(p)
@@ -313,7 +313,7 @@ fn parse_function_parameter(p: &mut SqlParser) -> ParsedSyntax {
     }
     parse_type_name(p).or_add_diagnostic(p, expected_type_name);
     let _ = parse_parameter_default(p);
-    Present(m.complete(p, SQL_FUNCTION_PARAMETER))
+    Present(m.complete(p, PSQL_FUNCTION_PARAMETER))
 }
 
 /// Postgres allows either spelling for a parameter default -- `DEFAULT
@@ -326,7 +326,7 @@ fn parse_parameter_default(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump_any(); // 'default' | '='
     parse_expression(p).or_add_diagnostic(p, expected_expression);
-    Present(m.complete(p, SQL_PARAMETER_DEFAULT))
+    Present(m.complete(p, PSQL_PARAMETER_DEFAULT))
 }
 
 /// `WITH (opt=val, ...)` view storage options -- Postgres-only, T-SQL's
@@ -348,7 +348,7 @@ fn parse_view_options_body(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T!['(']);
     SqlViewOptionList.parse_list(p);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_VIEW_OPTIONS))
+    Present(m.complete(p, PSQL_VIEW_OPTIONS))
 }
 
 struct SqlViewOptionList;
@@ -356,7 +356,7 @@ struct SqlViewOptionList;
 impl ParseSeparatedList for SqlViewOptionList {
     type Kind = SqlSyntaxKind;
     type Parser<'source> = SqlParser<'source>;
-    const LIST_KIND: Self::Kind = SQL_VIEW_OPTION_LIST;
+    const LIST_KIND: Self::Kind = PSQL_VIEW_OPTION_LIST;
 
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
         parse_view_option(p)
@@ -392,7 +392,7 @@ fn parse_view_option(p: &mut SqlParser) -> ParsedSyntax {
     parse_name(p).unwrap();
     p.expect(T![=]);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
-    Present(m.complete(p, SQL_VIEW_OPTION))
+    Present(m.complete(p, PSQL_VIEW_OPTION))
 }
 
 /// `CREATE POLICY name ON table [FOR ALL|SELECT|INSERT|UPDATE|DELETE]
@@ -426,7 +426,7 @@ fn parse_create_policy_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     p.eat(T![;]);
 
-    Present(m.complete(p, SQL_CREATE_POLICY_STATEMENT))
+    Present(m.complete(p, PSQL_CREATE_POLICY_STATEMENT))
 }
 
 fn parse_policy_for_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -447,7 +447,7 @@ fn parse_policy_for_clause(p: &mut SqlParser) -> ParsedSyntax {
         );
         p.error(err);
     }
-    Present(m.complete(p, SQL_POLICY_FOR_CLAUSE))
+    Present(m.complete(p, PSQL_POLICY_FOR_CLAUSE))
 }
 
 fn parse_policy_using_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -460,7 +460,7 @@ fn parse_policy_using_clause(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T!['(']);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_POLICY_USING_CLAUSE))
+    Present(m.complete(p, PSQL_POLICY_USING_CLAUSE))
 }
 
 fn parse_policy_with_check_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -474,7 +474,7 @@ fn parse_policy_with_check_clause(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T!['(']);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_POLICY_WITH_CHECK_CLAUSE))
+    Present(m.complete(p, PSQL_POLICY_WITH_CHECK_CLAUSE))
 }
 
 /// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
@@ -531,7 +531,7 @@ fn parse_create_trigger_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     p.eat(T![;]);
 
-    Present(m.complete(p, SQL_CREATE_TRIGGER_STATEMENT))
+    Present(m.complete(p, PSQL_CREATE_TRIGGER_STATEMENT))
 }
 
 fn parse_trigger_event_list(p: &mut SqlParser) -> CompletedMarker {
@@ -554,10 +554,10 @@ fn parse_trigger_event_list(p: &mut SqlParser) -> CompletedMarker {
             event.abandon(p);
             break;
         }
-        event.complete(p, SQL_TRIGGER_EVENT);
+        event.complete(p, PSQL_TRIGGER_EVENT);
         first = false;
     }
-    m.complete(p, SQL_TRIGGER_EVENT_LIST)
+    m.complete(p, PSQL_TRIGGER_EVENT_LIST)
 }
 
 /// `UPDATE OF col, col, ...` -- narrows an `UPDATE` trigger event to
@@ -570,7 +570,7 @@ fn parse_trigger_update_of_clause(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![of]);
     SqlTriggerUpdateOfColumnList.parse_list(p);
-    Present(m.complete(p, SQL_TRIGGER_UPDATE_OF_CLAUSE))
+    Present(m.complete(p, PSQL_TRIGGER_UPDATE_OF_CLAUSE))
 }
 
 /// Unlike `INSERT`'s parenthesized column list, `UPDATE OF col, col` has no
@@ -636,11 +636,11 @@ fn parse_trigger_referencing_clause(p: &mut SqlParser) -> ParsedSyntax {
         p.expect(T![table]);
         p.expect(T![as]);
         parse_name(p).or_add_diagnostic(p, expected_identifier);
-        item.complete(p, SQL_TRIGGER_REFERENCING_ITEM);
+        item.complete(p, PSQL_TRIGGER_REFERENCING_ITEM);
     }
-    items.complete(p, SQL_TRIGGER_REFERENCING_ITEM_LIST);
+    items.complete(p, PSQL_TRIGGER_REFERENCING_ITEM_LIST);
 
-    Present(m.complete(p, SQL_TRIGGER_REFERENCING_CLAUSE))
+    Present(m.complete(p, PSQL_TRIGGER_REFERENCING_CLAUSE))
 }
 
 fn parse_trigger_for_each_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -658,7 +658,7 @@ fn parse_trigger_for_each_clause(p: &mut SqlParser) -> ParsedSyntax {
         let err = p.err_builder("Expected `row` or `statement` after `for each`", range);
         p.error(err);
     }
-    Present(m.complete(p, SQL_TRIGGER_FOR_EACH_CLAUSE))
+    Present(m.complete(p, PSQL_TRIGGER_FOR_EACH_CLAUSE))
 }
 
 /// `WHEN (condition)` -- restricts a row-level trigger to fire only when
@@ -673,7 +673,7 @@ fn parse_trigger_when_clause(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T!['(']);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_TRIGGER_WHEN_CLAUSE))
+    Present(m.complete(p, PSQL_TRIGGER_WHEN_CLAUSE))
 }
 
 /// The `name(args)` called by `EXECUTE FUNCTION`/`EXECUTE PROCEDURE` --
@@ -719,7 +719,7 @@ fn parse_drop_policy_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     p.eat(T![;]);
 
-    Present(m.complete(p, SQL_DROP_POLICY_STATEMENT))
+    Present(m.complete(p, PSQL_DROP_POLICY_STATEMENT))
 }
 
 /// `DROP TRIGGER [IF EXISTS] name ON table [CASCADE|RESTRICT] [;]` --
@@ -760,7 +760,7 @@ fn parse_drop_trigger_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     p.eat(T![;]);
 
-    Present(m.complete(p, SQL_DROP_TRIGGER_STATEMENT))
+    Present(m.complete(p, PSQL_DROP_TRIGGER_STATEMENT))
 }
 
 /// `(type, ...)` after `DROP FUNCTION|PROCEDURE name` -- disambiguates
@@ -786,7 +786,7 @@ fn parse_drop_function_parameters_body(p: &mut SqlParser) -> ParsedSyntax {
     p.bump(T!['(']);
     SqlTypeNameList.parse_list(p);
     p.expect(T![')']);
-    Present(m.complete(p, SQL_DROP_FUNCTION_PARAMETERS))
+    Present(m.complete(p, PSQL_DROP_FUNCTION_PARAMETERS))
 }
 
 struct SqlTypeNameList;
@@ -794,7 +794,7 @@ struct SqlTypeNameList;
 impl ParseSeparatedList for SqlTypeNameList {
     type Kind = SqlSyntaxKind;
     type Parser<'source> = SqlParser<'source>;
-    const LIST_KIND: Self::Kind = SQL_TYPE_NAME_LIST;
+    const LIST_KIND: Self::Kind = PSQL_TYPE_NAME_LIST;
 
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
         parse_type_name(p)

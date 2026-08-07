@@ -31,7 +31,7 @@ fn parse_on_conflict_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![conflict]);
     let _ = parse_conflict_target(p);
     parse_conflict_action(p).or_add_diagnostic(p, expected_conflict_action);
-    Present(m.complete(p, SQL_ON_CONFLICT_CLAUSE))
+    Present(m.complete(p, PSQL_ON_CONFLICT_CLAUSE))
 }
 
 /// The optional target of a conflict: either a column list (`(col, ...)`)
@@ -52,7 +52,7 @@ fn parse_on_constraint_clause(p: &mut SqlParser) -> ParsedSyntax {
     p.bump(T![on]);
     p.expect(T![constraint]);
     parse_name(p).or_add_diagnostic(p, expected_identifier);
-    Present(m.complete(p, SQL_ON_CONSTRAINT_CLAUSE))
+    Present(m.complete(p, PSQL_ON_CONSTRAINT_CLAUSE))
 }
 
 fn parse_conflict_action(p: &mut SqlParser) -> ParsedSyntax {
@@ -76,7 +76,7 @@ fn parse_do_nothing_clause(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![do]);
     p.bump(T![nothing]);
-    Present(m.complete(p, SQL_DO_NOTHING_CLAUSE))
+    Present(m.complete(p, PSQL_DO_NOTHING_CLAUSE))
 }
 
 fn parse_do_update_clause(p: &mut SqlParser) -> ParsedSyntax {
@@ -85,5 +85,5 @@ fn parse_do_update_clause(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![update]);
     parse_set_clause(p);
     let _ = parse_where_clause(p);
-    Present(m.complete(p, SQL_DO_UPDATE_CLAUSE))
+    Present(m.complete(p, PSQL_DO_UPDATE_CLAUSE))
 }

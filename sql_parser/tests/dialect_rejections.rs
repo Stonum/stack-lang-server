@@ -150,3 +150,34 @@ fn test_create_function_rejected_under_mssql_dialect() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_cast_operator_rejected_under_standard_dialect() {
+    let res = parse("select a::text from t", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_cast_operator_rejected_under_mssql_dialect() {
+    let res = parse("select a::text from t", mssql());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_jsonb_type_rejected_under_standard_dialect() {
+    let res = parse("create table foo (a jsonb)", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_interval_literal_rejected_under_standard_dialect() {
+    let res = parse(
+        "select now() + interval '1 day' from t",
+        SqlFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+}

@@ -6,6 +6,1802 @@ use crate::{
     AsFormat, FormatBogusNodeRule, FormatNodeRule, IntoFormat, SqlFormatContext, SqlFormatter,
 };
 use biome_formatter::{FormatOwnedWithRule, FormatRefWithRule, FormatResult, FormatRule};
+impl FormatRule<sql_syntax::PsqlArrayExpression>
+    for crate::psql::expressions::array_expression::FormatPsqlArrayExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlArrayExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlArrayExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlArrayExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlArrayExpression,
+        crate::psql::expressions::array_expression::FormatPsqlArrayExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::array_expression::FormatPsqlArrayExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlArrayExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlArrayExpression,
+        crate::psql::expressions::array_expression::FormatPsqlArrayExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::array_expression::FormatPsqlArrayExpression::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlArraySubscriptExpression>
+    for crate::psql::expressions::array_subscript_expression::FormatPsqlArraySubscriptExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlArraySubscriptExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlArraySubscriptExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlArraySubscriptExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlArraySubscriptExpression,
+        crate::psql::expressions::array_subscript_expression::FormatPsqlArraySubscriptExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: array_subscript_expression :: FormatPsqlArraySubscriptExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlArraySubscriptExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlArraySubscriptExpression,
+        crate::psql::expressions::array_subscript_expression::FormatPsqlArraySubscriptExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: array_subscript_expression :: FormatPsqlArraySubscriptExpression :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlCastExpression>
+    for crate::psql::expressions::cast_expression::FormatPsqlCastExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCastExpression, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCastExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCastExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCastExpression,
+        crate::psql::expressions::cast_expression::FormatPsqlCastExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::cast_expression::FormatPsqlCastExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCastExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCastExpression,
+        crate::psql::expressions::cast_expression::FormatPsqlCastExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::cast_expression::FormatPsqlCastExpression::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCreateFunctionStatement>
+    for crate::psql::statements::create_function_statement::FormatPsqlCreateFunctionStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCreateFunctionStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCreateFunctionStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCreateFunctionStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCreateFunctionStatement,
+        crate::psql::statements::create_function_statement::FormatPsqlCreateFunctionStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_function_statement :: FormatPsqlCreateFunctionStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreateFunctionStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCreateFunctionStatement,
+        crate::psql::statements::create_function_statement::FormatPsqlCreateFunctionStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_function_statement :: FormatPsqlCreateFunctionStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlCreatePolicyStatement>
+    for crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCreatePolicyStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCreatePolicyStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCreatePolicyStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCreatePolicyStatement,
+        crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_policy_statement :: FormatPsqlCreatePolicyStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreatePolicyStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCreatePolicyStatement,
+        crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_policy_statement :: FormatPsqlCreatePolicyStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlCreateTriggerStatement>
+    for crate::psql::statements::create_trigger_statement::FormatPsqlCreateTriggerStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCreateTriggerStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCreateTriggerStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCreateTriggerStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCreateTriggerStatement,
+        crate::psql::statements::create_trigger_statement::FormatPsqlCreateTriggerStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_trigger_statement :: FormatPsqlCreateTriggerStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreateTriggerStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCreateTriggerStatement,
+        crate::psql::statements::create_trigger_statement::FormatPsqlCreateTriggerStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_trigger_statement :: FormatPsqlCreateTriggerStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlCteMaterializedHint>
+    for crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCteMaterializedHint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCteMaterializedHint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCteMaterializedHint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCteMaterializedHint,
+        crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCteMaterializedHint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCteMaterializedHint,
+        crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlDeleteUsingClause>
+    for crate::psql::clauses::delete_using_clause::FormatPsqlDeleteUsingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDeleteUsingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDeleteUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDeleteUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDeleteUsingClause,
+        crate::psql::clauses::delete_using_clause::FormatPsqlDeleteUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::delete_using_clause::FormatPsqlDeleteUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDeleteUsingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDeleteUsingClause,
+        crate::psql::clauses::delete_using_clause::FormatPsqlDeleteUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::delete_using_clause::FormatPsqlDeleteUsingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlDistinctOnClause>
+    for crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDistinctOnClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDistinctOnClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDistinctOnClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDistinctOnClause,
+        crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDistinctOnClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDistinctOnClause,
+        crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::distinct_on_clause::FormatPsqlDistinctOnClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlDoNothingClause>
+    for crate::psql::clauses::do_nothing_clause::FormatPsqlDoNothingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDoNothingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDoNothingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDoNothingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDoNothingClause,
+        crate::psql::clauses::do_nothing_clause::FormatPsqlDoNothingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::do_nothing_clause::FormatPsqlDoNothingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDoNothingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDoNothingClause,
+        crate::psql::clauses::do_nothing_clause::FormatPsqlDoNothingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::do_nothing_clause::FormatPsqlDoNothingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlDoUpdateClause>
+    for crate::psql::clauses::do_update_clause::FormatPsqlDoUpdateClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlDoUpdateClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDoUpdateClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDoUpdateClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDoUpdateClause,
+        crate::psql::clauses::do_update_clause::FormatPsqlDoUpdateClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::do_update_clause::FormatPsqlDoUpdateClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDoUpdateClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDoUpdateClause,
+        crate::psql::clauses::do_update_clause::FormatPsqlDoUpdateClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::do_update_clause::FormatPsqlDoUpdateClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlDropFunctionParameters>
+    for crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDropFunctionParameters,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDropFunctionParameters>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDropFunctionParameters {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDropFunctionParameters,
+        crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: drop_function_parameters :: FormatPsqlDropFunctionParameters :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropFunctionParameters {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDropFunctionParameters,
+        crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: drop_function_parameters :: FormatPsqlDropFunctionParameters :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlDropPolicyStatement>
+    for crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDropPolicyStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDropPolicyStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDropPolicyStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDropPolicyStatement,
+        crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropPolicyStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDropPolicyStatement,
+        crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::drop_policy_statement::FormatPsqlDropPolicyStatement::default(
+            ),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlDropTriggerStatement>
+    for crate::psql::statements::drop_trigger_statement::FormatPsqlDropTriggerStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDropTriggerStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDropTriggerStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDropTriggerStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDropTriggerStatement,
+        crate::psql::statements::drop_trigger_statement::FormatPsqlDropTriggerStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: drop_trigger_statement :: FormatPsqlDropTriggerStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropTriggerStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDropTriggerStatement,
+        crate::psql::statements::drop_trigger_statement::FormatPsqlDropTriggerStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_trigger_statement :: FormatPsqlDropTriggerStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlFilterClause>
+    for crate::psql::clauses::filter_clause::FormatPsqlFilterClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlFilterClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlFilterClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFilterClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlFilterClause,
+        crate::psql::clauses::filter_clause::FormatPsqlFilterClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::filter_clause::FormatPsqlFilterClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFilterClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlFilterClause,
+        crate::psql::clauses::filter_clause::FormatPsqlFilterClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::filter_clause::FormatPsqlFilterClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlFunctionParameter>
+    for crate::psql::auxiliary::function_parameter::FormatPsqlFunctionParameter
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlFunctionParameter,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlFunctionParameter>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameter {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlFunctionParameter,
+        crate::psql::auxiliary::function_parameter::FormatPsqlFunctionParameter,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::function_parameter::FormatPsqlFunctionParameter::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameter {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlFunctionParameter,
+        crate::psql::auxiliary::function_parameter::FormatPsqlFunctionParameter,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::function_parameter::FormatPsqlFunctionParameter::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlIntervalExpression>
+    for crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlIntervalExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlIntervalExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlIntervalExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlIntervalExpression,
+        crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlIntervalExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlIntervalExpression,
+        crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlJoinUsingClause>
+    for crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlJoinUsingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlJoinUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlJoinUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlJoinUsingClause,
+        crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlJoinUsingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlJoinUsingClause,
+        crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlLanguageOption>
+    for crate::psql::auxiliary::language_option::FormatPsqlLanguageOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlLanguageOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlLanguageOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlLanguageOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlLanguageOption,
+        crate::psql::auxiliary::language_option::FormatPsqlLanguageOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::language_option::FormatPsqlLanguageOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLanguageOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlLanguageOption,
+        crate::psql::auxiliary::language_option::FormatPsqlLanguageOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::language_option::FormatPsqlLanguageOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlLimitClause>
+    for crate::psql::clauses::limit_clause::FormatPsqlLimitClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlLimitClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlLimitClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlLimitClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlLimitClause,
+        crate::psql::clauses::limit_clause::FormatPsqlLimitClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::limit_clause::FormatPsqlLimitClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLimitClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlLimitClause,
+        crate::psql::clauses::limit_clause::FormatPsqlLimitClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::limit_clause::FormatPsqlLimitClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlOnConflictClause>
+    for crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlOnConflictClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlOnConflictClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlOnConflictClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlOnConflictClause,
+        crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlOnConflictClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlOnConflictClause,
+        crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlOnConstraintClause>
+    for crate::psql::clauses::on_constraint_clause::FormatPsqlOnConstraintClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlOnConstraintClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlOnConstraintClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlOnConstraintClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlOnConstraintClause,
+        crate::psql::clauses::on_constraint_clause::FormatPsqlOnConstraintClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::on_constraint_clause::FormatPsqlOnConstraintClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlOnConstraintClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlOnConstraintClause,
+        crate::psql::clauses::on_constraint_clause::FormatPsqlOnConstraintClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::on_constraint_clause::FormatPsqlOnConstraintClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlParameterDefault>
+    for crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlParameterDefault,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlParameterDefault>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlParameterDefault {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlParameterDefault,
+        crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlParameterDefault {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlParameterDefault,
+        crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::parameter_default::FormatPsqlParameterDefault::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPolicyForClause>
+    for crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPolicyForClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPolicyForClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPolicyForClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPolicyForClause,
+        crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPolicyForClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPolicyForClause,
+        crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPolicyUsingClause>
+    for crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPolicyUsingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPolicyUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPolicyUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPolicyUsingClause,
+        crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPolicyUsingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPolicyUsingClause,
+        crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::policy_using_clause::FormatPsqlPolicyUsingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPolicyWithCheckClause>
+    for crate::psql::clauses::policy_with_check_clause::FormatPsqlPolicyWithCheckClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPolicyWithCheckClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPolicyWithCheckClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPolicyWithCheckClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPolicyWithCheckClause,
+        crate::psql::clauses::policy_with_check_clause::FormatPsqlPolicyWithCheckClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: policy_with_check_clause :: FormatPsqlPolicyWithCheckClause :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPolicyWithCheckClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPolicyWithCheckClause,
+        crate::psql::clauses::policy_with_check_clause::FormatPsqlPolicyWithCheckClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: policy_with_check_clause :: FormatPsqlPolicyWithCheckClause :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturningClause>
+    for crate::psql::clauses::returning_clause::FormatPsqlReturningClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlReturningClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturningClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturningClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturningClause,
+        crate::psql::clauses::returning_clause::FormatPsqlReturningClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returning_clause::FormatPsqlReturningClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturningClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturningClause,
+        crate::psql::clauses::returning_clause::FormatPsqlReturningClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returning_clause::FormatPsqlReturningClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturnsClause>
+    for crate::psql::clauses::returns_clause::FormatPsqlReturnsClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlReturnsClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturnsClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsClause,
+        crate::psql::clauses::returns_clause::FormatPsqlReturnsClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returns_clause::FormatPsqlReturnsClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsClause,
+        crate::psql::clauses::returns_clause::FormatPsqlReturnsClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returns_clause::FormatPsqlReturnsClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturnsNullOption>
+    for crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlReturnsNullOption,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturnsNullOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsNullOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsNullOption,
+        crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsNullOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsNullOption,
+        crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::returns_null_option::FormatPsqlReturnsNullOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturnsSetofClause>
+    for crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlReturnsSetofClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturnsSetofClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsSetofClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsSetofClause,
+        crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsSetofClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsSetofClause,
+        crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returns_setof_clause::FormatPsqlReturnsSetofClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturnsTableClause>
+    for crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlReturnsTableClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturnsTableClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsTableClause,
+        crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsTableClause,
+        crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returns_table_clause::FormatPsqlReturnsTableClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturnsTableColumn>
+    for crate::psql::auxiliary::returns_table_column::FormatPsqlReturnsTableColumn
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlReturnsTableColumn,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturnsTableColumn>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableColumn {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsTableColumn,
+        crate::psql::auxiliary::returns_table_column::FormatPsqlReturnsTableColumn,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::returns_table_column::FormatPsqlReturnsTableColumn::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableColumn {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsTableColumn,
+        crate::psql::auxiliary::returns_table_column::FormatPsqlReturnsTableColumn,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::returns_table_column::FormatPsqlReturnsTableColumn::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlReturnsTriggerClause>
+    for crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlReturnsTriggerClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlReturnsTriggerClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTriggerClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsTriggerClause,
+        crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTriggerClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsTriggerClause,
+        crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::returns_trigger_clause::FormatPsqlReturnsTriggerClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSecurityOption>
+    for crate::psql::auxiliary::security_option::FormatPsqlSecurityOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlSecurityOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSecurityOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSecurityOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSecurityOption,
+        crate::psql::auxiliary::security_option::FormatPsqlSecurityOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::security_option::FormatPsqlSecurityOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSecurityOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSecurityOption,
+        crate::psql::auxiliary::security_option::FormatPsqlSecurityOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::security_option::FormatPsqlSecurityOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlStrictOption>
+    for crate::psql::auxiliary::strict_option::FormatPsqlStrictOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlStrictOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlStrictOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlStrictOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlStrictOption,
+        crate::psql::auxiliary::strict_option::FormatPsqlStrictOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::strict_option::FormatPsqlStrictOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlStrictOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlStrictOption,
+        crate::psql::auxiliary::strict_option::FormatPsqlStrictOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::strict_option::FormatPsqlStrictOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSubstringExpression>
+    for crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlSubstringExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSubstringExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSubstringExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSubstringExpression,
+        crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSubstringExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSubstringExpression,
+        crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::substring_expression::FormatPsqlSubstringExpression::default(
+            ),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSubstringForClause>
+    for crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlSubstringForClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSubstringForClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSubstringForClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSubstringForClause,
+        crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSubstringForClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSubstringForClause,
+        crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::substring_for_clause::FormatPsqlSubstringForClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSubstringFromClause>
+    for crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlSubstringFromClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSubstringFromClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSubstringFromClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSubstringFromClause,
+        crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSubstringFromClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSubstringFromClause,
+        crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::substring_from_clause::FormatPsqlSubstringFromClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlTildeArrayExpression>
+    for crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTildeArrayExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTildeArrayExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTildeArrayExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTildeArrayExpression,
+        crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: tilde_array_expression :: FormatPsqlTildeArrayExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTildeArrayExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTildeArrayExpression,
+        crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: tilde_array_expression :: FormatPsqlTildeArrayExpression :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlTildeArraySuffix>
+    for crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTildeArraySuffix,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTildeArraySuffix>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTildeArraySuffix {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTildeArraySuffix,
+        crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTildeArraySuffix {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTildeArraySuffix,
+        crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlTriggerEvent>
+    for crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlTriggerEvent, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTriggerEvent>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerEvent {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerEvent,
+        crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerEvent {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerEvent,
+        crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlTriggerForEachClause>
+    for crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTriggerForEachClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTriggerForEachClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerForEachClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerForEachClause,
+        crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerForEachClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerForEachClause,
+        crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::trigger_for_each_clause::FormatPsqlTriggerForEachClause::default(
+            ),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlTriggerReferencingClause>
+    for crate::psql::clauses::trigger_referencing_clause::FormatPsqlTriggerReferencingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTriggerReferencingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTriggerReferencingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerReferencingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerReferencingClause,
+        crate::psql::clauses::trigger_referencing_clause::FormatPsqlTriggerReferencingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: trigger_referencing_clause :: FormatPsqlTriggerReferencingClause :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerReferencingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerReferencingClause,
+        crate::psql::clauses::trigger_referencing_clause::FormatPsqlTriggerReferencingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: trigger_referencing_clause :: FormatPsqlTriggerReferencingClause :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlTriggerReferencingItem>
+    for crate::psql::auxiliary::trigger_referencing_item::FormatPsqlTriggerReferencingItem
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTriggerReferencingItem,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTriggerReferencingItem>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerReferencingItem {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerReferencingItem,
+        crate::psql::auxiliary::trigger_referencing_item::FormatPsqlTriggerReferencingItem,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: trigger_referencing_item :: FormatPsqlTriggerReferencingItem :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerReferencingItem {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerReferencingItem,
+        crate::psql::auxiliary::trigger_referencing_item::FormatPsqlTriggerReferencingItem,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: trigger_referencing_item :: FormatPsqlTriggerReferencingItem :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlTriggerUpdateOfClause>
+    for crate::psql::clauses::trigger_update_of_clause::FormatPsqlTriggerUpdateOfClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTriggerUpdateOfClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTriggerUpdateOfClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerUpdateOfClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerUpdateOfClause,
+        crate::psql::clauses::trigger_update_of_clause::FormatPsqlTriggerUpdateOfClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: trigger_update_of_clause :: FormatPsqlTriggerUpdateOfClause :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerUpdateOfClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerUpdateOfClause,
+        crate::psql::clauses::trigger_update_of_clause::FormatPsqlTriggerUpdateOfClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: trigger_update_of_clause :: FormatPsqlTriggerUpdateOfClause :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlTriggerWhenClause>
+    for crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTriggerWhenClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTriggerWhenClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerWhenClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerWhenClause,
+        crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerWhenClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerWhenClause,
+        crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlTypeArraySuffix>
+    for crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTypeArraySuffix,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTypeArraySuffix>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTypeArraySuffix {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTypeArraySuffix,
+        crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTypeArraySuffix {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTypeArraySuffix,
+        crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlViewOption>
+    for crate::psql::auxiliary::view_option::FormatPsqlViewOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlViewOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlViewOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlViewOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlViewOption,
+        crate::psql::auxiliary::view_option::FormatPsqlViewOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::view_option::FormatPsqlViewOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlViewOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlViewOption,
+        crate::psql::auxiliary::view_option::FormatPsqlViewOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::view_option::FormatPsqlViewOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlViewOptions>
+    for crate::psql::auxiliary::view_options::FormatPsqlViewOptions
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlViewOptions, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlViewOptions>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlViewOptions {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlViewOptions,
+        crate::psql::auxiliary::view_options::FormatPsqlViewOptions,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::view_options::FormatPsqlViewOptions::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlViewOptions {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlViewOptions,
+        crate::psql::auxiliary::view_options::FormatPsqlViewOptions,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::view_options::FormatPsqlViewOptions::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlVolatilityOption>
+    for crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlVolatilityOption,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlVolatilityOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlVolatilityOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlVolatilityOption,
+        crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlVolatilityOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlVolatilityOption,
+        crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlAlias> for crate::sql::auxiliary::alias::FormatSqlAlias {
     type Context = SqlFormatContext;
     #[inline(always)]
@@ -143,72 +1939,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAnyAllExpression {
             self,
             crate::sql::expressions::any_all_expression::FormatSqlAnyAllExpression::default(),
         )
-    }
-}
-impl FormatRule<sql_syntax::SqlArrayExpression>
-    for crate::sql::expressions::array_expression::FormatSqlArrayExpression
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlArrayExpression, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlArrayExpression>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlArrayExpression {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlArrayExpression,
-        crate::sql::expressions::array_expression::FormatSqlArrayExpression,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::expressions::array_expression::FormatSqlArrayExpression::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlArrayExpression {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlArrayExpression,
-        crate::sql::expressions::array_expression::FormatSqlArrayExpression,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::expressions::array_expression::FormatSqlArrayExpression::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlArraySubscriptExpression>
-    for crate::sql::expressions::array_subscript_expression::FormatSqlArraySubscriptExpression
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlArraySubscriptExpression,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlArraySubscriptExpression>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlArraySubscriptExpression {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlArraySubscriptExpression,
-        crate::sql::expressions::array_subscript_expression::FormatSqlArraySubscriptExpression,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: expressions :: array_subscript_expression :: FormatSqlArraySubscriptExpression :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlArraySubscriptExpression {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlArraySubscriptExpression,
-        crate::sql::expressions::array_subscript_expression::FormatSqlArraySubscriptExpression,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: expressions :: array_subscript_expression :: FormatSqlArraySubscriptExpression :: default ())
     }
 }
 impl FormatRule<sql_syntax::SqlBetweenExpression>
@@ -455,40 +2185,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCaseWhenClause {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlCastExpression>
-    for crate::sql::expressions::cast_expression::FormatSqlCastExpression
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlCastExpression, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlCastExpression>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlCastExpression {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlCastExpression,
-        crate::sql::expressions::cast_expression::FormatSqlCastExpression,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::expressions::cast_expression::FormatSqlCastExpression::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCastExpression {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlCastExpression,
-        crate::sql::expressions::cast_expression::FormatSqlCastExpression,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::expressions::cast_expression::FormatSqlCastExpression::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlCastFunctionExpression>
     for crate::sql::expressions::cast_function_expression::FormatSqlCastFunctionExpression
 {
@@ -627,70 +2323,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlColumnList {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlCreateFunctionStatement>
-    for crate::sql::statements::create_function_statement::FormatSqlCreateFunctionStatement
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlCreateFunctionStatement,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlCreateFunctionStatement>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlCreateFunctionStatement {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlCreateFunctionStatement,
-        crate::sql::statements::create_function_statement::FormatSqlCreateFunctionStatement,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: statements :: create_function_statement :: FormatSqlCreateFunctionStatement :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCreateFunctionStatement {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlCreateFunctionStatement,
-        crate::sql::statements::create_function_statement::FormatSqlCreateFunctionStatement,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: statements :: create_function_statement :: FormatSqlCreateFunctionStatement :: default ())
-    }
-}
-impl FormatRule<sql_syntax::SqlCreatePolicyStatement>
-    for crate::sql::statements::create_policy_statement::FormatSqlCreatePolicyStatement
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlCreatePolicyStatement,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlCreatePolicyStatement>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlCreatePolicyStatement {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlCreatePolicyStatement,
-        crate::sql::statements::create_policy_statement::FormatSqlCreatePolicyStatement,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: statements :: create_policy_statement :: FormatSqlCreatePolicyStatement :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCreatePolicyStatement {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlCreatePolicyStatement,
-        crate::sql::statements::create_policy_statement::FormatSqlCreatePolicyStatement,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: statements :: create_policy_statement :: FormatSqlCreatePolicyStatement :: default ())
-    }
-}
 impl FormatRule<sql_syntax::SqlCreateTableStatement>
     for crate::sql::statements::create_table_statement::FormatSqlCreateTableStatement
 {
@@ -729,38 +2361,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCreateTableStatement {
             crate::sql::statements::create_table_statement::FormatSqlCreateTableStatement::default(
             ),
         )
-    }
-}
-impl FormatRule<sql_syntax::SqlCreateTriggerStatement>
-    for crate::sql::statements::create_trigger_statement::FormatSqlCreateTriggerStatement
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlCreateTriggerStatement,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlCreateTriggerStatement>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlCreateTriggerStatement {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlCreateTriggerStatement,
-        crate::sql::statements::create_trigger_statement::FormatSqlCreateTriggerStatement,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: statements :: create_trigger_statement :: FormatSqlCreateTriggerStatement :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCreateTriggerStatement {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlCreateTriggerStatement,
-        crate::sql::statements::create_trigger_statement::FormatSqlCreateTriggerStatement,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: statements :: create_trigger_statement :: FormatSqlCreateTriggerStatement :: default ())
     }
 }
 impl FormatRule<sql_syntax::SqlCreateViewStatement>
@@ -835,44 +2435,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCteDefinition {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlCteMaterializedHint>
-    for crate::sql::auxiliary::cte_materialized_hint::FormatSqlCteMaterializedHint
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlCteMaterializedHint,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlCteMaterializedHint>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlCteMaterializedHint {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlCteMaterializedHint,
-        crate::sql::auxiliary::cte_materialized_hint::FormatSqlCteMaterializedHint,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::cte_materialized_hint::FormatSqlCteMaterializedHint::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCteMaterializedHint {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlCteMaterializedHint,
-        crate::sql::auxiliary::cte_materialized_hint::FormatSqlCteMaterializedHint,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::cte_materialized_hint::FormatSqlCteMaterializedHint::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlDataBaseName>
     for crate::sql::auxiliary::data_base_name::FormatSqlDataBaseName
 {
@@ -941,182 +2503,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDeleteStatement {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlDeleteUsingClause>
-    for crate::sql::clauses::delete_using_clause::FormatSqlDeleteUsingClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlDeleteUsingClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDeleteUsingClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDeleteUsingClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDeleteUsingClause,
-        crate::sql::clauses::delete_using_clause::FormatSqlDeleteUsingClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::delete_using_clause::FormatSqlDeleteUsingClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDeleteUsingClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDeleteUsingClause,
-        crate::sql::clauses::delete_using_clause::FormatSqlDeleteUsingClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::delete_using_clause::FormatSqlDeleteUsingClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlDistinctOnClause>
-    for crate::sql::clauses::distinct_on_clause::FormatSqlDistinctOnClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlDistinctOnClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDistinctOnClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDistinctOnClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDistinctOnClause,
-        crate::sql::clauses::distinct_on_clause::FormatSqlDistinctOnClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::distinct_on_clause::FormatSqlDistinctOnClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDistinctOnClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDistinctOnClause,
-        crate::sql::clauses::distinct_on_clause::FormatSqlDistinctOnClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::distinct_on_clause::FormatSqlDistinctOnClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlDoNothingClause>
-    for crate::sql::clauses::do_nothing_clause::FormatSqlDoNothingClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlDoNothingClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDoNothingClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDoNothingClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDoNothingClause,
-        crate::sql::clauses::do_nothing_clause::FormatSqlDoNothingClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::do_nothing_clause::FormatSqlDoNothingClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDoNothingClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDoNothingClause,
-        crate::sql::clauses::do_nothing_clause::FormatSqlDoNothingClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::do_nothing_clause::FormatSqlDoNothingClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlDoUpdateClause>
-    for crate::sql::clauses::do_update_clause::FormatSqlDoUpdateClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlDoUpdateClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDoUpdateClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDoUpdateClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDoUpdateClause,
-        crate::sql::clauses::do_update_clause::FormatSqlDoUpdateClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::do_update_clause::FormatSqlDoUpdateClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDoUpdateClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDoUpdateClause,
-        crate::sql::clauses::do_update_clause::FormatSqlDoUpdateClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::do_update_clause::FormatSqlDoUpdateClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlDropFunctionParameters>
-    for crate::sql::auxiliary::drop_function_parameters::FormatSqlDropFunctionParameters
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlDropFunctionParameters,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDropFunctionParameters>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropFunctionParameters {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDropFunctionParameters,
-        crate::sql::auxiliary::drop_function_parameters::FormatSqlDropFunctionParameters,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: auxiliary :: drop_function_parameters :: FormatSqlDropFunctionParameters :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropFunctionParameters {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDropFunctionParameters,
-        crate::sql::auxiliary::drop_function_parameters::FormatSqlDropFunctionParameters,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: drop_function_parameters :: FormatSqlDropFunctionParameters :: default ())
-    }
-}
 impl FormatRule<sql_syntax::SqlDropFunctionStatement>
     for crate::sql::statements::drop_function_statement::FormatSqlDropFunctionStatement
 {
@@ -1147,44 +2533,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropFunctionStatement {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: sql :: statements :: drop_function_statement :: FormatSqlDropFunctionStatement :: default ())
-    }
-}
-impl FormatRule<sql_syntax::SqlDropPolicyStatement>
-    for crate::sql::statements::drop_policy_statement::FormatSqlDropPolicyStatement
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlDropPolicyStatement,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDropPolicyStatement>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropPolicyStatement {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDropPolicyStatement,
-        crate::sql::statements::drop_policy_statement::FormatSqlDropPolicyStatement,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::statements::drop_policy_statement::FormatSqlDropPolicyStatement::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropPolicyStatement {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDropPolicyStatement,
-        crate::sql::statements::drop_policy_statement::FormatSqlDropPolicyStatement,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::statements::drop_policy_statement::FormatSqlDropPolicyStatement::default(),
-        )
     }
 }
 impl FormatRule<sql_syntax::SqlDropTableStatement>
@@ -1222,46 +2570,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropTableStatement {
         FormatOwnedWithRule::new(
             self,
             crate::sql::statements::drop_table_statement::FormatSqlDropTableStatement::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlDropTriggerStatement>
-    for crate::sql::statements::drop_trigger_statement::FormatSqlDropTriggerStatement
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlDropTriggerStatement,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlDropTriggerStatement>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropTriggerStatement {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlDropTriggerStatement,
-        crate::sql::statements::drop_trigger_statement::FormatSqlDropTriggerStatement,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::statements::drop_trigger_statement::FormatSqlDropTriggerStatement::default(
-            ),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropTriggerStatement {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlDropTriggerStatement,
-        crate::sql::statements::drop_trigger_statement::FormatSqlDropTriggerStatement,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::statements::drop_trigger_statement::FormatSqlDropTriggerStatement::default(
-            ),
         )
     }
 }
@@ -1481,40 +2789,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFetchWithTiesTail {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlFilterClause>
-    for crate::sql::clauses::filter_clause::FormatSqlFilterClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlFilterClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlFilterClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlFilterClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlFilterClause,
-        crate::sql::clauses::filter_clause::FormatSqlFilterClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::filter_clause::FormatSqlFilterClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFilterClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlFilterClause,
-        crate::sql::clauses::filter_clause::FormatSqlFilterClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::filter_clause::FormatSqlFilterClause::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlFromClause>
     for crate::sql::clauses::from_clause::FormatSqlFromClause
 {
@@ -1612,44 +2886,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFunctionBinding {
         FormatOwnedWithRule::new(
             self,
             crate::sql::bindings::function_binding::FormatSqlFunctionBinding::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlFunctionParameter>
-    for crate::sql::auxiliary::function_parameter::FormatSqlFunctionParameter
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlFunctionParameter,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlFunctionParameter>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlFunctionParameter {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlFunctionParameter,
-        crate::sql::auxiliary::function_parameter::FormatSqlFunctionParameter,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::function_parameter::FormatSqlFunctionParameter::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFunctionParameter {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlFunctionParameter,
-        crate::sql::auxiliary::function_parameter::FormatSqlFunctionParameter,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::function_parameter::FormatSqlFunctionParameter::default(),
         )
     }
 }
@@ -1857,44 +3093,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlInsertStatement {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlIntervalExpression>
-    for crate::sql::expressions::interval_expression::FormatSqlIntervalExpression
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlIntervalExpression,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlIntervalExpression>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlIntervalExpression {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlIntervalExpression,
-        crate::sql::expressions::interval_expression::FormatSqlIntervalExpression,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::expressions::interval_expression::FormatSqlIntervalExpression::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlIntervalExpression {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlIntervalExpression,
-        crate::sql::expressions::interval_expression::FormatSqlIntervalExpression,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::expressions::interval_expression::FormatSqlIntervalExpression::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlIsNullExpression>
     for crate::sql::expressions::is_null_expression::FormatSqlIsNullExpression
 {
@@ -1967,74 +3165,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlJoinClause {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlJoinUsingClause>
-    for crate::sql::clauses::join_using_clause::FormatSqlJoinUsingClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlJoinUsingClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlJoinUsingClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlJoinUsingClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlJoinUsingClause,
-        crate::sql::clauses::join_using_clause::FormatSqlJoinUsingClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::join_using_clause::FormatSqlJoinUsingClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlJoinUsingClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlJoinUsingClause,
-        crate::sql::clauses::join_using_clause::FormatSqlJoinUsingClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::join_using_clause::FormatSqlJoinUsingClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlLanguageOption>
-    for crate::sql::auxiliary::language_option::FormatSqlLanguageOption
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlLanguageOption, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlLanguageOption>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlLanguageOption {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlLanguageOption,
-        crate::sql::auxiliary::language_option::FormatSqlLanguageOption,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::language_option::FormatSqlLanguageOption::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlLanguageOption {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlLanguageOption,
-        crate::sql::auxiliary::language_option::FormatSqlLanguageOption,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::language_option::FormatSqlLanguageOption::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlLikeExpression>
     for crate::sql::expressions::like_expression::FormatSqlLikeExpression
 {
@@ -2066,40 +3196,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlLikeExpression {
         FormatOwnedWithRule::new(
             self,
             crate::sql::expressions::like_expression::FormatSqlLikeExpression::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlLimitClause>
-    for crate::sql::clauses::limit_clause::FormatSqlLimitClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlLimitClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlLimitClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlLimitClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlLimitClause,
-        crate::sql::clauses::limit_clause::FormatSqlLimitClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::limit_clause::FormatSqlLimitClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlLimitClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlLimitClause,
-        crate::sql::clauses::limit_clause::FormatSqlLimitClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::limit_clause::FormatSqlLimitClause::default(),
         )
     }
 }
@@ -2260,82 +3356,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlOffsetClause {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlOnConflictClause>
-    for crate::sql::clauses::on_conflict_clause::FormatSqlOnConflictClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlOnConflictClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlOnConflictClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlOnConflictClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlOnConflictClause,
-        crate::sql::clauses::on_conflict_clause::FormatSqlOnConflictClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::on_conflict_clause::FormatSqlOnConflictClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlOnConflictClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlOnConflictClause,
-        crate::sql::clauses::on_conflict_clause::FormatSqlOnConflictClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::on_conflict_clause::FormatSqlOnConflictClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlOnConstraintClause>
-    for crate::sql::clauses::on_constraint_clause::FormatSqlOnConstraintClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlOnConstraintClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlOnConstraintClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlOnConstraintClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlOnConstraintClause,
-        crate::sql::clauses::on_constraint_clause::FormatSqlOnConstraintClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::on_constraint_clause::FormatSqlOnConstraintClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlOnConstraintClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlOnConstraintClause,
-        crate::sql::clauses::on_constraint_clause::FormatSqlOnConstraintClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::on_constraint_clause::FormatSqlOnConstraintClause::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlOrderByClause>
     for crate::sql::clauses::order_by_clause::FormatSqlOrderByClause
 {
@@ -2405,44 +3425,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlOrderByExpression {
         FormatOwnedWithRule::new(
             self,
             crate::sql::expressions::order_by_expression::FormatSqlOrderByExpression::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlParameterDefault>
-    for crate::sql::auxiliary::parameter_default::FormatSqlParameterDefault
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlParameterDefault,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlParameterDefault>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlParameterDefault {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlParameterDefault,
-        crate::sql::auxiliary::parameter_default::FormatSqlParameterDefault,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::parameter_default::FormatSqlParameterDefault::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlParameterDefault {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlParameterDefault,
-        crate::sql::auxiliary::parameter_default::FormatSqlParameterDefault,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::parameter_default::FormatSqlParameterDefault::default(),
         )
     }
 }
@@ -2548,118 +3530,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlParenthesizedJoinBinding {
         FormatOwnedWithRule :: new (self , crate :: sql :: bindings :: parenthesized_join_binding :: FormatSqlParenthesizedJoinBinding :: default ())
     }
 }
-impl FormatRule<sql_syntax::SqlPolicyForClause>
-    for crate::sql::clauses::policy_for_clause::FormatSqlPolicyForClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlPolicyForClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlPolicyForClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlPolicyForClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlPolicyForClause,
-        crate::sql::clauses::policy_for_clause::FormatSqlPolicyForClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::policy_for_clause::FormatSqlPolicyForClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPolicyForClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlPolicyForClause,
-        crate::sql::clauses::policy_for_clause::FormatSqlPolicyForClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::policy_for_clause::FormatSqlPolicyForClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlPolicyUsingClause>
-    for crate::sql::clauses::policy_using_clause::FormatSqlPolicyUsingClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlPolicyUsingClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlPolicyUsingClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlPolicyUsingClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlPolicyUsingClause,
-        crate::sql::clauses::policy_using_clause::FormatSqlPolicyUsingClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::policy_using_clause::FormatSqlPolicyUsingClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPolicyUsingClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlPolicyUsingClause,
-        crate::sql::clauses::policy_using_clause::FormatSqlPolicyUsingClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::policy_using_clause::FormatSqlPolicyUsingClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlPolicyWithCheckClause>
-    for crate::sql::clauses::policy_with_check_clause::FormatSqlPolicyWithCheckClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlPolicyWithCheckClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlPolicyWithCheckClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlPolicyWithCheckClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlPolicyWithCheckClause,
-        crate::sql::clauses::policy_with_check_clause::FormatSqlPolicyWithCheckClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::policy_with_check_clause::FormatSqlPolicyWithCheckClause::default(
-            ),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPolicyWithCheckClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlPolicyWithCheckClause,
-        crate::sql::clauses::policy_with_check_clause::FormatSqlPolicyWithCheckClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::policy_with_check_clause::FormatSqlPolicyWithCheckClause::default(
-            ),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlPrecisionModifier>
     for crate::sql::auxiliary::precision_modifier::FormatSqlPrecisionModifier
 {
@@ -2698,264 +3568,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrecisionModifier {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlReturningClause>
-    for crate::sql::clauses::returning_clause::FormatSqlReturningClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlReturningClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturningClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturningClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturningClause,
-        crate::sql::clauses::returning_clause::FormatSqlReturningClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::returning_clause::FormatSqlReturningClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturningClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturningClause,
-        crate::sql::clauses::returning_clause::FormatSqlReturningClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::returning_clause::FormatSqlReturningClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlReturnsClause>
-    for crate::sql::clauses::returns_clause::FormatSqlReturnsClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlReturnsClause, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturnsClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsClause,
-        crate::sql::clauses::returns_clause::FormatSqlReturnsClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::returns_clause::FormatSqlReturnsClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsClause,
-        crate::sql::clauses::returns_clause::FormatSqlReturnsClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::returns_clause::FormatSqlReturnsClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlReturnsNullOption>
-    for crate::sql::auxiliary::returns_null_option::FormatSqlReturnsNullOption
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlReturnsNullOption,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturnsNullOption>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsNullOption {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsNullOption,
-        crate::sql::auxiliary::returns_null_option::FormatSqlReturnsNullOption,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::returns_null_option::FormatSqlReturnsNullOption::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsNullOption {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsNullOption,
-        crate::sql::auxiliary::returns_null_option::FormatSqlReturnsNullOption,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::returns_null_option::FormatSqlReturnsNullOption::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlReturnsSetofClause>
-    for crate::sql::clauses::returns_setof_clause::FormatSqlReturnsSetofClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlReturnsSetofClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturnsSetofClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsSetofClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsSetofClause,
-        crate::sql::clauses::returns_setof_clause::FormatSqlReturnsSetofClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::returns_setof_clause::FormatSqlReturnsSetofClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsSetofClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsSetofClause,
-        crate::sql::clauses::returns_setof_clause::FormatSqlReturnsSetofClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::returns_setof_clause::FormatSqlReturnsSetofClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlReturnsTableClause>
-    for crate::sql::clauses::returns_table_clause::FormatSqlReturnsTableClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlReturnsTableClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturnsTableClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsTableClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsTableClause,
-        crate::sql::clauses::returns_table_clause::FormatSqlReturnsTableClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::returns_table_clause::FormatSqlReturnsTableClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsTableClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsTableClause,
-        crate::sql::clauses::returns_table_clause::FormatSqlReturnsTableClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::returns_table_clause::FormatSqlReturnsTableClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlReturnsTableColumn>
-    for crate::sql::auxiliary::returns_table_column::FormatSqlReturnsTableColumn
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlReturnsTableColumn,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturnsTableColumn>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsTableColumn {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsTableColumn,
-        crate::sql::auxiliary::returns_table_column::FormatSqlReturnsTableColumn,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::returns_table_column::FormatSqlReturnsTableColumn::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsTableColumn {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsTableColumn,
-        crate::sql::auxiliary::returns_table_column::FormatSqlReturnsTableColumn,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::returns_table_column::FormatSqlReturnsTableColumn::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlReturnsTriggerClause>
-    for crate::sql::clauses::returns_trigger_clause::FormatSqlReturnsTriggerClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlReturnsTriggerClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlReturnsTriggerClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsTriggerClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsTriggerClause,
-        crate::sql::clauses::returns_trigger_clause::FormatSqlReturnsTriggerClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::returns_trigger_clause::FormatSqlReturnsTriggerClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsTriggerClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsTriggerClause,
-        crate::sql::clauses::returns_trigger_clause::FormatSqlReturnsTriggerClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::returns_trigger_clause::FormatSqlReturnsTriggerClause::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlRoot> for crate::sql::auxiliary::root::FormatSqlRoot {
     type Context = SqlFormatContext;
     #[inline(always)]
@@ -2975,40 +3587,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRoot {
         FormatOwnedWithRule<sql_syntax::SqlRoot, crate::sql::auxiliary::root::FormatSqlRoot>;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule::new(self, crate::sql::auxiliary::root::FormatSqlRoot::default())
-    }
-}
-impl FormatRule<sql_syntax::SqlSecurityOption>
-    for crate::sql::auxiliary::security_option::FormatSqlSecurityOption
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlSecurityOption, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlSecurityOption>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlSecurityOption {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlSecurityOption,
-        crate::sql::auxiliary::security_option::FormatSqlSecurityOption,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::security_option::FormatSqlSecurityOption::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSecurityOption {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlSecurityOption,
-        crate::sql::auxiliary::security_option::FormatSqlSecurityOption,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::security_option::FormatSqlSecurityOption::default(),
-        )
     }
 }
 impl FormatRule<sql_syntax::SqlSelectAllQuantifier>
@@ -3340,40 +3918,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlStar {
         FormatOwnedWithRule::new(self, crate::sql::auxiliary::star::FormatSqlStar::default())
     }
 }
-impl FormatRule<sql_syntax::SqlStrictOption>
-    for crate::sql::auxiliary::strict_option::FormatSqlStrictOption
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlStrictOption, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlStrictOption>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlStrictOption {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlStrictOption,
-        crate::sql::auxiliary::strict_option::FormatSqlStrictOption,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::strict_option::FormatSqlStrictOption::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlStrictOption {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlStrictOption,
-        crate::sql::auxiliary::strict_option::FormatSqlStrictOption,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::strict_option::FormatSqlStrictOption::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlStringLiteralExpression>
     for crate::sql::expressions::string_literal_expression::FormatSqlStringLiteralExpression
 {
@@ -3475,120 +4019,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSubqueryExpression {
         FormatOwnedWithRule::new(
             self,
             crate::sql::expressions::subquery_expression::FormatSqlSubqueryExpression::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlSubstringExpression>
-    for crate::sql::expressions::substring_expression::FormatSqlSubstringExpression
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlSubstringExpression,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlSubstringExpression>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlSubstringExpression {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlSubstringExpression,
-        crate::sql::expressions::substring_expression::FormatSqlSubstringExpression,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::expressions::substring_expression::FormatSqlSubstringExpression::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSubstringExpression {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlSubstringExpression,
-        crate::sql::expressions::substring_expression::FormatSqlSubstringExpression,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::expressions::substring_expression::FormatSqlSubstringExpression::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlSubstringForClause>
-    for crate::sql::clauses::substring_for_clause::FormatSqlSubstringForClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlSubstringForClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlSubstringForClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlSubstringForClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlSubstringForClause,
-        crate::sql::clauses::substring_for_clause::FormatSqlSubstringForClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::substring_for_clause::FormatSqlSubstringForClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSubstringForClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlSubstringForClause,
-        crate::sql::clauses::substring_for_clause::FormatSqlSubstringForClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::substring_for_clause::FormatSqlSubstringForClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlSubstringFromClause>
-    for crate::sql::clauses::substring_from_clause::FormatSqlSubstringFromClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlSubstringFromClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlSubstringFromClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlSubstringFromClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlSubstringFromClause,
-        crate::sql::clauses::substring_from_clause::FormatSqlSubstringFromClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::substring_from_clause::FormatSqlSubstringFromClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSubstringFromClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlSubstringFromClause,
-        crate::sql::clauses::substring_from_clause::FormatSqlSubstringFromClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::substring_from_clause::FormatSqlSubstringFromClause::default(),
         )
     }
 }
@@ -3732,84 +4162,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTableStar {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlTildeArrayExpression>
-    for crate::sql::expressions::tilde_array_expression::FormatSqlTildeArrayExpression
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTildeArrayExpression,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTildeArrayExpression>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTildeArrayExpression {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTildeArrayExpression,
-        crate::sql::expressions::tilde_array_expression::FormatSqlTildeArrayExpression,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::expressions::tilde_array_expression::FormatSqlTildeArrayExpression::default(
-            ),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTildeArrayExpression {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTildeArrayExpression,
-        crate::sql::expressions::tilde_array_expression::FormatSqlTildeArrayExpression,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::expressions::tilde_array_expression::FormatSqlTildeArrayExpression::default(
-            ),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlTildeArraySuffix>
-    for crate::sql::auxiliary::tilde_array_suffix::FormatSqlTildeArraySuffix
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTildeArraySuffix,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTildeArraySuffix>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTildeArraySuffix {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTildeArraySuffix,
-        crate::sql::auxiliary::tilde_array_suffix::FormatSqlTildeArraySuffix,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::tilde_array_suffix::FormatSqlTildeArraySuffix::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTildeArraySuffix {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTildeArraySuffix,
-        crate::sql::auxiliary::tilde_array_suffix::FormatSqlTildeArraySuffix,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::tilde_array_suffix::FormatSqlTildeArraySuffix::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlTildeName>
     for crate::sql::auxiliary::tilde_name::FormatSqlTildeName
 {
@@ -3882,220 +4234,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTimeZoneModifier {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlTriggerEvent>
-    for crate::sql::auxiliary::trigger_event::FormatSqlTriggerEvent
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlTriggerEvent, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTriggerEvent>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerEvent {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerEvent,
-        crate::sql::auxiliary::trigger_event::FormatSqlTriggerEvent,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::trigger_event::FormatSqlTriggerEvent::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerEvent {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerEvent,
-        crate::sql::auxiliary::trigger_event::FormatSqlTriggerEvent,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::trigger_event::FormatSqlTriggerEvent::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlTriggerForEachClause>
-    for crate::sql::clauses::trigger_for_each_clause::FormatSqlTriggerForEachClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTriggerForEachClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTriggerForEachClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerForEachClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerForEachClause,
-        crate::sql::clauses::trigger_for_each_clause::FormatSqlTriggerForEachClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::trigger_for_each_clause::FormatSqlTriggerForEachClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerForEachClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerForEachClause,
-        crate::sql::clauses::trigger_for_each_clause::FormatSqlTriggerForEachClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::trigger_for_each_clause::FormatSqlTriggerForEachClause::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlTriggerReferencingClause>
-    for crate::sql::clauses::trigger_referencing_clause::FormatSqlTriggerReferencingClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTriggerReferencingClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTriggerReferencingClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerReferencingClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerReferencingClause,
-        crate::sql::clauses::trigger_referencing_clause::FormatSqlTriggerReferencingClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: clauses :: trigger_referencing_clause :: FormatSqlTriggerReferencingClause :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerReferencingClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerReferencingClause,
-        crate::sql::clauses::trigger_referencing_clause::FormatSqlTriggerReferencingClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: clauses :: trigger_referencing_clause :: FormatSqlTriggerReferencingClause :: default ())
-    }
-}
-impl FormatRule<sql_syntax::SqlTriggerReferencingItem>
-    for crate::sql::auxiliary::trigger_referencing_item::FormatSqlTriggerReferencingItem
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTriggerReferencingItem,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTriggerReferencingItem>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerReferencingItem {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerReferencingItem,
-        crate::sql::auxiliary::trigger_referencing_item::FormatSqlTriggerReferencingItem,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: auxiliary :: trigger_referencing_item :: FormatSqlTriggerReferencingItem :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerReferencingItem {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerReferencingItem,
-        crate::sql::auxiliary::trigger_referencing_item::FormatSqlTriggerReferencingItem,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: trigger_referencing_item :: FormatSqlTriggerReferencingItem :: default ())
-    }
-}
-impl FormatRule<sql_syntax::SqlTriggerUpdateOfClause>
-    for crate::sql::clauses::trigger_update_of_clause::FormatSqlTriggerUpdateOfClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTriggerUpdateOfClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTriggerUpdateOfClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerUpdateOfClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerUpdateOfClause,
-        crate::sql::clauses::trigger_update_of_clause::FormatSqlTriggerUpdateOfClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::trigger_update_of_clause::FormatSqlTriggerUpdateOfClause::default(
-            ),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerUpdateOfClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerUpdateOfClause,
-        crate::sql::clauses::trigger_update_of_clause::FormatSqlTriggerUpdateOfClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::trigger_update_of_clause::FormatSqlTriggerUpdateOfClause::default(
-            ),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlTriggerWhenClause>
-    for crate::sql::clauses::trigger_when_clause::FormatSqlTriggerWhenClause
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlTriggerWhenClause,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTriggerWhenClause>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerWhenClause {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerWhenClause,
-        crate::sql::clauses::trigger_when_clause::FormatSqlTriggerWhenClause,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::clauses::trigger_when_clause::FormatSqlTriggerWhenClause::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerWhenClause {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerWhenClause,
-        crate::sql::clauses::trigger_when_clause::FormatSqlTriggerWhenClause,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::clauses::trigger_when_clause::FormatSqlTriggerWhenClause::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlTypeArguments>
     for crate::sql::auxiliary::type_arguments::FormatSqlTypeArguments
 {
@@ -4127,40 +4265,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTypeArguments {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::type_arguments::FormatSqlTypeArguments::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlTypeArraySuffix>
-    for crate::sql::auxiliary::type_array_suffix::FormatSqlTypeArraySuffix
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlTypeArraySuffix, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlTypeArraySuffix>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTypeArraySuffix {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTypeArraySuffix,
-        crate::sql::auxiliary::type_array_suffix::FormatSqlTypeArraySuffix,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::type_array_suffix::FormatSqlTypeArraySuffix::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTypeArraySuffix {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTypeArraySuffix,
-        crate::sql::auxiliary::type_array_suffix::FormatSqlTypeArraySuffix,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::type_array_suffix::FormatSqlTypeArraySuffix::default(),
         )
     }
 }
@@ -4404,112 +4508,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlVaryingModifier {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlViewOption>
-    for crate::sql::auxiliary::view_option::FormatSqlViewOption
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlViewOption, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlViewOption>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlViewOption {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlViewOption,
-        crate::sql::auxiliary::view_option::FormatSqlViewOption,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::view_option::FormatSqlViewOption::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlViewOption {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlViewOption,
-        crate::sql::auxiliary::view_option::FormatSqlViewOption,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::view_option::FormatSqlViewOption::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlViewOptions>
-    for crate::sql::auxiliary::view_options::FormatSqlViewOptions
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(&self, node: &sql_syntax::SqlViewOptions, f: &mut SqlFormatter) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlViewOptions>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlViewOptions {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlViewOptions,
-        crate::sql::auxiliary::view_options::FormatSqlViewOptions,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::view_options::FormatSqlViewOptions::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlViewOptions {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlViewOptions,
-        crate::sql::auxiliary::view_options::FormatSqlViewOptions,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::view_options::FormatSqlViewOptions::default(),
-        )
-    }
-}
-impl FormatRule<sql_syntax::SqlVolatilityOption>
-    for crate::sql::auxiliary::volatility_option::FormatSqlVolatilityOption
-{
-    type Context = SqlFormatContext;
-    #[inline(always)]
-    fn fmt(
-        &self,
-        node: &sql_syntax::SqlVolatilityOption,
-        f: &mut SqlFormatter,
-    ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlVolatilityOption>::fmt(self, node, f)
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlVolatilityOption {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlVolatilityOption,
-        crate::sql::auxiliary::volatility_option::FormatSqlVolatilityOption,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::auxiliary::volatility_option::FormatSqlVolatilityOption::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlVolatilityOption {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlVolatilityOption,
-        crate::sql::auxiliary::volatility_option::FormatSqlVolatilityOption,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::auxiliary::volatility_option::FormatSqlVolatilityOption::default(),
-        )
-    }
-}
 impl FormatRule<sql_syntax::SqlWhereClause>
     for crate::sql::clauses::where_clause::FormatSqlWhereClause
 {
@@ -4677,6 +4675,169 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWithClause {
         FormatOwnedWithRule::new(
             self,
             crate::sql::clauses::with_clause::FormatSqlWithClause::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFunctionOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlFunctionOptionList,
+        crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFunctionOptionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlFunctionOptionList,
+        crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::function_option_list::FormatPsqlFunctionOptionList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameterList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlFunctionParameterList,
+        crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameterList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlFunctionParameterList,
+        crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableColumnList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlReturnsTableColumnList,
+        crate::psql::lists::returns_table_column_list::FormatPsqlReturnsTableColumnList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: lists :: returns_table_column_list :: FormatPsqlReturnsTableColumnList :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableColumnList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlReturnsTableColumnList,
+        crate::psql::lists::returns_table_column_list::FormatPsqlReturnsTableColumnList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: lists :: returns_table_column_list :: FormatPsqlReturnsTableColumnList :: default ())
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerEventList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerEventList,
+        crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerEventList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerEventList,
+        crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::trigger_event_list::FormatPsqlTriggerEventList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerReferencingItemList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTriggerReferencingItemList,
+        crate::psql::lists::trigger_referencing_item_list::FormatPsqlTriggerReferencingItemList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: lists :: trigger_referencing_item_list :: FormatPsqlTriggerReferencingItemList :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerReferencingItemList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTriggerReferencingItemList,
+        crate::psql::lists::trigger_referencing_item_list::FormatPsqlTriggerReferencingItemList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: lists :: trigger_referencing_item_list :: FormatPsqlTriggerReferencingItemList :: default ())
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTypeNameList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTypeNameList,
+        crate::psql::lists::type_name_list::FormatPsqlTypeNameList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::type_name_list::FormatPsqlTypeNameList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTypeNameList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTypeNameList,
+        crate::psql::lists::type_name_list::FormatPsqlTypeNameList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::type_name_list::FormatPsqlTypeNameList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlViewOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlViewOptionList,
+        crate::psql::lists::view_option_list::FormatPsqlViewOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::view_option_list::FormatPsqlViewOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlViewOptionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlViewOptionList,
+        crate::psql::lists::view_option_list::FormatPsqlViewOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::view_option_list::FormatPsqlViewOptionList::default(),
         )
     }
 }
@@ -4849,56 +5010,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFromItemList {
         )
     }
 }
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlFunctionOptionList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlFunctionOptionList,
-        crate::sql::lists::function_option_list::FormatSqlFunctionOptionList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::lists::function_option_list::FormatSqlFunctionOptionList::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFunctionOptionList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlFunctionOptionList,
-        crate::sql::lists::function_option_list::FormatSqlFunctionOptionList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::lists::function_option_list::FormatSqlFunctionOptionList::default(),
-        )
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlFunctionParameterList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlFunctionParameterList,
-        crate::sql::lists::function_parameter_list::FormatSqlFunctionParameterList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::lists::function_parameter_list::FormatSqlFunctionParameterList::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFunctionParameterList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlFunctionParameterList,
-        crate::sql::lists::function_parameter_list::FormatSqlFunctionParameterList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::lists::function_parameter_list::FormatSqlFunctionParameterList::default(),
-        )
-    }
-}
 impl AsFormat<SqlFormatContext> for sql_syntax::SqlGranteeList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -4996,33 +5107,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlOrderByExpressionList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::lists::order_by_expression_list::FormatSqlOrderByExpressionList::default(),
-        )
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlReturnsTableColumnList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlReturnsTableColumnList,
-        crate::sql::lists::returns_table_column_list::FormatSqlReturnsTableColumnList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::lists::returns_table_column_list::FormatSqlReturnsTableColumnList::default(
-            ),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReturnsTableColumnList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlReturnsTableColumnList,
-        crate::sql::lists::returns_table_column_list::FormatSqlReturnsTableColumnList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::lists::returns_table_column_list::FormatSqlReturnsTableColumnList::default(
-            ),
         )
     }
 }
@@ -5151,50 +5235,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTableNameList {
         )
     }
 }
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerEventList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerEventList,
-        crate::sql::lists::trigger_event_list::FormatSqlTriggerEventList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::lists::trigger_event_list::FormatSqlTriggerEventList::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerEventList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerEventList,
-        crate::sql::lists::trigger_event_list::FormatSqlTriggerEventList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::lists::trigger_event_list::FormatSqlTriggerEventList::default(),
-        )
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTriggerReferencingItemList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTriggerReferencingItemList,
-        crate::sql::lists::trigger_referencing_item_list::FormatSqlTriggerReferencingItemList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule :: new (self , crate :: sql :: lists :: trigger_referencing_item_list :: FormatSqlTriggerReferencingItemList :: default ())
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTriggerReferencingItemList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTriggerReferencingItemList,
-        crate::sql::lists::trigger_referencing_item_list::FormatSqlTriggerReferencingItemList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule :: new (self , crate :: sql :: lists :: trigger_referencing_item_list :: FormatSqlTriggerReferencingItemList :: default ())
-    }
-}
 impl AsFormat<SqlFormatContext> for sql_syntax::SqlTypeArgumentList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -5220,31 +5260,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTypeArgumentList {
         )
     }
 }
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlTypeNameList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlTypeNameList,
-        crate::sql::lists::type_name_list::FormatSqlTypeNameList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::lists::type_name_list::FormatSqlTypeNameList::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTypeNameList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlTypeNameList,
-        crate::sql::lists::type_name_list::FormatSqlTypeNameList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::lists::type_name_list::FormatSqlTypeNameList::default(),
-        )
-    }
-}
 impl AsFormat<SqlFormatContext> for sql_syntax::SqlValuesRowList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -5267,31 +5282,6 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlValuesRowList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::lists::values_row_list::FormatSqlValuesRowList::default(),
-        )
-    }
-}
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlViewOptionList {
-    type Format<'a> = FormatRefWithRule<
-        'a,
-        sql_syntax::SqlViewOptionList,
-        crate::sql::lists::view_option_list::FormatSqlViewOptionList,
-    >;
-    fn format(&self) -> Self::Format<'_> {
-        FormatRefWithRule::new(
-            self,
-            crate::sql::lists::view_option_list::FormatSqlViewOptionList::default(),
-        )
-    }
-}
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlViewOptionList {
-    type Format = FormatOwnedWithRule<
-        sql_syntax::SqlViewOptionList,
-        crate::sql::lists::view_option_list::FormatSqlViewOptionList,
-    >;
-    fn into_format(self) -> Self::Format {
-        FormatOwnedWithRule::new(
-            self,
-            crate::sql::lists::view_option_list::FormatSqlViewOptionList::default(),
         )
     }
 }

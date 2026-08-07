@@ -4,56 +4,49 @@ mod helper;
 use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
+/// `::` casts are Postgres-only.
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script().with_dialect(SqlDialect::Postgres)
+}
+
 #[test]
 fn test_cast_character_varying() {
-    let res = parse(
-        "select a::character varying from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a::character varying from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_bit_varying() {
-    let res = parse("select a::bit varying from t", SqlFileSource::script());
+    let res = parse("select a::bit varying from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_double_precision() {
-    let res = parse("select a::double precision from t", SqlFileSource::script());
+    let res = parse("select a::double precision from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_timestamp_without_time_zone() {
-    let res = parse(
-        "select a::timestamp without time zone from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a::timestamp without time zone from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_timestamp_with_time_zone() {
-    let res = parse(
-        "select a::timestamp with time zone from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a::timestamp with time zone from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_cast_time_without_time_zone() {
-    let res = parse(
-        "select a::time without time zone from t",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a::time without time zone from t", postgres());
 
     assert_parser!(res);
 }
@@ -84,7 +77,7 @@ fn test_create_table_column_timestamp_without_time_zone() {
 fn test_bare_types_still_work_without_modifier() {
     let res = parse(
         "select a::varchar, b::time, c::timestamp, d::double from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);

@@ -2,6 +2,7 @@ mod cst;
 mod generated;
 mod macros;
 mod prelude;
+mod psql;
 mod rules;
 mod sql;
 mod syntax_rewriter;

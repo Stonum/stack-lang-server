@@ -31,7 +31,7 @@ fn parse_join_using_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![using]);
     parse_column_name_list(p).or_add_diagnostic(p, expected_column_list);
-    Present(m.complete(p, SQL_JOIN_USING_CLAUSE))
+    Present(m.complete(p, PSQL_JOIN_USING_CLAUSE))
 }
 
 /// `true` if positioned at `lateral` genuinely followed by a subquery or

@@ -38,15 +38,15 @@ impl NeedsParentheses for AnySqlExpression {
             | Self::SqlSubqueryExpression(_)
             | Self::SqlCallExpression(_)
             | Self::SqlWindowFunctionExpression(_)
-            | Self::SqlArrayExpression(_)
-            | Self::SqlTildeArrayExpression(_)
-            | Self::SqlArraySubscriptExpression(_)
-            | Self::SqlCastExpression(_)
+            | Self::PsqlArrayExpression(_)
+            | Self::PsqlTildeArrayExpression(_)
+            | Self::PsqlArraySubscriptExpression(_)
+            | Self::PsqlCastExpression(_)
             | Self::SqlCastFunctionExpression(_)
             | Self::SqlAnyAllExpression(_)
             | Self::SqlExistsExpression(_)
-            | Self::SqlSubstringExpression(_)
-            | Self::SqlIntervalExpression(_) => false,
+            | Self::PsqlSubstringExpression(_)
+            | Self::PsqlIntervalExpression(_) => false,
         }
     }
 }

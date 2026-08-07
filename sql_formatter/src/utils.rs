@@ -213,7 +213,7 @@ pub(crate) fn is_simple_expression(expr: &AnySqlExpression, depth: u8) -> bool {
                     .iter()
                     .all(|arg| arg.is_ok_and(|arg| is_simple_expression(&arg, depth + 1)))
         }
-        AnySqlExpression::SqlArrayExpression(array) => array
+        AnySqlExpression::PsqlArrayExpression(array) => array
             .items()
             .iter()
             .all(|item| item.is_ok_and(|item| is_simple_expression(&item, depth + 1))),

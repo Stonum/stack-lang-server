@@ -26,5 +26,5 @@ fn parse_delete_using_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![using]);
     SqlFromItemList.parse_list(p);
-    Present(m.complete(p, SQL_DELETE_USING_CLAUSE))
+    Present(m.complete(p, PSQL_DELETE_USING_CLAUSE))
 }

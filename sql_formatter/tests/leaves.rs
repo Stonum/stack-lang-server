@@ -114,7 +114,7 @@ fn format_alias() {
 fn format_tilde_array_suffix() {
     assert_fmt_node!(
         "select a::int~[]~ from t",
-        SqlSyntaxKind::SQL_TILDE_ARRAY_SUFFIX,
+        SqlSyntaxKind::PSQL_TILDE_ARRAY_SUFFIX,
         "~[]~"
     );
 }
