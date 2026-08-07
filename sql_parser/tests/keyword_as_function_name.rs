@@ -22,7 +22,7 @@ fn test_left_as_function_name() {
 fn test_right_as_function_name_nested_call() {
     let res = parse(
         "select right('0000' || trim(name), 20) from t",
-        SqlFileSource::script(),
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
     );
 
     assert_parser!(res);

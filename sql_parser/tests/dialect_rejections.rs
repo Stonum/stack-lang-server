@@ -181,3 +181,38 @@ fn test_interval_literal_rejected_under_standard_dialect() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_concat_operator_rejected_under_standard_dialect() {
+    let res = parse("select a || b from t", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_concat_operator_rejected_under_mssql_dialect() {
+    let res = parse("select a || b from t", mssql());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_json_field_operator_rejected_under_standard_dialect() {
+    let res = parse("select data -> 'a' from t", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_posix_regex_operator_rejected_under_standard_dialect() {
+    let res = parse("select a from t where a ~ 'p'", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_bit_shift_operator_rejected_under_standard_dialect() {
+    let res = parse("select a << 1 from t", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}

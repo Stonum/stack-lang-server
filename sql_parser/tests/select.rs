@@ -4,7 +4,8 @@ mod helper;
 use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
-/// `DISTINCT ON` and `LIMIT` are both Postgres-only.
+/// `DISTINCT ON`, `LIMIT`, `||` concatenation and `->`/`->>` JSON
+/// operators are all Postgres-only.
 fn postgres() -> SqlFileSource {
     SqlFileSource::script().with_dialect(SqlDialect::Postgres)
 }
@@ -108,17 +109,14 @@ fn test_select_binary_expression_precedence() {
 
 #[test]
 fn test_select_concat_expression() {
-    let res = parse("select a || b", SqlFileSource::script());
+    let res = parse("select a || b", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_select_chained_concat_expression() {
-    let res = parse(
-        "select a || ', ' || b || ', ' || c",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a || ', ' || b || ', ' || c", postgres());
 
     assert_parser!(res);
 }
@@ -129,7 +127,7 @@ fn test_select_concat_binds_tighter_than_comparison() {
     // operator" tier), so `a || b = c` is `(a || b) = c`, not `a || (b =
     // c)` -- the latter would be a type error in real Postgres anyway
     // (comparing text to a boolean).
-    let res = parse("select a || b = c", SqlFileSource::script());
+    let res = parse("select a || b = c", postgres());
 
     assert_parser!(res);
 }
@@ -137,7 +135,7 @@ fn test_select_concat_binds_tighter_than_comparison() {
 #[test]
 fn test_select_concat_binds_looser_than_additive() {
     // `+`/`-` bind tighter than `||`, so `a + b || c` is `(a + b) || c`.
-    let res = parse("select a + b || c", SqlFileSource::script());
+    let res = parse("select a + b || c", postgres());
 
     assert_parser!(res);
 }
@@ -148,7 +146,7 @@ fn test_select_concat_inside_case_expression() {
     // branches to build a display string.
     let res = parse(
         "select case when a is not null then a || ', ' else '' end || case when b is not null then b || ', ' else '' end from t",
-        SqlFileSource::script(),
+        postgres(),
     );
 
     assert_parser!(res);
@@ -156,38 +154,35 @@ fn test_select_concat_inside_case_expression() {
 
 #[test]
 fn test_select_json_field_operator() {
-    let res = parse("select data -> 'a' from t", SqlFileSource::script());
+    let res = parse("select data -> 'a' from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_select_json_text_operator() {
-    let res = parse("select data ->> 'a' from t", SqlFileSource::script());
+    let res = parse("select data ->> 'a' from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_select_chained_json_operators() {
-    let res = parse("select data -> 'a' ->> 'b' from t", SqlFileSource::script());
+    let res = parse("select data -> 'a' ->> 'b' from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_select_json_operator_no_spaces() {
-    let res = parse("select data->'a'->>'b' from t", SqlFileSource::script());
+    let res = parse("select data->'a'->>'b' from t", postgres());
 
     assert_parser!(res);
 }
 
 #[test]
 fn test_select_json_operator_binds_tighter_than_comparison() {
-    let res = parse(
-        "select a from t where data -> 'a' = 'x'",
-        SqlFileSource::script(),
-    );
+    let res = parse("select a from t where data -> 'a' = 'x'", postgres());
 
     assert_parser!(res);
 }

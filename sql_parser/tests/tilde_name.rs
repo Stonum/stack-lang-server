@@ -148,13 +148,16 @@ fn test_regex_and_like_operators_still_work_in_mlang_dialect() {
 }
 
 #[test]
-fn test_like_operators_work_in_standard_dialect_too() {
+fn test_like_operators_rejected_under_standard_dialect() {
+    // `~~`/`~~*` have no T-SQL equivalent (Standard has no operator
+    // spelling of LIKE/ILIKE at all -- only the `LIKE` keyword, which is
+    // unaffected and stays shared).
     let res = parse(
         "select a from t where a ~~ 'p' and a ~~* 'p'",
         SqlFileSource::script(),
     );
 
-    assert_parser!(res);
+    assert!(res.has_errors());
 }
 
 #[test]
