@@ -4,7 +4,8 @@ use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
 use super::postgres::expr::{
-    gate_type_name, is_at_substring_from_form, parse_array_expression, parse_array_subscript_tail,
+    gate_binary_expression, gate_type_name, is_at_substring_from_form,
+    is_postgres_only_binary_operator, parse_array_expression, parse_array_subscript_tail,
     parse_cast_tail, parse_filter_clause, parse_interval_expression, parse_substring_expression,
     parse_type_array_suffix,
 };
@@ -141,6 +142,8 @@ fn parse_binary_or_logical_expression_recursive(
             report_missing_left_operand(p);
         }
 
+        let is_postgres_only_operator = is_postgres_only_binary_operator(op);
+
         let m = left.precede(p);
         p.bump(op);
 
@@ -152,7 +155,8 @@ fn parse_binary_or_logical_expression_recursive(
             _ => SQL_BINARY_EXPRESSION,
         };
 
-        left = Present(m.complete(p, expression_kind));
+        let completed = m.complete(p, expression_kind);
+        left = gate_binary_expression(p, completed, is_postgres_only_operator);
     }
 
     left

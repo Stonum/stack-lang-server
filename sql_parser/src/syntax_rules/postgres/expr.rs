@@ -10,7 +10,7 @@ use crate::syntax_rules::parse_error::{
     expected_expression, expected_string_literal, expected_type_name,
 };
 use crate::{SqlParser, SqlSyntaxFeature};
-use sql_syntax::{SqlSyntaxKind::*, T};
+use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
 
 /// `array[1, 2, 3]` -- Postgres-only, no native array type/literal in
 /// T-SQL (including the mlang extension's own `~[...]~` escaped spelling
@@ -313,5 +313,52 @@ pub(crate) fn gate_type_name(
     }
     SqlSyntaxFeature::Postgres.exclusive_syntax(p, marker, |p, marker| {
         postgres_only_syntax_error(p, "This type", marker.range(p))
+    })
+}
+
+/// `true` for binary operator tokens with no T-SQL equivalent: POSIX
+/// regex match (`~`/`!~`/`~*`/`!~*`), the `LIKE`/`ILIKE` family spelled as
+/// literal operators (`~~`/`!~~`/`~~*`/`!~~*` -- distinct from the
+/// `LIKE`/`ILIKE` *keyword* form, which is already shared), string
+/// concatenation (`||` -- T-SQL concatenates with `+` instead), JSON
+/// field/text extraction (`->`/`->>`), and bit shift (`<<`/`>>` -- T-SQL
+/// has no shift operators at all, only bitwise AND/OR/XOR via `&`/`|`/`^`,
+/// which stay shared).
+pub(crate) fn is_postgres_only_binary_operator(op: SqlSyntaxKind) -> bool {
+    matches!(
+        op,
+        T![~]
+            | T![!~]
+            | T![~*]
+            | T![!~*]
+            | T![~~]
+            | T![!~~]
+            | T![~~*]
+            | T![!~~*]
+            | T![||]
+            | T![->]
+            | T![->>]
+            | T![<<]
+            | T![>>]
+    )
+}
+
+/// Gates an already-completed `SQL_BINARY_EXPRESSION` node when the
+/// operator it uses is Postgres-only -- same "gate the completed node"
+/// shape as [gate_type_name], needed here because
+/// `parse_binary_or_logical_expression_recursive`'s precedence-climbing
+/// dispatch has no per-operator entry point to gate ahead of time (every
+/// operator, shared or not, is recognized through the same
+/// `OperatorPrecedence::try_from_binary_operator` match).
+pub(crate) fn gate_binary_expression(
+    p: &mut SqlParser,
+    marker: CompletedMarker,
+    is_postgres_only_operator: bool,
+) -> ParsedSyntax {
+    if !is_postgres_only_operator {
+        return Present(marker);
+    }
+    SqlSyntaxFeature::Postgres.exclusive_syntax(p, marker, |p, marker| {
+        postgres_only_syntax_error(p, "This operator", marker.range(p))
     })
 }
