@@ -3,6 +3,7 @@ mod assignment_like;
 pub mod string_utils;
 
 pub(crate) mod builders;
+pub(crate) mod concatenation;
 pub(crate) mod format_binary_like_expression;
 pub(crate) mod format_class;
 pub(crate) mod function_body;
@@ -25,6 +26,7 @@ use mlang_syntax::{AnyMExpression, AnyMStatement, MCallExpression, MInitializerC
 use mlang_syntax::{MSyntaxKind, MSyntaxToken};
 
 pub(crate) use builders::*;
+pub(crate) use concatenation::ConcatenatedQuery;
 pub(crate) use object_like::*;
 pub(crate) use string_utils::*;
 

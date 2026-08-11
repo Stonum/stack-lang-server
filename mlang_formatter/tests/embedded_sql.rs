@@ -13,10 +13,13 @@ var qq = Query(`this is not valid   sql at all !!!`, 1);
 }
 
 #[test]
-fn embedded_sql_concatenation_is_left_untouched() {
-    // The first argument isn't a single string literal (it's built via
-    // concatenation), so it never reaches the SQL-reformat path at all --
-    // deliberately out of scope (see project roadmap notes), not a bug.
+fn embedded_sql_concatenation_with_trailing_hole_reformats_cleanly() {
+    // The first argument isn't a single string literal -- it's built via
+    // `+`-concatenation with a hole at the very end -- but that's exactly
+    // the shape `utils/concatenation.rs` now understands: this input is
+    // already idempotent (its spacing happens to match what
+    // `sql_formatter` would produce). See `mlang_formatter/tests/embedded_sql_concatenation.rs`
+    // for the dedicated concatenation-formatting test suite.
     assert_fmt!(
         r#"#
 var qq = Query("select * from t where a = " + x, 1);
@@ -135,6 +138,41 @@ if(test)
 }
 
 #[test]
+fn embedded_sql_selection_on_bare_assignment_keeps_operator_on_same_line() {
+    // Regression test: reformatting a plain string assigned directly (not
+    // passed as a call argument) via an explicit `textDocument/rangeFormatting`
+    // selection used to pick up an extra indent level, because
+    // `AssignmentLikeLayout::BreakAfterOperator` (`assignment_like.rs`) forced
+    // `=` onto its own line and indented the whole value once the string
+    // became multi-line, stacking on top of the string's own internal
+    // block-indent. The multi-line output must match the indentation of the
+    // equivalent `Query(...)` call-argument case (see
+    // `embedded_sql_multi_line_indent_matches_nested_context`): `=` and the
+    // opening quote stay on the same line, one indent level for the SQL
+    // body, one more for the `and` continuations.
+    let src = r#"#
+if(test)
+{
+   var qq = "select row_id from t where a = 1 and b = 2 and c = 3";
+}
+"#;
+    let start = src.find('"').unwrap() as u32;
+    let end = src.rfind('"').unwrap() as u32 + 1;
+
+    assert_fmt_range!(
+        src,
+        r#"var qq = "
+      select row_id
+      from t
+      where a = 1
+         and b = 2
+         and c = 3
+   ";"#,
+        start..end
+    );
+}
+
+#[test]
 fn non_allowlisted_call_with_string_argument_is_left_untouched() {
     // "some_other_function" isn't in the default `sql_call_names`, so its
     // string argument formats as an ordinary string literal, not SQL.
@@ -142,5 +180,65 @@ fn non_allowlisted_call_with_string_argument_is_left_untouched() {
         r#"#
 var qq = some_other_function(`select   *   from t`, 1);
 "#
+    );
+}
+
+#[test]
+fn selection_triggers_sql_formatting_for_non_allowlisted_call_argument() {
+    // `some_other_function` isn't in `sql_call_names` (see
+    // `non_allowlisted_call_with_string_argument_is_left_untouched` above),
+    // so its argument is never treated as SQL by the ordinary call-argument
+    // heuristic. An explicit `textDocument/rangeFormatting` selection of
+    // exactly this string must still trigger SQL formatting, independent of
+    // the callee's name and of argument position.
+    let src = r#"#
+var qq = some_other_function("select   *   from   t");
+"#;
+    let start = src.find('"').unwrap() as u32;
+    let end = src.rfind('"').unwrap() as u32 + 1;
+
+    assert_fmt_range!(
+        src,
+        "#\nvar qq = some_other_function(\"select * from t\");",
+        start..end
+    );
+}
+
+#[test]
+fn selection_does_not_widen_ordinary_whole_document_formatting() {
+    // Regression guard for the opposite direction: the very same string
+    // that `selection_triggers_sql_formatting_for_non_allowlisted_call_argument`
+    // reformats as SQL under an explicit selection must NOT be treated as
+    // SQL during ordinary whole-document formatting (no `selected_range` is
+    // ever set in that path) -- it only gets the plain literal-string
+    // whitespace cleanup, same as
+    // `non_allowlisted_call_with_string_argument_is_left_untouched`.
+    assert_fmt_eq!(
+        r#"#
+var qq = some_other_function("select   *   from   t");
+"#,
+        r#"#
+var qq = some_other_function("select   *   from   t");"#
+    );
+}
+
+#[test]
+fn whole_document_range_formatting_does_not_widen_sql_detection() {
+    // A real `textDocument/rangeFormatting` request for "format the whole
+    // document" (no dedicated whole-document endpoint exists -- clients
+    // just pass a range spanning the entire file, see `lsp/src/format.rs`)
+    // sets `selected_range` to that entire span. It must not be confused
+    // with a genuine partial selection of this one string: the string's own
+    // token range is a small subset of the whole-file range, not the other
+    // way around, so `is_explicitly_selected`'s containment check correctly
+    // stays `false` here.
+    let src = r#"#
+var qq = some_other_function("select   *   from   t");
+"#;
+
+    assert_fmt_range!(
+        src,
+        "#\nvar qq = some_other_function(\"select   *   from   t\");",
+        0..(src.len() as u32)
     );
 }

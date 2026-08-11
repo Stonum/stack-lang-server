@@ -1,13 +1,13 @@
 use super::member_chain::is_member_call_chain;
 use super::object::write_member_name;
-use super::{FormatLiteralStringToken, StringLiteralParentKind};
+use super::{FormatLiteralStringToken, StringLiteralParentKind, try_format_embedded_sql};
 use crate::prelude::*;
 use biome_formatter::{CstFormatContext, FormatOptions, VecBuffer, format_args, write};
 use biome_rowan::{AstNode, SyntaxNodeOptionExt, SyntaxResult, declare_node_union};
 use mlang_syntax::binary_like_expression::AnyMBinaryLikeExpression;
 use mlang_syntax::{
     AnyMAssignment, AnyMCallArgument, AnyMExpression, MAssignmentExpression, MInitializerClause,
-    MPropertyObjectMember, MSyntaxKind, MVariableDeclarator,
+    MPropertyObjectMember, MSyntaxKind, MSyntaxToken, MVariableDeclarator,
 };
 use mlang_syntax::{AnyMLiteralExpression, MUnaryExpression};
 use std::iter;
@@ -315,13 +315,35 @@ impl AnyMAssignmentLike {
         })
         .last();
 
-        if matches!(
-            right_expression,
+        // Both string-literal kinds (`"`/`'`-delimited `MStringLiteralExpression`
+        // and `` ` ``-delimited `MLongStringLiteralExpression` -- mlang's lexer
+        // treats the two delimiters interchangeably, see `string_utils.rs`)
+        // must be decided by the same rule below; only their `value_token` is
+        // needed for that.
+        let right_string_value_token = match &right_expression {
             Some(AnyMExpression::AnyMLiteralExpression(
-                AnyMLiteralExpression::MStringLiteralExpression(_)
-            )),
-        ) {
-            return Ok(AssignmentLikeLayout::BreakAfterOperator);
+                AnyMLiteralExpression::MStringLiteralExpression(string),
+            )) => Some(string.value_token()?),
+            Some(AnyMExpression::AnyMLiteralExpression(
+                AnyMLiteralExpression::MLongStringLiteralExpression(string),
+            )) => Some(string.value_token()?),
+            _ => None,
+        };
+
+        if let Some(value_token) = right_string_value_token {
+            // A string that will print as more than one line (reformatted
+            // embedded SQL, or a raw literal with an embedded newline)
+            // already carries its own internal `block_indent`. Stacking
+            // `BreakAfterOperator`'s extra soft-line-break + indent on top
+            // of that would double the indentation and push `=` onto its
+            // own line for no reason -- so treat it like the
+            // `MCallExpression` special-case below instead, keeping the
+            // operator and the value on the same line.
+            return Ok(if string_prints_multiline(&value_token, f)? {
+                AssignmentLikeLayout::NeverBreakAfterOperator
+            } else {
+                AssignmentLikeLayout::BreakAfterOperator
+            });
         }
 
         let is_poorly_breakable = match &right_expression {
@@ -526,6 +548,31 @@ fn get_last_non_unary_argument(unary_expression: &MUnaryExpression) -> Option<An
     }
 
     Some(argument)
+}
+
+/// Whether a string literal's `value_token` will print as more than one
+/// line -- either because it's reformatted as multi-line embedded SQL (only
+/// reachable for a bare assignment RHS via an explicit
+/// `textDocument/rangeFormatting` selection targeting this exact string,
+/// see `string_expression.rs`'s `is_explicitly_selected` -- the ordinary
+/// `sql_call_names` call-argument heuristic never applies here, since this
+/// string isn't a call argument), or because it already contains a literal
+/// embedded newline (mlang string literals may embed raw newlines
+/// regardless of delimiter, see `string_utils.rs`).
+fn string_prints_multiline(
+    value_token: &MSyntaxToken,
+    f: &Formatter<MFormatContext>,
+) -> SyntaxResult<bool> {
+    if let Some(selected_range) = f.options().selected_range()
+        && value_token
+            .text_trimmed_range()
+            .contains_range(selected_range)
+        && let Some(formatted) = try_format_embedded_sql(value_token, f)
+    {
+        return Ok(formatted.lines().count() > 1);
+    }
+
+    Ok(value_token.text_trimmed().contains('\n'))
 }
 
 impl Format<MFormatContext> for AnyMAssignmentLike {

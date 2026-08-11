@@ -182,9 +182,8 @@ impl<'token> LiteralStringNormaliser<'token> {
 
 /// Tries to parse `token`'s raw (still-escaped, as written in source --
 /// `LiteralStringNormaliser` doesn't decode escapes either, it only
-/// normalises `\r\n`/`\r` line endings) string content as embedded SQL
-/// (Postgres dialect + the `mlang` extension, so `~table~`/`#temp`/`:param`
-/// are understood) and reformat it with `sql_formatter`.
+/// normalises `\r\n`/`\r` line endings) string content as embedded SQL and
+/// reformat it with `sql_formatter`.
 ///
 /// Returns `None` if the content doesn't parse cleanly, in which case the
 /// caller must leave the string exactly as written. This is a deliberate
@@ -195,10 +194,22 @@ pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> O
     let content = token.text_trimmed();
     let raw_content = content.get(1..content.len().saturating_sub(1))?;
 
+    format_sql_source(raw_content, f)
+}
+
+/// Parses `raw` as embedded SQL (Postgres dialect + the `mlang` extension,
+/// so `~table~`/`#temp`/`:param` are understood) and reformats it with
+/// `sql_formatter`, matching the surrounding mlang code's indent
+/// style/width. Returns `None` on any parse/format failure. Shared by the
+/// single-literal path ([try_format_embedded_sql]) and the
+/// concatenation-chain path (`utils/concatenation.rs`), which parses a
+/// placeholder-substituted join of several string-literal pieces the same
+/// way.
+pub(crate) fn format_sql_source(raw: &str, f: &MFormatter) -> Option<String> {
     let syntax = sql_syntax::SqlFileSource::query()
         .with_dialect(sql_syntax::SqlDialect::Postgres)
         .with_mlang_extension(true);
-    let parsed = sql_parser::parse(raw_content, syntax);
+    let parsed = sql_parser::parse(raw, syntax);
     if parsed.has_errors() {
         return None;
     }
@@ -375,8 +386,10 @@ impl<'token> FormatSqlStringToken<'token> {
 /// The only two delimiters mlang's lexer accepts for a string literal (see
 /// `consume_str_literal` in `mlang_parser`'s lexer -- `'` is reserved for
 /// "long identifiers", not strings), as a `'static` string for use with
-/// `text()`.
-fn quote_as_static_str(quote: char) -> &'static str {
+/// `text()`. Shared with the concatenation-chain path
+/// (`utils/concatenation.rs`), which wraps each reformatted literal segment
+/// back into a valid mlang string literal the same way.
+pub(crate) fn quote_as_static_str(quote: char) -> &'static str {
     if quote == '`' { "`" } else { "\"" }
 }
 
@@ -385,8 +398,9 @@ fn quote_as_static_str(quote: char) -> &'static str {
 /// `text` can be embedded inside a `quote`-delimited mlang string literal
 /// without prematurely terminating it (e.g. a double-quoted mlang string
 /// around SQL containing `"quoted identifiers"`) or corrupting an
-/// accidental escape sequence.
-fn escape_for_string_literal(text: &str, quote: char) -> Cow<'_, str> {
+/// accidental escape sequence. Shared with the concatenation-chain path
+/// (`utils/concatenation.rs`).
+pub(crate) fn escape_for_string_literal(text: &str, quote: char) -> Cow<'_, str> {
     if !text.contains(['\\', quote]) {
         return Cow::Borrowed(text);
     }

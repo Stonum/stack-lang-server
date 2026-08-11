@@ -46,7 +46,8 @@ pub fn format(
                 .with_line_width(line_width)
                 .with_pretty_line_width(LineWidth::try_from(FORMAT_PRETTY_LINE_WIDTH).unwrap())
                 .with_indent_width(indent_width)
-                .with_bracket_spacing(false.into());
+                .with_bracket_spacing(false.into())
+                .with_selected_range(text_range);
 
             mlang_formatter::format_range(format_options, &document.mlang_syntax()?, text_range)
                 .ok()?

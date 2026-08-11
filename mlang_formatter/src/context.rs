@@ -6,6 +6,7 @@ use biome_formatter::{
     AttributePosition, BracketSpacing, CstFormatContext, FormatContext, FormatElement,
     FormatOptions, IndentStyle, IndentWidth, LineEnding, LineWidth, QuoteStyle, TransformSourceMap,
 };
+use biome_rowan::TextRange;
 use mlang_syntax::{AnyMFunctionBody, MFileSource, MLanguage};
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -187,6 +188,14 @@ pub struct MFormatOptions {
     /// functions around them can extend this list.
     sql_call_names: Vec<String>,
 
+    /// The range explicitly requested by a `textDocument/rangeFormatting`
+    /// call, if any. Used to detect a genuine partial selection of a single
+    /// string literal (selected range fully contained in the token's own
+    /// range) as an explicit request to format that string as embedded SQL,
+    /// independent of the `sql_call_names` call-site heuristic. `None` for
+    /// whole-document formatting or when formatting isn't range-based.
+    selected_range: Option<TextRange>,
+
     /// Whether to hug the closing bracket of multiline HTML/MX tags to the end of the last line, rather than being alone on the following line. Defaults to false.
     bracket_same_line: BracketSameLine,
 
@@ -218,6 +227,7 @@ impl MFormatOptions {
                 .iter()
                 .map(|name| name.to_string())
                 .collect(),
+            selected_range: None,
         }
     }
 
@@ -283,6 +293,11 @@ impl MFormatOptions {
 
     pub fn with_sql_call_names(mut self, sql_call_names: Vec<String>) -> Self {
         self.sql_call_names = sql_call_names;
+        self
+    }
+
+    pub fn with_selected_range(mut self, selected_range: TextRange) -> Self {
+        self.selected_range = Some(selected_range);
         self
     }
 
@@ -379,6 +394,10 @@ impl MFormatOptions {
 
     pub fn sql_call_names(&self) -> &[String] {
         &self.sql_call_names
+    }
+
+    pub fn selected_range(&self) -> Option<TextRange> {
+        self.selected_range
     }
 
     pub fn compact_fill_mode(&self) -> bool {

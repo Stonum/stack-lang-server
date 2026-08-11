@@ -78,17 +78,20 @@ macro_rules! assert_fmt_range {
         let syntax = $file_type;
         let tree = parse($src, syntax);
 
+        let text_range = TextRange::new(TextSize::from($range.start), TextSize::from($range.end));
+
+        // Mirrors `lsp/src/format.rs`, which threads the same requested
+        // range into both `format_range`'s own `range` parameter and
+        // `MFormatOptions::with_selected_range` -- a real
+        // `textDocument/rangeFormatting` call always does both.
         let options = MFormatOptions::new(syntax)
             .with_indent_style(IndentStyle::Space)
             .with_line_width(LineWidth::try_from(120).unwrap())
             .with_pretty_line_width(LineWidth::try_from(90).unwrap())
-            .with_indent_width(IndentWidth::from(3));
+            .with_indent_width(IndentWidth::from(3))
+            .with_selected_range(text_range);
 
-        let doc = format_range(
-            options,
-            &tree.syntax(),
-            TextRange::new(TextSize::from($range.start), TextSize::from($range.end)),
-        );
+        let doc = format_range(options, &tree.syntax(), text_range);
         let result = doc.unwrap().into_code();
         assert_eq!(
             $dest, result,

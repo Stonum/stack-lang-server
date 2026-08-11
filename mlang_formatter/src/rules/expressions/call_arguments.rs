@@ -7,7 +7,7 @@ use crate::rules::lists::array_element_list::can_concisely_print_array_list;
 use crate::utils::function_body::FunctionBodyCacheMode;
 use crate::utils::member_chain::SimpleArgument;
 use crate::utils::{
-    is_long_curried_call, try_format_embedded_sql, write_arguments_multi_line,
+    ConcatenatedQuery, is_long_curried_call, try_format_embedded_sql, write_arguments_multi_line,
     write_with_custom_line_width,
 };
 use biome_formatter::{VecBuffer, format_args, format_element, write};
@@ -18,6 +18,7 @@ use mlang_syntax::{
     MLogicalExpressionFields, MLongStringLiteralExpression, MStringLiteralExpression,
     MSyntaxKind::{self, M_LONG_STRING_LITERAL, M_STRING_LITERAL},
 };
+use std::rc::Rc;
 
 use super::string_expression::FormatStringLiteralOptions;
 
@@ -58,6 +59,25 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
         // argument list still falls back to the safe, unmodified verbatim
         // reproduction below, exactly as before this feature existed.
         let mut embedded_sql_formatted = false;
+        // Whether the first argument is a top-level `+`-concatenation chain
+        // that was successfully flattened, reformatted as one SQL document
+        // and split back into literal/hole pieces (see
+        // `utils/concatenation.rs`).
+        let mut concatenated_query: Option<Rc<ConcatenatedQuery>> = None;
+        // Whether the first argument even *looked* like a concatenation
+        // chain worth attempting (query-like call, top-level `+`). If so
+        // but `concatenated_query` ends up `None`, the attempt genuinely
+        // failed -- e.g. the joined placeholder text isn't valid SQL at
+        // all, which can legitimately mean the *real* concatenated query
+        // isn't valid SQL either (we can't tell: a hole sitting flush
+        // against a keyword with no separator, like `` `update` + table ``
+        // with no space, might be fine at runtime if the hole's own value
+        // happens to start with a space or a quote -- or it might be a
+        // real bug in the source). Either way we must not guess at a
+        // structural reformatting of the `+`-chain around content we
+        // don't understand -- same "leave it alone" fallback as a single
+        // literal that fails to parse below.
+        let mut first_is_concatenation_candidate = false;
 
         let arguments: Vec<_> = args
             .elements()
@@ -79,6 +99,13 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                     first_is_string = string_token.is_some();
                     if query_like_call && let Some(token) = &string_token {
                         embedded_sql_formatted = try_format_embedded_sql(token, f).is_some();
+                    } else if query_like_call
+                        && let AnyMCallArgument::AnyMExpression(
+                            expression @ AnyMExpression::MBinaryExpression(_),
+                        ) = &node
+                    {
+                        first_is_concatenation_candidate = true;
+                        concatenated_query = ConcatenatedQuery::try_new(expression, f).map(Rc::new);
                     }
                 }
 
@@ -87,13 +114,22 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                     is_last: index == last_index,
                     leading_lines,
                     query_like_string: index == 0 && first_is_string && query_like_call,
+                    concatenated_query: if index == 0 {
+                        concatenated_query.clone()
+                    } else {
+                        None
+                    },
                 }
             })
             .collect();
 
-        if first_is_string && query_like_call && !embedded_sql_formatted {
+        if first_is_string && query_like_call && !embedded_sql_formatted
+            || first_is_concatenation_candidate && concatenated_query.is_none()
+        {
             return format_verbatim_node(node.syntax()).fmt(f);
         }
+
+        let embedded_sql_formatted = embedded_sql_formatted || concatenated_query.is_some();
 
         // Hug the (possibly multi-line) reformatted query to the opening
         // paren -- same "group the first argument" mechanism already used
@@ -366,6 +402,13 @@ enum FormatCallArgument {
 
         /// query like
         query_like_string: bool,
+
+        /// The pre-computed reformatted content for a first argument that's
+        /// a successfully-reformatted `+`-concatenation SQL chain (see
+        /// `utils/concatenation.rs`). `None` for every other argument, and
+        /// for a first argument that wasn't a concatenation chain or that
+        /// didn't reformat cleanly.
+        concatenated_query: Option<Rc<ConcatenatedQuery>>,
     },
 
     /// The argument has been formatted because a caller inspected if it [Self::will_break].
@@ -463,35 +506,40 @@ impl FormatCallArgument {
                 element,
                 is_last,
                 query_like_string,
+                concatenated_query,
                 ..
             } => {
-                match element.node()? {
-                    AnyMCallArgument::AnyMExpression(AnyMExpression::MFunctionExpression(
-                        function,
-                    )) => {
-                        write!(
-                            f,
-                            [function.format().with_options(FormatFunctionOptions {
-                                body_cache_mode: cache_mode,
-                                ..FormatFunctionOptions::default()
-                            })]
-                        )?;
+                if let Some(concatenated_query) = concatenated_query {
+                    write!(f, [concatenated_query.as_ref()])?;
+                } else {
+                    match element.node()? {
+                        AnyMCallArgument::AnyMExpression(AnyMExpression::MFunctionExpression(
+                            function,
+                        )) => {
+                            write!(
+                                f,
+                                [function.format().with_options(FormatFunctionOptions {
+                                    body_cache_mode: cache_mode,
+                                    ..FormatFunctionOptions::default()
+                                })]
+                            )?;
+                        }
+                        AnyMCallArgument::AnyMExpression(
+                            AnyMExpression::AnyMLiteralExpression(literal),
+                        ) if matches!(
+                            literal.value_token()?.kind(),
+                            M_LONG_STRING_LITERAL | M_STRING_LITERAL
+                        ) =>
+                        {
+                            write!(
+                                f,
+                                [literal.format().with_options(FormatStringLiteralOptions {
+                                    is_query_like_string: *query_like_string
+                                })]
+                            )?
+                        }
+                        node => write!(f, [node.format()])?,
                     }
-                    AnyMCallArgument::AnyMExpression(AnyMExpression::AnyMLiteralExpression(
-                        literal,
-                    )) if matches!(
-                        literal.value_token()?.kind(),
-                        M_LONG_STRING_LITERAL | M_STRING_LITERAL
-                    ) =>
-                    {
-                        write!(
-                            f,
-                            [literal.format().with_options(FormatStringLiteralOptions {
-                                is_query_like_string: *query_like_string
-                            })]
-                        )?
-                    }
-                    node => write!(f, [node.format()])?,
                 }
 
                 if let Some(separator) = element.trailing_separator()? {
