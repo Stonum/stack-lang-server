@@ -1,6 +1,7 @@
 #[macro_use]
 mod generated;
 pub mod binary_like_expression;
+pub mod concatenation;
 pub mod expression_left_side;
 mod ext;
 mod file_source;

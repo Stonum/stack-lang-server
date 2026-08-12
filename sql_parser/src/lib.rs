@@ -231,6 +231,20 @@ pub fn parse(text: &str, source_type: SqlFileSource) -> Parse<SqlRoot> {
     parse_with_cache(text, source_type, &mut cache)
 }
 
+/// Whether `text` parses cleanly as embedded SQL (Postgres dialect + the
+/// `mlang` extension, so `~table~`/`#temp`/`:param` are understood) --
+/// a yes/no check, not a reformat. Used by `mlang_parser` at parse time
+/// (after substituting any placeholder holes) to decide whether a string
+/// literal/concatenation chain qualifies as embedded SQL; `mlang_formatter`
+/// does the actual reformatting separately once a node is already known to
+/// qualify.
+pub fn parses_as_embedded_sql(text: &str) -> bool {
+    let source_type = SqlFileSource::query()
+        .with_dialect(sql_syntax::SqlDialect::Postgres)
+        .with_mlang_extension(true);
+    !parse(text, source_type).has_errors()
+}
+
 fn parse_with_cache(
     text: &str,
     source_type: SqlFileSource,
