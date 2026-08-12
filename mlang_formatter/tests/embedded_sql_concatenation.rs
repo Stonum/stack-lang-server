@@ -188,6 +188,26 @@ var qq = Query(
 }
 
 #[test]
+fn concatenation_bails_out_when_a_hole_sits_between_join_and_where() {
+    // A hole isn't only opaque to the SQL grammar when it's flush against a
+    // keyword (see `concatenation_bails_out_when_a_hole_sits_flush_against_a_keyword`)
+    // -- even cleanly separated by whitespace, a bare identifier is not a
+    // valid clause in the position between a JOIN's `ON` and `WHERE` (that's
+    // a keyword/clause position, not an expression position). Left verbatim
+    // on purpose: reformatting around content we can't parse risks
+    // corrupting complex real-world queries, and this shape is rare enough
+    // that leaving it to the user to format by hand is an acceptable
+    // tradeoff. Deliberately messy spacing: if this ever silently
+    // "succeeded" via ordinary reformatting instead of falling back, the
+    // spacing would be cleaned up and this assertion would fail.
+    assert_fmt!(
+        r#"#
+var qq = Query(`select   a   from t nl join u tf on nl.id=tf.id and tf.type=0   ` + extraClause + `   where nl.a = 1`, 1);
+"#
+    );
+}
+
+#[test]
 fn concatenation_multiline_sql_with_holes_at_clause_boundaries() {
     assert_fmt!(
         r#"#

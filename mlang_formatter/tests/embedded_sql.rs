@@ -2,6 +2,26 @@
 mod helper;
 
 #[test]
+fn embedded_sql_preserves_format_style_placeholders() {
+    assert_fmt_eq!(
+        r#"#
+var qq = Query("select   *   from   t   where   a   =   {0}", 1);
+"#,
+        r#"#
+var qq = Query("select * from t where a = {0}", 1);"#
+    );
+}
+
+#[test]
+fn embedded_sql_preserves_repeated_format_style_placeholders() {
+    assert_fmt!(
+        r#"#
+var qq = Query("select * from t where a = {0} and b = {0}", 1);
+"#
+    );
+}
+
+#[test]
 fn embedded_sql_with_syntax_errors_falls_back_to_verbatim() {
     // The content doesn't parse as SQL at all -- must be left exactly as
     // written rather than risk corrupting it under a "prettier" guess.

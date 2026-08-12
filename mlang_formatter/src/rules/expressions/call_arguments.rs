@@ -13,10 +13,12 @@ use crate::utils::{
 use biome_formatter::{VecBuffer, format_args, format_element, write};
 use biome_rowan::{AstSeparatedElement, AstSeparatedList, SyntaxResult};
 use mlang_syntax::{
-    AnyMCallArgument, AnyMExpression, MBinaryExpressionFields, MCallArgumentList, MCallArguments,
-    MCallArgumentsFields, MCallExpression, MFunctionExpression, MLanguage,
-    MLogicalExpressionFields, MLongStringLiteralExpression, MStringLiteralExpression,
+    AnyMCallArgument, AnyMExpression, AnyMLiteralExpression, MBinaryExpressionFields,
+    MCallArgumentList, MCallArguments, MCallArgumentsFields, MCallExpression, MFunctionExpression,
+    MLanguage, MLogicalExpressionFields, MLongStringLiteralExpression, MStaticMemberExpression,
+    MStringLiteralExpression,
     MSyntaxKind::{self, M_LONG_STRING_LITERAL, M_STRING_LITERAL},
+    MSyntaxToken,
 };
 use std::rc::Rc;
 
@@ -106,6 +108,14 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                     {
                         first_is_concatenation_candidate = true;
                         concatenated_query = ConcatenatedQuery::try_new(expression, f).map(Rc::new);
+                    } else if query_like_call
+                        && let AnyMCallArgument::AnyMExpression(AnyMExpression::MCallExpression(
+                            call,
+                        )) = &node
+                        && let Some((_, token)) = string_method_callee(call, f.comments())
+                    {
+                        first_is_string = true;
+                        embedded_sql_formatted = try_format_embedded_sql(&token, f).is_some();
                     }
                 }
 
@@ -537,6 +547,17 @@ impl FormatCallArgument {
                                     is_query_like_string: *query_like_string
                                 })]
                             )?
+                        }
+                        AnyMCallArgument::AnyMExpression(AnyMExpression::MCallExpression(call)) => {
+                            let target = if *query_like_string {
+                                string_method_callee(call, f.comments())
+                            } else {
+                                None
+                            };
+                            match target {
+                                Some((member, _)) => write_string_method_call(&member, call, f)?,
+                                None => write!(f, [call.format()])?,
+                            }
                         }
                         node => write!(f, [node.format()])?,
                     }
@@ -1247,6 +1268,72 @@ fn is_string_callee_call_arg(arg: &AnyMCallArgument) -> bool {
         return false;
     };
     call.callee().is_ok_and(|c| is_string_member_callee(&c))
+}
+
+/// The value token of `expression` if it's a string literal, of either kind.
+fn string_expression_token(expression: &AnyMExpression) -> Option<MSyntaxToken> {
+    MLongStringLiteralExpression::cast_ref(expression.syntax())
+        .and_then(|literal| literal.value_token().ok())
+        .or_else(|| {
+            MStringLiteralExpression::cast_ref(expression.syntax())
+                .and_then(|literal| literal.value_token().ok())
+        })
+}
+
+/// If `call`'s callee is `<string literal>.method`, returns the callee and
+/// the literal's value token -- e.g. `` `select ...`.format(x) ``, any
+/// method name.
+///
+/// `write_string_method_call` bypasses the normal `.format()` dispatch for
+/// `call`/`member` themselves (only their individual fields get formatted),
+/// so both are marked "checked for a suppression comment" here regardless
+/// of the outcome -- otherwise a debug build panics. If either actually
+/// has a comment, bail out (`None`) rather than risk losing it.
+fn string_method_callee(
+    call: &MCallExpression,
+    comments: &MComments,
+) -> Option<(MStaticMemberExpression, MSyntaxToken)> {
+    let AnyMExpression::MStaticMemberExpression(member) = call.callee().ok()? else {
+        return None;
+    };
+    let token = string_expression_token(&member.object().ok()?)?;
+
+    comments.mark_suppression_checked(call.syntax());
+    comments.mark_suppression_checked(member.syntax());
+    if comments.has_comments(call.syntax()) || comments.has_comments(member.syntax()) {
+        return None;
+    }
+
+    Some((member, token))
+}
+
+/// Writes `<string>.method(args)` with the string reformatted as SQL.
+fn write_string_method_call(
+    member: &MStaticMemberExpression,
+    call: &MCallExpression,
+    f: &mut MFormatter,
+) -> FormatResult<()> {
+    match member.object()? {
+        AnyMExpression::AnyMLiteralExpression(
+            literal @ (AnyMLiteralExpression::MStringLiteralExpression(_)
+            | AnyMLiteralExpression::MLongStringLiteralExpression(_)),
+        ) => write!(
+            f,
+            [literal.format().with_options(FormatStringLiteralOptions {
+                is_query_like_string: true
+            })]
+        )?,
+        object => write!(f, [object.format()])?,
+    }
+
+    write!(
+        f,
+        [
+            member.operator_token().format(),
+            member.member().format(),
+            call.arguments().format(),
+        ]
+    )
 }
 
 fn is_chained_call_callee(call: &MCallExpression) -> bool {
