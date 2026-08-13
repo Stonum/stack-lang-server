@@ -349,6 +349,9 @@ impl AnyMExpression {
             }
             AnyMExpression::MLogicalExpression(expression) => expression.operator()?.precedence(),
             AnyMExpression::MBinaryExpression(expression) => expression.operator()?.precedence(),
+            AnyMExpression::MSqlConcatenationExpression(expression) => {
+                expression.expression()?.operator()?.precedence()
+            }
             AnyMExpression::MUnaryExpression(_) => OperatorPrecedence::Unary,
             AnyMExpression::MPostUpdateExpression(_) | AnyMExpression::MPreUpdateExpression(_) => {
                 OperatorPrecedence::Update
@@ -473,6 +476,12 @@ impl AnyMLiteralExpression {
             }
             AnyMLiteralExpression::MDateLiteralExpression(expression) => expression.value_token(),
             AnyMLiteralExpression::MTimeLiteralExpression(expression) => expression.value_token(),
+            AnyMLiteralExpression::MSqlStringLiteralExpression(expression) => {
+                expression.value_token()
+            }
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(expression) => {
+                expression.value_token()
+            }
         }
     }
 
@@ -498,6 +507,12 @@ impl AnyMLiteralExpression {
             }
             AnyMLiteralExpression::MTimeLiteralExpression(time) => {
                 Some(StaticValue::Time(time.value_token().ok()?))
+            }
+            AnyMLiteralExpression::MSqlStringLiteralExpression(string) => {
+                Some(StaticValue::String(string.value_token().ok()?))
+            }
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(string) => {
+                Some(StaticValue::String(string.value_token().ok()?))
             }
         }
     }

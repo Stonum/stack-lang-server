@@ -35,6 +35,8 @@ impl FormatRule<AnyMLiteralExpression> for FormatAnyMLiteralExpression {
             AnyMLiteralExpression::MLongStringLiteralExpression(node) => {
                 node.format().with_options(self.options).fmt(f)
             }
+            AnyMLiteralExpression::MSqlStringLiteralExpression(node) => node.format().fmt(f),
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(node) => node.format().fmt(f),
         }
     }
 }
