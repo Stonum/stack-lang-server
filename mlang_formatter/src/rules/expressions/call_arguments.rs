@@ -7,7 +7,7 @@ use crate::rules::lists::array_element_list::can_concisely_print_array_list;
 use crate::utils::function_body::FunctionBodyCacheMode;
 use crate::utils::member_chain::SimpleArgument;
 use crate::utils::{
-    ConcatenatedQuery, is_long_curried_call, try_format_embedded_sql, write_arguments_multi_line,
+    ConcatenatedQuery, is_long_curried_call, write_arguments_multi_line,
     write_with_custom_line_width,
 };
 use biome_formatter::{VecBuffer, format_args, format_element, write};
@@ -15,14 +15,8 @@ use biome_rowan::{AstSeparatedElement, AstSeparatedList, SyntaxResult};
 use mlang_syntax::{
     AnyMCallArgument, AnyMExpression, AnyMLiteralExpression, MBinaryExpressionFields,
     MCallArgumentList, MCallArguments, MCallArgumentsFields, MCallExpression, MFunctionExpression,
-    MLanguage, MLogicalExpressionFields, MLongStringLiteralExpression, MStaticMemberExpression,
-    MStringLiteralExpression,
-    MSyntaxKind::{self, M_LONG_STRING_LITERAL, M_STRING_LITERAL},
-    MSyntaxToken,
+    MLanguage, MLogicalExpressionFields, MSyntaxKind,
 };
-use std::rc::Rc;
-
-use super::string_expression::FormatStringLiteralOptions;
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatMCallArguments;
@@ -48,38 +42,17 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
         }
 
         let call_expression = node.parent::<MCallExpression>();
-        let query_like_call = is_query_like_call(call_expression.as_ref(), f);
 
         let last_index = args.len().saturating_sub(1);
         let mut has_empty_line = false;
-        let mut first_is_string = false;
-        // Whether the first argument's string content was successfully
-        // parsed and reformatted as SQL (see `try_format_embedded_sql`).
-        // `false` for anything that isn't valid SQL we understand -- string
-        // concatenation building up the query in pieces, unsupported
-        // syntax, a `:param` typo, etc. -- in which case the whole
-        // argument list still falls back to the safe, unmodified verbatim
-        // reproduction below, exactly as before this feature existed.
-        let mut embedded_sql_formatted = false;
-        // Whether the first argument is a top-level `+`-concatenation chain
-        // that was successfully flattened, reformatted as one SQL document
-        // and split back into literal/hole pieces (see
-        // `utils/concatenation.rs`).
-        let mut concatenated_query: Option<Rc<ConcatenatedQuery>> = None;
-        // Whether the first argument even *looked* like a concatenation
-        // chain worth attempting (query-like call, top-level `+`). If so
-        // but `concatenated_query` ends up `None`, the attempt genuinely
-        // failed -- e.g. the joined placeholder text isn't valid SQL at
-        // all, which can legitimately mean the *real* concatenated query
-        // isn't valid SQL either (we can't tell: a hole sitting flush
-        // against a keyword with no separator, like `` `update` + table ``
-        // with no space, might be fine at runtime if the hole's own value
-        // happens to start with a space or a quote -- or it might be a
-        // real bug in the source). Either way we must not guess at a
-        // structural reformatting of the `+`-chain around content we
-        // don't understand -- same "leave it alone" fallback as a single
-        // literal that fails to parse below.
-        let mut first_is_concatenation_candidate = false;
+
+        // Confirmed embedded SQL as the first argument hugs the opening
+        // paren, same as e.g. `foo(function() {...}, other)`.
+        let first_argument_is_sql = args
+            .iter()
+            .next()
+            .and_then(|first| first.ok())
+            .is_some_and(|first| is_sql_call_argument(&first, f));
 
         let arguments: Vec<_> = args
             .elements()
@@ -89,65 +62,16 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                     .node()
                     .map_or(0, |node| get_lines_before(node.syntax()));
                 has_empty_line = has_empty_line || leading_lines > 1;
-                if index == 0
-                    && let Ok(node) = element.node()
-                {
-                    let string_token = MLongStringLiteralExpression::cast_ref(node.syntax())
-                        .and_then(|literal| literal.value_token().ok())
-                        .or_else(|| {
-                            MStringLiteralExpression::cast_ref(node.syntax())
-                                .and_then(|literal| literal.value_token().ok())
-                        });
-                    first_is_string = string_token.is_some();
-                    if query_like_call && let Some(token) = &string_token {
-                        embedded_sql_formatted = try_format_embedded_sql(token, f).is_some();
-                    } else if query_like_call
-                        && let AnyMCallArgument::AnyMExpression(
-                            expression @ AnyMExpression::MBinaryExpression(_),
-                        ) = &node
-                    {
-                        first_is_concatenation_candidate = true;
-                        concatenated_query = ConcatenatedQuery::try_new(expression, f).map(Rc::new);
-                    } else if query_like_call
-                        && let AnyMCallArgument::AnyMExpression(AnyMExpression::MCallExpression(
-                            call,
-                        )) = &node
-                        && let Some((_, token)) = string_method_callee(call, f.comments())
-                    {
-                        first_is_string = true;
-                        embedded_sql_formatted = try_format_embedded_sql(&token, f).is_some();
-                    }
-                }
 
                 FormatCallArgument::Default {
                     element,
                     is_last: index == last_index,
                     leading_lines,
-                    query_like_string: index == 0 && first_is_string && query_like_call,
-                    concatenated_query: if index == 0 {
-                        concatenated_query.clone()
-                    } else {
-                        None
-                    },
                 }
             })
             .collect();
 
-        if first_is_string && query_like_call && !embedded_sql_formatted
-            || first_is_concatenation_candidate && concatenated_query.is_none()
-        {
-            return format_verbatim_node(node.syntax()).fmt(f);
-        }
-
-        let embedded_sql_formatted = embedded_sql_formatted || concatenated_query.is_some();
-
-        // Hug the (possibly multi-line) reformatted query to the opening
-        // paren -- same "group the first argument" mechanism already used
-        // for e.g. `foo(function() {...}, other)` -- so the opening quote
-        // always sits right after `(`, and any trailing arguments stay
-        // inline after the closing quote if they fit, only wrapping to
-        // their own lines if they don't.
-        if embedded_sql_formatted {
+        if first_argument_is_sql {
             return write_grouped_arguments(
                 node,
                 arguments,
@@ -409,16 +333,6 @@ enum FormatCallArgument {
 
         /// The number of lines before this node
         leading_lines: usize,
-
-        /// query like
-        query_like_string: bool,
-
-        /// The pre-computed reformatted content for a first argument that's
-        /// a successfully-reformatted `+`-concatenation SQL chain (see
-        /// `utils/concatenation.rs`). `None` for every other argument, and
-        /// for a first argument that wasn't a concatenation chain or that
-        /// didn't reformat cleanly.
-        concatenated_query: Option<Rc<ConcatenatedQuery>>,
     },
 
     /// The argument has been formatted because a caller inspected if it [Self::will_break].
@@ -513,54 +427,21 @@ impl FormatCallArgument {
                 None => Ok(()),
             },
             FormatCallArgument::Default {
-                element,
-                is_last,
-                query_like_string,
-                concatenated_query,
-                ..
+                element, is_last, ..
             } => {
-                if let Some(concatenated_query) = concatenated_query {
-                    write!(f, [concatenated_query.as_ref()])?;
-                } else {
-                    match element.node()? {
-                        AnyMCallArgument::AnyMExpression(AnyMExpression::MFunctionExpression(
-                            function,
-                        )) => {
-                            write!(
-                                f,
-                                [function.format().with_options(FormatFunctionOptions {
-                                    body_cache_mode: cache_mode,
-                                    ..FormatFunctionOptions::default()
-                                })]
-                            )?;
-                        }
-                        AnyMCallArgument::AnyMExpression(
-                            AnyMExpression::AnyMLiteralExpression(literal),
-                        ) if matches!(
-                            literal.value_token()?.kind(),
-                            M_LONG_STRING_LITERAL | M_STRING_LITERAL
-                        ) =>
-                        {
-                            write!(
-                                f,
-                                [literal.format().with_options(FormatStringLiteralOptions {
-                                    is_query_like_string: *query_like_string
-                                })]
-                            )?
-                        }
-                        AnyMCallArgument::AnyMExpression(AnyMExpression::MCallExpression(call)) => {
-                            let target = if *query_like_string {
-                                string_method_callee(call, f.comments())
-                            } else {
-                                None
-                            };
-                            match target {
-                                Some((member, _)) => write_string_method_call(&member, call, f)?,
-                                None => write!(f, [call.format()])?,
-                            }
-                        }
-                        node => write!(f, [node.format()])?,
+                match element.node()? {
+                    AnyMCallArgument::AnyMExpression(AnyMExpression::MFunctionExpression(
+                        function,
+                    )) => {
+                        write!(
+                            f,
+                            [function.format().with_options(FormatFunctionOptions {
+                                body_cache_mode: cache_mode,
+                                ..FormatFunctionOptions::default()
+                            })]
+                        )?;
                     }
+                    node => write!(f, [node.format()])?,
                 }
 
                 if let Some(separator) = element.trailing_separator()? {
@@ -1172,31 +1053,6 @@ fn is_function_composition_args(arguments: &MCallArguments) -> bool {
     false
 }
 
-fn is_query_like_call(expression: Option<&MCallExpression>, f: &MFormatter) -> bool {
-    if let Some(expression) = expression
-        && let Ok(callee) = expression.callee()
-    {
-        let callee_name = match callee {
-            AnyMExpression::MIdentifierExpression(expression) => expression.text(),
-            AnyMExpression::MStaticMemberExpression(expression) => {
-                let member = expression.member();
-                if member.is_err() {
-                    return false;
-                }
-                member.unwrap().text()
-            }
-            _ => return false,
-        };
-        return f
-            .options()
-            .sql_call_names()
-            .iter()
-            .any(|name| name.eq_ignore_ascii_case(&callee_name));
-    }
-
-    false
-}
-
 // struct FormatQueryLikeArguments<'a> {
 //     l_paren: &'a dyn Format<MFormatContext>,
 //     args: &'a [FormatCallArgument],
@@ -1249,15 +1105,21 @@ fn is_query_like_call(expression: Option<&MCallExpression>, f: &MFormatter) -> b
 //     }
 // }
 
-/// Returns `true` when the callee is a static member expression whose object is a
-/// string literal (e.g. `"template {}".format` or `"text".split`).
+/// Returns `true` when the callee is a static member expression whose
+/// object is a string literal (e.g. `"template {}".format`), of any kind
+/// including the SQL-classified ones.
 fn is_string_member_callee(callee: &AnyMExpression) -> bool {
     let AnyMExpression::MStaticMemberExpression(member) = callee else {
         return false;
     };
     member.object().is_ok_and(|obj| {
-        MLongStringLiteralExpression::cast_ref(obj.syntax()).is_some()
-            || MStringLiteralExpression::cast_ref(obj.syntax()).is_some()
+        matches!(
+            obj.syntax().kind(),
+            MSyntaxKind::M_STRING_LITERAL_EXPRESSION
+                | MSyntaxKind::M_LONG_STRING_LITERAL_EXPRESSION
+                | MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION
+                | MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION
+        )
     })
 }
 
@@ -1270,70 +1132,44 @@ fn is_string_callee_call_arg(arg: &AnyMCallArgument) -> bool {
     call.callee().is_ok_and(|c| is_string_member_callee(&c))
 }
 
-/// The value token of `expression` if it's a string literal, of either kind.
-fn string_expression_token(expression: &AnyMExpression) -> Option<MSyntaxToken> {
-    MLongStringLiteralExpression::cast_ref(expression.syntax())
-        .and_then(|literal| literal.value_token().ok())
-        .or_else(|| {
-            MStringLiteralExpression::cast_ref(expression.syntax())
-                .and_then(|literal| literal.value_token().ok())
-        })
-}
-
-/// If `call`'s callee is `<string literal>.method`, returns the callee and
-/// the literal's value token -- e.g. `` `select ...`.format(x) ``, any
-/// method name.
-///
-/// `write_string_method_call` bypasses the normal `.format()` dispatch for
-/// `call`/`member` themselves (only their individual fields get formatted),
-/// so both are marked "checked for a suppression comment" here regardless
-/// of the outcome -- otherwise a debug build panics. If either actually
-/// has a comment, bail out (`None`) rather than risk losing it.
-fn string_method_callee(
-    call: &MCallExpression,
-    comments: &MComments,
-) -> Option<(MStaticMemberExpression, MSyntaxToken)> {
-    let AnyMExpression::MStaticMemberExpression(member) = call.callee().ok()? else {
-        return None;
+/// Whether `argument` is confirmed embedded SQL: a SQL-classified literal
+/// or concatenation node, or a `.method(...)` call on one. For a
+/// concatenation, re-checks [ConcatenatedQuery::try_new] since the
+/// formatter can still decline (comment on a bypassed piece, a segment that
+/// would split across lines) even after the parser confirmed the content.
+fn is_sql_call_argument(argument: &AnyMCallArgument, f: &MFormatter) -> bool {
+    let AnyMCallArgument::AnyMExpression(expression) = argument else {
+        return false;
     };
-    let token = string_expression_token(&member.object().ok()?)?;
 
-    comments.mark_suppression_checked(call.syntax());
-    comments.mark_suppression_checked(member.syntax());
-    if comments.has_comments(call.syntax()) || comments.has_comments(member.syntax()) {
-        return None;
+    // A comment on the argument breaks the hugged layout (glues to the
+    // opening paren) -- fall back to ordinary call-argument formatting.
+    if f.comments().has_comments(argument.syntax()) {
+        return false;
     }
 
-    Some((member, token))
-}
-
-/// Writes `<string>.method(args)` with the string reformatted as SQL.
-fn write_string_method_call(
-    member: &MStaticMemberExpression,
-    call: &MCallExpression,
-    f: &mut MFormatter,
-) -> FormatResult<()> {
-    match member.object()? {
+    match expression {
         AnyMExpression::AnyMLiteralExpression(
-            literal @ (AnyMLiteralExpression::MStringLiteralExpression(_)
-            | AnyMLiteralExpression::MLongStringLiteralExpression(_)),
-        ) => write!(
-            f,
-            [literal.format().with_options(FormatStringLiteralOptions {
-                is_query_like_string: true
-            })]
-        )?,
-        object => write!(f, [object.format()])?,
+            AnyMLiteralExpression::MSqlStringLiteralExpression(_)
+            | AnyMLiteralExpression::MSqlLongStringLiteralExpression(_),
+        ) => true,
+        AnyMExpression::MSqlConcatenationExpression(concatenation) => concatenation
+            .expression()
+            .is_ok_and(|inner| ConcatenatedQuery::try_new(&inner.into(), f).is_some()),
+        AnyMExpression::MCallExpression(call) => call.callee().is_ok_and(|callee| {
+            let AnyMExpression::MStaticMemberExpression(member) = callee else {
+                return false;
+            };
+            member.object().is_ok_and(|obj| {
+                matches!(
+                    obj.syntax().kind(),
+                    MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION
+                        | MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION
+                )
+            })
+        }),
+        _ => false,
     }
-
-    write!(
-        f,
-        [
-            member.operator_token().format(),
-            member.member().format(),
-            call.arguments().format(),
-        ]
-    )
 }
 
 fn is_chained_call_callee(call: &MCallExpression) -> bool {

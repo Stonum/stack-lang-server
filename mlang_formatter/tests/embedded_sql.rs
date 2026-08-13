@@ -195,10 +195,7 @@ if(test)
 #[test]
 fn embedded_sql_bare_assignment_keeps_operator_on_same_line_without_selection() {
     // Same regression as `embedded_sql_selection_on_bare_assignment_keeps_operator_on_same_line`,
-    // but reached via content-based detection (the parser already
-    // classified this string as SQL on its own -- no explicit selection
-    // needed). Deliberately messy input (`a=1` etc.) to prove real
-    // reformatting happens, not just idempotent whitespace matching.
+    // reached via content-based detection instead of a selection.
     assert_fmt_eq!(
         r#"#
 if(test)
@@ -221,72 +218,26 @@ if(test)
 }
 
 #[test]
-fn non_allowlisted_call_with_string_argument_is_left_untouched() {
-    // "some_other_function" isn't in the default `sql_call_names`, so its
-    // string argument formats as an ordinary string literal, not SQL.
-    assert_fmt!(
-        r#"#
-var qq = some_other_function(`select   *   from t`, 1);
-"#
-    );
-}
-
-#[test]
-fn selection_triggers_sql_formatting_for_non_allowlisted_call_argument() {
-    // `some_other_function` isn't in `sql_call_names` (see
-    // `non_allowlisted_call_with_string_argument_is_left_untouched` above),
-    // so its argument is never treated as SQL by the ordinary call-argument
-    // heuristic. An explicit `textDocument/rangeFormatting` selection of
-    // exactly this string must still trigger SQL formatting, independent of
-    // the callee's name and of argument position.
-    let src = r#"#
-var qq = some_other_function("select   *   from   t");
-"#;
-    let start = src.find('"').unwrap() as u32;
-    let end = src.rfind('"').unwrap() as u32 + 1;
-
-    assert_fmt_range!(
-        src,
-        "#\nvar qq = some_other_function(\"select * from t\");",
-        start..end
-    );
-}
-
-#[test]
-fn selection_does_not_widen_ordinary_whole_document_formatting() {
-    // Regression guard for the opposite direction: the very same string
-    // that `selection_triggers_sql_formatting_for_non_allowlisted_call_argument`
-    // reformats as SQL under an explicit selection must NOT be treated as
-    // SQL during ordinary whole-document formatting (no `selected_range` is
-    // ever set in that path) -- it only gets the plain literal-string
-    // whitespace cleanup, same as
-    // `non_allowlisted_call_with_string_argument_is_left_untouched`.
+fn call_name_does_not_gate_sql_detection() {
+    // Detection is content-based, not callee-name-based -- unlike the old
+    // `sql_call_names` allowlist.
     assert_fmt_eq!(
         r#"#
-var qq = some_other_function("select   *   from   t");
+var qq = some_other_function(`select   *   from t`, 1);
 "#,
         r#"#
-var qq = some_other_function("select   *   from   t");"#
+var qq = some_other_function(`select * from t`, 1);"#
     );
 }
 
 #[test]
-fn whole_document_range_formatting_does_not_widen_sql_detection() {
-    // A real `textDocument/rangeFormatting` request for "format the whole
-    // document" (no dedicated whole-document endpoint exists -- clients
-    // just pass a range spanning the entire file, see `lsp/src/format.rs`)
-    // sets `selected_range` to that entire span. It must not be confused
-    // with a genuine partial selection of this one string: the string's own
-    // token range is a small subset of the whole-file range, not the other
-    // way around, so `is_explicitly_selected`'s containment check correctly
-    // stays `false` here.
-    let src = r#"#
-var qq = some_other_function("select   *   from   t");
-"#;
-
-    assert_fmt_range!(
-        src,
-        "#\nvar qq = some_other_function(\"select   *   from   t\");",
-        0..(src.len() as u32)
+fn argument_position_does_not_gate_sql_detection() {
+    // Same as `call_name_does_not_gate_sql_detection`, for argument position.
+    assert_fmt_eq!(
+        r#"#
+var qq = some_other_function(1, "select   *   from   t");
+"#,
+        r#"#
+var qq = some_other_function(1, "select * from t");"#
     );
 }

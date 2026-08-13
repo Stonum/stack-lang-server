@@ -1,24 +1,10 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
-use biome_formatter::FormatRuleWithOptions;
-
 use crate::prelude::*;
-use crate::rules::expressions::string_expression::FormatStringLiteralOptions;
 use mlang_syntax::AnyMLiteralExpression;
 #[derive(Debug, Clone, Default)]
-pub(crate) struct FormatAnyMLiteralExpression {
-    options: FormatStringLiteralOptions,
-}
+pub(crate) struct FormatAnyMLiteralExpression;
 impl_format!(AnyMLiteralExpression, FormatAnyMLiteralExpression);
-
-impl FormatRuleWithOptions<AnyMLiteralExpression> for FormatAnyMLiteralExpression {
-    type Options = FormatStringLiteralOptions;
-
-    fn with_options(mut self, options: Self::Options) -> Self {
-        self.options = options;
-        self
-    }
-}
 
 impl FormatRule<AnyMLiteralExpression> for FormatAnyMLiteralExpression {
     type Context = MFormatContext;
@@ -29,12 +15,8 @@ impl FormatRule<AnyMLiteralExpression> for FormatAnyMLiteralExpression {
             AnyMLiteralExpression::MNumberLiteralExpression(node) => node.format().fmt(f),
             AnyMLiteralExpression::MDateLiteralExpression(node) => node.format().fmt(f),
             AnyMLiteralExpression::MTimeLiteralExpression(node) => node.format().fmt(f),
-            AnyMLiteralExpression::MStringLiteralExpression(node) => {
-                node.format().with_options(self.options).fmt(f)
-            }
-            AnyMLiteralExpression::MLongStringLiteralExpression(node) => {
-                node.format().with_options(self.options).fmt(f)
-            }
+            AnyMLiteralExpression::MStringLiteralExpression(node) => node.format().fmt(f),
+            AnyMLiteralExpression::MLongStringLiteralExpression(node) => node.format().fmt(f),
             AnyMLiteralExpression::MSqlStringLiteralExpression(node) => node.format().fmt(f),
             AnyMLiteralExpression::MSqlLongStringLiteralExpression(node) => node.format().fmt(f),
         }

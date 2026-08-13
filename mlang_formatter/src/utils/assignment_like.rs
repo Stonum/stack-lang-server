@@ -554,11 +554,9 @@ fn get_last_non_unary_argument(unary_expression: &MUnaryExpression) -> Option<An
 /// line -- either because it's reformatted as multi-line embedded SQL (only
 /// reachable for a bare assignment RHS via an explicit
 /// `textDocument/rangeFormatting` selection targeting this exact string,
-/// see `string_expression.rs`'s `is_explicitly_selected` -- the ordinary
-/// `sql_call_names` call-argument heuristic never applies here, since this
-/// string isn't a call argument), or because it already contains a literal
-/// embedded newline (mlang string literals may embed raw newlines
-/// regardless of delimiter, see `string_utils.rs`).
+/// see `string_expression.rs`'s `is_explicitly_selected`), or because it
+/// already contains a literal embedded newline (mlang string literals may
+/// embed raw newlines regardless of delimiter, see `string_utils.rs`).
 fn string_prints_multiline(
     value_token: &MSyntaxToken,
     f: &Formatter<MFormatContext>,
