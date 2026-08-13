@@ -37,6 +37,34 @@ var qq = Query("select * from t where a = '" + escape(a) + "'", 1);
 }
 
 #[test]
+fn concatenation_bare_assignment_keeps_operator_on_same_line_without_selection() {
+    // Same shape as `embedded_sql_bare_assignment_keeps_operator_on_same_line_without_selection`
+    // in `embedded_sql.rs`, but for a `+`-chain reclassified as
+    // `MSqlConcatenationExpression` and assigned directly (not passed as a
+    // call argument): `=` and the opening quote must stay on the same line,
+    // not push the whole multi-line query onto a new, extra-indented line.
+    assert_fmt_eq!(
+        r#"#
+if(test)
+{
+   var qq = "select a1,b2,c3,d4,e5,f6,g7 from " + table_name + " where a=1 and b=2 and c=3";
+}
+"#,
+        r#"#
+if(test)
+{
+   var qq = "
+      select a1, b2, c3, d4, e5, f6, g7
+      from " + table_name + "
+      where a = 1
+         and b = 2
+         and c = 3
+   ";
+}"#
+    );
+}
+
+#[test]
 fn concatenation_picks_up_ambient_indent_in_nested_context() {
     assert_fmt!(
         r#"#

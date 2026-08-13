@@ -193,6 +193,34 @@ if(test)
 }
 
 #[test]
+fn embedded_sql_bare_assignment_keeps_operator_on_same_line_without_selection() {
+    // Same regression as `embedded_sql_selection_on_bare_assignment_keeps_operator_on_same_line`,
+    // but reached via content-based detection (the parser already
+    // classified this string as SQL on its own -- no explicit selection
+    // needed). Deliberately messy input (`a=1` etc.) to prove real
+    // reformatting happens, not just idempotent whitespace matching.
+    assert_fmt_eq!(
+        r#"#
+if(test)
+{
+   var qq = "select row_id from t where a=1 and b=2 and c=3";
+}
+"#,
+        r#"#
+if(test)
+{
+   var qq = "
+      select row_id
+      from t
+      where a = 1
+         and b = 2
+         and c = 3
+   ";
+}"#
+    );
+}
+
+#[test]
 fn non_allowlisted_call_with_string_argument_is_left_untouched() {
     // "some_other_function" isn't in the default `sql_call_names`, so its
     // string argument formats as an ordinary string literal, not SQL.
