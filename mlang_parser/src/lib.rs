@@ -3,6 +3,7 @@ mod rewrite;
 mod rewrite_parser;
 mod single_token_parse_recovery;
 pub mod span;
+mod sql_literal_rewriter;
 mod state;
 mod syntax_rules;
 pub mod token_source;
@@ -255,6 +256,7 @@ fn parse_m_with_cache(
         let mut tree_sink = MLosslessTreeSink::with_cache(text, &tokens, cache);
         biome_parser::event::process(&mut tree_sink, events, errors);
         let (green, parse_errors) = tree_sink.finish();
+        let green = sql_literal_rewriter::rewrite_sql_literals(green);
         Parse::new(green, parse_errors)
     })
 }
