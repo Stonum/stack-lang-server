@@ -1,12 +1,20 @@
 use crate::prelude::*;
+use crate::utils::FormatSqlStringToken;
 
 use mlang_syntax::parentheses::NeedsParentheses;
 use mlang_syntax::{
-    MSqlConcatenationExpression, MSqlLongStringLiteralExpression, MSqlStringLiteralExpression,
+    MSqlConcatenationExpression, MSqlLongStringLiteralExpression,
+    MSqlLongStringLiteralExpressionFields, MSqlStringLiteralExpression,
+    MSqlStringLiteralExpressionFields,
 };
 
-// Verbatim placeholders -- real formatting (try_format_embedded_sql /
-// ConcatenatedQuery) lands in a later step of the same plan.
+// The parser only produces these kinds once the token's content has already
+// parsed as real SQL (see `mlang_parser::sql_literal_rewriter`), so
+// `FormatSqlStringToken` always has real embedded SQL to format here --
+// unlike the plain `MStringLiteralExpression`/`MLongStringLiteralExpression`
+// rules, no `is_query_like_string`/selection option is needed to decide.
+// `FormatSqlStringToken` still falls back to plain literal formatting on its
+// own if parsing surprisingly fails (defensive, not expected to trigger).
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatMSqlStringLiteralExpression;
@@ -21,7 +29,8 @@ impl FormatNodeRule<MSqlStringLiteralExpression> for FormatMSqlStringLiteralExpr
         node: &MSqlStringLiteralExpression,
         f: &mut MFormatter,
     ) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let MSqlStringLiteralExpressionFields { value_token } = node.as_fields();
+        FormatSqlStringToken::new(&value_token?).fmt(f)
     }
 
     fn needs_parentheses(&self, item: &MSqlStringLiteralExpression) -> bool {
@@ -42,7 +51,8 @@ impl FormatNodeRule<MSqlLongStringLiteralExpression> for FormatMSqlLongStringLit
         node: &MSqlLongStringLiteralExpression,
         f: &mut MFormatter,
     ) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let MSqlLongStringLiteralExpressionFields { value_token } = node.as_fields();
+        FormatSqlStringToken::new(&value_token?).fmt(f)
     }
 
     fn needs_parentheses(&self, item: &MSqlLongStringLiteralExpression) -> bool {
