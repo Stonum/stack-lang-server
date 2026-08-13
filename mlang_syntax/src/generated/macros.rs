@@ -48,6 +48,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MBinaryExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::MSqlConcatenationExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_BLOCK_STATEMENT => {
                     let $pattern = unsafe { $crate::MBlockStatement::new_unchecked(node) };
                     $body
@@ -260,6 +265,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::MLongStringLiteralExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::MSqlLongStringLiteralExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_METHOD_CLASS_MEMBER => {
                     let $pattern = unsafe { $crate::MMethodClassMember::new_unchecked(node) };
                     $body
@@ -375,6 +385,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::MSyntaxKind::M_STRING_LITERAL_EXPRESSION => {
                     let $pattern = unsafe { $crate::MStringLiteralExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::MSqlStringLiteralExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::MSyntaxKind::M_SUPER_EXPRESSION => {
