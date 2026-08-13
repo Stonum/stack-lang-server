@@ -1,9 +1,9 @@
 use crate::prelude::*;
-use crate::utils::FormatSqlStringToken;
+use crate::utils::{ConcatenatedQuery, FormatSqlStringToken};
 
 use mlang_syntax::parentheses::NeedsParentheses;
 use mlang_syntax::{
-    MSqlConcatenationExpression, MSqlLongStringLiteralExpression,
+    AnyMExpression, MSqlConcatenationExpression, MSqlLongStringLiteralExpression,
     MSqlLongStringLiteralExpressionFields, MSqlStringLiteralExpression,
     MSqlStringLiteralExpressionFields,
 };
@@ -73,7 +73,21 @@ impl FormatNodeRule<MSqlConcatenationExpression> for FormatMSqlConcatenationExpr
         node: &MSqlConcatenationExpression,
         f: &mut MFormatter,
     ) -> FormatResult<()> {
-        format_verbatim_node(node.syntax()).fmt(f)
+        let expression = node.expression()?;
+        let any_expression = AnyMExpression::from(expression.clone());
+
+        // The parser only wraps a `+`-chain here once it already parses as
+        // real SQL, but `ConcatenatedQuery::try_new` still has its own
+        // reasons to decline (a comment on one of the bypassed literal/
+        // operator nodes -- see `chain_has_comments`) -- fall back to
+        // ordinary `MBinaryExpression` formatting of the wrapped chain in
+        // that case, not verbatim: there's no surrounding call-argument
+        // structure here that formatting the chain normally could clash
+        // with.
+        match ConcatenatedQuery::try_new(&any_expression, f) {
+            Some(query) => query.fmt(f),
+            None => expression.format().fmt(f),
+        }
     }
 
     fn needs_parentheses(&self, item: &MSqlConcatenationExpression) -> bool {
