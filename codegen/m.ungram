@@ -302,6 +302,7 @@ AnyMExpression =
 	| MPostUpdateExpression
 	| MPreUpdateExpression
 	| MSequenceExpression
+	| MSqlConcatenationExpression
 	| MStaticMemberExpression
 	| MSuperExpression
 	| MThisExpression
@@ -394,6 +395,12 @@ MBinaryExpression =
     	| '&' | '|'
 		)
     right: AnyMExpression
+
+// "select ..." + hole + "..." -- a top-level `+`-chain content-validated as
+// real SQL by mlang_parser; `expression` is the original, untouched
+// MBinaryExpression tree.
+MSqlConcatenationExpression =
+	expression: MBinaryExpression
 
 MInstanceofExpression =
 	left: AnyMExpression
@@ -648,10 +655,14 @@ AnyMLiteralExpression =
 	| MLongStringLiteralExpression
 	| MDateLiteralExpression
 	| MTimeLiteralExpression
+	| MSqlStringLiteralExpression
+	| MSqlLongStringLiteralExpression
 
-AnyMStringLiteralExpression = 
+AnyMStringLiteralExpression =
 	MStringLiteralExpression
 	| MLongStringLiteralExpression
+	| MSqlStringLiteralExpression
+	| MSqlLongStringLiteralExpression
 
 
 // "abcd"
@@ -669,11 +680,17 @@ MNullLiteralExpression = value: 'null'
 // `abcd`
 MLongStringLiteralExpression = value: 'M_long_string_literal'
 
+// "select ..." -- content-validated as real SQL by mlang_parser
+MSqlStringLiteralExpression = value: 'M_string_literal'
+
+// `select ...` -- content-validated as real SQL by mlang_parser
+MSqlLongStringLiteralExpression = value: 'M_long_string_literal'
+
 // 01.01.2000 | 00.00.0000
-MDateLiteralExpression = value: 'M_date_literal_expression'
+MDateLiteralExpression = value: 'M_date_literal'
 
 // 01:05:20
-MTimeLiteralExpression = value: 'M_time_literal_expression'
+MTimeLiteralExpression = value: 'M_time_literal'
 
 ///////////////
 // DECLARATIONS

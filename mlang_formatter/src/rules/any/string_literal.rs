@@ -14,6 +14,10 @@ impl FormatRule<AnyMStringLiteralExpression> for FormatAnyMStringLiteralExpressi
         match node {
             AnyMStringLiteralExpression::MLongStringLiteralExpression(node) => node.format().fmt(f),
             AnyMStringLiteralExpression::MStringLiteralExpression(node) => node.format().fmt(f),
+            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(node) => {
+                node.format().fmt(f)
+            }
+            AnyMStringLiteralExpression::MSqlStringLiteralExpression(node) => node.format().fmt(f),
         }
     }
 }

@@ -11,11 +11,12 @@ use crate::{
     MIdentifierExpression, MInExpression, MInitializerClause, MInstanceofExpression,
     MLogicalExpression, MLongStringLiteralExpression, MNewExpression, MNullLiteralExpression,
     MNumberLiteralExpression, MObjectExpression, MParenthesizedExpression, MPostUpdateExpression,
-    MPreUpdateExpression, MPreUpdateOperator, MSequenceExpression, MStaticMemberExpression,
+    MPreUpdateExpression, MPreUpdateOperator, MSequenceExpression, MSqlConcatenationExpression,
+    MSqlLongStringLiteralExpression, MSqlStringLiteralExpression, MStaticMemberExpression,
     MStringLiteralExpression, MSuperExpression, MSyntaxKind, MSyntaxNode, MTemplateExpression,
     MThisExpression, MTimeLiteralExpression, MUnaryExpression, MUnaryOperator,
     binary_like_expression::{
-        AnyMBinaryLikeExpression, AnyMBinaryLikeLeftExpression, should_flatten,
+        AnyMBinaryLikeExpression, AnyMBinaryLikeLeftExpression, BinaryLikeOperator, should_flatten,
     },
     expression_left_side::AnyMExpressionLeftSide,
 };
@@ -52,6 +53,7 @@ impl NeedsParentheses for AnyMExpression {
             Self::MTemplateExpression(expr) => expr.needs_parentheses(),
             Self::MHashMapExpression(expr) => expr.needs_parentheses(),
             Self::MHashSetExpression(expr) => expr.needs_parentheses(),
+            Self::MSqlConcatenationExpression(expr) => expr.needs_parentheses(),
             Self::MBogusExpression(_) => false,
         }
     }
@@ -77,6 +79,8 @@ impl NeedsParentheses for AnyMLiteralExpression {
             Self::MLongStringLiteralExpression(expr) => expr.needs_parentheses(),
             Self::MTimeLiteralExpression(expr) => expr.needs_parentheses(),
             Self::MDateLiteralExpression(expr) => expr.needs_parentheses(),
+            Self::MSqlStringLiteralExpression(expr) => expr.needs_parentheses(),
+            Self::MSqlLongStringLiteralExpression(expr) => expr.needs_parentheses(),
         }
     }
 }
@@ -157,6 +161,63 @@ impl NeedsParentheses for MBinaryExpression {
     #[inline]
     fn needs_parentheses(&self) -> bool {
         binary_like_needs_parens(self.syntax())
+    }
+}
+
+impl NeedsParentheses for MSqlConcatenationExpression {
+    /// Mirrors [binary_like_needs_parens] -- this node isn't part of
+    /// [AnyMBinaryLikeExpression] (it wraps a `+`-only [MBinaryExpression]
+    /// rather than being one itself), so the precedence/operator it needs
+    /// for that comparison is read straight from the wrapped node instead.
+    fn needs_parentheses(&self) -> bool {
+        let Some(parent) = self.syntax().parent() else {
+            return false;
+        };
+        match parent.kind() {
+            MSyntaxKind::M_EXTENDS_CLAUSE
+            | MSyntaxKind::M_UNARY_EXPRESSION
+            | MSyntaxKind::M_SPREAD
+            | MSyntaxKind::M_CALL_EXPRESSION
+            | MSyntaxKind::M_NEW_EXPRESSION
+            | MSyntaxKind::M_STATIC_MEMBER_EXPRESSION
+            | MSyntaxKind::M_STATIC_MEMBER_ASSIGNMENT => true,
+            _ => {
+                let Ok(operator) = self.expression().and_then(|expr| expr.operator()) else {
+                    return true;
+                };
+                let operator = BinaryLikeOperator::from(operator);
+
+                match AnyMBinaryLikeExpression::try_cast(parent) {
+                    Ok(parent) => {
+                        let Ok(parent_operator) = parent.operator() else {
+                            return true;
+                        };
+                        let precedence = operator.precedence();
+                        let parent_precedence = parent_operator.precedence();
+
+                        if parent_precedence > precedence {
+                            return true;
+                        }
+
+                        let is_right =
+                            parent.right().map(AstNode::into_syntax).as_ref() == Ok(self.syntax());
+                        if is_right && parent_precedence == precedence {
+                            return true;
+                        }
+
+                        if parent_precedence.is_bitwise() && !precedence.is_equality() {
+                            return true;
+                        }
+
+                        parent_precedence == precedence
+                            && !should_flatten(parent_operator, operator)
+                    }
+                    Err(parent) => AnyMComputedMember::cast(parent)
+                        .and_then(|member| member.object())
+                        .is_some_and(|object| object.syntax() == self.syntax()),
+                }
+            }
+        }
     }
 }
 
@@ -434,6 +495,42 @@ impl NeedsParentheses for MTimeLiteralExpression {
     #[inline]
     fn needs_parentheses(&self) -> bool {
         false
+    }
+}
+
+impl NeedsParentheses for MSqlStringLiteralExpression {
+    fn needs_parentheses(&self) -> bool {
+        if let Some(expression_statement) = self.parent::<MExpressionStatement>() {
+            expression_statement
+                .syntax()
+                .parent()
+                .is_some_and(|grand_parent| {
+                    matches!(
+                        grand_parent.kind(),
+                        MSyntaxKind::M_STATEMENT_LIST | MSyntaxKind::M_MODULE_ITEM_LIST
+                    )
+                })
+        } else {
+            false
+        }
+    }
+}
+
+impl NeedsParentheses for MSqlLongStringLiteralExpression {
+    fn needs_parentheses(&self) -> bool {
+        if let Some(expression_statement) = self.parent::<MExpressionStatement>() {
+            expression_statement
+                .syntax()
+                .parent()
+                .is_some_and(|grand_parent| {
+                    matches!(
+                        grand_parent.kind(),
+                        MSyntaxKind::M_STATEMENT_LIST | MSyntaxKind::M_MODULE_ITEM_LIST
+                    )
+                })
+        } else {
+            false
+        }
     }
 }
 

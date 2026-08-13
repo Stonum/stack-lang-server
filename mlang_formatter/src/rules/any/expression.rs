@@ -14,6 +14,7 @@ impl FormatRule<AnyMExpression> for FormatAnyMExpression {
             AnyMExpression::MArrayExpression(node) => node.format().fmt(f),
             AnyMExpression::MAssignmentExpression(node) => node.format().fmt(f),
             AnyMExpression::MBinaryExpression(node) => node.format().fmt(f),
+            AnyMExpression::MSqlConcatenationExpression(node) => node.format().fmt(f),
             AnyMExpression::MBogusExpression(node) => node.format().fmt(f),
             AnyMExpression::MCallExpression(node) => node.format().fmt(f),
             AnyMExpression::MComputedMemberExpression(node) => node.format().fmt(f),

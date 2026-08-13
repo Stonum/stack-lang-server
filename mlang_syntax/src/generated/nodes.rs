@@ -369,6 +369,41 @@ pub struct MBinaryExpressionFields {
     pub right: SyntaxResult<AnyMExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MSqlConcatenationExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MSqlConcatenationExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MSqlConcatenationExpressionFields {
+        MSqlConcatenationExpressionFields {
+            expression: self.expression(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<MBinaryExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+}
+impl Serialize for MSqlConcatenationExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MSqlConcatenationExpressionFields {
+    pub expression: SyntaxResult<MBinaryExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MBlockStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2716,6 +2751,10 @@ pub struct MLogicalExpressionFields {
 pub struct MLongStringLiteralExpression {
     pub(crate) syntax: SyntaxNode,
 }
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MSqlLongStringLiteralExpression {
+    pub(crate) syntax: SyntaxNode,
+}
 impl MLongStringLiteralExpression {
     #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
     #[doc = r""]
@@ -2735,7 +2774,34 @@ impl MLongStringLiteralExpression {
         support::required_token(&self.syntax, 0usize)
     }
 }
+impl MSqlLongStringLiteralExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MSqlLongStringLiteralExpressionFields {
+        MSqlLongStringLiteralExpressionFields {
+            value_token: self.value_token(),
+        }
+    }
+    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
 impl Serialize for MLongStringLiteralExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+impl Serialize for MSqlLongStringLiteralExpression {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -2745,6 +2811,10 @@ impl Serialize for MLongStringLiteralExpression {
 }
 #[derive(Serialize)]
 pub struct MLongStringLiteralExpressionFields {
+    pub value_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Serialize)]
+pub struct MSqlLongStringLiteralExpressionFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -3964,6 +4034,10 @@ pub struct MStaticMemberExpressionFields {
 pub struct MStringLiteralExpression {
     pub(crate) syntax: SyntaxNode,
 }
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MSqlStringLiteralExpression {
+    pub(crate) syntax: SyntaxNode,
+}
 impl MStringLiteralExpression {
     #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
     #[doc = r""]
@@ -3983,7 +4057,34 @@ impl MStringLiteralExpression {
         support::required_token(&self.syntax, 0usize)
     }
 }
+impl MSqlStringLiteralExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MSqlStringLiteralExpressionFields {
+        MSqlStringLiteralExpressionFields {
+            value_token: self.value_token(),
+        }
+    }
+    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
 impl Serialize for MStringLiteralExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+impl Serialize for MSqlStringLiteralExpression {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -3993,6 +4094,10 @@ impl Serialize for MStringLiteralExpression {
 }
 #[derive(Serialize)]
 pub struct MStringLiteralExpressionFields {
+    pub value_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Serialize)]
+pub struct MSqlStringLiteralExpressionFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -4796,8 +4901,10 @@ impl AnyMDeclarationClause {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyMStringLiteralExpression {
-    MLongStringLiteralExpression(MLongStringLiteralExpression),
-    MStringLiteralExpression(MStringLiteralExpression),
+    MLongStringLiteralExpression(MLongStringLiteralExpression),    MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression),
+
+    MStringLiteralExpression(MStringLiteralExpression),    MSqlStringLiteralExpression(MSqlStringLiteralExpression),
+
 }
 impl AnyMStringLiteralExpression {
     pub fn as_m_long_string_literal_expression(&self) -> Option<&MLongStringLiteralExpression> {
@@ -4818,7 +4925,8 @@ pub enum AnyMExpression {
     AnyMLiteralExpression(AnyMLiteralExpression),
     MArrayExpression(MArrayExpression),
     MAssignmentExpression(MAssignmentExpression),
-    MBinaryExpression(MBinaryExpression),
+    MBinaryExpression(MBinaryExpression),    MSqlConcatenationExpression(MSqlConcatenationExpression),
+
     MBogusExpression(MBogusExpression),
     MCallExpression(MCallExpression),
     MComputedMemberExpression(MComputedMemberExpression),
@@ -5132,10 +5240,12 @@ impl AnyMFunctionBody {
 pub enum AnyMLiteralExpression {
     MBooleanLiteralExpression(MBooleanLiteralExpression),
     MDateLiteralExpression(MDateLiteralExpression),
-    MLongStringLiteralExpression(MLongStringLiteralExpression),
+    MLongStringLiteralExpression(MLongStringLiteralExpression),    MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression),
+
     MNullLiteralExpression(MNullLiteralExpression),
     MNumberLiteralExpression(MNumberLiteralExpression),
-    MStringLiteralExpression(MStringLiteralExpression),
+    MStringLiteralExpression(MStringLiteralExpression),    MSqlStringLiteralExpression(MSqlStringLiteralExpression),
+
     MTimeLiteralExpression(MTimeLiteralExpression),
 }
 impl AnyMLiteralExpression {
@@ -5791,6 +5901,44 @@ impl From<MBinaryExpression> for SyntaxNode {
 }
 impl From<MBinaryExpression> for SyntaxElement {
     fn from(n: MBinaryExpression) -> SyntaxElement {
+        n.syntax.into()
+    }
+}
+impl AstNode for MSqlConcatenationExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_SQL_CONCATENATION_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_SQL_CONCATENATION_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MSqlConcatenationExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MSqlConcatenationExpression")
+            .field("expression", &support::DebugSyntaxResult(self.expression()))
+            .finish()
+    }
+}
+impl From<MSqlConcatenationExpression> for SyntaxNode {
+    fn from(n: MSqlConcatenationExpression) -> SyntaxNode {
+        n.syntax
+    }
+}
+impl From<MSqlConcatenationExpression> for SyntaxElement {
+    fn from(n: MSqlConcatenationExpression) -> SyntaxElement {
         n.syntax.into()
     }
 }
@@ -8125,9 +8273,40 @@ impl AstNode for MLongStringLiteralExpression {
         self.syntax
     }
 }
+impl AstNode for MSqlLongStringLiteralExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_LONG_STRING_LITERAL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_LONG_STRING_LITERAL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
 impl std::fmt::Debug for MLongStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MLongStringLiteralExpression")
+            .field(
+                "value_token",
+                &support::DebugSyntaxResult(self.value_token()),
+            )
+            .finish()
+    }
+}
+impl std::fmt::Debug for MSqlLongStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MSqlLongStringLiteralExpression")
             .field(
                 "value_token",
                 &support::DebugSyntaxResult(self.value_token()),
@@ -8140,8 +8319,18 @@ impl From<MLongStringLiteralExpression> for SyntaxNode {
         n.syntax
     }
 }
+impl From<MSqlLongStringLiteralExpression> for SyntaxNode {
+    fn from(n: MSqlLongStringLiteralExpression) -> SyntaxNode {
+        n.syntax
+    }
+}
 impl From<MLongStringLiteralExpression> for SyntaxElement {
     fn from(n: MLongStringLiteralExpression) -> SyntaxElement {
+        n.syntax.into()
+    }
+}
+impl From<MSqlLongStringLiteralExpression> for SyntaxElement {
+    fn from(n: MSqlLongStringLiteralExpression) -> SyntaxElement {
         n.syntax.into()
     }
 }
@@ -9402,9 +9591,40 @@ impl AstNode for MStringLiteralExpression {
         self.syntax
     }
 }
+impl AstNode for MSqlStringLiteralExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_STRING_LITERAL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_STRING_LITERAL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
 impl std::fmt::Debug for MStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MStringLiteralExpression")
+            .field(
+                "value_token",
+                &support::DebugSyntaxResult(self.value_token()),
+            )
+            .finish()
+    }
+}
+impl std::fmt::Debug for MSqlStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MSqlStringLiteralExpression")
             .field(
                 "value_token",
                 &support::DebugSyntaxResult(self.value_token()),
@@ -9417,8 +9637,18 @@ impl From<MStringLiteralExpression> for SyntaxNode {
         n.syntax
     }
 }
+impl From<MSqlStringLiteralExpression> for SyntaxNode {
+    fn from(n: MSqlStringLiteralExpression) -> SyntaxNode {
+        n.syntax
+    }
+}
 impl From<MStringLiteralExpression> for SyntaxElement {
     fn from(n: MStringLiteralExpression) -> SyntaxElement {
+        n.syntax.into()
+    }
+}
+impl From<MSqlStringLiteralExpression> for SyntaxElement {
+    fn from(n: MSqlStringLiteralExpression) -> SyntaxElement {
         n.syntax.into()
     }
 }
@@ -10710,19 +10940,29 @@ impl From<MLongStringLiteralExpression> for AnyMStringLiteralExpression {
         AnyMStringLiteralExpression::MLongStringLiteralExpression(node)
     }
 }
+impl From<MSqlLongStringLiteralExpression> for AnyMStringLiteralExpression {
+    fn from(node: MSqlLongStringLiteralExpression) -> AnyMStringLiteralExpression {
+        AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(node)
+    }
+}
 impl From<MStringLiteralExpression> for AnyMStringLiteralExpression {
     fn from(node: MStringLiteralExpression) -> AnyMStringLiteralExpression {
         AnyMStringLiteralExpression::MStringLiteralExpression(node)
     }
 }
+impl From<MSqlStringLiteralExpression> for AnyMStringLiteralExpression {
+    fn from(node: MSqlStringLiteralExpression) -> AnyMStringLiteralExpression {
+        AnyMStringLiteralExpression::MSqlStringLiteralExpression(node)
+    }
+}
 impl AstNode for AnyMStringLiteralExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
-        MLongStringLiteralExpression::KIND_SET.union(MStringLiteralExpression::KIND_SET);
+        MLongStringLiteralExpression::KIND_SET.union(MSqlLongStringLiteralExpression::KIND_SET).union(MStringLiteralExpression::KIND_SET).union(MSqlStringLiteralExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            M_LONG_STRING_LITERAL_EXPRESSION | M_STRING_LITERAL_EXPRESSION
+            M_LONG_STRING_LITERAL_EXPRESSION | M_SQL_LONG_STRING_LITERAL_EXPRESSION | M_STRING_LITERAL_EXPRESSION | M_SQL_STRING_LITERAL_EXPRESSION
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
@@ -10737,6 +10977,14 @@ impl AstNode for AnyMStringLiteralExpression {
                     syntax,
                 })
             }
+            M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
+                AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(
+                    MSqlLongStringLiteralExpression { syntax },
+                )
+            }
+            M_SQL_STRING_LITERAL_EXPRESSION => AnyMStringLiteralExpression::MSqlStringLiteralExpression(
+                MSqlStringLiteralExpression { syntax },
+            ),
             _ => return None,
         };
         Some(res)
@@ -10744,13 +10992,17 @@ impl AstNode for AnyMStringLiteralExpression {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => &it.syntax,
+            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => &it.syntax,
             AnyMStringLiteralExpression::MStringLiteralExpression(it) => &it.syntax,
+            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
             AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => it.syntax,
+            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => it.syntax,
             AnyMStringLiteralExpression::MStringLiteralExpression(it) => it.syntax,
+            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => it.syntax,
         }
     }
 }
@@ -10763,6 +11015,12 @@ impl std::fmt::Debug for AnyMStringLiteralExpression {
             AnyMStringLiteralExpression::MStringLiteralExpression(it) => {
                 std::fmt::Debug::fmt(it, f)
             }
+            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => {
+                std::fmt::Debug::fmt(it, f)
+            }
+            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => {
+                std::fmt::Debug::fmt(it, f)
+            }
         }
     }
 }
@@ -10770,7 +11028,9 @@ impl From<AnyMStringLiteralExpression> for SyntaxNode {
     fn from(n: AnyMStringLiteralExpression) -> SyntaxNode {
         match n {
             AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => it.into(),
+            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => it.into(),
             AnyMStringLiteralExpression::MStringLiteralExpression(it) => it.into(),
+            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => it.into(),
         }
     }
 }
@@ -10793,6 +11053,11 @@ impl From<MAssignmentExpression> for AnyMExpression {
 impl From<MBinaryExpression> for AnyMExpression {
     fn from(node: MBinaryExpression) -> AnyMExpression {
         AnyMExpression::MBinaryExpression(node)
+    }
+}
+impl From<MSqlConcatenationExpression> for AnyMExpression {
+    fn from(node: MSqlConcatenationExpression) -> AnyMExpression {
+        AnyMExpression::MSqlConcatenationExpression(node)
     }
 }
 impl From<MBogusExpression> for AnyMExpression {
@@ -10915,7 +11180,7 @@ impl AstNode for AnyMExpression {
     const KIND_SET: SyntaxKindSet<Language> = AnyMLiteralExpression::KIND_SET
         .union(MArrayExpression::KIND_SET)
         .union(MAssignmentExpression::KIND_SET)
-        .union(MBinaryExpression::KIND_SET)
+        .union(MBinaryExpression::KIND_SET).union(MSqlConcatenationExpression::KIND_SET)
         .union(MBogusExpression::KIND_SET)
         .union(MCallExpression::KIND_SET)
         .union(MComputedMemberExpression::KIND_SET)
@@ -10943,7 +11208,7 @@ impl AstNode for AnyMExpression {
         match kind {
             M_ARRAY_EXPRESSION
             | M_ASSIGNMENT_EXPRESSION
-            | M_BINARY_EXPRESSION
+            | M_BINARY_EXPRESSION | M_SQL_CONCATENATION_EXPRESSION
             | M_BOGUS_EXPRESSION
             | M_CALL_EXPRESSION
             | M_COMPUTED_MEMBER_EXPRESSION
@@ -10978,6 +11243,7 @@ impl AstNode for AnyMExpression {
                 AnyMExpression::MAssignmentExpression(MAssignmentExpression { syntax })
             }
             M_BINARY_EXPRESSION => AnyMExpression::MBinaryExpression(MBinaryExpression { syntax }),
+            M_SQL_CONCATENATION_EXPRESSION => AnyMExpression::MSqlConcatenationExpression(MSqlConcatenationExpression { syntax }),
             M_BOGUS_EXPRESSION => AnyMExpression::MBogusExpression(MBogusExpression { syntax }),
             M_CALL_EXPRESSION => AnyMExpression::MCallExpression(MCallExpression { syntax }),
             M_COMPUTED_MEMBER_EXPRESSION => {
@@ -11047,6 +11313,7 @@ impl AstNode for AnyMExpression {
             AnyMExpression::MArrayExpression(it) => &it.syntax,
             AnyMExpression::MAssignmentExpression(it) => &it.syntax,
             AnyMExpression::MBinaryExpression(it) => &it.syntax,
+            AnyMExpression::MSqlConcatenationExpression(it) => &it.syntax,
             AnyMExpression::MBogusExpression(it) => &it.syntax,
             AnyMExpression::MCallExpression(it) => &it.syntax,
             AnyMExpression::MComputedMemberExpression(it) => &it.syntax,
@@ -11078,6 +11345,7 @@ impl AstNode for AnyMExpression {
             AnyMExpression::MArrayExpression(it) => it.syntax,
             AnyMExpression::MAssignmentExpression(it) => it.syntax,
             AnyMExpression::MBinaryExpression(it) => it.syntax,
+            AnyMExpression::MSqlConcatenationExpression(it) => it.syntax,
             AnyMExpression::MBogusExpression(it) => it.syntax,
             AnyMExpression::MCallExpression(it) => it.syntax,
             AnyMExpression::MComputedMemberExpression(it) => it.syntax,
@@ -11112,6 +11380,7 @@ impl std::fmt::Debug for AnyMExpression {
             AnyMExpression::MArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMExpression::MAssignmentExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMExpression::MBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
+            AnyMExpression::MSqlConcatenationExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMExpression::MBogusExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMExpression::MCallExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMExpression::MComputedMemberExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -11145,6 +11414,7 @@ impl From<AnyMExpression> for SyntaxNode {
             AnyMExpression::MArrayExpression(it) => it.into(),
             AnyMExpression::MAssignmentExpression(it) => it.into(),
             AnyMExpression::MBinaryExpression(it) => it.into(),
+            AnyMExpression::MSqlConcatenationExpression(it) => it.into(),
             AnyMExpression::MBogusExpression(it) => it.into(),
             AnyMExpression::MCallExpression(it) => it.into(),
             AnyMExpression::MComputedMemberExpression(it) => it.into(),
@@ -11585,6 +11855,11 @@ impl From<MLongStringLiteralExpression> for AnyMLiteralExpression {
         AnyMLiteralExpression::MLongStringLiteralExpression(node)
     }
 }
+impl From<MSqlLongStringLiteralExpression> for AnyMLiteralExpression {
+    fn from(node: MSqlLongStringLiteralExpression) -> AnyMLiteralExpression {
+        AnyMLiteralExpression::MSqlLongStringLiteralExpression(node)
+    }
+}
 impl From<MNullLiteralExpression> for AnyMLiteralExpression {
     fn from(node: MNullLiteralExpression) -> AnyMLiteralExpression {
         AnyMLiteralExpression::MNullLiteralExpression(node)
@@ -11600,6 +11875,11 @@ impl From<MStringLiteralExpression> for AnyMLiteralExpression {
         AnyMLiteralExpression::MStringLiteralExpression(node)
     }
 }
+impl From<MSqlStringLiteralExpression> for AnyMLiteralExpression {
+    fn from(node: MSqlStringLiteralExpression) -> AnyMLiteralExpression {
+        AnyMLiteralExpression::MSqlStringLiteralExpression(node)
+    }
+}
 impl From<MTimeLiteralExpression> for AnyMLiteralExpression {
     fn from(node: MTimeLiteralExpression) -> AnyMLiteralExpression {
         AnyMLiteralExpression::MTimeLiteralExpression(node)
@@ -11611,17 +11891,17 @@ impl AstNode for AnyMLiteralExpression {
         .union(MDateLiteralExpression::KIND_SET)
         .union(MNullLiteralExpression::KIND_SET)
         .union(MNumberLiteralExpression::KIND_SET)
-        .union(MStringLiteralExpression::KIND_SET)
+        .union(MStringLiteralExpression::KIND_SET).union(MSqlStringLiteralExpression::KIND_SET)
         .union(MTimeLiteralExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
             M_BOOLEAN_LITERAL_EXPRESSION
                 | M_DATE_LITERAL_EXPRESSION
-                | M_LONG_STRING_LITERAL_EXPRESSION
+                | M_LONG_STRING_LITERAL_EXPRESSION | M_SQL_LONG_STRING_LITERAL_EXPRESSION
                 | M_NULL_LITERAL_EXPRESSION
                 | M_NUMBER_LITERAL_EXPRESSION
-                | M_STRING_LITERAL_EXPRESSION
+                | M_STRING_LITERAL_EXPRESSION | M_SQL_STRING_LITERAL_EXPRESSION
                 | M_TIME_LITERAL_EXPRESSION
         )
     }
@@ -11644,10 +11924,20 @@ impl AstNode for AnyMLiteralExpression {
             M_STRING_LITERAL_EXPRESSION => {
                 AnyMLiteralExpression::MStringLiteralExpression(MStringLiteralExpression { syntax })
             }
+            M_SQL_STRING_LITERAL_EXPRESSION => {
+                AnyMLiteralExpression::MSqlStringLiteralExpression(MSqlStringLiteralExpression {
+                    syntax,
+                })
+            }
             M_LONG_STRING_LITERAL_EXPRESSION => {
                 AnyMLiteralExpression::MLongStringLiteralExpression(MLongStringLiteralExpression {
                     syntax,
                 })
+            }
+            M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
+                AnyMLiteralExpression::MSqlLongStringLiteralExpression(
+                    MSqlLongStringLiteralExpression { syntax },
+                )
             }
             M_TIME_LITERAL_EXPRESSION => {
                 AnyMLiteralExpression::MTimeLiteralExpression(MTimeLiteralExpression { syntax })
@@ -11663,7 +11953,9 @@ impl AstNode for AnyMLiteralExpression {
             AnyMLiteralExpression::MNullLiteralExpression(it) => &it.syntax,
             AnyMLiteralExpression::MNumberLiteralExpression(it) => &it.syntax,
             AnyMLiteralExpression::MStringLiteralExpression(it) => &it.syntax,
+            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => &it.syntax,
             AnyMLiteralExpression::MLongStringLiteralExpression(it) => &it.syntax,
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => &it.syntax,
             AnyMLiteralExpression::MTimeLiteralExpression(it) => &it.syntax,
         }
     }
@@ -11674,7 +11966,9 @@ impl AstNode for AnyMLiteralExpression {
             AnyMLiteralExpression::MNullLiteralExpression(it) => it.syntax,
             AnyMLiteralExpression::MNumberLiteralExpression(it) => it.syntax,
             AnyMLiteralExpression::MStringLiteralExpression(it) => it.syntax,
+            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => it.syntax,
             AnyMLiteralExpression::MLongStringLiteralExpression(it) => it.syntax,
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => it.syntax,
             AnyMLiteralExpression::MTimeLiteralExpression(it) => it.syntax,
         }
     }
@@ -11687,7 +11981,9 @@ impl std::fmt::Debug for AnyMLiteralExpression {
             AnyMLiteralExpression::MNullLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMLiteralExpression::MNumberLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMLiteralExpression::MStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMLiteralExpression::MLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
             AnyMLiteralExpression::MTimeLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
@@ -11700,7 +11996,9 @@ impl From<AnyMLiteralExpression> for SyntaxNode {
             AnyMLiteralExpression::MNullLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MNumberLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MStringLiteralExpression(it) => it.into(),
+            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MLongStringLiteralExpression(it) => it.into(),
+            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MTimeLiteralExpression(it) => it.into(),
         }
     }
@@ -12528,6 +12826,11 @@ impl std::fmt::Display for MBinaryExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for MSqlConcatenationExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for MBlockStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12788,6 +13091,11 @@ impl std::fmt::Display for MLongStringLiteralExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for MSqlLongStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for MMethodClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12929,6 +13237,11 @@ impl std::fmt::Display for MStaticMemberExpression {
     }
 }
 impl std::fmt::Display for MStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MSqlStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

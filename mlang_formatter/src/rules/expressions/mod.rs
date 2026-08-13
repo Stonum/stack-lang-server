@@ -23,6 +23,7 @@ pub(crate) mod parenthesized_expression;
 pub(crate) mod post_update_expression;
 pub(crate) mod pre_update_expression;
 pub(crate) mod sequence_expression;
+pub(crate) mod sql_string_literal_expression;
 pub(crate) mod static_member_expression;
 pub(crate) mod string_expression;
 pub(crate) mod super_expression;
