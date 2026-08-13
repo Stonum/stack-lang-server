@@ -58,12 +58,11 @@ fn raw_content(text: &str) -> Option<&str> {
     text.get(1..text.len().checked_sub(1)?)
 }
 
-/// Whether `node` (already known to be a `+`-[MSyntaxKind::M_BINARY_EXPRESSION])
-/// is itself the left or right side of an *enclosing* `+`-chain -- if so, it's
-/// not the top of its chain, and whichever ancestor *is* the top will
-/// consider the whole chain when the rewriter reaches it (or already has,
-/// in which case this node is unreachable and this check is moot).
-fn is_nested_in_a_larger_plus_chain(node: &MSyntaxNode) -> bool {
+/// Whether `node` is itself one piece of a `+`-chain. A chain fragment can
+/// parse as complete, unrelated SQL on its own even when the joined whole
+/// doesn't -- so it must defer to the chain root rather than being sniffed
+/// independently.
+fn has_plus_chain_parent(node: &MSyntaxNode) -> bool {
     node.parent()
         .is_some_and(|parent| is_plus_binary_expression(&parent).is_some())
 }
@@ -99,6 +98,10 @@ impl SqlLiteralRewriter {
         node: MSyntaxNode,
         new_kind: MSyntaxKind,
     ) -> VisitNodeSignal<MLanguage> {
+        if has_plus_chain_parent(&node) {
+            return VisitNodeSignal::Traverse(node);
+        }
+
         let Some(token) = node.slots().next().and_then(|slot| slot.into_token()) else {
             return VisitNodeSignal::Traverse(node);
         };
@@ -119,7 +122,7 @@ impl SqlLiteralRewriter {
         let Some(binary) = is_plus_binary_expression(&node) else {
             return VisitNodeSignal::Traverse(node);
         };
-        if is_nested_in_a_larger_plus_chain(&node) {
+        if has_plus_chain_parent(&node) {
             // Not the top of my chain -- leave the outermost `+` in the
             // chain to consider the whole thing (see [is_plus_binary_expression]).
             return VisitNodeSignal::Traverse(node);
@@ -326,6 +329,29 @@ mod tests {
             !root
                 .descendants()
                 .any(|node| node.kind() == MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION)
+        );
+    }
+
+    /// The first segment alone is complete, valid SQL, but the chain as a
+    /// whole isn't (hole between `join` and `where`) -- must not reclassify
+    /// the fragment just because it validates in isolation.
+    #[test]
+    fn does_not_independently_reclassify_a_chain_fragment_that_happens_to_validate_alone() {
+        let tree = crate::parse(
+            "#\nvar q = \"select a from t join u on a = b \" + hole + \" c = 1\";",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            !root
+                .descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION)
+        );
+        assert!(
+            !root
+                .descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
         );
     }
 }

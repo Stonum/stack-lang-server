@@ -171,11 +171,32 @@ impl ConcatenatedQuery {
         if chain_has_comments(&chain, f.comments()) {
             return None;
         }
+        if wrapper_has_comments(expression.syntax(), f.comments()) {
+            return None;
+        }
 
         let pieces = format_concatenation_chain(&chain.parts, f)?;
 
         Some(Self { chain, pieces })
     }
+}
+
+/// Whether an ancestor co-starting with `node` (the `MSqlConcatenationExpression`
+/// wrapper) carries a leading comment -- biome attaches it there, not to
+/// the chain's first literal piece, so [chain_has_comments] alone misses it.
+fn wrapper_has_comments(node: &mlang_syntax::MSyntaxNode, comments: &MComments) -> bool {
+    let start = node.text_range().start();
+    let mut ancestor = node.parent();
+    while let Some(current) = ancestor {
+        if current.text_range().start() != start {
+            break;
+        }
+        if comments.has_comments(&current) {
+            return true;
+        }
+        ancestor = current.parent();
+    }
+    false
 }
 
 impl Format<MFormatContext> for ConcatenatedQuery {

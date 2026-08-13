@@ -8,13 +8,9 @@ use mlang_syntax::{
     MSqlStringLiteralExpressionFields,
 };
 
-// The parser only produces these kinds once the token's content has already
-// parsed as real SQL (see `mlang_parser::sql_literal_rewriter`), so
-// `FormatSqlStringToken` always has real embedded SQL to format here --
-// unlike the plain `MStringLiteralExpression`/`MLongStringLiteralExpression`
-// rules, no `is_query_like_string`/selection option is needed to decide.
-// `FormatSqlStringToken` still falls back to plain literal formatting on its
-// own if parsing surprisingly fails (defensive, not expected to trigger).
+// The parser only produces these kinds once the content already parsed as
+// real SQL, so no selection/option is needed to decide -- unlike the plain
+// string-literal rules.
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatMSqlStringLiteralExpression;
@@ -76,14 +72,8 @@ impl FormatNodeRule<MSqlConcatenationExpression> for FormatMSqlConcatenationExpr
         let expression = node.expression()?;
         let any_expression = AnyMExpression::from(expression.clone());
 
-        // The parser only wraps a `+`-chain here once it already parses as
-        // real SQL, but `ConcatenatedQuery::try_new` still has its own
-        // reasons to decline (a comment on one of the bypassed literal/
-        // operator nodes -- see `chain_has_comments`) -- fall back to
-        // ordinary `MBinaryExpression` formatting of the wrapped chain in
-        // that case, not verbatim: there's no surrounding call-argument
-        // structure here that formatting the chain normally could clash
-        // with.
+        // ConcatenatedQuery may still decline (e.g. a comment on a bypassed
+        // piece); fall back to ordinary MBinaryExpression formatting.
         match ConcatenatedQuery::try_new(&any_expression, f) {
             Some(query) => query.fmt(f),
             None => expression.format().fmt(f),

@@ -39,10 +39,7 @@ var qq = Query("select * from t where a = '" + escape(a) + "'", 1);
 #[test]
 fn concatenation_bare_assignment_keeps_operator_on_same_line_without_selection() {
     // Same shape as `embedded_sql_bare_assignment_keeps_operator_on_same_line_without_selection`
-    // in `embedded_sql.rs`, but for a `+`-chain reclassified as
-    // `MSqlConcatenationExpression` and assigned directly (not passed as a
-    // call argument): `=` and the opening quote must stay on the same line,
-    // not push the whole multi-line query onto a new, extra-indented line.
+    // in `embedded_sql.rs`, but for a `+`-chain.
     assert_fmt_eq!(
         r#"#
 if(test)
@@ -133,25 +130,38 @@ fn concatenation_bails_out_when_a_hole_sits_flush_against_a_keyword() {
     // the source text alone can't tell us either way, and it's just as
     // plausible that the hole is meant to be glued onto a *partial
     // identifier* (e.g. `"prefix_" + suffix + "_table"`), where inserting
-    // a separator would be wrong. Left verbatim rather than guessed at.
-    assert_fmt!(
+    // a separator would be wrong. Left as an ordinary `+`-chain -- the
+    // surrounding call-argument list still gets ordinary formatting, though.
+    assert_fmt_eq!(
         r#"#
 var upd = Command(`
      update` + tableName + `
         set a = 1
   `, 0);
-"#
+"#,
+        r#"#
+var upd = Command(
+   `
+     update`
+      + tableName
+      + `
+        set a = 1
+  `,
+   0
+);"#
     );
 }
 
 #[test]
-fn concatenation_is_left_untouched_for_non_allowlisted_call() {
-    // "some_other_function" isn't in the default `sql_call_names`, so the
-    // concatenation-formatting path never even attempts to engage.
-    assert_fmt!(
+fn concatenation_reformats_regardless_of_call_name() {
+    // Detection is content-based, not callee-name-based -- unlike the old
+    // `sql_call_names` allowlist.
+    assert_fmt_eq!(
         r#"#
-var qq = some_other_function("select * from t where a = '" + x + "'", 1);
-"#
+var qq = some_other_function("select   *   from   t   where   a   =   '" + x + "'", 1);
+"#,
+        r#"#
+var qq = some_other_function("select * from t where a = '" + x + "'", 1);"#
     );
 }
 
@@ -217,21 +227,21 @@ var qq = Query(
 
 #[test]
 fn concatenation_bails_out_when_a_hole_sits_between_join_and_where() {
-    // A hole isn't only opaque to the SQL grammar when it's flush against a
-    // keyword (see `concatenation_bails_out_when_a_hole_sits_flush_against_a_keyword`)
-    // -- even cleanly separated by whitespace, a bare identifier is not a
-    // valid clause in the position between a JOIN's `ON` and `WHERE` (that's
-    // a keyword/clause position, not an expression position). Left verbatim
-    // on purpose: reformatting around content we can't parse risks
-    // corrupting complex real-world queries, and this shape is rare enough
-    // that leaving it to the user to format by hand is an acceptable
-    // tradeoff. Deliberately messy spacing: if this ever silently
-    // "succeeded" via ordinary reformatting instead of falling back, the
-    // spacing would be cleaned up and this assertion would fail.
-    assert_fmt!(
+    // Even cleanly separated by whitespace, a bare identifier isn't a valid
+    // clause between a JOIN's `ON` and `WHERE`. Left untouched; the
+    // surrounding call-argument list still gets ordinary formatting.
+    // Deliberately messy spacing to prove the pieces aren't reformatted.
+    assert_fmt_eq!(
         r#"#
 var qq = Query(`select   a   from t nl join u tf on nl.id=tf.id and tf.type=0   ` + extraClause + `   where nl.a = 1`, 1);
-"#
+"#,
+        r#"#
+var qq = Query(
+   `select   a   from t nl join u tf on nl.id=tf.id and tf.type=0   `
+      + extraClause
+      + `   where nl.a = 1`,
+   1
+);"#
     );
 }
 
