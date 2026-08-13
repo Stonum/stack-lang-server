@@ -1,0 +1,194 @@
+//! Post-parse pass that reclassifies string-literal nodes whose content
+//! genuinely parses as embedded SQL, so `MSqlStringLiteralExpression`/
+//! `MSqlLongStringLiteralExpression` is a real, dialect-independent property
+//! of the syntax tree -- not a formatter-only heuristic keyed off a call's
+//! name (see the plan this belongs to for the full rationale).
+
+use std::iter;
+
+use biome_rowan::{SyntaxRewriter, VisitNodeSignal};
+use mlang_syntax::concatenation::substitute_format_placeholders;
+use mlang_syntax::{MLanguage, MSyntaxKind, MSyntaxNode};
+
+/// Cheap pre-filter before attempting a real parse: does `raw` start (after
+/// leading whitespace) with one of these keywords, at a word boundary.
+/// Keywords alone never decide anything -- only [sql_parser::parses_as_embedded_sql]
+/// does -- this just avoids parsing every unrelated string literal in the
+/// file.
+const SQL_KEYWORDS: &[&str] = &["select", "insert", "update", "delete", "with"];
+
+fn looks_like_sql(raw: &str) -> bool {
+    let trimmed = raw.trim_start();
+    SQL_KEYWORDS.iter().any(|keyword| {
+        let Some(prefix) = trimmed.get(..keyword.len()) else {
+            return false;
+        };
+        if !prefix.eq_ignore_ascii_case(keyword) {
+            return false;
+        }
+        match trimmed[keyword.len()..].chars().next() {
+            Some(c) => !c.is_alphanumeric() && c != '_',
+            None => true,
+        }
+    })
+}
+
+/// Whether `raw` (a string literal's inner content, quotes already
+/// stripped) qualifies as embedded SQL: passes the cheap keyword pre-filter,
+/// then actually parses -- after substituting any `{...}` placeholders,
+/// same as `try_format_embedded_sql` does for formatting -- via
+/// `sql_parser`.
+fn validate_as_sql(raw: &str) -> bool {
+    if !looks_like_sql(raw) {
+        return false;
+    }
+
+    match substitute_format_placeholders(raw) {
+        Some((substituted, _originals)) => sql_parser::parses_as_embedded_sql(&substituted),
+        None => sql_parser::parses_as_embedded_sql(raw),
+    }
+}
+
+/// A string literal token's raw (still-escaped) inner content, with the
+/// surrounding quotes stripped -- matches `try_format_embedded_sql`'s own
+/// extraction in `mlang_formatter`.
+fn raw_content(text: &str) -> Option<&str> {
+    text.get(1..text.len().checked_sub(1)?)
+}
+
+struct SqlLiteralRewriter;
+
+impl SyntaxRewriter for SqlLiteralRewriter {
+    type Language = MLanguage;
+
+    fn visit_node(&mut self, node: MSyntaxNode) -> VisitNodeSignal<MLanguage> {
+        let new_kind = match node.kind() {
+            MSyntaxKind::M_STRING_LITERAL_EXPRESSION => {
+                MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION
+            }
+            MSyntaxKind::M_LONG_STRING_LITERAL_EXPRESSION => {
+                MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION
+            }
+            _ => return VisitNodeSignal::Traverse(node),
+        };
+
+        let Some(token) = node.slots().next().and_then(|slot| slot.into_token()) else {
+            return VisitNodeSignal::Traverse(node);
+        };
+
+        let Some(raw) = raw_content(token.text_trimmed()) else {
+            return VisitNodeSignal::Traverse(node);
+        };
+
+        if validate_as_sql(raw) {
+            let new_node = MSyntaxNode::new_detached(new_kind, iter::once(Some(token.into())));
+            VisitNodeSignal::Replace(new_node)
+        } else {
+            VisitNodeSignal::Traverse(node)
+        }
+    }
+}
+
+/// Runs the SQL-literal-reclassification pass over an already-parsed tree.
+pub(crate) fn rewrite_sql_literals(root: MSyntaxNode) -> MSyntaxNode {
+    SqlLiteralRewriter.transform(root)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recognizes_all_five_keywords() {
+        for keyword in SQL_KEYWORDS {
+            assert!(looks_like_sql(&format!("{keyword} * from t")), "{keyword}");
+            assert!(
+                looks_like_sql(&format!("{} * from t", keyword.to_uppercase())),
+                "{keyword} uppercase"
+            );
+        }
+    }
+
+    #[test]
+    fn requires_a_word_boundary_after_the_keyword() {
+        assert!(!looks_like_sql("selection of items"));
+        assert!(!looks_like_sql("withdraw the request"));
+        assert!(!looks_like_sql("insertable rows"));
+    }
+
+    #[test]
+    fn ignores_leading_whitespace() {
+        assert!(looks_like_sql("\n   select a from t"));
+    }
+
+    #[test]
+    fn rejects_unrelated_text() {
+        assert!(!looks_like_sql("just a plain string"));
+    }
+
+    #[test]
+    fn validates_real_sql_not_just_the_keyword() {
+        assert!(validate_as_sql("select a from t"));
+        assert!(!validate_as_sql("select from where"));
+    }
+
+    #[test]
+    fn validates_after_substituting_format_placeholders() {
+        assert!(validate_as_sql("select a from t where b = {0}"));
+    }
+
+    /// End to end through `crate::parse` -- confirms the rewrite is wired
+    /// into the real parse pipeline, not just callable in isolation.
+    #[test]
+    fn rewrites_a_qualifying_string_literal() {
+        let tree = crate::parse(
+            "#\nvar q = \"select a from t\";",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            root.descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
+        );
+        assert!(
+            !root
+                .descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_STRING_LITERAL_EXPRESSION)
+        );
+    }
+
+    #[test]
+    fn leaves_an_unrelated_string_literal_untouched() {
+        let tree = crate::parse(
+            "#\nvar q = \"just a plain string\";",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            root.descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_STRING_LITERAL_EXPRESSION)
+        );
+        assert!(
+            !root
+                .descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
+        );
+    }
+
+    #[test]
+    fn leaves_a_string_that_fails_to_parse_as_sql_untouched() {
+        let tree = crate::parse(
+            "#\nvar q = \"select from where\";",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            !root
+                .descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
+        );
+    }
+}

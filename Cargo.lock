@@ -1051,6 +1051,7 @@ dependencies = [
  "enumflags2",
  "mlang_factory",
  "mlang_syntax",
+ "sql_parser",
  "tracing",
 ]
 

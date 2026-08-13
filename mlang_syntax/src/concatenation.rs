@@ -1,5 +1,6 @@
 use crate::{AnyMExpression, AnyMLiteralExpression, MSyntaxKind, MSyntaxToken};
 use biome_rowan::SyntaxResult;
+use std::ops::Range;
 
 /// One piece of a flattened top-level `+`-concatenation chain
 pub enum ConcatenationPart {
@@ -136,4 +137,116 @@ pub fn build_placeholder_source(parts: &[ConcatenationPart]) -> Option<String> {
     }
 
     Some(joined)
+}
+
+/// Byte ranges of every non-nested `{...}` in `raw` (`.format()`-style
+/// template placeholders, e.g. `{0}`, `{}`, `{name}` -- content is opaque,
+/// not required to be numeric).
+fn find_format_placeholders(raw: &str) -> Vec<Range<usize>> {
+    let mut ranges = Vec::new();
+    let mut cursor = 0;
+
+    while let Some(open) = raw[cursor..].find('{') {
+        let open = cursor + open;
+        match raw[open + 1..].find(['{', '}']) {
+            Some(rel) if raw.as_bytes()[open + 1 + rel] == b'}' => {
+                let close = open + 1 + rel;
+                ranges.push(open..close + 1);
+                cursor = close + 1;
+            }
+            _ => cursor = open + 1,
+        }
+    }
+
+    ranges
+}
+
+/// Replaces each `{...}` in `raw` with [hole_placeholder], returning the
+/// substituted text and the original `{...}` text of each occurrence, in
+/// order. `None` if there's nothing to substitute, or if `raw` already
+/// contains a placeholder we're about to introduce.
+pub fn substitute_format_placeholders(raw: &str) -> Option<(String, Vec<String>)> {
+    let placeholder_ranges = find_format_placeholders(raw);
+    if placeholder_ranges.is_empty() {
+        return None;
+    }
+
+    let placeholders: Vec<String> = (0..placeholder_ranges.len())
+        .map(hole_placeholder)
+        .collect();
+    if placeholders.iter().any(|p| raw.contains(p.as_str())) {
+        return None;
+    }
+
+    let mut substituted = String::with_capacity(raw.len());
+    let mut originals = Vec::with_capacity(placeholder_ranges.len());
+    let mut cursor = 0;
+    for (index, range) in placeholder_ranges.iter().enumerate() {
+        substituted.push_str(&raw[cursor..range.start]);
+        substituted.push_str(&placeholders[index]);
+        originals.push(raw[range.clone()].to_string());
+        cursor = range.end;
+    }
+    substituted.push_str(&raw[cursor..]);
+
+    Some((substituted, originals))
+}
+
+#[cfg(test)]
+mod format_placeholder_tests {
+    use super::*;
+
+    #[test]
+    fn finds_single_placeholder() {
+        let ranges = find_format_placeholders("select {0} from t");
+        assert_eq!(ranges, vec![7..10]);
+    }
+
+    #[test]
+    fn finds_empty_placeholder() {
+        let ranges = find_format_placeholders("select {} from t");
+        assert_eq!(ranges, vec![7..9]);
+    }
+
+    #[test]
+    fn finds_non_numeric_placeholder() {
+        let ranges = find_format_placeholders("select {name} from t");
+        assert_eq!(ranges, vec![7..13]);
+    }
+
+    #[test]
+    fn finds_repeated_placeholder_occurrences() {
+        let ranges = find_format_placeholders("{0} and {0}");
+        assert_eq!(ranges, vec![0..3, 8..11]);
+    }
+
+    #[test]
+    fn skips_unmatched_opening_brace() {
+        let ranges = find_format_placeholders("select { from t where a = {0}");
+        assert_eq!(ranges, vec![26..29]);
+    }
+
+    #[test]
+    fn substitutes_and_restores_round_trip() {
+        let raw = "select {0} from t where a = {1}";
+        let (substituted, originals) = substitute_format_placeholders(raw).unwrap();
+
+        assert_eq!(originals, vec!["{0}", "{1}"]);
+        assert!(!substituted.contains('{'));
+        assert_eq!(
+            substituted,
+            "select __mlang_hole_0__ from t where a = __mlang_hole_1__"
+        );
+    }
+
+    #[test]
+    fn no_placeholders_returns_none() {
+        assert!(substitute_format_placeholders("select * from t").is_none());
+    }
+
+    #[test]
+    fn bails_out_on_placeholder_collision() {
+        let raw = format!("select {{0}} from t where a = '{}'", hole_placeholder(0));
+        assert!(substitute_format_placeholders(&raw).is_none());
+    }
 }
