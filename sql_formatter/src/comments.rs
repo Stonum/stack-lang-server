@@ -29,9 +29,9 @@ impl FormatRule<SourceComment<SqlLanguage>> for FormatSqlLeadingComment {
 /// Unlike mlang (which only ever lexes line comments and hardcodes
 /// `CommentKind::Line`), SQL has both `--` line comments and `/* ... */`
 /// block comments, so `get_comment_kind` needs a real implementation.
-/// `is_suppression` is left at its trait default; `place_comment` has one
-/// SQL-specific override (see [handle_create_function_body_comment]) --
-/// no other placement heuristics have been needed so far.
+/// `is_suppression` is left at its trait default; `place_comment` chains
+/// [handle_create_function_body_comment] and
+/// [handle_sibling_boundary_comment].
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Default)]
 pub struct SqlCommentStyle;
 
@@ -58,27 +58,15 @@ impl CommentStyle for SqlCommentStyle {
             CommentPlacement::Default(comment) => comment,
             placed => return placed,
         };
-        handle_logical_expression_operator_comment(comment)
+        handle_sibling_boundary_comment(comment)
     }
 }
 
 /// A comment between two bare-token-separated clauses of `CREATE FUNCTION`
-/// (e.g. between the parameter list and `returns ...`, or between
-/// `returns ...`/the trailing options and `as`) ends up as trivia on a bare
-/// token (`)`, `as`, ...), with no node of its own to anchor to. Its
-/// default placement (leading vs. trailing, and of which token) depends on
-/// whether it happens to share a line with the token before or after it --
-/// which flips depending on the *exact* whitespace/newline shape of
-/// whatever text it's attached to. Since that shape itself changes across a
-/// format pass (a hard line break the first pass inserts becomes the
-/// context the second pass lexes from), the default placement isn't
-/// stable, and comments can end up reordered, dropped onto the wrong
-/// clause, or merged onto one line on the second pass.
-///
-/// Forcing the comment to always be a *leading* comment of whatever clause
-/// follows it (its unambiguous `following_node`) makes the placement
-/// depend only on tree structure, not on incidental whitespace -- fixing
-/// the instability.
+/// (e.g. between the parameter list and `returns ...`) has the same
+/// instability as [handle_sibling_boundary_comment] below, but
+/// `preceding_node`/`following_node` don't share an immediate parent here
+/// (the parameter list nests one level deeper), so that check misses it.
 fn handle_create_function_body_comment(
     comment: DecoratedComment<SqlLanguage>,
 ) -> CommentPlacement<SqlLanguage> {
@@ -93,20 +81,28 @@ fn handle_create_function_body_comment(
     CommentPlacement::leading(following.clone(), comment)
 }
 
-/// Same instability as [handle_create_function_body_comment], for a comment
-/// right after an `and`/`or` operator: whether it shares a line with the
-/// operator depends on `SqlLogicalExpression`'s own wrap decision, which can
-/// change across a pass. Same fix: always a leading comment of what follows.
-fn handle_logical_expression_operator_comment(
+/// A comment between two sibling nodes (same immediate parent) with no node
+/// of its own to anchor to -- e.g. between two `and`/`or` operands, two
+/// `union`-ed branches, or two items of a comma-separated list (`select`/
+/// `group_by`/`order_by`/call arguments/`in (...)`). Default placement
+/// (leading vs. trailing) depends on whether the comment shares a line with
+/// the token before or after it, which flips depending on whether an
+/// enclosing group/fill happened to collapse onto one line -- unstable
+/// across a format pass, since that collapse decision can itself change.
+/// Forcing it to always be a leading comment of the following sibling makes
+/// placement depend only on tree structure.
+fn handle_sibling_boundary_comment(
     comment: DecoratedComment<SqlLanguage>,
 ) -> CommentPlacement<SqlLanguage> {
-    if comment.enclosing_node().kind() != SqlSyntaxKind::SQL_LOGICAL_EXPRESSION {
-        return CommentPlacement::Default(comment);
-    }
-
-    let Some(following) = comment.following_node() else {
+    let (Some(preceding), Some(following)) = (comment.preceding_node(), comment.following_node())
+    else {
         return CommentPlacement::Default(comment);
     };
 
-    CommentPlacement::leading(following.clone(), comment)
+    if preceding.parent() != following.parent() {
+        return CommentPlacement::Default(comment);
+    }
+
+    let following = following.clone();
+    CommentPlacement::leading(following, comment)
 }

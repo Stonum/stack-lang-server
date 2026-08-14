@@ -68,3 +68,36 @@ fn format_comment_after_and_or_operator_is_stable() {
         "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
     );
 }
+
+#[test]
+fn format_comment_between_select_items_is_stable() {
+    // Same instability as the and/or case above, for a comment between two
+    // items of a comma-separated fill list (`select`/`group_by`/`order_by`/
+    // call arguments/`in (...)` all share this mechanism).
+    assert_fmt!(
+        r#"--
+select a, -- note
+b from t
+"#
+    );
+}
+
+#[test]
+fn format_comment_before_union_branch_is_stable() {
+    // Regression test: a comment right before `union`/`intersect`/`except`
+    // used to glue onto the end of the preceding branch with no separator
+    // at all -- `SqlSetOperation`'s own leading hard line break lives
+    // inside its `fmt_fields`, so a leading comment (printed before
+    // `fmt_fields` runs) had nothing separating it from whatever came
+    // before.
+    assert_fmt!(
+        r#"--
+select a
+from t
+where x = 1
+	-- some note here
+	union all
+select b from t2 where y = 2
+"#
+    );
+}
