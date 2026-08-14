@@ -64,6 +64,10 @@ impl CleanedStringLiteralText<'_> {
     pub fn width(&self) -> usize {
         self.width
     }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
 }
 
 impl Format<MFormatContext> for CleanedStringLiteralText<'_> {

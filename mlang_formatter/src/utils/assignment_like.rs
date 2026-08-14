@@ -1,3 +1,4 @@
+use super::format_binary_like_expression::is_flat_multiline_concatenation_candidate;
 use super::member_chain::is_member_call_chain;
 use super::object::write_member_name;
 use super::{FormatLiteralStringToken, StringLiteralParentKind, try_format_embedded_sql};
@@ -505,7 +506,14 @@ pub(crate) fn should_break_after_operator(
         right if AnyMBinaryLikeExpression::can_cast(right.syntax().kind()) => {
             let binary_like = AnyMBinaryLikeExpression::unwrap_cast(right.syntax().clone());
 
+            // A `+` chain that embeds a multi-line string literal prints
+            // flat, on its own (see `format_binary_like_expression.rs`'s
+            // `try_format_flat_multiline_concatenation`) -- same reasoning
+            // as the plain-string-literal case below: it already carries
+            // its own layout, so stacking `BreakAfterOperator`'s soft-break
+            // on top would just push `=` onto its own line for no reason.
             !binary_like.should_inline_logical_expression()
+                && !is_flat_multiline_concatenation_candidate(right, f)?
         }
 
         AnyMExpression::MSequenceExpression(_) => true,

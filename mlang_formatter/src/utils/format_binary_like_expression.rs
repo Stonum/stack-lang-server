@@ -54,11 +54,15 @@
 //! and right side of each Right side.
 
 use crate::prelude::*;
-use biome_formatter::{Buffer, CstFormatContext, format_args, write};
+use crate::utils::{FormatLiteralStringToken, StringLiteralParentKind};
+use biome_formatter::{Buffer, CstFormatContext, FormatOptions, format_args, write};
 use mlang_syntax::binary_like_expression::{
     AnyMBinaryLikeExpression, AnyMBinaryLikeLeftExpression,
 };
-use mlang_syntax::{MSyntaxKind, MSyntaxNode, MUnaryExpression};
+use mlang_syntax::{
+    AnyMExpression, AnyMLiteralExpression, MBinaryOperator, MSyntaxKind, MSyntaxNode, MSyntaxToken,
+    MUnaryExpression,
+};
 
 use crate::rules::expressions::static_member_expression::AnyMStaticMemberLike;
 use biome_rowan::{AstNode, SyntaxResult};
@@ -67,6 +71,10 @@ use std::iter::FusedIterator;
 
 impl Format<MFormatContext> for AnyMBinaryLikeExpression {
     fn fmt(&self, f: &mut Formatter<MFormatContext>) -> FormatResult<()> {
+        if try_format_flat_multiline_concatenation(self, f)? {
+            return Ok(());
+        }
+
         let parent = self.syntax().parent();
 
         let is_inside_condition = self.is_inside_condition(parent.as_ref());
@@ -178,6 +186,274 @@ fn split_into_left_and_right_sides(
     }
 
     Ok(items)
+}
+
+/// Width, in columns, contributed by joining two operands together
+/// (`" + "`).
+const OPERATOR_WIDTH: usize = 3;
+
+/// How much horizontal space an operand of a `+` chain takes up.
+enum OperandWidth {
+    /// Prints on a single line, this many columns wide.
+    Single(usize),
+    /// A multi-line string literal -- one entry per printed line, in order.
+    /// Always has at least 2 entries.
+    Multiline(Vec<usize>),
+}
+
+/// A `+`-only chain, already validated as eligible for
+/// [try_format_flat_multiline_concatenation]'s flat rendering.
+pub(crate) struct FlatMultilineConcatenation {
+    operands: Vec<AnyMExpression>,
+    operators: Vec<MSyntaxToken>,
+}
+
+/// Tries to format a `+`-only chain of "simple" operands (identifiers,
+/// numbers, booleans, string literals) that contains exactly one multi-line
+/// string literal, keeping every operand on the same visual line instead of
+/// letting `biome_formatter`'s `Document::propagate_expand` force each
+/// operand of the chain onto its own line just because *one* of them
+/// happens to embed a raw newline -- `propagate_expand` unconditionally
+/// expands every group that (transitively) contains a hard break or a text
+/// run with `\n`, with no regard for whether the content before that break
+/// actually needs to wrap. Returns `Ok(true)` if it wrote a flat rendering
+/// (caller must not format anything else for this node), `Ok(false)` if the
+/// chain doesn't qualify or wouldn't fit, in which case the caller falls
+/// back to the regular group-based formatting further down.
+fn try_format_flat_multiline_concatenation(
+    root: &AnyMBinaryLikeExpression,
+    f: &mut Formatter<MFormatContext>,
+) -> FormatResult<bool> {
+    let Some(plan) = plan_flat_multiline_concatenation(root, f)? else {
+        return Ok(false);
+    };
+
+    // Every operator in this chain is a plain `+` (checked above); mark the
+    // original tokens consumed and reconstruct the visible ` + ` separators
+    // from scratch, the same way `FormatConcatenatedQuery` does for
+    // embedded-SQL concatenation (`concatenation.rs`).
+    for operator in &plan.operators {
+        write!(f, [format_removed(operator)])?;
+    }
+
+    write!(
+        f,
+        [&format_with(|f| {
+            for (index, operand) in plan.operands.iter().enumerate() {
+                if index > 0 {
+                    write!(f, [text(" + ")])?;
+                }
+                write!(f, [operand.format()])?;
+            }
+            Ok(())
+        })]
+    )?;
+
+    Ok(true)
+}
+
+/// Whether `expression` is a `+`-chain that [try_format_flat_multiline_concatenation]
+/// would render flat -- used by `assignment_like.rs` to keep the `=` glued
+/// to the right-hand side for the same reason it already does for a bare
+/// multi-line string literal (see `string_prints_multiline`): the chain
+/// carries its own internal layout (flat, in this case) and stacking the
+/// assignment's own `BreakAfterOperator` soft-break/indent on top of that
+/// would just push `=` onto its own line for no reason.
+pub(crate) fn is_flat_multiline_concatenation_candidate(
+    expression: &AnyMExpression,
+    f: &Formatter<MFormatContext>,
+) -> SyntaxResult<bool> {
+    let Some(binary_like) = AnyMBinaryLikeExpression::cast(expression.syntax().clone()) else {
+        return Ok(false);
+    };
+
+    Ok(plan_flat_multiline_concatenation(&binary_like, f)?.is_some())
+}
+
+/// Deliberately narrow in scope: only one multi-line literal is supported
+/// (a second one would need its own independent fits check for the segment
+/// that follows it), and every operand must be one of the "simple" kinds
+/// (identifiers, numbers, booleans, string literals) so that its printed
+/// width can be computed without actually formatting it -- a nested call,
+/// array, etc. bails out instead of risking a wrong width.
+fn plan_flat_multiline_concatenation(
+    root: &AnyMBinaryLikeExpression,
+    f: &Formatter<MFormatContext>,
+) -> SyntaxResult<Option<FlatMultilineConcatenation>> {
+    let AnyMBinaryLikeExpression::MBinaryExpression(binary) = root else {
+        return Ok(None);
+    };
+    if binary.operator()? != MBinaryOperator::Plus {
+        return Ok(None);
+    }
+
+    let parts = split_into_left_and_right_sides(root, false)?;
+
+    let mut operands = Vec::with_capacity(parts.len());
+    let mut operators = Vec::with_capacity(parts.len().saturating_sub(1));
+
+    for part in &parts {
+        match part {
+            BinaryLeftOrRightSide::Left { parent } => {
+                let Some(expression) = parent.left()?.into_expression() else {
+                    return Ok(None);
+                };
+                operands.push(expression);
+            }
+            BinaryLeftOrRightSide::Right { parent, .. } => {
+                // `-` shares `+`'s operator precedence, so a chain like
+                // `a + b - c` gets flattened together by
+                // `split_into_left_and_right_sides` -- bail rather than
+                // treat `-` as if it were concatenation.
+                let AnyMBinaryLikeExpression::MBinaryExpression(parent_binary) = parent else {
+                    return Ok(None);
+                };
+                if parent_binary.operator()? != MBinaryOperator::Plus {
+                    return Ok(None);
+                }
+                // This function never calls `parent.format()` -- it only
+                // ever formats the terminal operands directly -- so, like
+                // `BinaryLeftOrRightSide::Right`'s own formatting further
+                // down, it must mark every intermediate binary-expression
+                // node it bypasses as checked for a suppression comment by
+                // hand, or a debug build panics.
+                f.context()
+                    .comments()
+                    .mark_suppression_checked(parent.syntax());
+                operators.push(parent.operator_token()?);
+                operands.push(parent.right()?);
+            }
+        }
+    }
+
+    let comments = f.context().comments();
+    if operands
+        .iter()
+        .any(|operand| comments.has_comments(operand.syntax()))
+        || operators
+            .iter()
+            .filter_map(|token| token.parent())
+            .any(|node| comments.has_comments(&node))
+    {
+        return Ok(None);
+    }
+
+    let mut multiline_at = None;
+    let mut widths = Vec::with_capacity(operands.len());
+    for (index, operand) in operands.iter().enumerate() {
+        let Some(width) = classify_operand_width(operand)? else {
+            return Ok(None);
+        };
+        if matches!(width, OperandWidth::Multiline(_)) {
+            if multiline_at.is_some() {
+                // More than one multi-line operand -- out of scope, see the
+                // doc comment above.
+                return Ok(None);
+            }
+            multiline_at = Some(index);
+        }
+        widths.push(width);
+    }
+
+    let Some(multiline_at) = multiline_at else {
+        // No multi-line literal in the chain -- the regular group-based
+        // formatting already handles this correctly.
+        return Ok(None);
+    };
+
+    let budget = f.options().line_width().get() as usize;
+
+    // The width up to and including the multi-line literal's own first
+    // line. The exact column this expression starts printing at isn't
+    // knowable at this point in the formatter (deciding that is normally
+    // deferred to the printer's own line-fitting pass, which this bypasses
+    // precisely because that pass would force-expand the whole chain here)
+    // -- so, like `is_short_argument`'s threshold checks elsewhere in this
+    // crate, this approximates it as if it started at column 0.
+    let mut first_line_width = 0usize;
+    for (index, width) in widths[..=multiline_at].iter().enumerate() {
+        if index > 0 {
+            first_line_width += OPERATOR_WIDTH;
+        }
+        first_line_width += match width {
+            OperandWidth::Single(width) => *width,
+            OperandWidth::Multiline(lines) => lines[0],
+        };
+    }
+    if first_line_width > budget {
+        return Ok(None);
+    }
+
+    // The width of the literal's own last line plus everything that
+    // follows it on that same line -- unlike the first line, this one is
+    // exact: a raw newline embedded in a string literal's own text is never
+    // re-indented by the printer, so this segment always starts at column 0.
+    let OperandWidth::Multiline(lines) = &widths[multiline_at] else {
+        unreachable!("multiline_at always points at the one `OperandWidth::Multiline` entry");
+    };
+    let mut last_line_width = *lines.last().unwrap();
+    for width in &widths[multiline_at + 1..] {
+        let OperandWidth::Single(width) = width else {
+            unreachable!("checked above: only one multi-line operand in the chain");
+        };
+        last_line_width += OPERATOR_WIDTH + width;
+    }
+    if last_line_width > budget {
+        return Ok(None);
+    }
+
+    Ok(Some(FlatMultilineConcatenation {
+        operands,
+        operators,
+    }))
+}
+
+fn classify_operand_width(expression: &AnyMExpression) -> SyntaxResult<Option<OperandWidth>> {
+    let width = match expression {
+        AnyMExpression::AnyMLiteralExpression(literal) => match literal {
+            AnyMLiteralExpression::MStringLiteralExpression(string) => {
+                classify_string_literal(&string.value_token()?)
+            }
+            AnyMLiteralExpression::MLongStringLiteralExpression(string) => {
+                classify_string_literal(&string.value_token()?)
+            }
+            AnyMLiteralExpression::MNumberLiteralExpression(number) => Some(OperandWidth::Single(
+                number.value_token()?.text_trimmed().chars().count(),
+            )),
+            AnyMLiteralExpression::MBooleanLiteralExpression(boolean) => Some(
+                OperandWidth::Single(boolean.value_token()?.text_trimmed().chars().count()),
+            ),
+            _ => None,
+        },
+        AnyMExpression::MIdentifierExpression(identifier) => Some(OperandWidth::Single(
+            identifier
+                .name()?
+                .value_token()?
+                .text_trimmed()
+                .chars()
+                .count(),
+        )),
+        _ => None,
+    };
+
+    Ok(width)
+}
+
+fn classify_string_literal(token: &MSyntaxToken) -> Option<OperandWidth> {
+    let formatter = FormatLiteralStringToken::new(token, StringLiteralParentKind::Expression);
+    let cleaned = formatter.clean_text();
+    let text = cleaned.text();
+
+    // `chars().count()` (not `.len()`, a byte count) so multi-byte UTF-8
+    // scripts like Cyrillic don't get counted as roughly twice their actual
+    // printed column width.
+    if text.contains('\n') {
+        Some(OperandWidth::Multiline(
+            text.split('\n').map(|line| line.chars().count()).collect(),
+        ))
+    } else {
+        Some(OperandWidth::Single(text.chars().count()))
+    }
 }
 
 /// There are cases where the parent decides to inline the element; in
