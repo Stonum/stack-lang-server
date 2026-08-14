@@ -21,10 +21,17 @@ impl FormatNodeRule<SqlSetOperation> for FormatSqlSetOperation {
         // indented one level deeper than the branches on either side of it
         // -- which are themselves siblings at the same (unindented) level,
         // same as any other SELECT's clauses.
+        //
+        // The leading comment is formatted here, after the hard line break
+        // (see `fmt_leading_comments` below) rather than before it -- comments
+        // print before `fmt_fields` runs, so printing it first would glue it
+        // onto whatever precedes this operation with no separator.
         write!(
             f,
             [indent(&format_once(|f| {
-                write!(f, [hard_line_break(), operator_token.format()])?;
+                write!(f, [hard_line_break()])?;
+                write!(f, [format_leading_comments(node.syntax())])?;
+                write!(f, [operator_token.format()])?;
                 if let Some(quantifier) = &quantifier {
                     write!(f, [space(), quantifier.format()])?;
                 }
@@ -46,5 +53,11 @@ impl FormatNodeRule<SqlSetOperation> for FormatSqlSetOperation {
                 )
             }))]
         )
+    }
+
+    fn fmt_leading_comments(&self, _: &SqlSetOperation, _: &mut SqlFormatter) -> FormatResult<()> {
+        // Formatted as part of `fmt_fields`, after the operator's own
+        // separating hard line break -- see the comment there.
+        Ok(())
     }
 }
