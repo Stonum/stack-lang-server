@@ -111,6 +111,27 @@ var qq = query(`select "a" from "b"`);"#
 }
 
 #[test]
+fn embedded_sql_backslash_escape_is_not_doubled_on_repeated_formatting() {
+    // Regression test: a `\` in the query text (here, a regex literal)
+    // already forms a valid two-character mlang escape sequence in the
+    // raw source and must round-trip through `sql_formatter` and back into
+    // the mlang string literal unchanged -- not gain an extra `\` on every
+    // formatting pass.
+    assert_fmt_eq!(
+        r#"#
+var qq = query(`select   1   where   x   ~   '\\d+'`);
+"#,
+        r#"#
+var qq = query(`select 1 where x ~ '\\d+'`);"#
+    );
+    assert_fmt!(
+        r#"#
+var qq = query(`select 1 where x ~ '\\d+'`);
+"#
+    );
+}
+
+#[test]
 fn embedded_sql_without_bracket_identifiers_keeps_double_quote_delimiter() {
     // No conflicting `"` introduced by reformatting -- the original `"`
     // delimiter must stay untouched, not switch to backtick unnecessarily.

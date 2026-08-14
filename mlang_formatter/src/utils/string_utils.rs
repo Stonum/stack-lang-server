@@ -419,24 +419,36 @@ pub(crate) fn quote_as_static_str(quote: char) -> &'static str {
     if quote == '`' { "`" } else { "\"" }
 }
 
-/// Escapes `\` and the delimiter `quote` character (mlang's string escape
-/// rules recognise `\\`/`` \` ``/`\"`, per `consume_escape_sequence`) so
-/// `text` can be embedded inside a `quote`-delimited mlang string literal
-/// without prematurely terminating it (e.g. a double-quoted mlang string
-/// around SQL containing `"quoted identifiers"`) or corrupting an
-/// accidental escape sequence. Shared with the concatenation-chain path
-/// (`utils/concatenation.rs`).
+/// Escapes a bare (unescaped) `quote` delimiter character in `text` so it
+/// can be embedded inside a `quote`-delimited mlang string literal without
+/// prematurely terminating it (e.g. a double-quoted mlang string around SQL
+/// containing `"quoted identifiers"`). `text` is typically a mix of fresh
+/// output (which may contain such a bare `quote`) and pass-through raw
+/// mlang source content, where `\` always already starts a valid two-plus-
+/// character escape sequence (mlang's lexer accepts `\` followed by *any*
+/// character as one escape unit, see `consume_escape_sequence`) -- such a
+/// sequence is left untouched rather than escaped again, or every reformat
+/// pass would keep adding another backslash. Shared with the
+/// concatenation-chain path (`utils/concatenation.rs`).
 pub(crate) fn escape_for_string_literal(text: &str, quote: char) -> Cow<'_, str> {
     if !text.contains(['\\', quote]) {
         return Cow::Borrowed(text);
     }
 
     let mut escaped = String::with_capacity(text.len());
-    for c in text.chars() {
-        if c == '\\' || c == quote {
-            escaped.push('\\');
+    let mut chars = text.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            escaped.push(c);
+            if let Some(next) = chars.next() {
+                escaped.push(next);
+            }
+        } else {
+            if c == quote {
+                escaped.push('\\');
+            }
+            escaped.push(c);
         }
-        escaped.push(c);
     }
     Cow::Owned(escaped)
 }

@@ -4,6 +4,49 @@ mod helper;
 use sql_syntax::SqlSyntaxKind;
 
 #[test]
+fn format_select_list_packing_is_idempotent_when_a_simple_call_needs_reformatting() {
+    // Regression test: `balanced_fill_breaks` used each item's raw *source*
+    // text length instead of its *formatted* length. `coalesce(a,-1)` gains
+    // a byte once formatted (`coalesce(a, -1)`), enough to flip a packing
+    // decision on the next pass. The exact query text matters -- it's the
+    // width arithmetic that hits the boundary, not the content itself.
+    use biome_formatter::{IndentStyle, IndentWidth};
+    use sql_formatter::{SqlFormatOptions, format_node};
+    use sql_parser::parse;
+    use sql_syntax::{SqlDialect, SqlFileSource};
+
+    let src = "select (case when ok.НомерУслуги is not null then ro.НомерУслуги else ro.Услуга end) Услуга\n                              , ro.УКДоговор\n                              , coalesce(ukd.\"Организация-УКДоговор\",-1) Поставщик\n                              , ro.Аналитика1\n                              , round(sum(Сумма)::numeric, 2) as Сумма\n                         from ~РаспределениеОплатыФискализация~ ro\n                         left join #ok_temp_serv ok on ok.НомерУслуги = ro.НомерУслуги\n                         left join ~УК Договоры~ ukd on ukd.row_id = ro.УКДоговор\n                         where ro.Тип = 2 /* 2 - зачет авансов текущих платежей */\n                            and ro.Месяц = :mes\n                            and ro.Чек is null\n                         group by (case when ok.НомерУслуги is not null then ro.НомерУслуги else ro.Услуга end)\n                            , ro.УКДоговор, coalesce(ukd.\"Организация-УКДоговор\",-1), ro.Аналитика1\n                         order by Услуга";
+
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
+    let tree = parse(src, syntax);
+    assert!(!tree.has_errors(), "parse errors: {:?}", tree.diagnostics());
+
+    let options = SqlFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_indent_width(IndentWidth::from(3));
+
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .into_code();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .into_code();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}
+
+#[test]
 fn format_select_list_wraps_when_too_long() {
     // All 4 items are "simple" (bare names), so SqlSelectItemList's fill
     // layout packs them together rather than one per line -- see

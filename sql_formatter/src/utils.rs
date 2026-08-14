@@ -1,6 +1,7 @@
 use crate::prelude::*;
-use biome_formatter::{FormatOptions, format_args, write};
-use biome_rowan::{AstNode, AstSeparatedList, SyntaxResult};
+use biome_formatter::format_element::document::Document;
+use biome_formatter::{FormatOptions, Formatted, VecBuffer, format_args, write};
+use biome_rowan::{AstSeparatedList, SyntaxResult};
 use sql_syntax::{
     AnySqlExpression, SqlExpressionList, SqlFromClause, SqlGroupByClause, SqlHavingClause,
     SqlLanguage, SqlSelectClause, SqlSyntaxToken, SqlWhereClause,
@@ -118,7 +119,7 @@ where
         )
         .map(|(element, formatted)| {
             let (complex, width) = match &element {
-                Ok(node) => (is_complex(node), node_width(node)),
+                Ok(node) => (is_complex(node), formatted_width(node, f)),
                 Err(_) => (true, 0),
             };
             (complex, width, formatted.memoized())
@@ -282,7 +283,7 @@ pub(crate) fn write_bracketed_fill_list(
         )
         .map(|(element, formatted)| {
             let (is_complex, width) = match &element {
-                Ok(expr) => (!is_simple_expression(expr, 0), node_width(expr)),
+                Ok(expr) => (!is_simple_expression(expr, 0), formatted_width(expr, f)),
                 Err(_) => (true, 0),
             };
             (is_complex, width, formatted.memoized())
@@ -354,14 +355,39 @@ where
     filler.finish()
 }
 
-/// Source-text length of `node`, used as a cheap proxy for its printed
-/// width. Only ever consulted for items already classified "simple" (see
-/// [is_simple_expression]) by the time it matters for balancing, so this
-/// stays close to the real printed width in practice (no internal
-/// reformatting worth the cost of a second, real format+print pass, unlike
-/// e.g. `mlang_formatter`'s `write_with_custom_line_width`).
-fn node_width<N: AstNode>(node: &N) -> usize {
-    u32::from(node.syntax().text_trimmed_range().len()) as usize
+/// `node`'s own printed width, used by [balanced_fill_breaks] to decide
+/// which items pack onto the same line. Must be the *formatted* width, not
+/// raw source length -- the latter broke idempotence for any item whose
+/// formatting changes its length. Only consulted for "simple" items (see
+/// [is_simple_expression]), so the extra format+print pass stays cheap.
+fn formatted_width<N>(node: &N, f: &mut SqlFormatter) -> usize
+where
+    N: AsFormat<SqlFormatContext>,
+{
+    // Throwaway pass purely to measure width; its output is never emitted,
+    // so it must not count against biome_formatter's "every token printed
+    // once" tracking, or the real write later on would panic as a duplicate.
+    let was_disabled = f.state().is_token_tracking_disabled();
+    f.state_mut().set_token_tracking_disabled(true);
+
+    let mut buffer = VecBuffer::new(f.state_mut());
+    let write_result = write!(buffer, [node.format()]);
+    let document = write_result
+        .is_ok()
+        .then(|| Document::from(buffer.into_vec()));
+
+    f.state_mut().set_token_tracking_disabled(was_disabled);
+
+    let Some(document) = document else {
+        return 0;
+    };
+    let formatted = Formatted::new(document, f.context().clone());
+    // Byte length, matching the measure this replaces -- stays scoped to
+    // "source vs formatted length", not byte-vs-char-count for non-ASCII.
+    formatted
+        .print()
+        .map(|printed| printed.as_code().len())
+        .unwrap_or(0)
 }
 
 /// Packs `entries` left-to-right at a given per-line `budget` (in
