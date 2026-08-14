@@ -46,13 +46,14 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
         let last_index = args.len().saturating_sub(1);
         let mut has_empty_line = false;
 
-        // Confirmed embedded SQL as the first argument hugs the opening
-        // paren, same as e.g. `foo(function() {...}, other)`.
-        let first_argument_is_sql = args
+        // Confirmed embedded SQL, or any multi-line string, as the first
+        // argument hugs the opening paren, same as e.g.
+        // `foo(function() {...}, other)`.
+        let hug_first_argument = args
             .iter()
             .next()
             .and_then(|first| first.ok())
-            .is_some_and(|first| is_sql_call_argument(&first, f));
+            .is_some_and(|first| should_hug_first_call_argument(&first, f));
 
         let arguments: Vec<_> = args
             .elements()
@@ -71,7 +72,7 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
             })
             .collect();
 
-        if first_argument_is_sql {
+        if hug_first_argument {
             return write_grouped_arguments(
                 node,
                 arguments,
@@ -1132,12 +1133,27 @@ fn is_string_callee_call_arg(arg: &AnyMCallArgument) -> bool {
     call.callee().is_ok_and(|c| is_string_member_callee(&c))
 }
 
-/// Whether `argument` is confirmed embedded SQL: a SQL-classified literal
-/// or concatenation node, or a `.method(...)` call on one. For a
-/// concatenation, re-checks [ConcatenatedQuery::try_new] since the
-/// formatter can still decline (comment on a bypassed piece, a segment that
-/// would split across lines) even after the parser confirmed the content.
-fn is_sql_call_argument(argument: &AnyMCallArgument, f: &MFormatter) -> bool {
+/// Whether `argument` should be hugged to the opening paren rather than go
+/// through the ordinary (non-hugging) call-argument layout: confirmed
+/// embedded SQL (a SQL-classified literal or concatenation node, or a
+/// `.method(...)` call on one -- for a concatenation, re-checks
+/// [ConcatenatedQuery::try_new] since the formatter can still decline even
+/// after the parser confirmed the content), or *any* multi-line string
+/// literal.
+///
+/// The multi-line-string case isn't about SQL at all -- it avoids a real
+/// correctness bug in the generic (non-hugging) layout's
+/// `write_with_custom_line_width`: that path reformats the argument list at
+/// a narrower width in an isolated pass, then re-splices the result into
+/// the real document line by line via `hard_line_break()` so the *real*
+/// document's ambient indent applies to each line. A multi-line string
+/// literal's own embedded newlines get swept up in that same per-line
+/// splice, so the ambient indent is added *inside* the string's literal
+/// text -- which then becomes the string's new raw content, permanently, so
+/// the next format pass adds another layer on top. Hugging sidesteps
+/// `write_with_custom_line_width` entirely for this argument, letting the
+/// string print through the normal (non-splicing) path instead.
+fn should_hug_first_call_argument(argument: &AnyMCallArgument, f: &MFormatter) -> bool {
     let AnyMCallArgument::AnyMExpression(expression) = argument else {
         return false;
     };
@@ -1153,6 +1169,16 @@ fn is_sql_call_argument(argument: &AnyMCallArgument, f: &MFormatter) -> bool {
             AnyMLiteralExpression::MSqlStringLiteralExpression(_)
             | AnyMLiteralExpression::MSqlLongStringLiteralExpression(_),
         ) => true,
+        AnyMExpression::AnyMLiteralExpression(AnyMLiteralExpression::MStringLiteralExpression(
+            literal,
+        )) => literal
+            .value_token()
+            .is_ok_and(|t| t.text_trimmed().contains('\n')),
+        AnyMExpression::AnyMLiteralExpression(
+            AnyMLiteralExpression::MLongStringLiteralExpression(literal),
+        ) => literal
+            .value_token()
+            .is_ok_and(|t| t.text_trimmed().contains('\n')),
         AnyMExpression::MSqlConcatenationExpression(concatenation) => concatenation
             .expression()
             .is_ok_and(|inner| ConcatenatedQuery::try_new(&inner.into(), f).is_some()),

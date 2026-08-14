@@ -33,6 +33,54 @@ var qq = Query(`this is not valid   sql at all !!!`, 1);
 }
 
 #[test]
+fn embedded_sql_unparseable_multiline_argument_does_not_grow_indent_each_pass() {
+    // Regression test: a call's sole argument that's a multi-line string
+    // but doesn't parse as SQL (so it's left as an ordinary literal, not
+    // hugged) used to go through `write_with_custom_line_width`, which
+    // re-splices its own already-formatted text back in line by line via
+    // `hard_line_break()` so the real document's ambient indent applies.
+    // That swept up the string's own embedded newlines too, baking the
+    // ambient indent *inside* the string's literal content -- so every
+    // reformat pass added another layer on top of the last, permanently
+    // growing the indent. Any multi-line string argument is now hugged
+    // (`should_hug_first_call_argument`), sidestepping that path entirely.
+    use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+    use mlang_parser::parse;
+    use mlang_syntax::MFileSource;
+
+    let src = "#\nvar x = EXEC_COMMAND(`\n      create table #tmp(\n         \"a\" int\n      );\n   `);\n";
+
+    let syntax = MFileSource::script();
+    let options = MFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_line_width(LineWidth::try_from(120).unwrap())
+        .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+        .with_indent_width(IndentWidth::from(3))
+        .with_bracket_spacing(false.into());
+
+    let tree = parse(src, syntax);
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}
+
+#[test]
 fn embedded_sql_concatenation_with_trailing_hole_reformats_cleanly() {
     // The first argument isn't a single string literal -- it's built via
     // `+`-concatenation with a hole at the very end -- but that's exactly
