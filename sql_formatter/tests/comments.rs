@@ -28,3 +28,43 @@ returns int as $$select 1$$;
 "#
     );
 }
+
+#[test]
+fn format_comment_after_and_or_operator_is_stable() {
+    // Same instability as the `create function` cases above, for a comment
+    // right after an `and`/`or` operator inside a wrapped chain.
+    use biome_formatter::{IndentStyle, IndentWidth};
+    use sql_formatter::{SqlFormatOptions, format_node};
+    use sql_parser::parse;
+    use sql_syntax::{SqlDialect, SqlFileSource};
+
+    let src = "Select sv.row_id\n                                  FROM t1 sv\n                                  join t2 vp on sv.\"a\" = vp.row_id and vp.\"b\" in ( 'X', 'Y', 'Z')\n                                  join t3 li on li.c = :1 and li.d = 4 and sv.\"e\" = li.f\n                                  where sv.g >= :2 and sv.h <= :3\n                                      -- some comment here about category values 1, 2(x) and 5(y)\n                                      and (sv.i in (1,2,5) and vp.\"b\" = 'CATEGORY' or true)\n                                   limit 1";
+
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
+    let tree = parse(src, syntax);
+    assert!(!tree.has_errors(), "parse errors: {:?}", tree.diagnostics());
+
+    let options = SqlFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_indent_width(IndentWidth::from(3));
+
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .into_code();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .into_code();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}

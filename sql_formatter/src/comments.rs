@@ -54,7 +54,11 @@ impl CommentStyle for SqlCommentStyle {
         &self,
         comment: DecoratedComment<Self::Language>,
     ) -> CommentPlacement<Self::Language> {
-        handle_create_function_body_comment(comment)
+        let comment = match handle_create_function_body_comment(comment) {
+            CommentPlacement::Default(comment) => comment,
+            placed => return placed,
+        };
+        handle_logical_expression_operator_comment(comment)
     }
 }
 
@@ -79,6 +83,24 @@ fn handle_create_function_body_comment(
     comment: DecoratedComment<SqlLanguage>,
 ) -> CommentPlacement<SqlLanguage> {
     if comment.enclosing_node().kind() != SqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT {
+        return CommentPlacement::Default(comment);
+    }
+
+    let Some(following) = comment.following_node() else {
+        return CommentPlacement::Default(comment);
+    };
+
+    CommentPlacement::leading(following.clone(), comment)
+}
+
+/// Same instability as [handle_create_function_body_comment], for a comment
+/// right after an `and`/`or` operator: whether it shares a line with the
+/// operator depends on `SqlLogicalExpression`'s own wrap decision, which can
+/// change across a pass. Same fix: always a leading comment of what follows.
+fn handle_logical_expression_operator_comment(
+    comment: DecoratedComment<SqlLanguage>,
+) -> CommentPlacement<SqlLanguage> {
+    if comment.enclosing_node().kind() != SqlSyntaxKind::SQL_LOGICAL_EXPRESSION {
         return CommentPlacement::Default(comment);
     }
 

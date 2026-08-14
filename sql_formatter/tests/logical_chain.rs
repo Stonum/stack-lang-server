@@ -71,6 +71,20 @@ where a > 1
 }
 
 #[test]
+fn format_preserves_a_comment_trailing_a_flattened_intermediate_operand() {
+    // A comment right after an `and`/`or` operator has no node of its own
+    // to anchor to (see `handle_logical_expression_operator_comment`) --
+    // it's placed as a leading comment of the operand that follows,
+    // regardless of which line it originally shared. Here that's `c = 3`,
+    // so the comment doesn't stop `a = 1 and b = 2` from flattening.
+    assert_fmt_node!(
+        "select a from t where a = 1 and b = 2 /* c */ and c = 3",
+        SqlSyntaxKind::SQL_LOGICAL_EXPRESSION,
+        "a = 1\n\tand b = 2\n\tand /* c */ c = 3"
+    );
+}
+
+#[test]
 fn format_join_on_condition_wraps_when_more_than_two() {
     assert_fmt!(
         r#"--

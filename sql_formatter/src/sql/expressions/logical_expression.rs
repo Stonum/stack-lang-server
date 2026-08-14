@@ -71,15 +71,12 @@ fn collect_operands(
 ) -> FormatResult<()> {
     match expr? {
         AnySqlExpression::SqlLogicalExpression(logical)
-            if logical.operator_token()?.kind() == operator_kind =>
+            if logical.operator_token()?.kind() == operator_kind
+                && !comments.has_comments(logical.syntax()) =>
         {
             // This intermediate node is flattened away -- it never gets its
             // own `.format()` call -- but the formatter still requires
-            // every node to be checked for suppression comments. Any real
-            // leading/trailing comments on it would currently be dropped;
-            // acceptable for now (rare in practice, and comments generally
-            // are a lightly-supported edge case at this phase), but a real
-            // limitation to revisit if it comes up.
+            // every node to be checked for suppression comments.
             comments.mark_suppression_checked(logical.syntax());
 
             let SqlLogicalExpressionFields {
