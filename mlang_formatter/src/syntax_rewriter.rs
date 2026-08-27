@@ -319,6 +319,16 @@ impl MFormatSyntaxRewriter {
     /// ```
     ///
     /// This is required so that the binary like expression formatting only has to resolve left recursive expressions.
+    ///
+    /// A parenthesized group of 3+ conditions (`a && (b && c && d)`) parses
+    /// its own insides left-recursively too, so the tree is
+    /// `&&(a, &&(&&(b,c), d))` -- the group's `left` (`&&(b,c)`) is itself a
+    /// chain, not a single atom, so pulling up only the immediate
+    /// `right.left()`/`right.right()` pair (as a single rotation would)
+    /// just relocates the imbalance one level down instead of removing it.
+    /// Flattening both sides down to their individual atoms first and
+    /// folding them back left-associatively handles any nesting depth in
+    /// one pass.
     fn visit_logical_expression(
         &mut self,
         logical: MLogicalExpression,
@@ -335,50 +345,48 @@ impl MFormatSyntaxRewriter {
                 // SAFETY: Safe because the rewriter never rewrites an expression to a non expression.
                 let right = AnyMExpression::unwrap_cast(self.transform(right.into_syntax()));
 
-                let updated = match right {
-                    AnyMExpression::MLogicalExpression(right_logical) => {
-                        match (
-                            right_logical.left(),
-                            right_logical.operator_token(),
-                            right_logical.right(),
-                        ) {
-                            (Ok(right_left), Ok(right_operator), Ok(right_right))
-                                if right_operator.kind() == operator.kind() =>
-                            {
-                                logical
-                                    .with_left(
-                                        mlang_factory::make::m_logical_expression(
-                                            left, operator, right_left,
-                                        )
-                                        .into(),
-                                    )
-                                    .with_operator_token_token(right_operator)
-                                    .with_right(right_right)
-                            }
+                let operator_kind = operator.kind();
+                let mut atoms = Vec::new();
+                let mut operators = Vec::new();
+                flatten_same_operator_chain(left, operator_kind, &mut atoms, &mut operators);
+                operators.push(operator);
+                flatten_same_operator_chain(right, operator_kind, &mut atoms, &mut operators);
 
-                            // Don't re-balance a logical expression that has syntax errors
-                            _ => logical
-                                .with_left(left)
-                                .with_operator_token_token(operator)
-                                .with_right(right_logical.into()),
-                        }
+                let updated: AnyMExpression = if atoms.len() > 2 {
+                    let mut atoms = atoms.into_iter();
+                    let mut operators = operators.into_iter();
+                    let mut acc = atoms.next().expect("flatten always keeps the left operand");
+                    for atom in atoms {
+                        let op = operators
+                            .next()
+                            .expect("one operator between each pair of flattened atoms");
+                        acc = mlang_factory::make::m_logical_expression(acc, op, atom).into();
                     }
+                    acc
+                } else {
+                    // Neither side was itself a same-operator chain --
+                    // nothing to flatten. Avoid updating the node if none
+                    // of the children changed, to avoid re-spinning all
+                    // parents.
+                    let mut atoms = atoms.into_iter();
+                    let new_left = atoms.next().expect("exactly two atoms in this branch");
+                    let new_right = atoms.next().expect("exactly two atoms in this branch");
+                    let new_operator = operators
+                        .into_iter()
+                        .next()
+                        .expect("exactly one operator in this branch");
 
-                    // Don't re-balance logical expressions with different operators
-                    // Avoid updating the node if none of the children have changed to avoid
-                    // re-spinning all parents.
-                    right => {
-                        if left.syntax().key() != left_key
-                            || operator.key() != operator_key
-                            || right.syntax().key() != right_key
-                        {
-                            logical
-                                .with_left(left)
-                                .with_operator_token_token(operator)
-                                .with_right(right)
-                        } else {
-                            logical
-                        }
+                    if new_left.syntax().key() != left_key
+                        || new_operator.key() != operator_key
+                        || new_right.syntax().key() != right_key
+                    {
+                        logical
+                            .with_left(new_left)
+                            .with_operator_token_token(new_operator)
+                            .with_right(new_right)
+                            .into()
+                    } else {
+                        logical.into()
                     }
                 };
 
@@ -391,6 +399,34 @@ impl MFormatSyntaxRewriter {
     pub(crate) fn finish(self) -> TransformSourceMap {
         self.source_map.finish()
     }
+}
+
+/// Recursively flattens `expr` into its individual atoms wherever it (and
+/// its descendants) is an `MLogicalExpression` with `operator_kind`,
+/// appending the operator between each adjacent pair to `operators` -- so
+/// `atoms.len() == operators.len() + 1` once both `left` and `right` of a
+/// node have been flattened this way. Stops descending (treats the subtree
+/// as one opaque atom) at a different operator, a non-logical expression,
+/// or a logical expression with a syntax error, since none of those can be
+/// safely re-associated.
+fn flatten_same_operator_chain(
+    expr: AnyMExpression,
+    operator_kind: MSyntaxKind,
+    atoms: &mut Vec<AnyMExpression>,
+    operators: &mut Vec<SyntaxToken<MLanguage>>,
+) {
+    if let AnyMExpression::MLogicalExpression(ref logical) = expr
+        && let (Ok(left), Ok(operator), Ok(right)) =
+            (logical.left(), logical.operator_token(), logical.right())
+        && operator.kind() == operator_kind
+    {
+        flatten_same_operator_chain(left, operator_kind, atoms, operators);
+        operators.push(operator);
+        flatten_same_operator_chain(right, operator_kind, atoms, operators);
+        return;
+    }
+
+    atoms.push(expr);
 }
 
 impl SyntaxRewriter for MFormatSyntaxRewriter {
@@ -461,6 +497,41 @@ mod tests {
 
         assert_eq!(left.left().unwrap().text(), "a");
         assert_eq!(left.right().unwrap().text(), "b");
+    }
+
+    #[test]
+    fn rebalances_a_parenthesized_group_of_three_or_more_conditions() {
+        // Regression test: a single rotation only pulls the parenthesized
+        // group's immediate `right.left()`/`right.right()` pair up to the
+        // top -- for a group of 3+ conditions, that `right.left()` is
+        // itself a chain (`b && c`), not a single atom, so one rotation
+        // just relocates the imbalance instead of removing it. The fully
+        // flattened, left-recursive shape is `&&(&&(&&(a,b),c),d)`, where
+        // every node's `left` accumulates the chain so far and `right` is
+        // always a single atom.
+        let root = parse("a && (b && c && d)", MFileSource::script()).syntax();
+        let transformed = MFormatSyntaxRewriter::default().transform(root);
+
+        assert_eq!(&transformed.text().to_string(), "a && b && c && d");
+
+        let mut logical_expressions: Vec<_> = transformed
+            .descendants()
+            .filter_map(MLogicalExpression::cast)
+            .collect();
+        assert_eq!(logical_expressions.len(), 3);
+
+        let ab = logical_expressions.pop().unwrap();
+        let abc = logical_expressions.pop().unwrap();
+        let abcd = logical_expressions.pop().unwrap();
+
+        assert_eq!(ab.left().unwrap().text(), "a");
+        assert_eq!(ab.right().unwrap().text(), "b");
+
+        assert_eq!(abc.left().unwrap().syntax(), ab.syntax());
+        assert_eq!(abc.right().unwrap().text(), "c");
+
+        assert_eq!(abcd.left().unwrap().syntax(), abc.syntax());
+        assert_eq!(abcd.right().unwrap().text(), "d");
     }
 
     #[test]
