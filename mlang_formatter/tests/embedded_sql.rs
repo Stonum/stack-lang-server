@@ -81,6 +81,94 @@ fn embedded_sql_unparseable_multiline_argument_does_not_grow_indent_each_pass() 
 }
 
 #[test]
+fn embedded_sql_dollar_quoted_body_does_not_grow_indent_each_pass() {
+    // Regression test: a *real* embedded SQL query (unlike the previous
+    // test) reformats its structural code fresh from the AST every pass,
+    // but `sql_formatter` echoes a dollar-quoted string's body back
+    // byte-for-byte, whatever indentation it already has. Re-embedding
+    // that output one indent level deeper (`format_reformatted_multi_line_query`)
+    // bakes the extra indent into the dollar-quoted body as literal
+    // characters -- which then survives untouched into the next pass, and
+    // gets *another* layer added on top. `dedent_verbatim_spans` strips
+    // exactly the layer the previous pass added before reparsing.
+    use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+    use mlang_parser::parse;
+    use mlang_syntax::MFileSource;
+
+    let src = "#\nvar x = Query(`\n   select * from crosstab(format($$\n      select 1\n   $$, :1)) t\n`, 1);\n";
+
+    let syntax = MFileSource::script();
+    let options = MFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_line_width(LineWidth::try_from(120).unwrap())
+        .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+        .with_indent_width(IndentWidth::from(3))
+        .with_bracket_spacing(false.into());
+
+    let tree = parse(src, syntax);
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}
+
+#[test]
+fn embedded_sql_block_comment_does_not_grow_indent_each_pass() {
+    // Same bug as `embedded_sql_dollar_quoted_body_does_not_grow_indent_each_pass`,
+    // for a multi-line `/* ... */` comment instead of a dollar-quoted body --
+    // `sql_formatter` echoes those back verbatim too.
+    use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+    use mlang_parser::parse;
+    use mlang_syntax::MFileSource;
+
+    let src = "#\nvar x = Query(`\n   select 1\n   /*\n      a note\n      spanning lines\n   */\n   from t\n`, 1);\n";
+
+    let syntax = MFileSource::script();
+    let options = MFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_line_width(LineWidth::try_from(120).unwrap())
+        .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+        .with_indent_width(IndentWidth::from(3))
+        .with_bracket_spacing(false.into());
+
+    let tree = parse(src, syntax);
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}
+
+#[test]
 fn embedded_sql_concatenation_with_trailing_hole_reformats_cleanly() {
     // The first argument isn't a single string literal -- it's built via
     // `+`-concatenation with a hole at the very end -- but that's exactly

@@ -244,6 +244,31 @@ pub(crate) fn format_sql_source(raw: &str, f: &MFormatter) -> Option<String> {
         return None;
     }
 
+    // `sql_formatter` echoes multi-line comments and dollar-quoted string
+    // bodies back byte-for-byte, whatever leading whitespace they already
+    // have (see `format_create_function_dollar_quoted_body_is_preserved_verbatim`
+    // in `sql_formatter`). But this function's own output gets re-embedded
+    // one indent level deeper by `format_reformatted_multi_line_query`,
+    // which bakes that extra indent in as literal characters -- including
+    // inside these untouched spans. Reformatting *that* output again feeds
+    // the now-shifted spans straight back in unchanged, and another layer
+    // of ambient indent stacks on top: unbounded growth across repeated
+    // format passes. Stripping each span's own common leading whitespace
+    // before parsing removes exactly the layer the *previous* pass added,
+    // without touching indentation that's actually part of the content.
+    let dedented = dedent_verbatim_spans(raw, &parsed.syntax());
+    let parsed = match dedented {
+        Cow::Borrowed(_) => parsed,
+        Cow::Owned(ref text) => {
+            let reparsed = sql_parser::parse(text, syntax);
+            if reparsed.has_errors() {
+                parsed
+            } else {
+                reparsed
+            }
+        }
+    };
+
     // Match the embedded query's own indentation to the surrounding mlang
     // code's style/width, since the resulting lines get spliced in as raw
     // text (see `format_reformatted_multi_line_query`) -- a mismatch would
@@ -262,6 +287,91 @@ pub(crate) fn format_sql_source(raw: &str, f: &MFormatter) -> Option<String> {
     let printed = formatted.print().ok()?;
 
     Some(printed.as_code().trim_end().to_string())
+}
+
+/// Finds every multi-line comment and multi-line token (a dollar-quoted or
+/// otherwise multi-line string literal -- see the note in
+/// `sql_formatter/src/rules/tokens.rs` on why those are the only multi-line
+/// tokens this grammar produces) in `tree`, and dedents each one's interior
+/// lines (everything but the first) to their own common minimum leading
+/// whitespace. `Cow::Borrowed(raw)` if nothing needed stripping.
+fn dedent_verbatim_spans<'a>(raw: &'a str, tree: &sql_syntax::SqlSyntaxNode) -> Cow<'a, str> {
+    let mut spans: Vec<(usize, usize, String)> = Vec::new();
+
+    for token in tree.descendants_tokens(biome_rowan::Direction::Next) {
+        let trimmed = token.text_trimmed();
+        if trimmed.contains('\n')
+            && let Some(dedented) = dedent_span(trimmed)
+        {
+            let start = u32::from(token.text_trimmed_range().start()) as usize;
+            spans.push((start, start + trimmed.len(), dedented));
+        }
+
+        for piece in token
+            .leading_trivia()
+            .pieces()
+            .chain(token.trailing_trivia().pieces())
+        {
+            let Some(comment) = piece.as_comments() else {
+                continue;
+            };
+            let text = comment.text();
+            if text.contains('\n')
+                && let Some(dedented) = dedent_span(text)
+            {
+                let start = u32::from(comment.text_range().start()) as usize;
+                spans.push((start, start + text.len(), dedented));
+            }
+        }
+    }
+
+    if spans.is_empty() {
+        return Cow::Borrowed(raw);
+    }
+
+    spans.sort_by_key(|(start, ..)| *start);
+
+    let mut result = String::with_capacity(raw.len());
+    let mut cursor = 0;
+    for (start, end, dedented) in spans {
+        result.push_str(&raw[cursor..start]);
+        result.push_str(&dedented);
+        cursor = end;
+    }
+    result.push_str(&raw[cursor..]);
+
+    Cow::Owned(result)
+}
+
+/// Dedents `span`'s interior lines (everything after the first) to their
+/// own common minimum leading whitespace. `None` if there's nothing to
+/// strip -- a single line, or already at a zero common minimum -- so the
+/// caller can tell "no span-worthy change" apart from "dedented to
+/// nothing", without allocating in the common case.
+fn dedent_span(span: &str) -> Option<String> {
+    let mut lines = span.split('\n');
+    let first = lines.next()?;
+
+    let common_indent = lines
+        .clone()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| line.len() - line.trim_start_matches([' ', '\t']).len())
+        .min()?;
+
+    if common_indent == 0 {
+        return None;
+    }
+
+    let mut result = String::with_capacity(span.len());
+    result.push_str(first);
+    for line in lines {
+        result.push('\n');
+        if line.trim().is_empty() {
+            continue;
+        }
+        result.push_str(&line[common_indent..]);
+    }
+    Some(result)
 }
 
 pub(crate) struct FormatSqlStringToken<'token> {
