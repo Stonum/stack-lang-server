@@ -22,11 +22,32 @@ var x = "строка" + ппп + "строка 1
 
 #[test]
 fn multiline_operand_with_long_ident_last_stays_flat() {
+    // The ambient indent from the two enclosing `if`s (6 columns) plus
+    // `var x = ` (8 columns) counts toward the 120-column budget too -- this
+    // fixture's first line is 116 columns including that prefix, just under
+    // the limit.
     assert_fmt!(
         r#"#
 if(true)
    if(true)
-      var x = "строка" + ппп + "строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка
+      var x = "строка" + ппп + "строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка
+         строка 12345 строка 12345 строка 12345 строка 12345 строка 12345";
+"#
+    );
+}
+
+#[test]
+fn multiline_operand_breaks_when_ambient_indent_pushes_it_over_width() {
+    // Same shape as `multiline_operand_with_long_ident_last_stays_flat`, one
+    // more "строка 12345 " repetition -- 129 columns including the ambient
+    // indent, over the 120-column budget, so it must fall back to the
+    // regular per-operand break instead of staying flat.
+    assert_fmt!(
+        r#"#
+if(true)
+   if(true)
+      var x = "строка"
+         + ппп + "строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка 12345 строка
          строка 12345 строка 12345 строка 12345 строка 12345 строка 12345";
 "#
     );

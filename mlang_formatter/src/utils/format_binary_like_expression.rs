@@ -206,6 +206,8 @@ enum OperandWidth {
 pub(crate) struct FlatMultilineConcatenation {
     operands: Vec<AnyMExpression>,
     operators: Vec<MSyntaxToken>,
+    /// Index into `operands` of the one multi-line string literal.
+    multiline_at: usize,
 }
 
 /// Tries to format a `+`-only chain of "simple" operands (identifiers,
@@ -236,20 +238,118 @@ fn try_format_flat_multiline_concatenation(
         write!(f, [format_removed(operator)])?;
     }
 
+    let prefix = &plan.operands[..plan.multiline_at];
+    // The multi-line literal itself, plus everything after it -- already
+    // verified (in `plan_flat_multiline_concatenation`) to fit on the
+    // literal's own last line, which always starts at column 0 (a raw
+    // newline embedded in a string literal's own text is never re-indented
+    // by the printer), so this part is always written flat, unconditionally.
+    let literal_and_suffix = &plan.operands[plan.multiline_at..];
+
+    if let Some((first, tail)) = prefix.split_first() {
+        // A plain group -- its own content never embeds a raw newline
+        // (every prefix operand is one of the "simple", breakless kinds
+        // `plan_flat_multiline_concatenation` already checked), so
+        // `Document::propagate_expand` never force-expands it on its own.
+        // `fits()` keeps scanning past a group's own end into whatever
+        // follows in the queue -- here, the multi-line literal's own first
+        // line, written right after this group -- so the group's
+        // flat/expanded decision reflects this expression's actual ambient
+        // column at print time, unlike a plain arithmetic width check
+        // computed while building the IR, before printing (and so before
+        // there's any real column to read) has even started.
+        write!(
+            f,
+            [group(&format_with(|f| {
+                write!(f, [first.format()])?;
+                write!(
+                    f,
+                    [indent(&format_with(|f| {
+                        for operand in tail {
+                            write!(
+                                f,
+                                [soft_line_break_or_space(), text("+ "), operand.format()]
+                            )?;
+                        }
+                        Ok(())
+                    }))]
+                )
+            }))]
+        )?;
+        write!(f, [text(" + ")])?;
+    }
+
+    let (literal, suffix) = literal_and_suffix
+        .split_first()
+        .expect("multiline_at is always a valid index into operands");
+
+    // Written as two separate text runs split right at the embedded
+    // newline, rather than `literal.format()`'s normal single run, so the
+    // group's `fits()` check above can validate this first line's width the
+    // *normal* way. A single text run whose content straddles the `\n`
+    // trips a quirk in the vendored `biome_formatter`'s `fits_text`: it
+    // returns "fits" the instant it reaches an embedded `\n`, without ever
+    // comparing the width accumulated so far against the line-width budget
+    // -- so if this line's width were only validated as part of one run
+    // together with the literal, an overlong line would wrongly be judged
+    // as fitting. Splitting at the newline sidesteps that: the first run
+    // (with no `\n` of its own) goes through the normal, correct check.
+    let token = string_literal_token(literal).expect(
+        "multiline_at always points at the one operand classify_operand_width \
+         identified as OperandWidth::Multiline, which is always a string literal",
+    );
+    f.context()
+        .comments()
+        .mark_suppression_checked(literal.syntax());
+    write!(f, [format_removed(&token)])?;
+    let (first_line, rest) = split_multiline_literal_text(&token).expect(
+        "classify_operand_width already confirmed this literal's cleaned text contains '\\n'",
+    );
+    let start = token.text_trimmed_range().start();
+    write!(f, [dynamic_text(&first_line, start)])?;
+    write!(f, [dynamic_text(&rest, start)])?;
+
     write!(
         f,
         [&format_with(|f| {
-            for (index, operand) in plan.operands.iter().enumerate() {
-                if index > 0 {
-                    write!(f, [text(" + ")])?;
-                }
-                write!(f, [operand.format()])?;
+            for operand in suffix {
+                write!(f, [text(" + "), operand.format()])?;
             }
             Ok(())
         })]
     )?;
 
     Ok(true)
+}
+
+/// The `value_token` of `expression` if it's a string literal
+/// (`MStringLiteralExpression` or `MLongStringLiteralExpression`; mlang's
+/// `` ` ``/`"` delimiters are interchangeable, see `string_utils.rs`).
+fn string_literal_token(expression: &AnyMExpression) -> Option<MSyntaxToken> {
+    match expression {
+        AnyMExpression::AnyMLiteralExpression(AnyMLiteralExpression::MStringLiteralExpression(
+            string,
+        )) => string.value_token().ok(),
+        AnyMExpression::AnyMLiteralExpression(
+            AnyMLiteralExpression::MLongStringLiteralExpression(string),
+        ) => string.value_token().ok(),
+        _ => None,
+    }
+}
+
+/// Splits a multi-line string literal's cleaned (quoted, escaped) text at
+/// its first embedded newline, into `(up to but excluding "\n", "\n" and
+/// everything after)`. Returns `None` if the text has no embedded newline.
+fn split_multiline_literal_text(token: &MSyntaxToken) -> Option<(String, String)> {
+    let formatter = FormatLiteralStringToken::new(token, StringLiteralParentKind::Expression);
+    let cleaned = formatter.clean_text();
+    let text = cleaned.text();
+    let newline_at = text.find('\n')?;
+
+    Some((
+        text[..newline_at].to_string(),
+        text[newline_at..].to_string(),
+    ))
 }
 
 /// Whether `expression` is a `+`-chain that [try_format_flat_multiline_concatenation]
@@ -363,31 +463,13 @@ fn plan_flat_multiline_concatenation(
 
     let budget = f.options().line_width().get() as usize;
 
-    // The width up to and including the multi-line literal's own first
-    // line. The exact column this expression starts printing at isn't
-    // knowable at this point in the formatter (deciding that is normally
-    // deferred to the printer's own line-fitting pass, which this bypasses
-    // precisely because that pass would force-expand the whole chain here)
-    // -- so, like `is_short_argument`'s threshold checks elsewhere in this
-    // crate, this approximates it as if it started at column 0.
-    let mut first_line_width = 0usize;
-    for (index, width) in widths[..=multiline_at].iter().enumerate() {
-        if index > 0 {
-            first_line_width += OPERATOR_WIDTH;
-        }
-        first_line_width += match width {
-            OperandWidth::Single(width) => *width,
-            OperandWidth::Multiline(lines) => lines[0],
-        };
-    }
-    if first_line_width > budget {
-        return Ok(None);
-    }
-
     // The width of the literal's own last line plus everything that
-    // follows it on that same line -- unlike the first line, this one is
-    // exact: a raw newline embedded in a string literal's own text is never
-    // re-indented by the printer, so this segment always starts at column 0.
+    // follows it on that same line. Unlike the content *before* the
+    // literal (handled at print time by the group in
+    // `try_format_flat_multiline_concatenation`, since the column it starts
+    // at isn't knowable this early), this one is exact: a raw newline
+    // embedded in a string literal's own text is never re-indented by the
+    // printer, so this segment always starts at column 0.
     let OperandWidth::Multiline(lines) = &widths[multiline_at] else {
         unreachable!("multiline_at always points at the one `OperandWidth::Multiline` entry");
     };
@@ -405,6 +487,7 @@ fn plan_flat_multiline_concatenation(
     Ok(Some(FlatMultilineConcatenation {
         operands,
         operators,
+        multiline_at,
     }))
 }
 
