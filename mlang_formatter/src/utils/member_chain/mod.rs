@@ -115,6 +115,7 @@ use mlang_syntax::{
     MIdentifierExpression, MSyntaxKind, MSyntaxNode, MSyntaxToken, MThisExpression,
 };
 pub use simple_argument::SimpleArgument;
+pub(crate) use simple_argument::is_simple_object_member;
 use std::iter::FusedIterator;
 
 #[derive(Debug, Clone)]

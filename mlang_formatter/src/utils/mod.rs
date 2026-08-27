@@ -205,6 +205,46 @@ where
     join_with.finish()
 }
 
+/// Minimum number of elements a list (object/hash map members, array elements)
+/// must have before the compact fill layout below kicks in.
+pub(crate) const COMPACT_FILL_THRESHOLD: usize = 8;
+
+/// Prints `entries` using the same "compact" fill layout applied to call
+/// arguments: runs of simple entries are packed several per line, while an
+/// entry marked as not-simple forces a line break both before and after it.
+pub(crate) fn write_compact_fill<F>(
+    f: &mut MFormatter,
+    entries: Vec<(bool, usize, F)>,
+) -> FormatResult<()>
+where
+    F: Format<MFormatContext>,
+{
+    let mut filler = f.fill();
+    let mut prev_was_complex = false;
+
+    for (is_simple, leading_lines, entry) in &entries {
+        let is_complex = !*is_simple;
+        let after_complex = prev_was_complex;
+
+        filler.entry(
+            &format_once(|f| {
+                if *leading_lines > 1 {
+                    write!(f, [empty_line()])
+                } else if is_complex || after_complex {
+                    write!(f, [hard_line_break()])
+                } else {
+                    write!(f, [soft_line_break_or_space()])
+                }
+            }),
+            entry,
+        );
+
+        prev_was_complex = is_complex;
+    }
+
+    filler.finish()
+}
+
 // check block statement in list of statements
 // Examples:
 // if( x == 1 ) if( y == 2 ) { x = 5; } -> true

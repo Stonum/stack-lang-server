@@ -258,6 +258,27 @@ impl SimpleArgument {
     }
 }
 
+/// Tests if a single object member is "simple" enough to be packed together
+/// with its neighbors in a compact fill layout: a shorthand property, or a
+/// non-computed property whose value is a [SimpleArgument::is_simple] expression.
+pub(crate) fn is_simple_object_member(member: &AnyMObjectMember) -> bool {
+    match member {
+        AnyMObjectMember::MShorthandPropertyObjectMember(_) => true,
+        AnyMObjectMember::MPropertyObjectMember(property) => {
+            let is_computed = matches!(
+                property.name(),
+                Ok(AnyMObjectMemberName::MComputedMemberName(_))
+            );
+
+            !is_computed
+                && property
+                    .value()
+                    .is_ok_and(|value| SimpleArgument::from(value).is_simple())
+        }
+        _ => false,
+    }
+}
+
 impl From<AnyMExpression> for SimpleArgument {
     fn from(expr: AnyMExpression) -> Self {
         Self::Expression(expr)
