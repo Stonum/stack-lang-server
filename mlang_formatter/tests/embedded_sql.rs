@@ -398,3 +398,93 @@ var qq = some_other_function(1, "select   *   from   t");
 var qq = some_other_function(1, "select * from t");"#
     );
 }
+
+#[test]
+fn dot_format_call_on_unrecognized_multiline_string_does_not_grow_indent_each_pass() {
+    // Regression test: `x.format(...)` where `x` is a multi-line string
+    // that fails the real-SQL-parse check (so it stays a plain, non-SQL
+    // literal) is still a `MCallExpression` as the sole call argument, not
+    // a bare literal -- `should_hug_first_call_argument`'s
+    // `MCallExpression` arm used to only recognize a grammar-confirmed SQL
+    // object, missing this case entirely and falling through to
+    // `write_with_custom_line_width`, which bakes the ambient indent
+    // inside the string's own embedded newlines on every pass.
+    use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+    use mlang_parser::parse;
+    use mlang_syntax::MFileSource;
+
+    let src = "#\nif(test)\n{\n   var x = Query(`\n      col1,{0}\n      col2\n   `.format(hole), 1);\n}\n";
+
+    let syntax = MFileSource::script();
+    let options = MFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_line_width(LineWidth::try_from(120).unwrap())
+        .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+        .with_indent_width(IndentWidth::from(3))
+        .with_bracket_spacing(false.into());
+
+    let tree = parse(src, syntax);
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}
+
+#[test]
+fn multiline_string_as_non_first_argument_does_not_grow_indent_each_pass() {
+    // Regression test: a multi-line raw string as the *second* (or later)
+    // call argument -- e.g. `Об.Источник("Таблица", `field,A,field,A...`)`
+    // -- isn't covered by `should_hug_first_call_argument` at all (it only
+    // ever looks at the first argument), so it fell through to
+    // `write_with_custom_line_width` for the whole argument list, growing
+    // the string's baked-in indentation by one layer on every pass.
+    use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+    use mlang_parser::parse;
+    use mlang_syntax::MFileSource;
+
+    let src = "#\nif(test)\n{\n   var x = some_function(\"label\", `\n      col1,A\n      col2,A\n   `);\n}\n";
+
+    let syntax = MFileSource::script();
+    let options = MFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_line_width(LineWidth::try_from(120).unwrap())
+        .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+        .with_indent_width(IndentWidth::from(3))
+        .with_bracket_spacing(false.into());
+
+    let tree = parse(src, syntax);
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
+    );
+}

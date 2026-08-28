@@ -81,7 +81,24 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
             );
         }
 
-        if has_empty_line || is_function_composition_args(node) {
+        // A multi-line string in a *later* argument -- not the first, e.g.
+        // `foo("label", `a,b,c\n...`)` -- must never reach
+        // `write_with_custom_line_width` below either -- see
+        // `contains_multi_line_string_token`'s doc comment for why.
+        // `FormatAllArgsBrokenOut` writes each argument through the
+        // ordinary (non-splicing) formatting path instead. The first
+        // argument is skipped here -- its fate is already fully decided by
+        // `hug_first_argument` above.
+        let later_argument_has_multiline_string = !has_empty_line
+            && args.iter().skip(1).any(|arg| {
+                arg.ok()
+                    .is_some_and(|arg| contains_multi_line_string_token(arg.syntax()))
+            });
+
+        if has_empty_line
+            || later_argument_has_multiline_string
+            || is_function_composition_args(node)
+        {
             return write!(
                 f,
                 [FormatAllArgsBrokenOut {
@@ -1179,23 +1196,49 @@ fn should_hug_first_call_argument(argument: &AnyMCallArgument, f: &MFormatter) -
         ) => literal
             .value_token()
             .is_ok_and(|t| t.text_trimmed().contains('\n')),
-        AnyMExpression::MSqlConcatenationExpression(concatenation) => concatenation
-            .expression()
-            .is_ok_and(|inner| ConcatenatedQuery::try_new(&inner.into(), f).is_some()),
-        AnyMExpression::MCallExpression(call) => call.callee().is_ok_and(|callee| {
-            let AnyMExpression::MStaticMemberExpression(member) = callee else {
-                return false;
-            };
-            member.object().is_ok_and(|obj| {
-                matches!(
-                    obj.syntax().kind(),
-                    MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION
-                        | MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION
-                )
-            })
-        }),
-        _ => false,
+        AnyMExpression::MSqlConcatenationExpression(concatenation) => {
+            concatenation
+                .expression()
+                .is_ok_and(|inner| ConcatenatedQuery::try_new(&inner.into(), f).is_some())
+                || contains_multi_line_string_token(expression.syntax())
+        }
+        // Every other shape (a `.method(...)` call on a multi-line string
+        // that failed the grammar's real-SQL-parse check, a plain
+        // `+`-chain that likewise was never reclassified as
+        // `MSqlConcatenationExpression`, a ternary between two raw query
+        // fragments, ...) hugs if *any* string token anywhere in it has an
+        // embedded newline. Checking the whole subtree instead of
+        // enumerating specific node shapes avoids re-discovering this same
+        // gap for every new way a multi-line string can be wrapped -- see
+        // `contains_multi_line_string_token`'s doc comment for why any of
+        // them is unsafe to leave to the ordinary (non-hugging)
+        // call-argument layout.
+        _ => contains_multi_line_string_token(expression.syntax()),
     }
+}
+
+/// Whether `node`'s subtree contains a multi-line string literal token
+/// anywhere. `write_with_custom_line_width` (the ordinary, non-hugging
+/// call-argument layout used whenever this returns `false` for the first
+/// argument) reformats the whole argument list in an isolated pass at a
+/// narrower width and re-splices the result back into the real document
+/// line by line via `hard_line_break()`, so the *real* ambient indent
+/// applies to each line. Ordinary string-literal formatting never rewrites
+/// a multi-line literal's own interior content, so ANY embedded newline
+/// anywhere in the argument gets swept up in that same per-line splice --
+/// baking the ambient indent *inside* the literal's text, which then
+/// becomes the token's new raw content, permanently, so every subsequent
+/// reformat pass adds another layer on top of the last. Hugging sidesteps
+/// `write_with_custom_line_width` entirely, letting the string print
+/// through the ordinary (non-splicing) formatting path instead.
+fn contains_multi_line_string_token(node: &mlang_syntax::MSyntaxNode) -> bool {
+    node.descendants_tokens(biome_rowan::Direction::Next)
+        .any(|token| {
+            matches!(
+                token.kind(),
+                MSyntaxKind::M_STRING_LITERAL | MSyntaxKind::M_LONG_STRING_LITERAL
+            ) && token.text_trimmed().contains('\n')
+        })
 }
 
 fn is_chained_call_callee(call: &MCallExpression) -> bool {

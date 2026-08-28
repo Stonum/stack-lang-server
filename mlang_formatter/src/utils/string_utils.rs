@@ -348,7 +348,7 @@ fn dedent_verbatim_spans<'a>(raw: &'a str, tree: &sql_syntax::SqlSyntaxNode) -> 
 /// strip -- a single line, or already at a zero common minimum -- so the
 /// caller can tell "no span-worthy change" apart from "dedented to
 /// nothing", without allocating in the common case.
-fn dedent_span(span: &str) -> Option<String> {
+pub(crate) fn dedent_span(span: &str) -> Option<String> {
     let mut lines = span.split('\n');
     let first = lines.next()?;
 

@@ -130,8 +130,17 @@ fn concatenation_bails_out_when_a_hole_sits_flush_against_a_keyword() {
     // the source text alone can't tell us either way, and it's just as
     // plausible that the hole is meant to be glued onto a *partial
     // identifier* (e.g. `"prefix_" + suffix + "_table"`), where inserting
-    // a separator would be wrong. Left as an ordinary `+`-chain -- the
-    // surrounding call-argument list still gets ordinary formatting, though.
+    // a separator would be wrong. Left as an ordinary `+`-chain, but still
+    // hugged to the opening paren like any other multi-line-string-bearing
+    // argument (see `contains_multi_line_string_token`'s doc comment in
+    // `call_arguments.rs`): the generic (non-hugging) call-argument
+    // layout reformats the whole argument list at a narrower width in an
+    // isolated pass and re-splices it back line by line, which used to
+    // bake the surrounding ambient indent inside these literals' own
+    // embedded newlines -- invisible in this single-format assertion since
+    // the call sits at the top level (zero ambient indent to bake in), but
+    // growing without bound on every reformat pass once nested one level
+    // deeper (e.g. inside an `if`).
     assert_fmt_eq!(
         r#"#
 var upd = Command(`
@@ -140,15 +149,12 @@ var upd = Command(`
   `, 0);
 "#,
         r#"#
-var upd = Command(
-   `
+var upd = Command(`
      update`
-      + tableName
-      + `
+   + tableName
+   + `
         set a = 1
-  `,
-   0
-);"#
+  `, 0);"#
     );
 }
 
@@ -254,5 +260,49 @@ var qq = Query("
    from " + function_name + "(1, 2, 3) f
    where true and " + filter_clause, 1);
 "#
+    );
+}
+
+#[test]
+fn concatenation_that_bails_out_of_sql_detection_does_not_grow_indent_each_pass_when_nested() {
+    // Regression test: same shape as
+    // `concatenation_bails_out_when_a_hole_sits_flush_against_a_keyword`,
+    // but nested one level deep (inside an `if`) instead of sitting at the
+    // top level -- that's what actually exposes the bug the hugging fix
+    // there addresses, since a top-level call has no ambient indent to
+    // bake into the literals' embedded newlines in the first place.
+    use mlang_formatter::{IndentStyle, IndentWidth, LineWidth, MFormatOptions, format_node};
+    use mlang_parser::parse;
+    use mlang_syntax::MFileSource;
+
+    let src = "#\nif(test)\n{\n   var upd = Command(`\n     update` + tableName + `\n        set a = 1\n  `, 0);\n}\n";
+
+    let syntax = MFileSource::script();
+    let options = MFormatOptions::new(syntax)
+        .with_indent_style(IndentStyle::Space)
+        .with_line_width(LineWidth::try_from(120).unwrap())
+        .with_pretty_line_width(LineWidth::try_from(90).unwrap())
+        .with_indent_width(IndentWidth::from(3))
+        .with_bracket_spacing(false.into());
+
+    let tree = parse(src, syntax);
+    let pass1 = format_node(options.clone(), &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    let tree2 = parse(&pass1, syntax);
+    let pass2 = format_node(options, &tree2.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .as_code()
+        .to_string();
+
+    assert_eq!(
+        pass1, pass2,
+        "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
     );
 }
