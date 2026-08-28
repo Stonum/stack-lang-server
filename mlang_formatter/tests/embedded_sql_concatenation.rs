@@ -140,21 +140,20 @@ fn concatenation_bails_out_when_a_hole_sits_flush_against_a_keyword() {
     // embedded newlines -- invisible in this single-format assertion since
     // the call sits at the top level (zero ambient indent to bake in), but
     // growing without bound on every reformat pass once nested one level
-    // deeper (e.g. inside an `if`).
-    assert_fmt_eq!(
+    // deeper (e.g. inside an `if`). Two multi-line operands in one chain
+    // (`` `...update` `` and `` `...set a = 1...` ``) used to be out of
+    // scope for `try_format_flat_multiline_concatenation`'s flat rendering
+    // (one multi-line operand only) and so always broke onto one operand
+    // per line regardless of fit -- now that it handles any number of
+    // them, this chain -- which fits well within the line width -- stays
+    // flat instead.
+    assert_fmt!(
         r#"#
 var upd = Command(`
      update` + tableName + `
         set a = 1
   `, 0);
-"#,
-        r#"#
-var upd = Command(`
-     update`
-   + tableName
-   + `
-        set a = 1
-  `, 0);"#
+"#
     );
 }
 

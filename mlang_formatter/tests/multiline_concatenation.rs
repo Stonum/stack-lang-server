@@ -97,7 +97,7 @@ fn falls_back_to_per_operand_break_when_trailing_content_does_not_fit() {
 var x =
    "a"
    + "line1
-line2"
+   line2"
    + ааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа;
 "#
     );
@@ -113,8 +113,44 @@ fn mixed_plus_minus_chain_with_multiline_operand_is_unaffected() {
 var x =
    "a"
    + "line1
-line2"
+   line2"
    - b;
+"#
+    );
+}
+
+#[test]
+fn two_multiline_operands_both_stay_flat_when_they_fit() {
+    // Every physical line here fits well within the width budget: `"a"`
+    // joining the first literal's first line, that literal's own last line
+    // joining `ппп` and the second literal's first line, and that second
+    // literal's own last line joining `qqq`.
+    assert_fmt!(
+        r#"#
+var x = "a" + "line1
+   line2" + ппп + "line3
+   line4" + qqq;
+"#
+    );
+}
+
+#[test]
+fn two_multiline_operands_break_when_the_segment_between_them_does_not_fit() {
+    // Same shape as `two_multiline_operands_both_stay_flat_when_they_fit`,
+    // but the identifier joining the two literals is long enough that the
+    // physical line spanning the first literal's last line through the
+    // second literal's first line goes over the width budget -- falls back
+    // to the regular per-operand break instead of staying flat.
+    assert_fmt!(
+        r#"#
+var x =
+   "a"
+   + "line1
+   line2"
+   + ааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа
+   + "line3
+   line4"
+   + qqq;
 "#
     );
 }
