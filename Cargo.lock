@@ -1028,6 +1028,7 @@ dependencies = [
  "mlang_parser",
  "mlang_semantic",
  "mlang_syntax",
+ "unicase",
 ]
 
 [[package]]

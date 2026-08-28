@@ -9,6 +9,7 @@ mlang_semantic = { workspace = true }
 mlang_core = { workspace = true }
 mlang_lsp_definition = { workspace = true }
 biome_rowan = { workspace = true }
+unicase = { workspace = true }
 
 [dev-dependencies]
 mlang_parser = { workspace = true }

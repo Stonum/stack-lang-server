@@ -3,6 +3,8 @@ use mlang_core::AnyMCoreDefinition;
 use mlang_lsp_definition::CodeSymbolDefinition;
 use mlang_semantic::AnyMDefinition;
 use mlang_syntax::{AnyMExpression, AstNode, MCallExpression, MSyntaxNode};
+use std::collections::HashMap;
+use unicase::UniCase;
 
 use crate::{Diagnostic, Severity};
 
@@ -10,19 +12,40 @@ pub const CODE: &str = "call-arity-mismatch";
 
 pub fn check<'a>(
     root: &MSyntaxNode,
-    core: &[AnyMCoreDefinition],
-    definitions: impl Iterator<Item = &'a AnyMDefinition> + Clone,
+    core: &'a [AnyMCoreDefinition],
+    definitions: impl Iterator<Item = &'a AnyMDefinition>,
 ) -> Vec<Diagnostic> {
+    let core_index = build_index(core.iter());
+    let definitions_index = build_index(definitions);
+
     root.descendants()
         .filter_map(MCallExpression::cast)
-        .filter_map(|call| check_call(&call, core, definitions.clone()))
+        .filter_map(|call| check_call(&call, &core_index, &definitions_index))
         .collect()
 }
 
-fn check_call<'a>(
+/// Indexes `items` by case-folded name (matching
+/// [CodeSymbolDefinition::compare_id_with]'s `unicase::eq` comparison) so a
+/// lookup by name doesn't have to linearly rescan every definition for
+/// every call site in the file -- `check` used to do exactly that,
+/// making the whole lint O(calls x definitions).
+fn build_index<'a, T: CodeSymbolDefinition>(
+    items: impl Iterator<Item = &'a T>,
+) -> HashMap<UniCase<String>, Vec<&'a T>> {
+    let mut index: HashMap<UniCase<String>, Vec<&T>> = HashMap::new();
+    for item in items.filter(|d| d.is_function()) {
+        index
+            .entry(UniCase::new(item.id().to_string()))
+            .or_default()
+            .push(item);
+    }
+    index
+}
+
+fn check_call(
     call: &MCallExpression,
-    core: &[AnyMCoreDefinition],
-    definitions: impl Iterator<Item = &'a AnyMDefinition>,
+    core_index: &HashMap<UniCase<String>, Vec<&AnyMCoreDefinition>>,
+    definitions_index: &HashMap<UniCase<String>, Vec<&AnyMDefinition>>,
 ) -> Option<Diagnostic> {
     let AnyMExpression::MIdentifierExpression(ident) = call.callee().ok()? else {
         return None;
@@ -34,17 +57,20 @@ fn check_call<'a>(
     let mut known = false;
     let mut accepted = false;
 
-    for d in core
-        .iter()
-        .filter(|d| d.is_function() && d.compare_id_with(&name))
-    {
-        known = true;
-        accepted |= d.can_be_called(count);
+    let key = UniCase::new(name.to_string());
+
+    if let Some(matches) = core_index.get(&key) {
+        for d in matches {
+            known = true;
+            accepted |= d.can_be_called(count);
+        }
     }
 
-    for d in definitions.filter(|d| d.is_function() && d.compare_id_with(&name)) {
-        known = true;
-        accepted |= d.can_be_called(count);
+    if let Some(matches) = definitions_index.get(&key) {
+        for d in matches {
+            known = true;
+            accepted |= d.can_be_called(count);
+        }
     }
 
     if !known || accepted {
@@ -115,5 +141,15 @@ mod tests {
     fn accepts_user_function_call_with_correct_arity() {
         let diagnostics = lint_with_core("func f(a, b) {} f(1, 2)");
         assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn matches_user_function_regardless_of_call_site_casing() {
+        // The index is keyed by case-folded name -- confirms it still
+        // unifies differently-cased spellings the same way
+        // `compare_id_with`'s `unicase::eq` did before this was indexed.
+        let diagnostics = lint_with_core("func Foo(a, b) {} foo(1)");
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].code, CODE);
     }
 }

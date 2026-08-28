@@ -19,8 +19,8 @@ pub fn syntax_diagnostics(root: &MSyntaxNode) -> Vec<Diagnostic> {
 /// Rules that need resolved declarations (built-ins and user functions).
 pub fn semantic_diagnostics<'a>(
     root: &MSyntaxNode,
-    core: &[AnyMCoreDefinition],
-    definitions: impl Iterator<Item = &'a AnyMDefinition> + Clone,
+    core: &'a [AnyMCoreDefinition],
+    definitions: impl Iterator<Item = &'a AnyMDefinition>,
 ) -> Vec<Diagnostic> {
     rules::call_arity_mismatch::check(root, core, definitions)
 }
