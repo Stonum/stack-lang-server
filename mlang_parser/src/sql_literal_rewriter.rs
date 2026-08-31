@@ -13,14 +13,44 @@ use mlang_syntax::concatenation::{
 use mlang_syntax::{AnyMExpression, MBinaryExpression, MLanguage, MSyntaxKind, MSyntaxNode};
 
 /// Cheap pre-filter before attempting a real parse: does `raw` start (after
-/// leading whitespace) with one of these keywords, at a word boundary.
-/// Keywords alone never decide anything -- only [sql_parser::parses_as_embedded_sql]
-/// does -- this just avoids parsing every unrelated string literal in the
-/// file.
-const SQL_KEYWORDS: &[&str] = &["select", "insert", "update", "delete", "with"];
+/// leading whitespace/comments) with one of these keywords, at a word
+/// boundary. Keywords alone never decide anything -- only
+/// [sql_parser::parses_as_embedded_sql] does -- this just avoids parsing
+/// every unrelated string literal in the file. Mirrors the full set of
+/// top-level statement starters `sql_parser::syntax_rules::stmt::parse_statement`
+/// actually dispatches on, not just a handful of the most common ones.
+const SQL_KEYWORDS: &[&str] = &[
+    "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant",
+];
+
+/// Strips leading whitespace and `/* ... */`/`-- ...` comments, repeatedly,
+/// so a real script's leading marker comment (e.g. `/*'multiplecommand'*/`
+/// before a batch of DDL statements) doesn't hide the keyword that follows
+/// it from [looks_like_sql]. An unterminated block comment stops the loop
+/// rather than skipping the rest of the string -- the real parser is left to
+/// reject that.
+fn skip_leading_trivia(mut s: &str) -> &str {
+    loop {
+        let trimmed = s.trim_start();
+        if let Some(rest) = trimmed.strip_prefix("/*") {
+            match rest.find("*/") {
+                Some(end) => {
+                    s = &rest[end + 2..];
+                    continue;
+                }
+                None => return trimmed,
+            }
+        }
+        if let Some(rest) = trimmed.strip_prefix("--") {
+            s = rest.split_once('\n').map_or("", |(_, after)| after);
+            continue;
+        }
+        return trimmed;
+    }
+}
 
 fn looks_like_sql(raw: &str) -> bool {
-    let trimmed = raw.trim_start();
+    let trimmed = skip_leading_trivia(raw);
     SQL_KEYWORDS.iter().any(|keyword| {
         let Some(prefix) = trimmed.get(..keyword.len()) else {
             return false;
@@ -158,7 +188,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn recognizes_all_five_keywords() {
+    fn recognizes_all_keywords() {
         for keyword in SQL_KEYWORDS {
             assert!(looks_like_sql(&format!("{keyword} * from t")), "{keyword}");
             assert!(
@@ -183,6 +213,24 @@ mod tests {
     #[test]
     fn rejects_unrelated_text() {
         assert!(!looks_like_sql("just a plain string"));
+    }
+
+    #[test]
+    fn skips_a_leading_block_comment() {
+        assert!(looks_like_sql("/* comment */ drop table t"));
+        assert!(looks_like_sql(
+            "/*'multiplecommand'*/\ndrop table if exists t"
+        ));
+    }
+
+    #[test]
+    fn skips_a_leading_line_comment() {
+        assert!(looks_like_sql("-- comment\nselect a from t"));
+    }
+
+    #[test]
+    fn does_not_skip_past_an_unterminated_block_comment() {
+        assert!(!looks_like_sql("/* comment select a from t"));
     }
 
     #[test]
@@ -214,6 +262,32 @@ mod tests {
             !root
                 .descendants()
                 .any(|node| node.kind() == MSyntaxKind::M_STRING_LITERAL_EXPRESSION)
+        );
+    }
+
+    /// Close to a real client script: a leading marker comment before a
+    /// multi-statement DDL batch (`drop table if exists`/`create table`)
+    /// using a `#`-prefixed mlang temp-table name and a backtick long
+    /// string. Regression test for the bug this file's fix addresses --
+    /// before adding `drop`/`create` to `SQL_KEYWORDS` and skipping the
+    /// leading comment, this literal was never even offered to
+    /// `sql_parser`, so `mlang_formatter` never reformatted it.
+    #[test]
+    fn rewrites_a_ddl_batch_behind_a_leading_comment() {
+        let tree = crate::parse(
+            "#\nvar q = `/*'multiplecommand'*/\ndrop table if exists #tmp;\ncreate table #tmp (a int);`;",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            root.descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION)
+        );
+        assert!(
+            !root
+                .descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_LONG_STRING_LITERAL_EXPRESSION)
         );
     }
 
