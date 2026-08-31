@@ -1,5 +1,13 @@
 **Changelog**
 ===============
+**v0.6.0 - 2026-08-31**
+------------------------------------
+* **Added**:
+   + SQL formatting for embedded queries: any string (or string-concatenation) literal whose content actually parses as SQL is now recognized and formatted, no longer gated on the name of the call it's passed to
+   + dialect-aware SQL parsing/formatting covering Postgres and MSSQL syntax
+* **Fixed**:
+   + a range of SQL and mlang formatting edge cases found while building the above (list wrapping/packing, and/or chain wrapping, comment placement, multiline concatenation, quote conflicts)
+
 **v0.5.0 - 2026-07-08**
 ------------------------------------
 * **Added**:
