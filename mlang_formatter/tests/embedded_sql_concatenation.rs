@@ -252,10 +252,14 @@ var qq = Query(
 
 #[test]
 fn concatenation_multiline_sql_with_holes_at_clause_boundaries() {
+    // The select list is long enough that the joined query still needs to
+    // wrap at this test's 120-column width (see `format_sql_source`, which
+    // now uses the surrounding mlang document's own configured line width
+    // instead of `SqlFormatOptions`'s unrelated 80-column default).
     assert_fmt!(
         r#"#
 var qq = Query("
-   select a1, b2, c3, d4, e5, f6, g7
+   select a1, b2, c3, d4, e5, f6, g7, h8, i9, j10, k11, l12
    from " + function_name + "(1, 2, 3) f
    where true and " + filter_clause, 1);
 "#

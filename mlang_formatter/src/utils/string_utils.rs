@@ -269,13 +269,17 @@ pub(crate) fn format_sql_source(raw: &str, f: &MFormatter) -> Option<String> {
         }
     };
 
-    // Match the embedded query's own indentation to the surrounding mlang
-    // code's style/width, since the resulting lines get spliced in as raw
-    // text (see `format_reformatted_multi_line_query`) -- a mismatch would
-    // otherwise mix, say, mlang's spaces with sql_formatter's default tabs.
+    // Match the embedded query's own indentation and line width to the
+    // surrounding mlang code's, since the resulting lines get spliced in as
+    // raw text (see `format_reformatted_multi_line_query`) -- a mismatch
+    // would otherwise mix, say, mlang's spaces with sql_formatter's default
+    // tabs, or wrap decisions against `SqlFormatOptions`'s own default 80
+    // instead of whatever width the mlang document is actually configured
+    // for.
     let options = sql_formatter::SqlFormatOptions::new(syntax)
         .with_indent_style(f.options().indent_style())
         .with_indent_width(f.options().indent_width())
+        .with_line_width(f.options().line_width())
         // Legacy mlang queries use SQL-Server-style `[bracket]` identifiers
         // even where they're otherwise ordinary, valid Postgres -- always
         // normalize those to Postgres's own `"..."` spelling when
