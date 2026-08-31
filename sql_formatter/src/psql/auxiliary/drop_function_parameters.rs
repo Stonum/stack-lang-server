@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::write;
+use crate::utils::write_bracketed_fill_list;
 use sql_syntax::PsqlDropFunctionParameters;
 use sql_syntax::PsqlDropFunctionParametersFields;
 #[derive(Debug, Clone, Default)]
@@ -16,13 +16,6 @@ impl FormatNodeRule<PsqlDropFunctionParameters> for FormatPsqlDropFunctionParame
             r_paren_token,
         } = node.as_fields();
 
-        write!(
-            f,
-            [
-                l_paren_token.format(),
-                group(&soft_block_indent(&items.format())),
-                r_paren_token.format(),
-            ]
-        )
+        write_bracketed_fill_list(l_paren_token, &items, r_paren_token, |_| false, f)
     }
 }

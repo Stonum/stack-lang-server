@@ -43,16 +43,23 @@ returning a
 }
 
 #[test]
+fn format_delete_using_multiple_tables_packs_when_it_fits() {
+    assert_fmt!(
+        r#"--
+delete from t
+using a, b, c
+"#
+    );
+}
+
+#[test]
 fn format_delete_using_multiple_tables_wraps_when_too_long() {
     assert_fmt!(
         r#"--
 delete from t
 using
-	really_long_table_name_one,
-	really_long_table_name_two,
-	really_long_table_name_three,
-	really_long_table_name_four,
-	really_long_table_name_five
+	really_long_table_name_one, really_long_table_name_two, really_long_table_name_three,
+	really_long_table_name_four, really_long_table_name_five
 "#
     );
 }

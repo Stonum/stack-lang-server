@@ -1,6 +1,7 @@
 use crate::prelude::*;
-use crate::utils::write_bracketed_fill_list;
+use crate::utils::{is_simple_expression, write_bracketed_fill_list};
 use biome_formatter::write;
+use sql_syntax::AnySqlExpression;
 use sql_syntax::PsqlArrayExpression;
 use sql_syntax::PsqlArrayExpressionFields;
 #[derive(Debug, Clone, Default)]
@@ -15,6 +16,12 @@ impl FormatNodeRule<PsqlArrayExpression> for FormatPsqlArrayExpression {
         } = node.as_fields();
 
         write!(f, [array_token.format()])?;
-        write_bracketed_fill_list(l_brack_token, &items, r_brack_token, f)
+        write_bracketed_fill_list(
+            l_brack_token,
+            &items,
+            r_brack_token,
+            |expr: &AnySqlExpression| !is_simple_expression(expr, 0),
+            f,
+        )
     }
 }

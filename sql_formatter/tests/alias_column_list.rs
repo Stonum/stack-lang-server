@@ -38,6 +38,19 @@ select * from some_func(1) as f(key, val)
 }
 
 #[test]
+fn format_alias_column_list_wraps_when_too_long() {
+    assert_fmt!(
+        r#"--
+select *
+from json_to_recordset(:1::jsonb) as x(
+	really_long_column_name_one int, really_long_column_name_two text,
+	really_long_column_name_three boolean, really_long_column_name_four numeric
+)
+"#
+    );
+}
+
+#[test]
 fn format_alias_column_list_normalizes_spacing_and_case() {
     assert_fmt_eq!(
         r#"--

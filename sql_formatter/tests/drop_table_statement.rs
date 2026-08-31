@@ -63,10 +63,8 @@ fn format_drop_table_names_wrap_when_too_long() {
     assert_fmt!(
         r#"--
 drop table
-	really_long_table_name_number_one,
-	really_long_table_name_number_two,
-	really_long_table_name_number_three,
-	really_long_table_name_number_four
+	really_long_table_name_number_one, really_long_table_name_number_two,
+	really_long_table_name_number_three, really_long_table_name_number_four
 "#
     );
 }

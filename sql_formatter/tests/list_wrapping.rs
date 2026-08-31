@@ -153,16 +153,29 @@ order by
 }
 
 #[test]
+fn format_from_items_packs_when_it_fits() {
+    // The where clause forces the statement to break onto multiple lines,
+    // but the short from-item list still packs onto its own single line
+    // rather than exploding to one table per line.
+    assert_fmt!(
+        r#"--
+select a
+from t1, t2, t3
+where really_long_condition_one_name = 1
+	and really_long_condition_two_name = 2
+	and really_long_condition_three_name = 3
+"#
+    );
+}
+
+#[test]
 fn format_from_items_wrap_when_too_long() {
     assert_fmt!(
         r#"--
 select a
 from
-	really_long_table_name_one,
-	really_long_table_name_two,
-	really_long_table_name_three,
-	really_long_table_name_four,
-	really_long_table_name_five
+	really_long_table_name_one, really_long_table_name_two, really_long_table_name_three,
+	really_long_table_name_four, really_long_table_name_five
 "#
     );
 }

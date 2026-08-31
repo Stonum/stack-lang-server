@@ -50,10 +50,8 @@ fn format_update_set_wraps_when_too_long() {
         r#"--
 update t
 set
-	really_long_column_name_one = 1,
-	really_long_column_name_two = 2,
-	really_long_column_name_three = 3,
-	really_long_column_name_four = 4
+	really_long_column_name_one = 1, really_long_column_name_two = 2,
+	really_long_column_name_three = 3, really_long_column_name_four = 4
 "#
     );
 }
@@ -88,6 +86,20 @@ update t
 set a = 1, b = 2
 from u, v
 where t.id = u.id
+"#
+    );
+}
+
+#[test]
+fn format_update_from_clause_wraps_when_too_long() {
+    assert_fmt!(
+        r#"--
+update t
+set a = 1
+from
+	really_long_table_name_one, really_long_table_name_two, really_long_table_name_three,
+	really_long_table_name_four, really_long_table_name_five
+where t.id = 1
 "#
     );
 }

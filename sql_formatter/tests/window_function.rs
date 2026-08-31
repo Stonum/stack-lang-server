@@ -68,6 +68,27 @@ select row_number() over (partition by dept order by salary desc) from t
 }
 
 #[test]
+fn format_window_function_partition_by_multiple_columns_packs_when_it_fits() {
+    assert_fmt!(
+        r#"--
+select row_number() over (partition by dept, region, team) from t
+"#
+    );
+}
+
+#[test]
+fn format_window_function_partition_by_wraps_when_too_long() {
+    assert_fmt!(
+        r#"--
+select row_number() over (partition by
+	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
+	really_long_column_name_four, really_long_column_name_five)
+from t
+"#
+    );
+}
+
+#[test]
 fn format_window_function_empty_over() {
     assert_fmt!(
         r#"--

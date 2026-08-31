@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_wrapping_fill_clause;
 use biome_formatter::write;
 use sql_syntax::SqlDropTableStatement;
 use sql_syntax::SqlDropTableStatementFields;
@@ -16,20 +17,18 @@ impl FormatNodeRule<SqlDropTableStatement> for FormatSqlDropTableStatement {
             semicolon_token,
         } = node.as_fields();
 
-        write!(f, [drop_token.format(), space(), table_token.format()])?;
+        let keyword = format_with(move |f| {
+            write!(f, [drop_token.format(), space(), table_token.format()])?;
+            if let Some(if_token) = &if_token {
+                write!(f, [space(), if_token.format()])?;
+            }
+            if let Some(exists_token) = &exists_token {
+                write!(f, [space(), exists_token.format()])?;
+            }
+            Ok(())
+        });
 
-        if let Some(if_token) = if_token {
-            write!(f, [space(), if_token.format()])?;
-        }
-        if let Some(exists_token) = exists_token {
-            write!(f, [space(), exists_token.format()])?;
-        }
-
-        if tables.len() <= 1 {
-            write!(f, [space(), tables.format()])?;
-        } else {
-            write!(f, [group(&soft_line_indent_or_space(&tables.format()))])?;
-        }
+        write_wrapping_fill_clause(keyword, &tables, |_| false, f)?;
 
         if let Some(drop_behavior) = drop_behavior {
             write!(f, [space(), drop_behavior.format()])?;

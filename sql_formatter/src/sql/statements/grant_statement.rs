@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_wrapping_fill_clause;
 use biome_formatter::write;
 use sql_syntax::SqlGrantStatement;
 use sql_syntax::SqlGrantStatementFields;
@@ -17,34 +18,26 @@ impl FormatNodeRule<SqlGrantStatement> for FormatSqlGrantStatement {
             semicolon_token,
         } = node.as_fields();
 
-        write!(
-            f,
-            [
-                grant_token.format(),
-                space(),
-                all_token.format(),
-                space(),
-                on_token.format(),
-            ]
-        )?;
+        let objects_keyword = format_with(move |f| {
+            write!(
+                f,
+                [
+                    grant_token.format(),
+                    space(),
+                    all_token.format(),
+                    space(),
+                    on_token.format(),
+                ]
+            )?;
+            if let Some(table_token) = &table_token {
+                write!(f, [space(), table_token.format()])?;
+            }
+            Ok(())
+        });
+        write_wrapping_fill_clause(objects_keyword, &objects, |_| false, f)?;
 
-        if let Some(table_token) = table_token {
-            write!(f, [space(), table_token.format()])?;
-        }
-
-        if objects.len() <= 1 {
-            write!(f, [space(), objects.format()])?;
-        } else {
-            write!(f, [group(&soft_line_indent_or_space(&objects.format()))])?;
-        }
-
-        write!(f, [space(), to_token.format()])?;
-
-        if grantees.len() <= 1 {
-            write!(f, [space(), grantees.format()])?;
-        } else {
-            write!(f, [group(&soft_line_indent_or_space(&grantees.format()))])?;
-        }
+        write!(f, [space()])?;
+        write_wrapping_fill_clause(to_token.format(), &grantees, |_| false, f)?;
 
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;

@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_bracketed_fill_list;
 use biome_formatter::write;
 use sql_syntax::PsqlReturnsTableClause;
 use sql_syntax::PsqlReturnsTableClauseFields;
@@ -13,14 +14,7 @@ impl FormatNodeRule<PsqlReturnsTableClause> for FormatPsqlReturnsTableClause {
             r_paren_token,
         } = node.as_fields();
 
-        write!(
-            f,
-            [
-                table_token.format(),
-                l_paren_token.format(),
-                group(&soft_block_indent(&columns.format())),
-                r_paren_token.format(),
-            ]
-        )
+        write!(f, [table_token.format()])?;
+        write_bracketed_fill_list(l_paren_token, &columns, r_paren_token, |_| false, f)
     }
 }

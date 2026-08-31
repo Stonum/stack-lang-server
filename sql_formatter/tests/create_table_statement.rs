@@ -63,10 +63,8 @@ fn format_create_table_columns_wrap_when_too_long() {
     assert_fmt!(
         r#"--
 create table foo (
-	really_long_column_name_number_one int,
-	really_long_column_name_number_two text,
-	really_long_column_name_number_three boolean,
-	really_long_column_name_number_four numeric
+	really_long_column_name_number_one int, really_long_column_name_number_two text,
+	really_long_column_name_number_three boolean, really_long_column_name_number_four numeric
 )
 "#
     );

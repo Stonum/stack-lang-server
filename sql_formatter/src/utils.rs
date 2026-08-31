@@ -3,8 +3,8 @@ use biome_formatter::format_element::document::Document;
 use biome_formatter::{FormatOptions, Formatted, VecBuffer, format_args, write};
 use biome_rowan::{AstSeparatedList, SyntaxResult};
 use sql_syntax::{
-    AnySqlExpression, SqlExpressionList, SqlFromClause, SqlGroupByClause, SqlHavingClause,
-    SqlLanguage, SqlSelectClause, SqlSyntaxToken, SqlWhereClause,
+    AnySqlExpression, AnySqlFromExpression, SqlFromClause, SqlFromItem, SqlGroupByClause,
+    SqlHavingClause, SqlSelectClause, SqlSyntaxToken, SqlWhereClause,
 };
 
 /// Prints the `select ... [from ...] [where ...] [group_by ...] [having
@@ -40,54 +40,25 @@ pub(crate) fn write_select_body_clauses(
     Ok(())
 }
 
-/// Prints a `keyword <wrapping list>` clause (e.g. `select a, b`, `group_by
-/// a, b`), wrapping keyword and list together in a `group(..)` so the list
-/// indents onto its own lines when it doesn't fit -- *except* when the list
-/// has at most one item, in which case it's printed flat with no group at
-/// all.
-///
-/// The single-item exception exists because a `group(..)`  always expands
-/// if its content contains a hard line break anywhere inside, no matter how
-/// deeply nested (confirmed via `biome_formatter`'s `propagate_expand`) --
-/// so a single item whose own formatting must hard-break (e.g. a call
-/// expression whose arguments don't fit) would otherwise force the keyword
-/// itself onto its own line too, even though "does this comma list of
-/// items wrap" isn't a meaningful question with only one item. Same fix as
-/// `SqlFromClause`/`SqlDeleteUsingClause` apply for the same reason.
-pub(crate) fn write_wrapping_clause<L>(
-    keyword: SyntaxResult<SqlSyntaxToken>,
-    list: &L,
-    f: &mut SqlFormatter,
-) -> FormatResult<()>
-where
-    L: AstSeparatedList<Language = SqlLanguage> + AsFormat<SqlFormatContext>,
-{
-    if list.len() <= 1 {
-        write!(f, [keyword.format(), space(), list.format()])
-    } else {
-        write!(
-            f,
-            [group(&format_args![
-                keyword.format(),
-                soft_line_indent_or_space(&list.format())
-            ])]
-        )
-    }
-}
-
 /// Prints a `keyword <list>` clause (`select a, b`, `group_by a, b`,
 /// `order_by a, b`) using the same flat/balanced/fill `best_fitting!`
-/// approach as [write_bracketed_fill_list] instead of [write_wrapping_clause]'s
-/// always-one-per-line-when-broken behavior: simple items still pack
+/// approach as [write_bracketed_fill_list]: simple items still pack
 /// multiple-per-line, and only a complex item -- and the item right after
 /// it -- force their own line.
+///
+/// A list of at most one item is printed flat with no group at all: a
+/// `group(..)` always expands if its content contains a hard line break
+/// anywhere inside, no matter how deeply nested (confirmed via
+/// `biome_formatter`'s `propagate_expand`) -- so a single item whose own
+/// formatting must hard-break (e.g. a call expression whose arguments
+/// don't fit) would otherwise force the keyword itself onto its own line
+/// too, even though "does this comma list of items wrap" isn't a
+/// meaningful question with only one item.
 ///
 /// Unlike [write_bracketed_fill_list] there's no closing bracket to anchor
 /// indentation to, so the expanded variant uses `soft_line_indent_or_space`
 /// (leading break+indent only, no trailing one) instead of
-/// `soft_block_indent`, matching [write_wrapping_clause]'s own choice for
-/// the same reason; the single-item flat-no-group exception is preserved
-/// too, same rationale as there.
+/// `soft_block_indent`.
 ///
 /// `is_complex` decides each list item's complexity from its node; callers
 /// adapt [is_simple_expression] to whatever expression the list's item
@@ -222,14 +193,28 @@ pub(crate) fn is_simple_expression(expr: &AnySqlExpression, depth: u8) -> bool {
     }
 }
 
+/// Returns `true` for a `FROM`/`USING` item complex enough to force its own
+/// line in a fill layout rather than packing next to others -- anything
+/// with a `JOIN` attached, or whose source is a function call, subquery, or
+/// parenthesized join rather than a plain table reference. Shared by
+/// `from_clause.rs`, `update_from_clause.rs`, and (psql)
+/// `delete_using_clause.rs`, all three built on `SqlFromItemList`.
+pub(crate) fn is_complex_from_item(item: &SqlFromItem) -> bool {
+    if !item.joins().is_empty() {
+        return true;
+    }
+
+    !matches!(item.source(), Ok(AnySqlFromExpression::SqlTableBinding(_)))
+}
+
 /// Prints `l_paren <list> r_paren` (a call's arguments, `INSERT ...
-/// VALUES (...)`, or an array literal's `[...]` -- all four reuse this one
-/// `SqlExpressionList` grammar node) using a `best_fitting!` with three
-/// variants, mirroring `mlang_formatter`'s real call-argument layout
-/// (`mlang_formatter/src/rules/expressions/call_arguments.rs`, the `else`
-/// branch building `flat_slice`/`expanded_slice`) rather than the simpler
-/// always-one-per-line-when-broken [write_wrapping_separated_list] used
-/// elsewhere in this formatter:
+/// VALUES (...)`, an array literal's `[...]`, or any other comma-separated
+/// list whose surrounding parens/brackets belong to the *enclosing* node)
+/// using a `best_fitting!` with three variants, mirroring `mlang_formatter`'s
+/// real call-argument layout (`mlang_formatter/src/rules/expressions/call_arguments.rs`,
+/// the `else` branch building `flat_slice`/`expanded_slice`) rather than the
+/// simpler always-one-per-line-when-broken [write_wrapping_separated_list]
+/// used elsewhere in this formatter:
 ///
 /// 1. Flat: every item on one line, space-separated, no breaks at all.
 /// 2. Balanced (tried only if variant 1 doesn't fit): the same complexity-
@@ -238,7 +223,7 @@ pub(crate) fn is_simple_expression(expr: &AnySqlExpression, depth: u8) -> bool {
 ///    limit -- see [balanced_fill_breaks] for the algorithm and why it's
 ///    safe as a non-final `best_fitting!` candidate.
 /// 3. Expanded (guaranteed-safe fallback if neither above fits): a real
-///    `f.fill()` layout where simple items (see [is_simple_expression])
+///    `f.fill()` layout where simple items (per the caller's own `is_complex`)
 ///    still pack multiple-per-line, but any complex item -- and the item
 ///    right after it -- always starts on its own line. `.should_expand(true)`
 ///    on the enclosing group forces the surrounding parens' own leading/
@@ -253,12 +238,22 @@ pub(crate) fn is_simple_expression(expr: &AnySqlExpression, depth: u8) -> bool {
 /// would therefore never see a reason to expand its own leading/trailing
 /// soft breaks, leaving the parens without their newline+indent even when
 /// a later variant is what's actually printed.
-pub(crate) fn write_bracketed_fill_list(
+///
+/// `is_complex` decides each item's complexity from its node, same as
+/// [write_wrapping_fill_clause]'s own parameter of the same name -- callers
+/// on a plain name/definition list (no meaningful "is this complex"
+/// question) can just pass `|_| false`.
+pub(crate) fn write_bracketed_fill_list<L>(
     l_paren: SyntaxResult<SqlSyntaxToken>,
-    list: &SqlExpressionList,
+    list: &L,
     r_paren: SyntaxResult<SqlSyntaxToken>,
+    is_complex: impl Fn(&L::Node) -> bool,
     f: &mut SqlFormatter,
-) -> FormatResult<()> {
+) -> FormatResult<()>
+where
+    L: FormatAstSeparatedListExtension + AsFormat<SqlFormatContext>,
+    L::Node: AsFormat<SqlFormatContext> + 'static,
+{
     if list.len() == 0 {
         return write!(f, [l_paren.format(), r_paren.format()]);
     }
@@ -282,11 +277,11 @@ pub(crate) fn write_bracketed_fill_list(
                 .with_trailing_separator(TrailingSeparator::Omit),
         )
         .map(|(element, formatted)| {
-            let (is_complex, width) = match &element {
-                Ok(expr) => (!is_simple_expression(expr, 0), formatted_width(expr, f)),
+            let (complex, width) = match &element {
+                Ok(node) => (is_complex(node), formatted_width(node, f)),
                 Err(_) => (true, 0),
             };
-            (is_complex, width, formatted.memoized())
+            (complex, width, formatted.memoized())
         })
         .collect();
 

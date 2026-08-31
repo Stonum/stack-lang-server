@@ -43,6 +43,32 @@ returning a, b
 }
 
 #[test]
+fn format_insert_columns_wrap_when_too_long() {
+    assert_fmt!(
+        r#"--
+insert into t (
+	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
+	really_long_column_name_four, really_long_column_name_five
+)
+values (1, 2, 3, 4, 5)
+"#
+    );
+}
+
+#[test]
+fn format_insert_returning_wraps_when_too_long() {
+    assert_fmt!(
+        r#"--
+insert into t (a)
+values (1)
+returning
+	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
+	really_long_column_name_four, really_long_column_name_five
+"#
+    );
+}
+
+#[test]
 fn format_insert_on_conflict_do_nothing() {
     assert_fmt!(
         r#"--

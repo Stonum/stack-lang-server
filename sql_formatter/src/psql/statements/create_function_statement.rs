@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::write_bracketed_fill_list;
 use biome_formatter::write;
 use sql_syntax::PsqlCreateFunctionStatement;
 use sql_syntax::PsqlCreateFunctionStatementFields;
@@ -36,18 +37,8 @@ impl FormatNodeRule<PsqlCreateFunctionStatement> for FormatPsqlCreateFunctionSta
             write!(f, [space(), replace_token.format()])?;
         }
 
-        write!(
-            f,
-            [
-                space(),
-                kind.format(),
-                space(),
-                name.format(),
-                l_paren_token.format(),
-                group(&soft_block_indent(&parameters.format())),
-                r_paren_token.format(),
-            ]
-        )?;
+        write!(f, [space(), kind.format(), space(), name.format()])?;
+        write_bracketed_fill_list(l_paren_token, &parameters, r_paren_token, |_| false, f)?;
 
         if let Some(returns_clause) = returns_clause {
             write!(f, [space(), returns_clause.format()])?;

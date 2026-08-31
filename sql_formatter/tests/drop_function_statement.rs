@@ -72,10 +72,8 @@ fn format_drop_function_parameters_wrap_when_too_long() {
     assert_fmt!(
         r#"--
 drop function foo(
-	really_long_type_name_number_one,
-	really_long_type_name_number_two,
-	really_long_type_name_number_three,
-	really_long_type_name_number_four
+	really_long_type_name_number_one, really_long_type_name_number_two,
+	really_long_type_name_number_three, really_long_type_name_number_four
 )
 "#
     );

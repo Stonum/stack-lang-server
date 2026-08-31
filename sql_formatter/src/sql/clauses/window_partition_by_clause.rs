@@ -1,5 +1,6 @@
 use crate::prelude::*;
-use crate::utils::write_wrapping_clause;
+use crate::utils::{is_simple_expression, write_wrapping_fill_clause};
+use sql_syntax::AnySqlExpression;
 use sql_syntax::SqlWindowPartitionByClause;
 use sql_syntax::SqlWindowPartitionByClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -15,6 +16,11 @@ impl FormatNodeRule<SqlWindowPartitionByClause> for FormatSqlWindowPartitionByCl
             items,
         } = node.as_fields();
 
-        write_wrapping_clause(partition_by_token, &items, f)
+        write_wrapping_fill_clause(
+            partition_by_token.format(),
+            &items,
+            |expr: &AnySqlExpression| !is_simple_expression(expr, 0),
+            f,
+        )
     }
 }
