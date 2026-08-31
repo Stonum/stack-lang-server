@@ -7,6 +7,43 @@ use sql_syntax::{
     SqlSyntaxKind, SqlSyntaxToken,
 };
 
+/// Unwraps any real (source) parens around `expr`, repeatedly -- `((x))`
+/// unwraps all the way down to `x`. Used to see through grouping parens
+/// when deciding operand complexity, since `(a and b)` and `a and b` are
+/// the same condition as far as that's concerned.
+fn unwrap_parens(mut expr: AnySqlExpression) -> AnySqlExpression {
+    while let AnySqlExpression::SqlParenthesizedExpression(parenthesized) = &expr {
+        match parenthesized.expression() {
+            Ok(inner) => expr = inner,
+            Err(_) => break,
+        }
+    }
+    expr
+}
+
+/// Style rule 5's "a chain of at most two conditions never wraps" exemption
+/// only holds when every condition is a single, self-contained predicate.
+/// An operand that's itself a nested `and`/`or` group one level down --
+/// `(a between b and c) or (d between e and f)`, say -- can still explode
+/// past any reasonable line width even though *this* level only sees two
+/// operands, since each one can hide arbitrary further nesting. A single
+/// level of nesting with only plain leaves inside (`(a and b) or c`) is
+/// still exempt -- only nesting *within* the nested group disqualifies it.
+fn is_complex_condition(expr: &AnySqlExpression) -> bool {
+    let AnySqlExpression::SqlLogicalExpression(logical) = unwrap_parens(expr.clone()) else {
+        return false;
+    };
+    let is_nested_logical = |side: SyntaxResult<AnySqlExpression>| {
+        side.is_ok_and(|side| {
+            matches!(
+                unwrap_parens(side),
+                AnySqlExpression::SqlLogicalExpression(_)
+            )
+        })
+    };
+    is_nested_logical(logical.left()) || is_nested_logical(logical.right())
+}
+
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatSqlLogicalExpression;
 impl FormatNodeRule<SqlLogicalExpression> for FormatSqlLogicalExpression {
@@ -25,9 +62,12 @@ impl FormatNodeRule<SqlLogicalExpression> for FormatSqlLogicalExpression {
         let (_, first) = &operands[0];
         write!(f, [first.format()])?;
 
-        if operands.len() <= 2 {
+        if operands.len() <= 2 && operands.iter().all(|(_, expr)| !is_complex_condition(expr)) {
             // Style rule 5: a chain of at most two conditions never wraps,
-            // no matter how long the line ends up being.
+            // no matter how long the line ends up being -- unless one of the
+            // two is itself a nested and/or group (see [is_complex_condition]),
+            // which can hide arbitrary further nesting behind what looks
+            // like a single operand here.
             for (operator, expr) in &operands[1..] {
                 let operator = operator
                     .as_ref()

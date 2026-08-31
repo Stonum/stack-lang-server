@@ -85,6 +85,35 @@ fn format_preserves_a_comment_trailing_a_flattened_intermediate_operand() {
 }
 
 #[test]
+fn format_two_conditions_wraps_when_one_is_a_nested_group() {
+    // A 2-operand `and` chain still counts as "at most two conditions",
+    // but the second operand is itself an `or` whose own two operands are
+    // each further `and` groups -- exactly the kind of hidden complexity
+    // (logical-inside-logical, not just a long leaf like `between`) Style
+    // rule 5's exemption must not paper over.
+    assert_fmt!(
+        r#"--
+select a
+from t
+where a = 1
+	and ((b between c and d and x = 1) or (e between f and g and y = 2))
+"#
+    );
+}
+
+#[test]
+fn format_nested_group_of_leaves_stays_exempt() {
+    // The nested group's own operands are plain leaves (a `between` and a
+    // comparison, not a further `and`/`or`), so it's still a "simple"
+    // operand and the outer 2-operand chain stays flat.
+    assert_fmt!(
+        r#"--
+select a from t where a = 1 and (b between c and d or e = 2)
+"#
+    );
+}
+
+#[test]
 fn format_join_on_condition_wraps_when_more_than_two() {
     assert_fmt!(
         r#"--
