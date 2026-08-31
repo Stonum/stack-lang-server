@@ -451,8 +451,18 @@ fn greedy_fill_line_count<T>(entries: &[(bool, usize, T)], budget: usize) -> usi
 /// falls through to the always-correct fallback. Never emitted on its own.
 fn balanced_fill_breaks<T>(entries: &[(bool, usize, T)], line_width: usize) -> Vec<bool> {
     let target_lines = greedy_fill_line_count(entries, line_width);
+    // Only simple items' widths bound the search floor -- a complex item
+    // always gets its own forced line regardless of budget, so its own
+    // "width" never needs to fit one. That matters because a complex item
+    // whose *own* formatting is itself multi-line reports a `formatted_width`
+    // that's the summed length of all of its own lines (see its doc comment),
+    // easily far exceeding `line_width`. Folding that bogus width into this
+    // max would push `lo` above `line_width`, making `lo == hi` short-circuit
+    // the search below at that inflated budget -- silently disabling the
+    // width limit for every *other* (genuinely simple) item in the list too.
     let max_item_width = entries
         .iter()
+        .filter(|(complex, _, _)| !complex)
         .map(|(_, width, _)| *width)
         .max()
         .unwrap_or(0);

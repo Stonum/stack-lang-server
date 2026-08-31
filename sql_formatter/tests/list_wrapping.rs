@@ -79,6 +79,28 @@ from t
 }
 
 #[test]
+fn format_select_list_balances_simple_run_before_a_multiline_complex_item() {
+    // Regression test: a complex item whose *own* formatting is itself
+    // multi-line (here, a window function whose partition-by list must
+    // wrap) reports a `formatted_width` that's the summed length of all its
+    // own lines -- easily exceeding the real line width. That bogus width
+    // used to leak into `balanced_fill_breaks`'s search floor for the
+    // *whole* list, disabling width-based balancing for the plain simple
+    // items earlier in the list too. See `balanced_fill_breaks` in
+    // `sql_formatter/src/utils.rs`.
+    assert_fmt!(
+        r#"--
+select
+	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
+	really_long_column_name_four, really_long_column_name_five,
+	row_number() over (partition by
+		really_long_partition_column_one, really_long_partition_column_two, really_long_partition_column_three order by really_long_order_column)
+from t
+"#
+    );
+}
+
+#[test]
 fn format_select_list_stays_flat_when_short() {
     assert_fmt!(
         r#"--
