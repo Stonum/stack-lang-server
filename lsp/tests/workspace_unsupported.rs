@@ -47,3 +47,35 @@ async fn hover_on_a_never_opened_txt_document_fails_cleanly_not_a_panic() {
 
     assert!(result.is_err());
 }
+
+// The LSP layer (`lsp/src/main.rs`) uses `is_unsupported_document` to tell
+// "editor assigned an unrecognized language to this file" apart from a
+// genuine server malfunction, so it can respond with an empty result
+// instead of logging an error and returning `Internal error` to the
+// client on every request. These are the two error paths above, so make
+// sure both are classified as unsupported-document, not a real failure.
+#[tokio::test]
+async fn missing_extension_error_is_classified_as_unsupported_document() {
+    let workspace = Workspace::new();
+    let uri = temp_uri("missing_extension_error_is_classified_as_unsupported_document");
+
+    let error = workspace
+        .open_document(text_document(uri, "plaintext", "just some notes\n"))
+        .await
+        .expect_err("no-extension document should fail to open");
+
+    assert!(error.is_unsupported_document());
+}
+
+#[tokio::test]
+async fn unknown_extension_error_is_classified_as_unsupported_document() {
+    let workspace = Workspace::new();
+    let uri = temp_uri("unknown_extension_error_is_classified_as_unsupported_document.txt");
+
+    let error = workspace
+        .open_document(text_document(uri, "plaintext", "just some notes\n"))
+        .await
+        .expect_err(".txt document should fail to open");
+
+    assert!(error.is_unsupported_document());
+}

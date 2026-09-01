@@ -59,6 +59,17 @@ pub enum WorkspaceError {
     JoinHandle(#[from] JoinError),
 }
 
+impl WorkspaceError {
+    /// True when this error just means "this document's language can't be
+    /// determined" (e.g. no/unknown file extension) rather than an actual
+    /// server malfunction. Callers should handle these quietly -- e.g. a
+    /// random file the user switched to the `stack` language in the editor
+    /// -- instead of logging them as errors on every request.
+    pub fn is_unsupported_document(&self) -> bool {
+        matches!(self, WorkspaceError::FileSource(_))
+    }
+}
+
 pub struct Workspace {
     opened_files: DashMap<Url, Arc<RwLock<CurrentDocument>>>,
     mlang_semantics: DashMap<PathBuf, Option<Arc<SemanticModel>>>,

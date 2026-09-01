@@ -170,6 +170,7 @@ impl LanguageServer for Backend {
 
         match self.workspace.open_document(text_document).await {
             Ok(diagnostics) => self.publish_diagnostics(file_uri, diagnostics).await,
+            Err(e) if e.is_unsupported_document() => trace!("Open workspace document: {e}"),
             Err(e) => error!("Open workspace document: {e}"),
         }
     }
@@ -194,6 +195,7 @@ impl LanguageServer for Backend {
 
         match self.workspace.change_document(text_document).await {
             Ok(diagnostics) => self.publish_diagnostics(file_uri, diagnostics).await,
+            Err(e) if e.is_unsupported_document() => trace!("Change workspace document: {e}"),
             Err(e) => error!("Change workspace document: {e}"),
         }
     }
@@ -226,6 +228,9 @@ impl LanguageServer for Backend {
                             Ok(diagnostics) => {
                                 self.publish_diagnostics(file_uri, diagnostics).await
                             }
+                            Err(e) if e.is_unsupported_document() => {
+                                trace!("Change workspace document: {e}")
+                            }
                             Err(e) => error!("Change workspace document: {e}"),
                         }
                     }
@@ -246,10 +251,7 @@ impl LanguageServer for Backend {
         let file_uri = params.text_document.uri;
         trace!("document_symbol {}", &file_uri);
 
-        self.workspace
-            .document_symbol_response(&file_uri)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.document_symbol_response(&file_uri).await)
     }
 
     async fn symbol(
@@ -274,10 +276,7 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position_params.position;
         trace!("goto_definition {} {:?}", &file_uri, &pos);
 
-        self.workspace
-            .goto_definition(&file_uri, pos)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.goto_definition(&file_uri, pos).await)
     }
 
     async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
@@ -285,10 +284,7 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position.position;
         trace!("references {} {:?}", &file_uri, &pos);
 
-        self.workspace
-            .references(&file_uri, pos)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.references(&file_uri, pos).await)
     }
 
     async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
@@ -296,10 +292,7 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position_params.position;
         trace!("hover {} {:?}", &file_uri, &pos);
 
-        self.workspace
-            .hover(&file_uri, pos)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.hover(&file_uri, pos).await)
     }
 
     async fn range_formatting(
@@ -311,20 +304,14 @@ impl LanguageServer for Backend {
         let options = params.options;
         trace!("range_formatting {} {:?}", &file_uri, &range);
 
-        self.workspace
-            .format(&file_uri, range, options)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.format(&file_uri, range, options).await)
     }
 
     async fn code_lens(&self, params: CodeLensParams) -> Result<Option<Vec<CodeLens>>> {
         let file_uri = params.text_document.uri;
         trace!("code_lens {}", &file_uri);
 
-        self.workspace
-            .code_lens(&file_uri)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.code_lens(&file_uri).await)
     }
 
     async fn semantic_tokens_full(
@@ -334,11 +321,12 @@ impl LanguageServer for Backend {
         let file_uri = params.text_document.uri;
         trace!("semantic_tokens_full {}", &file_uri);
 
-        self.workspace
-            .semantic_tokens(&file_uri, None)
-            .await
-            .map(|tokens| tokens.map(SemanticTokensResult::Tokens))
-            .map_err(log_internal_error)
+        handle_document_result(
+            self.workspace
+                .semantic_tokens(&file_uri, None)
+                .await
+                .map(|tokens| tokens.map(SemanticTokensResult::Tokens)),
+        )
     }
 
     async fn semantic_tokens_range(
@@ -348,11 +336,12 @@ impl LanguageServer for Backend {
         let file_uri = params.text_document.uri;
         trace!("semantic_tokens_range {} {:?}", &file_uri, params.range);
 
-        self.workspace
-            .semantic_tokens(&file_uri, Some(params.range))
-            .await
-            .map(|tokens| tokens.map(SemanticTokensRangeResult::Tokens))
-            .map_err(log_internal_error)
+        handle_document_result(
+            self.workspace
+                .semantic_tokens(&file_uri, Some(params.range))
+                .await
+                .map(|tokens| tokens.map(SemanticTokensRangeResult::Tokens)),
+        )
     }
 
     async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
@@ -361,10 +350,7 @@ impl LanguageServer for Backend {
         let context = params.context;
         trace!("completion {} {:?} {:?}", &file_uri, &pos, &context);
 
-        self.workspace
-            .completion(&file_uri, pos)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.completion(&file_uri, pos).await)
     }
 
     async fn signature_help(&self, params: SignatureHelpParams) -> Result<Option<SignatureHelp>> {
@@ -373,10 +359,7 @@ impl LanguageServer for Backend {
         let context = params.context;
         trace!("signature_help {} {:?} {:?}", &file_uri, &pos, &context);
 
-        self.workspace
-            .signature_help(&file_uri, pos)
-            .await
-            .map_err(log_internal_error)
+        handle_document_result(self.workspace.signature_help(&file_uri, pos).await)
     }
 }
 
@@ -421,6 +404,21 @@ impl Backend {
 fn log_internal_error(err: WorkspaceError) -> Error {
     error!("{err}");
     Error::internal_error()
+}
+
+/// Turns a `WorkspaceError` into an LSP-level result, treating "this
+/// document's language can't be determined" as an empty/`None` response
+/// instead of an error -- e.g. the editor assigned the `stack` language to
+/// a random file that has no recognizable extension. Genuine failures are
+/// still logged and surfaced as an internal error.
+fn handle_document_result<T: Default>(result: std::result::Result<T, WorkspaceError>) -> Result<T> {
+    result.or_else(|err| {
+        if err.is_unsupported_document() {
+            Ok(T::default())
+        } else {
+            Err(log_internal_error(err))
+        }
+    })
 }
 
 #[tokio::main]
