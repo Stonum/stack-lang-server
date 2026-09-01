@@ -174,10 +174,9 @@ impl Workspace {
                 let _ = permit;
                 let text = std::fs::read_to_string(&path).ok()?;
 
-                let file_extension = path.extension()?;
-                let file_source = MFileSource::try_from_extension(file_extension).ok()?;
+                let file_source = MFileSource::try_from(path.as_path()).ok()?;
 
-                let parsed = parse(&text, MFileSource::module());
+                let parsed = parse(&text, file_source);
                 let semantics = semantics(&text, parsed.syntax(), file_source);
                 Some((path, semantics))
             });
