@@ -69,6 +69,24 @@ returning
 }
 
 #[test]
+fn format_insert_values_with_parameters_wrap_when_too_long() {
+    // Regression test: SqlParameterExpression (`:name`) wasn't recognized as
+    // a "simple" item by `is_simple_expression`, so it fell into the fill
+    // layout's complex-item branch and forced every value onto its own
+    // line -- even ordinary values sitting right next to it -- instead of
+    // packing multiple per line like format_insert_values_wrap_when_too_long.
+    assert_fmt!(
+        r#"--
+insert into t (a, b, c, d, e)
+values (
+	:really_long_value_one, :really_long_value_two, :really_long_value_three,
+	:really_long_value_four, :really_long_value_five
+)
+"#
+    );
+}
+
+#[test]
 fn format_insert_on_conflict_do_nothing() {
     assert_fmt!(
         r#"--
