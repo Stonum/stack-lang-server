@@ -2,7 +2,6 @@
 
 #![allow(clippy::redundant_closure)]
 #![allow(clippy::too_many_arguments)]
-#![allow(dead_code)]
 use biome_rowan::AstNode;
 use mlang_syntax::{
     MSyntaxElement as SyntaxElement, MSyntaxNode as SyntaxNode, MSyntaxToken as SyntaxToken, *,
@@ -80,28 +79,28 @@ pub fn m_array_hole() -> MArrayHole {
 }
 pub fn m_assignment_expression(
     left: AnyMAssignment,
-    operator_token_token: SyntaxToken,
+    operator_token: SyntaxToken,
     right: AnyMExpression,
 ) -> MAssignmentExpression {
     MAssignmentExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_ASSIGNMENT_EXPRESSION,
         [
             Some(SyntaxElement::Node(left.into_syntax())),
-            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Token(operator_token)),
             Some(SyntaxElement::Node(right.into_syntax())),
         ],
     ))
 }
 pub fn m_binary_expression(
     left: AnyMExpression,
-    operator_token_token: SyntaxToken,
+    operator_token: SyntaxToken,
     right: AnyMExpression,
 ) -> MBinaryExpression {
     MBinaryExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_BINARY_EXPRESSION,
         [
             Some(SyntaxElement::Node(left.into_syntax())),
-            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Token(operator_token)),
             Some(SyntaxElement::Node(right.into_syntax())),
         ],
     ))
@@ -120,10 +119,10 @@ pub fn m_block_statement(
         ],
     ))
 }
-pub fn m_boolean_literal_expression(value_token_token: SyntaxToken) -> MBooleanLiteralExpression {
+pub fn m_boolean_literal_expression(value_token: SyntaxToken) -> MBooleanLiteralExpression {
     MBooleanLiteralExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_BOOLEAN_LITERAL_EXPRESSION,
-        [Some(SyntaxElement::Token(value_token_token))],
+        [Some(SyntaxElement::Token(value_token))],
     ))
 }
 pub fn m_break_statement(break_token: SyntaxToken) -> MBreakStatementBuilder {
@@ -412,18 +411,6 @@ pub fn m_constant_expression(
         ],
     ))
 }
-pub fn m_template_expression(
-    token: SyntaxToken,
-    template: AnyMStringLiteralExpression,
-) -> MTemplateExpression {
-    MTemplateExpression::unwrap_cast(SyntaxNode::new_detached(
-        MSyntaxKind::M_TEMPLATE_EXPRESSION,
-        [
-            Some(SyntaxElement::Token(token)),
-            Some(SyntaxElement::Node(template.into_syntax())),
-        ],
-    ))
-}
 pub fn m_constructor_class_member(
     annotation: MAnnotationGroupList,
     name: MClassMemberName,
@@ -554,40 +541,6 @@ pub fn m_directive(version_token: SyntaxToken, value_token: SyntaxToken) -> MDir
         ],
     ))
 }
-pub fn m_extended_binding(
-    object: AnyMFunctionBinding,
-    operator_token: SyntaxToken,
-    member: MName,
-) -> MExtendedBinding {
-    MExtendedBinding::unwrap_cast(SyntaxNode::new_detached(
-        MSyntaxKind::M_EXTENDED_BINDING,
-        [
-            Some(SyntaxElement::Node(object.into_syntax())),
-            Some(SyntaxElement::Token(operator_token)),
-            Some(SyntaxElement::Node(member.into_syntax())),
-        ],
-    ))
-}
-pub struct MDirectiveBuilder {
-    value_token: SyntaxToken,
-    semicolon_token: Option<SyntaxToken>,
-}
-impl MDirectiveBuilder {
-    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
-        self.semicolon_token = Some(semicolon_token);
-        self
-    }
-    pub fn build(self) -> MDirective {
-        MDirective::unwrap_cast(SyntaxNode::new_detached(
-            MSyntaxKind::M_DIRECTIVE,
-            [
-                Some(SyntaxElement::Token(self.value_token)),
-                self.semicolon_token
-                    .map(|token| SyntaxElement::Token(token)),
-            ],
-        ))
-    }
-}
 pub fn m_else_clause(else_token: SyntaxToken, alternate: AnyMStatement) -> MElseClause {
     MElseClause::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_ELSE_CLAUSE,
@@ -640,6 +593,20 @@ impl MExpressionStatementBuilder {
             ],
         ))
     }
+}
+pub fn m_extended_binding(
+    object: AnyMFunctionBinding,
+    operator_token: SyntaxToken,
+    member: MName,
+) -> MExtendedBinding {
+    MExtendedBinding::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_EXTENDED_BINDING,
+        [
+            Some(SyntaxElement::Node(object.into_syntax())),
+            Some(SyntaxElement::Token(operator_token)),
+            Some(SyntaxElement::Node(member.into_syntax())),
+        ],
+    ))
 }
 pub fn m_extends_clause(extends_token: SyntaxToken, super_class: AnyMExpression) -> MExtendsClause {
     MExtendsClause::unwrap_cast(SyntaxNode::new_detached(
@@ -1107,14 +1074,14 @@ pub fn m_literal_member_name(value_token: SyntaxToken) -> MLiteralMemberName {
 }
 pub fn m_logical_expression(
     left: AnyMExpression,
-    operator_token_token: SyntaxToken,
+    operator_token: SyntaxToken,
     right: AnyMExpression,
 ) -> MLogicalExpression {
     MLogicalExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_LOGICAL_EXPRESSION,
         [
             Some(SyntaxElement::Node(left.into_syntax())),
-            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Token(operator_token)),
             Some(SyntaxElement::Node(right.into_syntax())),
         ],
     ))
@@ -1286,24 +1253,24 @@ pub fn m_parenthesized_expression(
 }
 pub fn m_post_update_expression(
     operand: AnyMAssignment,
-    operator_token_token: SyntaxToken,
+    operator_token: SyntaxToken,
 ) -> MPostUpdateExpression {
     MPostUpdateExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_POST_UPDATE_EXPRESSION,
         [
             Some(SyntaxElement::Node(operand.into_syntax())),
-            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Token(operator_token)),
         ],
     ))
 }
 pub fn m_pre_update_expression(
-    operator_token_token: SyntaxToken,
+    operator_token: SyntaxToken,
     operand: AnyMAssignment,
 ) -> MPreUpdateExpression {
     MPreUpdateExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_PRE_UPDATE_EXPRESSION,
         [
-            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Token(operator_token)),
             Some(SyntaxElement::Node(operand.into_syntax())),
         ],
     ))
@@ -1559,6 +1526,28 @@ pub fn m_spread(dotdotdot_token: SyntaxToken, argument: AnyMExpression) -> MSpre
         ],
     ))
 }
+pub fn m_sql_concatenation_expression(
+    expression: MBinaryExpression,
+) -> MSqlConcatenationExpression {
+    MSqlConcatenationExpression::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION,
+        [Some(SyntaxElement::Node(expression.into_syntax()))],
+    ))
+}
+pub fn m_sql_long_string_literal_expression(
+    value_token: SyntaxToken,
+) -> MSqlLongStringLiteralExpression {
+    MSqlLongStringLiteralExpression::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
+}
+pub fn m_sql_string_literal_expression(value_token: SyntaxToken) -> MSqlStringLiteralExpression {
+    MSqlStringLiteralExpression::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
+}
 pub fn m_static_member_assignment(
     object: AnyMExpression,
     dot_token: SyntaxToken,
@@ -1577,8 +1566,8 @@ pub fn m_static_member_expression(
     object: AnyMExpression,
     operator_token: SyntaxToken,
     member: MName,
-) -> MExtendedBinding {
-    MExtendedBinding::unwrap_cast(SyntaxNode::new_detached(
+) -> MStaticMemberExpression {
+    MStaticMemberExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_STATIC_MEMBER_EXPRESSION,
         [
             Some(SyntaxElement::Node(object.into_syntax())),
@@ -1618,6 +1607,18 @@ pub fn m_switch_statement(
             Some(SyntaxElement::Token(l_curly_token)),
             Some(SyntaxElement::Node(cases.into_syntax())),
             Some(SyntaxElement::Token(r_curly_token)),
+        ],
+    ))
+}
+pub fn m_template_expression(
+    token: SyntaxToken,
+    template: AnyMStringLiteralExpression,
+) -> MTemplateExpression {
+    MTemplateExpression::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_TEMPLATE_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(token)),
+            Some(SyntaxElement::Node(template.into_syntax())),
         ],
     ))
 }
@@ -1716,13 +1717,13 @@ pub fn m_try_statement(
     ))
 }
 pub fn m_unary_expression(
-    operator_token_token: SyntaxToken,
+    operator_token: SyntaxToken,
     argument: AnyMExpression,
 ) -> MUnaryExpression {
     MUnaryExpression::unwrap_cast(SyntaxNode::new_detached(
         MSyntaxKind::M_UNARY_EXPRESSION,
         [
-            Some(SyntaxElement::Token(operator_token_token)),
+            Some(SyntaxElement::Token(operator_token)),
             Some(SyntaxElement::Node(argument.into_syntax())),
         ],
     ))

@@ -148,7 +148,7 @@ MForAllInStatement =
 	'forall'
 	'('
 	initializer: AnyMForInInitializer
-	'in'
+	in_token: ('in' | 'в')
 	expression: AnyMExpression
 	')'
 	body: AnyMStatement
@@ -409,7 +409,7 @@ MInstanceofExpression =
 
 MInExpression =
 	property: AnyMExpression
-	'in'
+	in_token: ('in' | 'include')
 	object: AnyMExpression
 
 MLogicalExpression =
@@ -431,11 +431,11 @@ MPostUpdateExpression =
     operator_token: ('++' | '--')
 
 MConstantExpression =
-   'к'
+   token: 'к'
    constant: AnyMStringLiteralExpression
 
 MTemplateExpression =
-   'т'
+   token: 'т'
    template: AnyMStringLiteralExpression
 
 ///////////////

@@ -48,11 +48,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MBinaryExpression::new_unchecked(node) };
                     $body
                 }
-                $crate::MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION => {
-                    let $pattern =
-                        unsafe { $crate::MSqlConcatenationExpression::new_unchecked(node) };
-                    $body
-                }
                 $crate::MSyntaxKind::M_BLOCK_STATEMENT => {
                     let $pattern = unsafe { $crate::MBlockStatement::new_unchecked(node) };
                     $body
@@ -116,10 +111,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MConstantExpression::new_unchecked(node) };
                     $body
                 }
-                $crate::MSyntaxKind::M_TEMPLATE_EXPRESSION => {
-                    let $pattern = unsafe { $crate::MTemplateExpression::new_unchecked(node) };
-                    $body
-                }
                 $crate::MSyntaxKind::M_CONSTRUCTOR_CLASS_MEMBER => {
                     let $pattern = unsafe { $crate::MConstructorClassMember::new_unchecked(node) };
                     $body
@@ -148,10 +139,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MDirective::new_unchecked(node) };
                     $body
                 }
-                $crate::MSyntaxKind::M_EXTENDED_BINDING => {
-                    let $pattern = unsafe { $crate::MExtendedBinding::new_unchecked(node) };
-                    $body
-                }
                 $crate::MSyntaxKind::M_ELSE_CLAUSE => {
                     let $pattern = unsafe { $crate::MElseClause::new_unchecked(node) };
                     $body
@@ -168,6 +155,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MExpressionStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_EXTENDED_BINDING => {
+                    let $pattern = unsafe { $crate::MExtendedBinding::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_EXTENDS_CLAUSE => {
                     let $pattern = unsafe { $crate::MExtendsClause::new_unchecked(node) };
                     $body
@@ -176,16 +167,16 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MFinallyClause::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_FOR_ALL_IN_STATEMENT => {
+                    let $pattern = unsafe { $crate::MForAllInStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_FOR_ALL_STATEMENT => {
                     let $pattern = unsafe { $crate::MForAllStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::MSyntaxKind::M_FOR_ITERATOR_FACTORY => {
                     let $pattern = unsafe { $crate::MForIteratorFactory::new_unchecked(node) };
-                    $body
-                }
-                $crate::MSyntaxKind::M_FOR_ALL_IN_STATEMENT => {
-                    let $pattern = unsafe { $crate::MForAllInStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::MSyntaxKind::M_FOR_STATEMENT => {
@@ -265,11 +256,6 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::MLongStringLiteralExpression::new_unchecked(node) };
                     $body
                 }
-                $crate::MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
-                    let $pattern =
-                        unsafe { $crate::MSqlLongStringLiteralExpression::new_unchecked(node) };
-                    $body
-                }
                 $crate::MSyntaxKind::M_METHOD_CLASS_MEMBER => {
                     let $pattern = unsafe { $crate::MMethodClassMember::new_unchecked(node) };
                     $body
@@ -298,12 +284,12 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MObjectExpression::new_unchecked(node) };
                     $body
                 }
-                $crate::MSyntaxKind::M_PARENTHESIZED_ASSIGNMENT => {
-                    let $pattern = unsafe { $crate::MParenthesizedAssignment::new_unchecked(node) };
-                    $body
-                }
                 $crate::MSyntaxKind::M_PARAMETERS => {
                     let $pattern = unsafe { $crate::MParameters::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_PARENTHESIZED_ASSIGNMENT => {
+                    let $pattern = unsafe { $crate::MParenthesizedAssignment::new_unchecked(node) };
                     $body
                 }
                 $crate::MSyntaxKind::M_PARENTHESIZED_EXPRESSION => {
@@ -375,6 +361,21 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MSpread::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::MSqlConcatenationExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::MSqlLongStringLiteralExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::MSqlStringLiteralExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_STATIC_MEMBER_ASSIGNMENT => {
                     let $pattern = unsafe { $crate::MStaticMemberAssignment::new_unchecked(node) };
                     $body
@@ -387,17 +388,16 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MStringLiteralExpression::new_unchecked(node) };
                     $body
                 }
-                $crate::MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION => {
-                    let $pattern =
-                        unsafe { $crate::MSqlStringLiteralExpression::new_unchecked(node) };
-                    $body
-                }
                 $crate::MSyntaxKind::M_SUPER_EXPRESSION => {
                     let $pattern = unsafe { $crate::MSuperExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::MSyntaxKind::M_SWITCH_STATEMENT => {
                     let $pattern = unsafe { $crate::MSwitchStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_TEMPLATE_EXPRESSION => {
+                    let $pattern = unsafe { $crate::MTemplateExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::MSyntaxKind::M_THIS_EXPRESSION => {
@@ -555,3 +555,4 @@ macro_rules! map_syntax_node {
         }
     };
 }
+pub(crate) use map_syntax_node;

@@ -1,26 +1,23 @@
 //! Generated file, do not edit by hand, see `xtask/codegen`
 
-#![allow(clippy::enum_variant_names)]
-#![allow(clippy::match_like_matches_macro)]
+#![allow(dead_code)]
+#![allow(unused)]
 use crate::{
     MLanguage as Language, MSyntaxElement as SyntaxElement,
     MSyntaxElementChildren as SyntaxElementChildren,
     MSyntaxKind::{self as SyntaxKind, *},
     MSyntaxList as SyntaxList, MSyntaxNode as SyntaxNode, MSyntaxToken as SyntaxToken,
+    macros::map_syntax_node,
 };
-
-use biome_rowan::{AstNode, RawSyntaxKind, SyntaxKindSet, SyntaxResult, support};
-#[allow(unused)]
 use biome_rowan::{
-    AstNodeList, AstNodeListIterator, AstNodeSlotMap, AstSeparatedList,
-    AstSeparatedListNodesIterator,
+    AstNode, AstNodeList, AstNodeListIterator, AstNodeSlotMap, AstSeparatedList,
+    AstSeparatedListNodesIterator, RawSyntaxKind, SyntaxKindSet, SyntaxResult, support,
 };
 use serde::ser::SerializeSeq;
 use serde::{Serialize, Serializer};
 use std::fmt::{Debug, Formatter};
 #[doc = r" Sentinel value indicating a missing element in a dynamic node, where"]
 #[doc = r" the slots are not statically known."]
-#[allow(dead_code)]
 pub(crate) const SLOT_MAP_EMPTY_VALUE: u8 = u8::MAX;
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MAnnotationAttribute {
@@ -367,41 +364,6 @@ pub struct MBinaryExpressionFields {
     pub left: SyntaxResult<AnyMExpression>,
     pub operator_token: SyntaxResult<SyntaxToken>,
     pub right: SyntaxResult<AnyMExpression>,
-}
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MSqlConcatenationExpression {
-    pub(crate) syntax: SyntaxNode,
-}
-impl MSqlConcatenationExpression {
-    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
-    #[doc = r""]
-    #[doc = r" # Safety"]
-    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
-    #[doc = r" or a match on [SyntaxNode::kind]"]
-    #[inline]
-    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
-        Self { syntax }
-    }
-    pub fn as_fields(&self) -> MSqlConcatenationExpressionFields {
-        MSqlConcatenationExpressionFields {
-            expression: self.expression(),
-        }
-    }
-    pub fn expression(&self) -> SyntaxResult<MBinaryExpression> {
-        support::required_node(&self.syntax, 0usize)
-    }
-}
-impl Serialize for MSqlConcatenationExpression {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.as_fields().serialize(serializer)
-    }
-}
-#[derive(Serialize)]
-pub struct MSqlConcatenationExpressionFields {
-    pub expression: SyntaxResult<MBinaryExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MBlockStatement {
@@ -1094,46 +1056,6 @@ pub struct MConstantExpressionFields {
     pub constant: SyntaxResult<AnyMStringLiteralExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MTemplateExpression {
-    pub(crate) syntax: SyntaxNode,
-}
-impl MTemplateExpression {
-    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
-    #[doc = r""]
-    #[doc = r" # Safety"]
-    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
-    #[doc = r" or a match on [SyntaxNode::kind]"]
-    #[inline]
-    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
-        Self { syntax }
-    }
-    pub fn as_fields(&self) -> MTemplateExpressionFields {
-        MTemplateExpressionFields {
-            token: self.token(),
-            template: self.template(),
-        }
-    }
-    pub fn token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 0usize)
-    }
-    pub fn template(&self) -> SyntaxResult<AnyMStringLiteralExpression> {
-        support::required_node(&self.syntax, 1usize)
-    }
-}
-impl Serialize for MTemplateExpression {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.as_fields().serialize(serializer)
-    }
-}
-#[derive(Serialize)]
-pub struct MTemplateExpressionFields {
-    pub token: SyntaxResult<SyntaxToken>,
-    pub template: SyntaxResult<AnyMStringLiteralExpression>,
-}
-#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MConstructorClassMember {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1429,51 +1351,6 @@ pub struct MDirectiveFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MExtendedBinding {
-    pub(crate) syntax: SyntaxNode,
-}
-impl MExtendedBinding {
-    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
-    #[doc = r""]
-    #[doc = r" # Safety"]
-    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
-    #[doc = r" or a match on [SyntaxNode::kind]"]
-    #[inline]
-    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
-        Self { syntax }
-    }
-    pub fn as_fields(&self) -> MExtendedBindingFields {
-        MExtendedBindingFields {
-            object: self.object(),
-            operator_token_token: self.operator_token(),
-            member: self.member(),
-        }
-    }
-    pub fn object(&self) -> SyntaxResult<AnyMFunctionBinding> {
-        support::required_node(&self.syntax, 0usize)
-    }
-    pub fn operator_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 1usize)
-    }
-    pub fn member(&self) -> SyntaxResult<MName> {
-        support::required_node(&self.syntax, 2usize)
-    }
-}
-impl Serialize for MExtendedBinding {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.as_fields().serialize(serializer)
-    }
-}
-#[derive(Serialize)]
-pub struct MExtendedBindingFields {
-    pub object: SyntaxResult<AnyMFunctionBinding>,
-    pub operator_token_token: SyntaxResult<SyntaxToken>,
-    pub member: SyntaxResult<MName>,
-}
-#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MElseClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1629,6 +1506,51 @@ pub struct MExpressionStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MExtendedBinding {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MExtendedBinding {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MExtendedBindingFields {
+        MExtendedBindingFields {
+            object: self.object(),
+            operator_token: self.operator_token(),
+            member: self.member(),
+        }
+    }
+    pub fn object(&self) -> SyntaxResult<AnyMFunctionBinding> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn operator_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn member(&self) -> SyntaxResult<MName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for MExtendedBinding {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MExtendedBindingFields {
+    pub object: SyntaxResult<AnyMFunctionBinding>,
+    pub operator_token: SyntaxResult<SyntaxToken>,
+    pub member: SyntaxResult<MName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MExtendsClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1754,9 +1676,6 @@ impl MForAllInStatement {
     pub fn body(&self) -> SyntaxResult<AnyMStatement> {
         support::required_node(&self.syntax, 6usize)
     }
-    pub fn test(&self) -> Option<AnyMExpression> {
-        support::node(&self.syntax, 4usize)
-    }
 }
 impl Serialize for MForAllInStatement {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -1813,9 +1732,6 @@ impl MForAllStatement {
     }
     pub fn body(&self) -> SyntaxResult<AnyMStatement> {
         support::required_node(&self.syntax, 4usize)
-    }
-    pub fn test(&self) -> Option<AnyMExpression> {
-        support::node(&self.syntax, 4usize)
     }
 }
 impl Serialize for MForAllStatement {
@@ -2751,10 +2667,6 @@ pub struct MLogicalExpressionFields {
 pub struct MLongStringLiteralExpression {
     pub(crate) syntax: SyntaxNode,
 }
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MSqlLongStringLiteralExpression {
-    pub(crate) syntax: SyntaxNode,
-}
 impl MLongStringLiteralExpression {
     #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
     #[doc = r""]
@@ -2774,34 +2686,7 @@ impl MLongStringLiteralExpression {
         support::required_token(&self.syntax, 0usize)
     }
 }
-impl MSqlLongStringLiteralExpression {
-    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
-    #[doc = r""]
-    #[doc = r" # Safety"]
-    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
-    #[doc = r" or a match on [SyntaxNode::kind]"]
-    #[inline]
-    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
-        Self { syntax }
-    }
-    pub fn as_fields(&self) -> MSqlLongStringLiteralExpressionFields {
-        MSqlLongStringLiteralExpressionFields {
-            value_token: self.value_token(),
-        }
-    }
-    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 0usize)
-    }
-}
 impl Serialize for MLongStringLiteralExpression {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.as_fields().serialize(serializer)
-    }
-}
-impl Serialize for MSqlLongStringLiteralExpression {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -2811,10 +2696,6 @@ impl Serialize for MSqlLongStringLiteralExpression {
 }
 #[derive(Serialize)]
 pub struct MLongStringLiteralExpressionFields {
-    pub value_token: SyntaxResult<SyntaxToken>,
-}
-#[derive(Serialize)]
-pub struct MSqlLongStringLiteralExpressionFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -3941,6 +3822,111 @@ pub struct MSpreadFields {
     pub argument: SyntaxResult<AnyMExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MSqlConcatenationExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MSqlConcatenationExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MSqlConcatenationExpressionFields {
+        MSqlConcatenationExpressionFields {
+            expression: self.expression(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<MBinaryExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+}
+impl Serialize for MSqlConcatenationExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MSqlConcatenationExpressionFields {
+    pub expression: SyntaxResult<MBinaryExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MSqlLongStringLiteralExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MSqlLongStringLiteralExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MSqlLongStringLiteralExpressionFields {
+        MSqlLongStringLiteralExpressionFields {
+            value_token: self.value_token(),
+        }
+    }
+    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for MSqlLongStringLiteralExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MSqlLongStringLiteralExpressionFields {
+    pub value_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MSqlStringLiteralExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MSqlStringLiteralExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MSqlStringLiteralExpressionFields {
+        MSqlStringLiteralExpressionFields {
+            value_token: self.value_token(),
+        }
+    }
+    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for MSqlStringLiteralExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MSqlStringLiteralExpressionFields {
+    pub value_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MStaticMemberAssignment {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4034,10 +4020,6 @@ pub struct MStaticMemberExpressionFields {
 pub struct MStringLiteralExpression {
     pub(crate) syntax: SyntaxNode,
 }
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MSqlStringLiteralExpression {
-    pub(crate) syntax: SyntaxNode,
-}
 impl MStringLiteralExpression {
     #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
     #[doc = r""]
@@ -4057,34 +4039,7 @@ impl MStringLiteralExpression {
         support::required_token(&self.syntax, 0usize)
     }
 }
-impl MSqlStringLiteralExpression {
-    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
-    #[doc = r""]
-    #[doc = r" # Safety"]
-    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
-    #[doc = r" or a match on [SyntaxNode::kind]"]
-    #[inline]
-    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
-        Self { syntax }
-    }
-    pub fn as_fields(&self) -> MSqlStringLiteralExpressionFields {
-        MSqlStringLiteralExpressionFields {
-            value_token: self.value_token(),
-        }
-    }
-    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 0usize)
-    }
-}
 impl Serialize for MStringLiteralExpression {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.as_fields().serialize(serializer)
-    }
-}
-impl Serialize for MSqlStringLiteralExpression {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -4094,10 +4049,6 @@ impl Serialize for MSqlStringLiteralExpression {
 }
 #[derive(Serialize)]
 pub struct MStringLiteralExpressionFields {
-    pub value_token: SyntaxResult<SyntaxToken>,
-}
-#[derive(Serialize)]
-pub struct MSqlStringLiteralExpressionFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -4199,6 +4150,46 @@ pub struct MSwitchStatementFields {
     pub l_curly_token: SyntaxResult<SyntaxToken>,
     pub cases: MSwitchCaseList,
     pub r_curly_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MTemplateExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MTemplateExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MTemplateExpressionFields {
+        MTemplateExpressionFields {
+            token: self.token(),
+            template: self.template(),
+        }
+    }
+    pub fn token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn template(&self) -> SyntaxResult<AnyMStringLiteralExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for MTemplateExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MTemplateExpressionFields {
+    pub token: SyntaxResult<SyntaxToken>,
+    pub template: SyntaxResult<AnyMStringLiteralExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MThisExpression {
@@ -4673,13 +4664,13 @@ pub enum AnyMAnnotationElement {
 impl AnyMAnnotationElement {
     pub fn as_m_annotation_binding(&self) -> Option<&MAnnotationBinding> {
         match &self {
-            AnyMAnnotationElement::MAnnotationBinding(item) => Some(item),
+            Self::MAnnotationBinding(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_annotation_element(&self) -> Option<&MAnnotationElement> {
         match &self {
-            AnyMAnnotationElement::MAnnotationElement(item) => Some(item),
+            Self::MAnnotationElement(item) => Some(item),
             _ => None,
         }
     }
@@ -4693,19 +4684,19 @@ pub enum AnyMArrayElement {
 impl AnyMArrayElement {
     pub fn as_any_m_expression(&self) -> Option<&AnyMExpression> {
         match &self {
-            AnyMArrayElement::AnyMExpression(item) => Some(item),
+            Self::AnyMExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_array_hole(&self) -> Option<&MArrayHole> {
         match &self {
-            AnyMArrayElement::MArrayHole(item) => Some(item),
+            Self::MArrayHole(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_spread(&self) -> Option<&MSpread> {
         match &self {
-            AnyMArrayElement::MSpread(item) => Some(item),
+            Self::MSpread(item) => Some(item),
             _ => None,
         }
     }
@@ -4721,31 +4712,31 @@ pub enum AnyMAssignment {
 impl AnyMAssignment {
     pub fn as_m_bogus_assignment(&self) -> Option<&MBogusAssignment> {
         match &self {
-            AnyMAssignment::MBogusAssignment(item) => Some(item),
+            Self::MBogusAssignment(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_computed_member_assignment(&self) -> Option<&MComputedMemberAssignment> {
         match &self {
-            AnyMAssignment::MComputedMemberAssignment(item) => Some(item),
+            Self::MComputedMemberAssignment(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_identifier_assignment(&self) -> Option<&MIdentifierAssignment> {
         match &self {
-            AnyMAssignment::MIdentifierAssignment(item) => Some(item),
+            Self::MIdentifierAssignment(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_parenthesized_assignment(&self) -> Option<&MParenthesizedAssignment> {
         match &self {
-            AnyMAssignment::MParenthesizedAssignment(item) => Some(item),
+            Self::MParenthesizedAssignment(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_static_member_assignment(&self) -> Option<&MStaticMemberAssignment> {
         match &self {
-            AnyMAssignment::MStaticMemberAssignment(item) => Some(item),
+            Self::MStaticMemberAssignment(item) => Some(item),
             _ => None,
         }
     }
@@ -4758,13 +4749,13 @@ pub enum AnyMBinding {
 impl AnyMBinding {
     pub fn as_m_bogus_binding(&self) -> Option<&MBogusBinding> {
         match &self {
-            AnyMBinding::MBogusBinding(item) => Some(item),
+            Self::MBogusBinding(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_identifier_binding(&self) -> Option<&MIdentifierBinding> {
         match &self {
-            AnyMBinding::MIdentifierBinding(item) => Some(item),
+            Self::MIdentifierBinding(item) => Some(item),
             _ => None,
         }
     }
@@ -4777,13 +4768,13 @@ pub enum AnyMCallArgument {
 impl AnyMCallArgument {
     pub fn as_any_m_expression(&self) -> Option<&AnyMExpression> {
         match &self {
-            AnyMCallArgument::AnyMExpression(item) => Some(item),
+            Self::AnyMExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_spread(&self) -> Option<&MSpread> {
         match &self {
-            AnyMCallArgument::MSpread(item) => Some(item),
+            Self::MSpread(item) => Some(item),
             _ => None,
         }
     }
@@ -4799,31 +4790,31 @@ pub enum AnyMClassMember {
 impl AnyMClassMember {
     pub fn as_m_bogus_member(&self) -> Option<&MBogusMember> {
         match &self {
-            AnyMClassMember::MBogusMember(item) => Some(item),
+            Self::MBogusMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_constructor_class_member(&self) -> Option<&MConstructorClassMember> {
         match &self {
-            AnyMClassMember::MConstructorClassMember(item) => Some(item),
+            Self::MConstructorClassMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_getter_class_member(&self) -> Option<&MGetterClassMember> {
         match &self {
-            AnyMClassMember::MGetterClassMember(item) => Some(item),
+            Self::MGetterClassMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_method_class_member(&self) -> Option<&MMethodClassMember> {
         match &self {
-            AnyMClassMember::MMethodClassMember(item) => Some(item),
+            Self::MMethodClassMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_setter_class_member(&self) -> Option<&MSetterClassMember> {
         match &self {
-            AnyMClassMember::MSetterClassMember(item) => Some(item),
+            Self::MSetterClassMember(item) => Some(item),
             _ => None,
         }
     }
@@ -4836,13 +4827,13 @@ pub enum AnyMConstructorParameter {
 impl AnyMConstructorParameter {
     pub fn as_any_m_formal_parameter(&self) -> Option<&AnyMFormalParameter> {
         match &self {
-            AnyMConstructorParameter::AnyMFormalParameter(item) => Some(item),
+            Self::AnyMFormalParameter(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_rest_parameter(&self) -> Option<&MRestParameter> {
         match &self {
-            AnyMConstructorParameter::MRestParameter(item) => Some(item),
+            Self::MRestParameter(item) => Some(item),
             _ => None,
         }
     }
@@ -4856,19 +4847,19 @@ pub enum AnyMDeclaration {
 impl AnyMDeclaration {
     pub fn as_m_class_declaration(&self) -> Option<&MClassDeclaration> {
         match &self {
-            AnyMDeclaration::MClassDeclaration(item) => Some(item),
+            Self::MClassDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_function_declaration(&self) -> Option<&MFunctionDeclaration> {
         match &self {
-            AnyMDeclaration::MFunctionDeclaration(item) => Some(item),
+            Self::MFunctionDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_variable_declaration(&self) -> Option<&MVariableDeclaration> {
         match &self {
-            AnyMDeclaration::MVariableDeclaration(item) => Some(item),
+            Self::MVariableDeclaration(item) => Some(item),
             _ => None,
         }
     }
@@ -4882,40 +4873,19 @@ pub enum AnyMDeclarationClause {
 impl AnyMDeclarationClause {
     pub fn as_m_class_declaration(&self) -> Option<&MClassDeclaration> {
         match &self {
-            AnyMDeclarationClause::MClassDeclaration(item) => Some(item),
+            Self::MClassDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_function_declaration(&self) -> Option<&MFunctionDeclaration> {
         match &self {
-            AnyMDeclarationClause::MFunctionDeclaration(item) => Some(item),
+            Self::MFunctionDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_variable_declaration_clause(&self) -> Option<&MVariableDeclarationClause> {
         match &self {
-            AnyMDeclarationClause::MVariableDeclarationClause(item) => Some(item),
-            _ => None,
-        }
-    }
-}
-#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
-pub enum AnyMStringLiteralExpression {
-    MLongStringLiteralExpression(MLongStringLiteralExpression),    MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression),
-
-    MStringLiteralExpression(MStringLiteralExpression),    MSqlStringLiteralExpression(MSqlStringLiteralExpression),
-
-}
-impl AnyMStringLiteralExpression {
-    pub fn as_m_long_string_literal_expression(&self) -> Option<&MLongStringLiteralExpression> {
-        match &self {
-            AnyMStringLiteralExpression::MLongStringLiteralExpression(item) => Some(item),
-            _ => None,
-        }
-    }
-    pub fn as_m_string_literal_expression(&self) -> Option<&MStringLiteralExpression> {
-        match &self {
-            AnyMStringLiteralExpression::MStringLiteralExpression(item) => Some(item),
+            Self::MVariableDeclarationClause(item) => Some(item),
             _ => None,
         }
     }
@@ -4925,14 +4895,12 @@ pub enum AnyMExpression {
     AnyMLiteralExpression(AnyMLiteralExpression),
     MArrayExpression(MArrayExpression),
     MAssignmentExpression(MAssignmentExpression),
-    MBinaryExpression(MBinaryExpression),    MSqlConcatenationExpression(MSqlConcatenationExpression),
-
+    MBinaryExpression(MBinaryExpression),
     MBogusExpression(MBogusExpression),
     MCallExpression(MCallExpression),
     MComputedMemberExpression(MComputedMemberExpression),
     MConditionalExpression(MConditionalExpression),
     MConstantExpression(MConstantExpression),
-    MTemplateExpression(MTemplateExpression),
     MFunctionExpression(MFunctionExpression),
     MHashMapExpression(MHashMapExpression),
     MHashSetExpression(MHashSetExpression),
@@ -4946,99 +4914,95 @@ pub enum AnyMExpression {
     MPostUpdateExpression(MPostUpdateExpression),
     MPreUpdateExpression(MPreUpdateExpression),
     MSequenceExpression(MSequenceExpression),
+    MSqlConcatenationExpression(MSqlConcatenationExpression),
     MStaticMemberExpression(MStaticMemberExpression),
     MSuperExpression(MSuperExpression),
+    MTemplateExpression(MTemplateExpression),
     MThisExpression(MThisExpression),
     MUnaryExpression(MUnaryExpression),
 }
 impl AnyMExpression {
     pub fn as_any_m_literal_expression(&self) -> Option<&AnyMLiteralExpression> {
         match &self {
-            AnyMExpression::AnyMLiteralExpression(item) => Some(item),
+            Self::AnyMLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_array_expression(&self) -> Option<&MArrayExpression> {
         match &self {
-            AnyMExpression::MArrayExpression(item) => Some(item),
+            Self::MArrayExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_assignment_expression(&self) -> Option<&MAssignmentExpression> {
         match &self {
-            AnyMExpression::MAssignmentExpression(item) => Some(item),
+            Self::MAssignmentExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_binary_expression(&self) -> Option<&MBinaryExpression> {
         match &self {
-            AnyMExpression::MBinaryExpression(item) => Some(item),
+            Self::MBinaryExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_bogus_expression(&self) -> Option<&MBogusExpression> {
         match &self {
-            AnyMExpression::MBogusExpression(item) => Some(item),
+            Self::MBogusExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_call_expression(&self) -> Option<&MCallExpression> {
         match &self {
-            AnyMExpression::MCallExpression(item) => Some(item),
+            Self::MCallExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_computed_member_expression(&self) -> Option<&MComputedMemberExpression> {
         match &self {
-            AnyMExpression::MComputedMemberExpression(item) => Some(item),
+            Self::MComputedMemberExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_conditional_expression(&self) -> Option<&MConditionalExpression> {
         match &self {
-            AnyMExpression::MConditionalExpression(item) => Some(item),
+            Self::MConditionalExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_constant_expression(&self) -> Option<&MConstantExpression> {
         match &self {
-            AnyMExpression::MConstantExpression(item) => Some(item),
-            _ => None,
-        }
-    }
-    pub fn as_m_template_expression(&self) -> Option<&MTemplateExpression> {
-        match &self {
-            AnyMExpression::MTemplateExpression(item) => Some(item),
+            Self::MConstantExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_function_expression(&self) -> Option<&MFunctionExpression> {
         match &self {
-            AnyMExpression::MFunctionExpression(item) => Some(item),
+            Self::MFunctionExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_hash_map_expression(&self) -> Option<&MHashMapExpression> {
         match &self {
-            AnyMExpression::MHashMapExpression(item) => Some(item),
+            Self::MHashMapExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_hash_set_expression(&self) -> Option<&MHashSetExpression> {
         match &self {
-            AnyMExpression::MHashSetExpression(item) => Some(item),
+            Self::MHashSetExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_identifier_expression(&self) -> Option<&MIdentifierExpression> {
         match &self {
-            AnyMExpression::MIdentifierExpression(item) => Some(item),
+            Self::MIdentifierExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_in_expression(&self) -> Option<&MInExpression> {
         match &self {
-            AnyMExpression::MInExpression(item) => Some(item),
+            Self::MInExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -5050,67 +5014,79 @@ impl AnyMExpression {
     }
     pub fn as_m_logical_expression(&self) -> Option<&MLogicalExpression> {
         match &self {
-            AnyMExpression::MLogicalExpression(item) => Some(item),
+            Self::MLogicalExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_new_expression(&self) -> Option<&MNewExpression> {
         match &self {
-            AnyMExpression::MNewExpression(item) => Some(item),
+            Self::MNewExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_object_expression(&self) -> Option<&MObjectExpression> {
         match &self {
-            AnyMExpression::MObjectExpression(item) => Some(item),
+            Self::MObjectExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_parenthesized_expression(&self) -> Option<&MParenthesizedExpression> {
         match &self {
-            AnyMExpression::MParenthesizedExpression(item) => Some(item),
+            Self::MParenthesizedExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_post_update_expression(&self) -> Option<&MPostUpdateExpression> {
         match &self {
-            AnyMExpression::MPostUpdateExpression(item) => Some(item),
+            Self::MPostUpdateExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_pre_update_expression(&self) -> Option<&MPreUpdateExpression> {
         match &self {
-            AnyMExpression::MPreUpdateExpression(item) => Some(item),
+            Self::MPreUpdateExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_sequence_expression(&self) -> Option<&MSequenceExpression> {
         match &self {
-            AnyMExpression::MSequenceExpression(item) => Some(item),
+            Self::MSequenceExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_sql_concatenation_expression(&self) -> Option<&MSqlConcatenationExpression> {
+        match &self {
+            Self::MSqlConcatenationExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_static_member_expression(&self) -> Option<&MStaticMemberExpression> {
         match &self {
-            AnyMExpression::MStaticMemberExpression(item) => Some(item),
+            Self::MStaticMemberExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_super_expression(&self) -> Option<&MSuperExpression> {
         match &self {
-            AnyMExpression::MSuperExpression(item) => Some(item),
+            Self::MSuperExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_template_expression(&self) -> Option<&MTemplateExpression> {
+        match &self {
+            Self::MTemplateExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_this_expression(&self) -> Option<&MThisExpression> {
         match &self {
-            AnyMExpression::MThisExpression(item) => Some(item),
+            Self::MThisExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_unary_expression(&self) -> Option<&MUnaryExpression> {
         match &self {
-            AnyMExpression::MUnaryExpression(item) => Some(item),
+            Self::MUnaryExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -5121,15 +5097,15 @@ pub enum AnyMForInInitializer {
     MForVariableDeclaration(MForVariableDeclaration),
 }
 impl AnyMForInInitializer {
-    pub fn as_m_assignment_pattern(&self) -> Option<&AnyMAssignment> {
+    pub fn as_any_m_assignment(&self) -> Option<&AnyMAssignment> {
         match &self {
-            AnyMForInInitializer::AnyMAssignment(item) => Some(item),
+            Self::AnyMAssignment(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_for_variable_declaration(&self) -> Option<&MForVariableDeclaration> {
         match &self {
-            AnyMForInInitializer::MForVariableDeclaration(item) => Some(item),
+            Self::MForVariableDeclaration(item) => Some(item),
             _ => None,
         }
     }
@@ -5142,13 +5118,13 @@ pub enum AnyMForInitializer {
 impl AnyMForInitializer {
     pub fn as_any_m_expression(&self) -> Option<&AnyMExpression> {
         match &self {
-            AnyMForInitializer::AnyMExpression(item) => Some(item),
+            Self::AnyMExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_variable_declaration(&self) -> Option<&MVariableDeclaration> {
         match &self {
-            AnyMForInitializer::MVariableDeclaration(item) => Some(item),
+            Self::MVariableDeclaration(item) => Some(item),
             _ => None,
         }
     }
@@ -5161,13 +5137,13 @@ pub enum AnyMFormalParameter {
 impl AnyMFormalParameter {
     pub fn as_m_bogus_parameter(&self) -> Option<&MBogusParameter> {
         match &self {
-            AnyMFormalParameter::MBogusParameter(item) => Some(item),
+            Self::MBogusParameter(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_formal_parameter(&self) -> Option<&MFormalParameter> {
         match &self {
-            AnyMFormalParameter::MFormalParameter(item) => Some(item),
+            Self::MFormalParameter(item) => Some(item),
             _ => None,
         }
     }
@@ -5180,13 +5156,13 @@ pub enum AnyMFunction {
 impl AnyMFunction {
     pub fn as_m_function_declaration(&self) -> Option<&MFunctionDeclaration> {
         match &self {
-            AnyMFunction::MFunctionDeclaration(item) => Some(item),
+            Self::MFunctionDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_function_expression(&self) -> Option<&MFunctionExpression> {
         match &self {
-            AnyMFunction::MFunctionExpression(item) => Some(item),
+            Self::MFunctionExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -5204,15 +5180,15 @@ impl AnyMFunctionBinding {
             _ => None,
         }
     }
-    pub fn as_m_identifier_binding(&self) -> Option<&MIdentifierBinding> {
-        match &self {
-            Self::MIdentifierBinding(item) => Some(item),
-            _ => None,
-        }
-    }
     pub fn as_m_extended_binding(&self) -> Option<&MExtendedBinding> {
         match &self {
             Self::MExtendedBinding(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_identifier_binding(&self) -> Option<&MIdentifierBinding> {
+        match &self {
+            Self::MIdentifierBinding(item) => Some(item),
             _ => None,
         }
     }
@@ -5225,13 +5201,13 @@ pub enum AnyMFunctionBody {
 impl AnyMFunctionBody {
     pub fn as_any_m_expression(&self) -> Option<&AnyMExpression> {
         match &self {
-            AnyMFunctionBody::AnyMExpression(item) => Some(item),
+            Self::AnyMExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_function_body(&self) -> Option<&MFunctionBody> {
         match &self {
-            AnyMFunctionBody::MFunctionBody(item) => Some(item),
+            Self::MFunctionBody(item) => Some(item),
             _ => None,
         }
     }
@@ -5240,54 +5216,68 @@ impl AnyMFunctionBody {
 pub enum AnyMLiteralExpression {
     MBooleanLiteralExpression(MBooleanLiteralExpression),
     MDateLiteralExpression(MDateLiteralExpression),
-    MLongStringLiteralExpression(MLongStringLiteralExpression),    MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression),
-
+    MLongStringLiteralExpression(MLongStringLiteralExpression),
     MNullLiteralExpression(MNullLiteralExpression),
     MNumberLiteralExpression(MNumberLiteralExpression),
-    MStringLiteralExpression(MStringLiteralExpression),    MSqlStringLiteralExpression(MSqlStringLiteralExpression),
-
+    MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression),
+    MSqlStringLiteralExpression(MSqlStringLiteralExpression),
+    MStringLiteralExpression(MStringLiteralExpression),
     MTimeLiteralExpression(MTimeLiteralExpression),
 }
 impl AnyMLiteralExpression {
     pub fn as_m_boolean_literal_expression(&self) -> Option<&MBooleanLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MBooleanLiteralExpression(item) => Some(item),
+            Self::MBooleanLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_date_literal_expression(&self) -> Option<&MDateLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MDateLiteralExpression(item) => Some(item),
+            Self::MDateLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_long_string_literal_expression(&self) -> Option<&MLongStringLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MLongStringLiteralExpression(item) => Some(item),
+            Self::MLongStringLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_null_literal_expression(&self) -> Option<&MNullLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MNullLiteralExpression(item) => Some(item),
+            Self::MNullLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_number_literal_expression(&self) -> Option<&MNumberLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MNumberLiteralExpression(item) => Some(item),
+            Self::MNumberLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_sql_long_string_literal_expression(
+        &self,
+    ) -> Option<&MSqlLongStringLiteralExpression> {
+        match &self {
+            Self::MSqlLongStringLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_sql_string_literal_expression(&self) -> Option<&MSqlStringLiteralExpression> {
+        match &self {
+            Self::MSqlStringLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_string_literal_expression(&self) -> Option<&MStringLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MStringLiteralExpression(item) => Some(item),
+            Self::MStringLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_time_literal_expression(&self) -> Option<&MTimeLiteralExpression> {
         match &self {
-            AnyMLiteralExpression::MTimeLiteralExpression(item) => Some(item),
+            Self::MTimeLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -5302,25 +5292,25 @@ pub enum AnyMObjectMember {
 impl AnyMObjectMember {
     pub fn as_m_bogus_member(&self) -> Option<&MBogusMember> {
         match &self {
-            AnyMObjectMember::MBogusMember(item) => Some(item),
+            Self::MBogusMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_property_object_member(&self) -> Option<&MPropertyObjectMember> {
         match &self {
-            AnyMObjectMember::MPropertyObjectMember(item) => Some(item),
+            Self::MPropertyObjectMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_shorthand_property_object_member(&self) -> Option<&MShorthandPropertyObjectMember> {
         match &self {
-            AnyMObjectMember::MShorthandPropertyObjectMember(item) => Some(item),
+            Self::MShorthandPropertyObjectMember(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_spread(&self) -> Option<&MSpread> {
         match &self {
-            AnyMObjectMember::MSpread(item) => Some(item),
+            Self::MSpread(item) => Some(item),
             _ => None,
         }
     }
@@ -5333,13 +5323,13 @@ pub enum AnyMObjectMemberName {
 impl AnyMObjectMemberName {
     pub fn as_m_computed_member_name(&self) -> Option<&MComputedMemberName> {
         match &self {
-            AnyMObjectMemberName::MComputedMemberName(item) => Some(item),
+            Self::MComputedMemberName(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_literal_member_name(&self) -> Option<&MLiteralMemberName> {
         match &self {
-            AnyMObjectMemberName::MLiteralMemberName(item) => Some(item),
+            Self::MLiteralMemberName(item) => Some(item),
             _ => None,
         }
     }
@@ -5352,13 +5342,13 @@ pub enum AnyMParameter {
 impl AnyMParameter {
     pub fn as_any_m_formal_parameter(&self) -> Option<&AnyMFormalParameter> {
         match &self {
-            AnyMParameter::AnyMFormalParameter(item) => Some(item),
+            Self::AnyMFormalParameter(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_rest_parameter(&self) -> Option<&MRestParameter> {
         match &self {
-            AnyMParameter::MRestParameter(item) => Some(item),
+            Self::MRestParameter(item) => Some(item),
             _ => None,
         }
     }
@@ -5373,13 +5363,13 @@ pub enum AnyMRoot {
 impl AnyMRoot {
     pub fn as_m_expression_snipped(&self) -> Option<&MExpressionSnipped> {
         match &self {
-            AnyMRoot::MExpressionSnipped(item) => Some(item),
+            Self::MExpressionSnipped(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_module(&self) -> Option<&MModule> {
         match &self {
-            AnyMRoot::MModule(item) => Some(item),
+            Self::MModule(item) => Some(item),
             _ => None,
         }
     }
@@ -5391,7 +5381,7 @@ impl AnyMRoot {
     }
     pub fn as_m_script(&self) -> Option<&MScript> {
         match &self {
-            AnyMRoot::MScript(item) => Some(item),
+            Self::MScript(item) => Some(item),
             _ => None,
         }
     }
@@ -5406,8 +5396,8 @@ pub enum AnyMStatement {
     MDebugStatement(MDebugStatement),
     MEmptyStatement(MEmptyStatement),
     MExpressionStatement(MExpressionStatement),
-    MForAllStatement(MForAllStatement),
     MForAllInStatement(MForAllInStatement),
+    MForAllStatement(MForAllStatement),
     MForStatement(MForStatement),
     MFunctionDeclaration(MFunctionDeclaration),
     MIfStatement(MIfStatement),
@@ -5422,121 +5412,156 @@ pub enum AnyMStatement {
 impl AnyMStatement {
     pub fn as_m_block_statement(&self) -> Option<&MBlockStatement> {
         match &self {
-            AnyMStatement::MBlockStatement(item) => Some(item),
+            Self::MBlockStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_bogus_statement(&self) -> Option<&MBogusStatement> {
         match &self {
-            AnyMStatement::MBogusStatement(item) => Some(item),
+            Self::MBogusStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_break_statement(&self) -> Option<&MBreakStatement> {
         match &self {
-            AnyMStatement::MBreakStatement(item) => Some(item),
+            Self::MBreakStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_class_declaration(&self) -> Option<&MClassDeclaration> {
         match &self {
-            AnyMStatement::MClassDeclaration(item) => Some(item),
+            Self::MClassDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_continue_statement(&self) -> Option<&MContinueStatement> {
         match &self {
-            AnyMStatement::MContinueStatement(item) => Some(item),
+            Self::MContinueStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_debug_statement(&self) -> Option<&MDebugStatement> {
         match &self {
-            AnyMStatement::MDebugStatement(item) => Some(item),
+            Self::MDebugStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_empty_statement(&self) -> Option<&MEmptyStatement> {
         match &self {
-            AnyMStatement::MEmptyStatement(item) => Some(item),
+            Self::MEmptyStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_expression_statement(&self) -> Option<&MExpressionStatement> {
         match &self {
-            AnyMStatement::MExpressionStatement(item) => Some(item),
+            Self::MExpressionStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_for_all_in_statement(&self) -> Option<&MForAllInStatement> {
         match &self {
-            AnyMStatement::MForAllInStatement(item) => Some(item),
+            Self::MForAllInStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_for_all_statement(&self) -> Option<&MForAllStatement> {
         match &self {
-            AnyMStatement::MForAllStatement(item) => Some(item),
+            Self::MForAllStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_for_statement(&self) -> Option<&MForStatement> {
         match &self {
-            AnyMStatement::MForStatement(item) => Some(item),
+            Self::MForStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_function_declaration(&self) -> Option<&MFunctionDeclaration> {
         match &self {
-            AnyMStatement::MFunctionDeclaration(item) => Some(item),
+            Self::MFunctionDeclaration(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_if_statement(&self) -> Option<&MIfStatement> {
         match &self {
-            AnyMStatement::MIfStatement(item) => Some(item),
+            Self::MIfStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_return_statement(&self) -> Option<&MReturnStatement> {
         match &self {
-            AnyMStatement::MReturnStatement(item) => Some(item),
+            Self::MReturnStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_switch_statement(&self) -> Option<&MSwitchStatement> {
         match &self {
-            AnyMStatement::MSwitchStatement(item) => Some(item),
+            Self::MSwitchStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_throw_statement(&self) -> Option<&MThrowStatement> {
         match &self {
-            AnyMStatement::MThrowStatement(item) => Some(item),
+            Self::MThrowStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_try_finally_statement(&self) -> Option<&MTryFinallyStatement> {
         match &self {
-            AnyMStatement::MTryFinallyStatement(item) => Some(item),
+            Self::MTryFinallyStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_try_statement(&self) -> Option<&MTryStatement> {
         match &self {
-            AnyMStatement::MTryStatement(item) => Some(item),
+            Self::MTryStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_variable_statement(&self) -> Option<&MVariableStatement> {
         match &self {
-            AnyMStatement::MVariableStatement(item) => Some(item),
+            Self::MVariableStatement(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_while_statement(&self) -> Option<&MWhileStatement> {
         match &self {
-            AnyMStatement::MWhileStatement(item) => Some(item),
+            Self::MWhileStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyMStringLiteralExpression {
+    MLongStringLiteralExpression(MLongStringLiteralExpression),
+    MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression),
+    MSqlStringLiteralExpression(MSqlStringLiteralExpression),
+    MStringLiteralExpression(MStringLiteralExpression),
+}
+impl AnyMStringLiteralExpression {
+    pub fn as_m_long_string_literal_expression(&self) -> Option<&MLongStringLiteralExpression> {
+        match &self {
+            Self::MLongStringLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_sql_long_string_literal_expression(
+        &self,
+    ) -> Option<&MSqlLongStringLiteralExpression> {
+        match &self {
+            Self::MSqlLongStringLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_sql_string_literal_expression(&self) -> Option<&MSqlStringLiteralExpression> {
+        match &self {
+            Self::MSqlStringLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_string_literal_expression(&self) -> Option<&MStringLiteralExpression> {
+        match &self {
+            Self::MStringLiteralExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -5549,13 +5574,13 @@ pub enum AnyMSwitchClause {
 impl AnyMSwitchClause {
     pub fn as_m_case_clause(&self) -> Option<&MCaseClause> {
         match &self {
-            AnyMSwitchClause::MCaseClause(item) => Some(item),
+            Self::MCaseClause(item) => Some(item),
             _ => None,
         }
     }
     pub fn as_m_default_clause(&self) -> Option<&MDefaultClause> {
         match &self {
-            AnyMSwitchClause::MDefaultClause(item) => Some(item),
+            Self::MDefaultClause(item) => Some(item),
             _ => None,
         }
     }
@@ -5583,20 +5608,29 @@ impl AstNode for MAnnotationAttribute {
 }
 impl std::fmt::Debug for MAnnotationAttribute {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MAnnotationAttribute")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field("eq_token", &support::DebugSyntaxResult(self.eq_token()))
-            .field("value", &support::DebugSyntaxResult(self.value()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MAnnotationAttribute")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("eq_token", &support::DebugSyntaxResult(self.eq_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("MAnnotationAttribute").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MAnnotationAttribute> for SyntaxNode {
-    fn from(n: MAnnotationAttribute) -> SyntaxNode {
+    fn from(n: MAnnotationAttribute) -> Self {
         n.syntax
     }
 }
 impl From<MAnnotationAttribute> for SyntaxElement {
-    fn from(n: MAnnotationAttribute) -> SyntaxElement {
+    fn from(n: MAnnotationAttribute) -> Self {
         n.syntax.into()
     }
 }
@@ -5623,18 +5657,27 @@ impl AstNode for MAnnotationBinding {
 }
 impl std::fmt::Debug for MAnnotationBinding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MAnnotationBinding")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MAnnotationBinding")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("MAnnotationBinding").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MAnnotationBinding> for SyntaxNode {
-    fn from(n: MAnnotationBinding) -> SyntaxNode {
+    fn from(n: MAnnotationBinding) -> Self {
         n.syntax
     }
 }
 impl From<MAnnotationBinding> for SyntaxElement {
-    fn from(n: MAnnotationBinding) -> SyntaxElement {
+    fn from(n: MAnnotationBinding) -> Self {
         n.syntax.into()
     }
 }
@@ -5661,27 +5704,36 @@ impl AstNode for MAnnotationElement {
 }
 impl std::fmt::Debug for MAnnotationElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MAnnotationElement")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("attributes", &self.attributes())
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MAnnotationElement")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("attributes", &self.attributes())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MAnnotationElement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MAnnotationElement> for SyntaxNode {
-    fn from(n: MAnnotationElement) -> SyntaxNode {
+    fn from(n: MAnnotationElement) -> Self {
         n.syntax
     }
 }
 impl From<MAnnotationElement> for SyntaxElement {
-    fn from(n: MAnnotationElement) -> SyntaxElement {
+    fn from(n: MAnnotationElement) -> Self {
         n.syntax.into()
     }
 }
@@ -5708,30 +5760,39 @@ impl AstNode for MAnnotationGroup {
 }
 impl std::fmt::Debug for MAnnotationGroup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MAnnotationGroup")
-            .field(
-                "colon_token",
-                &support::DebugSyntaxResult(self.colon_token()),
-            )
-            .field(
-                "l_brack_token",
-                &support::DebugSyntaxResult(self.l_brack_token()),
-            )
-            .field("elements", &self.elements())
-            .field(
-                "r_brack_token",
-                &support::DebugSyntaxResult(self.r_brack_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MAnnotationGroup")
+                .field(
+                    "colon_token",
+                    &support::DebugSyntaxResult(self.colon_token()),
+                )
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("elements", &self.elements())
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MAnnotationGroup").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MAnnotationGroup> for SyntaxNode {
-    fn from(n: MAnnotationGroup) -> SyntaxNode {
+    fn from(n: MAnnotationGroup) -> Self {
         n.syntax
     }
 }
 impl From<MAnnotationGroup> for SyntaxElement {
-    fn from(n: MAnnotationGroup) -> SyntaxElement {
+    fn from(n: MAnnotationGroup) -> Self {
         n.syntax.into()
     }
 }
@@ -5758,27 +5819,36 @@ impl AstNode for MArrayExpression {
 }
 impl std::fmt::Debug for MArrayExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MArrayExpression")
-            .field("at_token", &support::DebugSyntaxResult(self.at_token()))
-            .field(
-                "l_brack_token",
-                &support::DebugSyntaxResult(self.l_brack_token()),
-            )
-            .field("elements", &self.elements())
-            .field(
-                "r_brack_token",
-                &support::DebugSyntaxResult(self.r_brack_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MArrayExpression")
+                .field("at_token", &support::DebugSyntaxResult(self.at_token()))
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("elements", &self.elements())
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MArrayExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MArrayExpression> for SyntaxNode {
-    fn from(n: MArrayExpression) -> SyntaxNode {
+    fn from(n: MArrayExpression) -> Self {
         n.syntax
     }
 }
 impl From<MArrayExpression> for SyntaxElement {
-    fn from(n: MArrayExpression) -> SyntaxElement {
+    fn from(n: MArrayExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -5809,12 +5879,12 @@ impl std::fmt::Debug for MArrayHole {
     }
 }
 impl From<MArrayHole> for SyntaxNode {
-    fn from(n: MArrayHole) -> SyntaxNode {
+    fn from(n: MArrayHole) -> Self {
         n.syntax
     }
 }
 impl From<MArrayHole> for SyntaxElement {
-    fn from(n: MArrayHole) -> SyntaxElement {
+    fn from(n: MArrayHole) -> Self {
         n.syntax.into()
     }
 }
@@ -5841,23 +5911,32 @@ impl AstNode for MAssignmentExpression {
 }
 impl std::fmt::Debug for MAssignmentExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MAssignmentExpression")
-            .field("left", &support::DebugSyntaxResult(self.left()))
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .field("right", &support::DebugSyntaxResult(self.right()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MAssignmentExpression")
+                .field("left", &support::DebugSyntaxResult(self.left()))
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("right", &support::DebugSyntaxResult(self.right()))
+                .finish()
+        } else {
+            f.debug_struct("MAssignmentExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MAssignmentExpression> for SyntaxNode {
-    fn from(n: MAssignmentExpression) -> SyntaxNode {
+    fn from(n: MAssignmentExpression) -> Self {
         n.syntax
     }
 }
 impl From<MAssignmentExpression> for SyntaxElement {
-    fn from(n: MAssignmentExpression) -> SyntaxElement {
+    fn from(n: MAssignmentExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -5884,61 +5963,32 @@ impl AstNode for MBinaryExpression {
 }
 impl std::fmt::Debug for MBinaryExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MBinaryExpression")
-            .field("left", &support::DebugSyntaxResult(self.left()))
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .field("right", &support::DebugSyntaxResult(self.right()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MBinaryExpression")
+                .field("left", &support::DebugSyntaxResult(self.left()))
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("right", &support::DebugSyntaxResult(self.right()))
+                .finish()
+        } else {
+            f.debug_struct("MBinaryExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MBinaryExpression> for SyntaxNode {
-    fn from(n: MBinaryExpression) -> SyntaxNode {
+    fn from(n: MBinaryExpression) -> Self {
         n.syntax
     }
 }
 impl From<MBinaryExpression> for SyntaxElement {
-    fn from(n: MBinaryExpression) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl AstNode for MSqlConcatenationExpression {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_SQL_CONCATENATION_EXPRESSION as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_SQL_CONCATENATION_EXPRESSION
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
-impl std::fmt::Debug for MSqlConcatenationExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSqlConcatenationExpression")
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .finish()
-    }
-}
-impl From<MSqlConcatenationExpression> for SyntaxNode {
-    fn from(n: MSqlConcatenationExpression) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MSqlConcatenationExpression> for SyntaxElement {
-    fn from(n: MSqlConcatenationExpression) -> SyntaxElement {
+    fn from(n: MBinaryExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -5965,26 +6015,35 @@ impl AstNode for MBlockStatement {
 }
 impl std::fmt::Debug for MBlockStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MBlockStatement")
-            .field(
-                "l_curly_token",
-                &support::DebugSyntaxResult(self.l_curly_token()),
-            )
-            .field("statements", &self.statements())
-            .field(
-                "r_curly_token",
-                &support::DebugSyntaxResult(self.r_curly_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MBlockStatement")
+                .field(
+                    "l_curly_token",
+                    &support::DebugSyntaxResult(self.l_curly_token()),
+                )
+                .field("statements", &self.statements())
+                .field(
+                    "r_curly_token",
+                    &support::DebugSyntaxResult(self.r_curly_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MBlockStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MBlockStatement> for SyntaxNode {
-    fn from(n: MBlockStatement) -> SyntaxNode {
+    fn from(n: MBlockStatement) -> Self {
         n.syntax
     }
 }
 impl From<MBlockStatement> for SyntaxElement {
-    fn from(n: MBlockStatement) -> SyntaxElement {
+    fn from(n: MBlockStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -6011,21 +6070,30 @@ impl AstNode for MBooleanLiteralExpression {
 }
 impl std::fmt::Debug for MBooleanLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MBooleanLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MBooleanLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MBooleanLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MBooleanLiteralExpression> for SyntaxNode {
-    fn from(n: MBooleanLiteralExpression) -> SyntaxNode {
+    fn from(n: MBooleanLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MBooleanLiteralExpression> for SyntaxElement {
-    fn from(n: MBooleanLiteralExpression) -> SyntaxElement {
+    fn from(n: MBooleanLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -6052,25 +6120,34 @@ impl AstNode for MBreakStatement {
 }
 impl std::fmt::Debug for MBreakStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MBreakStatement")
-            .field(
-                "break_token",
-                &support::DebugSyntaxResult(self.break_token()),
-            )
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MBreakStatement")
+                .field(
+                    "break_token",
+                    &support::DebugSyntaxResult(self.break_token()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MBreakStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MBreakStatement> for SyntaxNode {
-    fn from(n: MBreakStatement) -> SyntaxNode {
+    fn from(n: MBreakStatement) -> Self {
         n.syntax
     }
 }
 impl From<MBreakStatement> for SyntaxElement {
-    fn from(n: MBreakStatement) -> SyntaxElement {
+    fn from(n: MBreakStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -6097,26 +6174,35 @@ impl AstNode for MCallArguments {
 }
 impl std::fmt::Debug for MCallArguments {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MCallArguments")
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("args", &self.args())
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MCallArguments")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("args", &self.args())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MCallArguments").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MCallArguments> for SyntaxNode {
-    fn from(n: MCallArguments) -> SyntaxNode {
+    fn from(n: MCallArguments) -> Self {
         n.syntax
     }
 }
 impl From<MCallArguments> for SyntaxElement {
-    fn from(n: MCallArguments) -> SyntaxElement {
+    fn from(n: MCallArguments) -> Self {
         n.syntax.into()
     }
 }
@@ -6143,19 +6229,28 @@ impl AstNode for MCallExpression {
 }
 impl std::fmt::Debug for MCallExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MCallExpression")
-            .field("callee", &support::DebugSyntaxResult(self.callee()))
-            .field("arguments", &support::DebugSyntaxResult(self.arguments()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MCallExpression")
+                .field("callee", &support::DebugSyntaxResult(self.callee()))
+                .field("arguments", &support::DebugSyntaxResult(self.arguments()))
+                .finish()
+        } else {
+            f.debug_struct("MCallExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MCallExpression> for SyntaxNode {
-    fn from(n: MCallExpression) -> SyntaxNode {
+    fn from(n: MCallExpression) -> Self {
         n.syntax
     }
 }
 impl From<MCallExpression> for SyntaxElement {
-    fn from(n: MCallExpression) -> SyntaxElement {
+    fn from(n: MCallExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -6182,24 +6277,33 @@ impl AstNode for MCaseClause {
 }
 impl std::fmt::Debug for MCaseClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MCaseClause")
-            .field("case_token", &support::DebugSyntaxResult(self.case_token()))
-            .field("test", &support::DebugSyntaxResult(self.test()))
-            .field(
-                "colon_token",
-                &support::DebugSyntaxResult(self.colon_token()),
-            )
-            .field("consequent", &self.consequent())
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MCaseClause")
+                .field("case_token", &support::DebugSyntaxResult(self.case_token()))
+                .field("test", &support::DebugSyntaxResult(self.test()))
+                .field(
+                    "colon_token",
+                    &support::DebugSyntaxResult(self.colon_token()),
+                )
+                .field("consequent", &self.consequent())
+                .finish()
+        } else {
+            f.debug_struct("MCaseClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MCaseClause> for SyntaxNode {
-    fn from(n: MCaseClause) -> SyntaxNode {
+    fn from(n: MCaseClause) -> Self {
         n.syntax
     }
 }
 impl From<MCaseClause> for SyntaxElement {
-    fn from(n: MCaseClause) -> SyntaxElement {
+    fn from(n: MCaseClause) -> Self {
         n.syntax.into()
     }
 }
@@ -6226,26 +6330,35 @@ impl AstNode for MCatchClause {
 }
 impl std::fmt::Debug for MCatchClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MCatchClause")
-            .field(
-                "catch_token",
-                &support::DebugSyntaxResult(self.catch_token()),
-            )
-            .field(
-                "declaration",
-                &support::DebugOptionalElement(self.declaration()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MCatchClause")
+                .field(
+                    "catch_token",
+                    &support::DebugSyntaxResult(self.catch_token()),
+                )
+                .field(
+                    "declaration",
+                    &support::DebugOptionalElement(self.declaration()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MCatchClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MCatchClause> for SyntaxNode {
-    fn from(n: MCatchClause) -> SyntaxNode {
+    fn from(n: MCatchClause) -> Self {
         n.syntax
     }
 }
 impl From<MCatchClause> for SyntaxElement {
-    fn from(n: MCatchClause) -> SyntaxElement {
+    fn from(n: MCatchClause) -> Self {
         n.syntax.into()
     }
 }
@@ -6272,26 +6385,35 @@ impl AstNode for MCatchDeclaration {
 }
 impl std::fmt::Debug for MCatchDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MCatchDeclaration")
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("binding", &support::DebugSyntaxResult(self.binding()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MCatchDeclaration")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("binding", &support::DebugSyntaxResult(self.binding()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MCatchDeclaration").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MCatchDeclaration> for SyntaxNode {
-    fn from(n: MCatchDeclaration) -> SyntaxNode {
+    fn from(n: MCatchDeclaration) -> Self {
         n.syntax
     }
 }
 impl From<MCatchDeclaration> for SyntaxElement {
-    fn from(n: MCatchDeclaration) -> SyntaxElement {
+    fn from(n: MCatchDeclaration) -> Self {
         n.syntax.into()
     }
 }
@@ -6318,40 +6440,49 @@ impl AstNode for MClassDeclaration {
 }
 impl std::fmt::Debug for MClassDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MClassDeclaration")
-            .field("annotation", &self.annotation())
-            .field(
-                "class_token",
-                &support::DebugSyntaxResult(self.class_token()),
-            )
-            .field("id", &support::DebugSyntaxResult(self.id()))
-            .field(
-                "extends_clause",
-                &support::DebugOptionalElement(self.extends_clause()),
-            )
-            .field(
-                "doc_string",
-                &support::DebugOptionalElement(self.doc_string()),
-            )
-            .field(
-                "l_curly_token",
-                &support::DebugSyntaxResult(self.l_curly_token()),
-            )
-            .field("members", &self.members())
-            .field(
-                "r_curly_token",
-                &support::DebugSyntaxResult(self.r_curly_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MClassDeclaration")
+                .field("annotation", &self.annotation())
+                .field(
+                    "class_token",
+                    &support::DebugSyntaxResult(self.class_token()),
+                )
+                .field("id", &support::DebugSyntaxResult(self.id()))
+                .field(
+                    "extends_clause",
+                    &support::DebugOptionalElement(self.extends_clause()),
+                )
+                .field(
+                    "doc_string",
+                    &support::DebugOptionalElement(self.doc_string()),
+                )
+                .field(
+                    "l_curly_token",
+                    &support::DebugSyntaxResult(self.l_curly_token()),
+                )
+                .field("members", &self.members())
+                .field(
+                    "r_curly_token",
+                    &support::DebugSyntaxResult(self.r_curly_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MClassDeclaration").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MClassDeclaration> for SyntaxNode {
-    fn from(n: MClassDeclaration) -> SyntaxNode {
+    fn from(n: MClassDeclaration) -> Self {
         n.syntax
     }
 }
 impl From<MClassDeclaration> for SyntaxElement {
-    fn from(n: MClassDeclaration) -> SyntaxElement {
+    fn from(n: MClassDeclaration) -> Self {
         n.syntax.into()
     }
 }
@@ -6428,27 +6559,36 @@ impl AstNode for MComputedMemberAssignment {
 }
 impl std::fmt::Debug for MComputedMemberAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MComputedMemberAssignment")
-            .field("object", &support::DebugOptionalElement(self.object()))
-            .field(
-                "l_brack_token",
-                &support::DebugSyntaxResult(self.l_brack_token()),
-            )
-            .field("member", &support::DebugSyntaxResult(self.member()))
-            .field(
-                "r_brack_token",
-                &support::DebugSyntaxResult(self.r_brack_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MComputedMemberAssignment")
+                .field("object", &support::DebugOptionalElement(self.object()))
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("member", &support::DebugSyntaxResult(self.member()))
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MComputedMemberAssignment").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MComputedMemberAssignment> for SyntaxNode {
-    fn from(n: MComputedMemberAssignment) -> SyntaxNode {
+    fn from(n: MComputedMemberAssignment) -> Self {
         n.syntax
     }
 }
 impl From<MComputedMemberAssignment> for SyntaxElement {
-    fn from(n: MComputedMemberAssignment) -> SyntaxElement {
+    fn from(n: MComputedMemberAssignment) -> Self {
         n.syntax.into()
     }
 }
@@ -6475,27 +6615,36 @@ impl AstNode for MComputedMemberExpression {
 }
 impl std::fmt::Debug for MComputedMemberExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MComputedMemberExpression")
-            .field("object", &support::DebugOptionalElement(self.object()))
-            .field(
-                "l_brack_token",
-                &support::DebugSyntaxResult(self.l_brack_token()),
-            )
-            .field("member", &support::DebugSyntaxResult(self.member()))
-            .field(
-                "r_brack_token",
-                &support::DebugSyntaxResult(self.r_brack_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MComputedMemberExpression")
+                .field("object", &support::DebugOptionalElement(self.object()))
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("member", &support::DebugSyntaxResult(self.member()))
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MComputedMemberExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MComputedMemberExpression> for SyntaxNode {
-    fn from(n: MComputedMemberExpression) -> SyntaxNode {
+    fn from(n: MComputedMemberExpression) -> Self {
         n.syntax
     }
 }
 impl From<MComputedMemberExpression> for SyntaxElement {
-    fn from(n: MComputedMemberExpression) -> SyntaxElement {
+    fn from(n: MComputedMemberExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -6522,26 +6671,35 @@ impl AstNode for MComputedMemberName {
 }
 impl std::fmt::Debug for MComputedMemberName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MComputedMemberName")
-            .field(
-                "l_brack_token",
-                &support::DebugSyntaxResult(self.l_brack_token()),
-            )
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .field(
-                "r_brack_token",
-                &support::DebugSyntaxResult(self.r_brack_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MComputedMemberName")
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MComputedMemberName").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MComputedMemberName> for SyntaxNode {
-    fn from(n: MComputedMemberName) -> SyntaxNode {
+    fn from(n: MComputedMemberName) -> Self {
         n.syntax
     }
 }
 impl From<MComputedMemberName> for SyntaxElement {
-    fn from(n: MComputedMemberName) -> SyntaxElement {
+    fn from(n: MComputedMemberName) -> Self {
         n.syntax.into()
     }
 }
@@ -6568,28 +6726,37 @@ impl AstNode for MConditionalExpression {
 }
 impl std::fmt::Debug for MConditionalExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MConditionalExpression")
-            .field("test", &support::DebugSyntaxResult(self.test()))
-            .field(
-                "question_mark_token",
-                &support::DebugSyntaxResult(self.question_mark_token()),
-            )
-            .field("consequent", &support::DebugSyntaxResult(self.consequent()))
-            .field(
-                "colon_token",
-                &support::DebugSyntaxResult(self.colon_token()),
-            )
-            .field("alternate", &support::DebugSyntaxResult(self.alternate()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MConditionalExpression")
+                .field("test", &support::DebugSyntaxResult(self.test()))
+                .field(
+                    "question_mark_token",
+                    &support::DebugSyntaxResult(self.question_mark_token()),
+                )
+                .field("consequent", &support::DebugSyntaxResult(self.consequent()))
+                .field(
+                    "colon_token",
+                    &support::DebugSyntaxResult(self.colon_token()),
+                )
+                .field("alternate", &support::DebugSyntaxResult(self.alternate()))
+                .finish()
+        } else {
+            f.debug_struct("MConditionalExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MConditionalExpression> for SyntaxNode {
-    fn from(n: MConditionalExpression) -> SyntaxNode {
+    fn from(n: MConditionalExpression) -> Self {
         n.syntax
     }
 }
 impl From<MConditionalExpression> for SyntaxElement {
-    fn from(n: MConditionalExpression) -> SyntaxElement {
+    fn from(n: MConditionalExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -6616,58 +6783,28 @@ impl AstNode for MConstantExpression {
 }
 impl std::fmt::Debug for MConstantExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MConstantExpression")
-            .field("token", &support::DebugSyntaxResult(self.token()))
-            .field("constant", &support::DebugSyntaxResult(self.constant()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MConstantExpression")
+                .field("token", &support::DebugSyntaxResult(self.token()))
+                .field("constant", &support::DebugSyntaxResult(self.constant()))
+                .finish()
+        } else {
+            f.debug_struct("MConstantExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MConstantExpression> for SyntaxNode {
-    fn from(n: MConstantExpression) -> SyntaxNode {
+    fn from(n: MConstantExpression) -> Self {
         n.syntax
     }
 }
 impl From<MConstantExpression> for SyntaxElement {
-    fn from(n: MConstantExpression) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl AstNode for MTemplateExpression {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_TEMPLATE_EXPRESSION as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_TEMPLATE_EXPRESSION
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
-impl std::fmt::Debug for MTemplateExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MTemplateExpression")
-            .field("token", &support::DebugSyntaxResult(self.token()))
-            .field("template", &support::DebugSyntaxResult(self.template()))
-            .finish()
-    }
-}
-impl From<MTemplateExpression> for SyntaxNode {
-    fn from(n: MTemplateExpression) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MTemplateExpression> for SyntaxElement {
-    fn from(n: MTemplateExpression) -> SyntaxElement {
+    fn from(n: MConstantExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -6694,25 +6831,34 @@ impl AstNode for MConstructorClassMember {
 }
 impl std::fmt::Debug for MConstructorClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MConstructorClassMember")
-            .field("annotation", &self.annotation())
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field("parameters", &support::DebugSyntaxResult(self.parameters()))
-            .field(
-                "doc_string",
-                &support::DebugOptionalElement(self.doc_string()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MConstructorClassMember")
+                .field("annotation", &self.annotation())
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("parameters", &support::DebugSyntaxResult(self.parameters()))
+                .field(
+                    "doc_string",
+                    &support::DebugOptionalElement(self.doc_string()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MConstructorClassMember").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MConstructorClassMember> for SyntaxNode {
-    fn from(n: MConstructorClassMember) -> SyntaxNode {
+    fn from(n: MConstructorClassMember) -> Self {
         n.syntax
     }
 }
 impl From<MConstructorClassMember> for SyntaxElement {
-    fn from(n: MConstructorClassMember) -> SyntaxElement {
+    fn from(n: MConstructorClassMember) -> Self {
         n.syntax.into()
     }
 }
@@ -6739,26 +6885,35 @@ impl AstNode for MConstructorParameters {
 }
 impl std::fmt::Debug for MConstructorParameters {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MConstructorParameters")
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("parameters", &self.parameters())
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MConstructorParameters")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("parameters", &self.parameters())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MConstructorParameters").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MConstructorParameters> for SyntaxNode {
-    fn from(n: MConstructorParameters) -> SyntaxNode {
+    fn from(n: MConstructorParameters) -> Self {
         n.syntax
     }
 }
 impl From<MConstructorParameters> for SyntaxElement {
-    fn from(n: MConstructorParameters) -> SyntaxElement {
+    fn from(n: MConstructorParameters) -> Self {
         n.syntax.into()
     }
 }
@@ -6785,25 +6940,34 @@ impl AstNode for MContinueStatement {
 }
 impl std::fmt::Debug for MContinueStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MContinueStatement")
-            .field(
-                "continue_token",
-                &support::DebugSyntaxResult(self.continue_token()),
-            )
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MContinueStatement")
+                .field(
+                    "continue_token",
+                    &support::DebugSyntaxResult(self.continue_token()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MContinueStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MContinueStatement> for SyntaxNode {
-    fn from(n: MContinueStatement) -> SyntaxNode {
+    fn from(n: MContinueStatement) -> Self {
         n.syntax
     }
 }
 impl From<MContinueStatement> for SyntaxElement {
-    fn from(n: MContinueStatement) -> SyntaxElement {
+    fn from(n: MContinueStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -6830,21 +6994,30 @@ impl AstNode for MDateLiteralExpression {
 }
 impl std::fmt::Debug for MDateLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MDateLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MDateLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MDateLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MDateLiteralExpression> for SyntaxNode {
-    fn from(n: MDateLiteralExpression) -> SyntaxNode {
+    fn from(n: MDateLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MDateLiteralExpression> for SyntaxElement {
-    fn from(n: MDateLiteralExpression) -> SyntaxElement {
+    fn from(n: MDateLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -6871,25 +7044,34 @@ impl AstNode for MDebugStatement {
 }
 impl std::fmt::Debug for MDebugStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MDebugStatement")
-            .field(
-                "debug_token",
-                &support::DebugSyntaxResult(self.debug_token()),
-            )
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MDebugStatement")
+                .field(
+                    "debug_token",
+                    &support::DebugSyntaxResult(self.debug_token()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MDebugStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MDebugStatement> for SyntaxNode {
-    fn from(n: MDebugStatement) -> SyntaxNode {
+    fn from(n: MDebugStatement) -> Self {
         n.syntax
     }
 }
 impl From<MDebugStatement> for SyntaxElement {
-    fn from(n: MDebugStatement) -> SyntaxElement {
+    fn from(n: MDebugStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -6916,19 +7098,28 @@ impl AstNode for MDefaultClause {
 }
 impl std::fmt::Debug for MDefaultClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MDefaultClause")
-            .field("else_token", &support::DebugSyntaxResult(self.else_token()))
-            .field("consequent", &self.consequent())
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MDefaultClause")
+                .field("else_token", &support::DebugSyntaxResult(self.else_token()))
+                .field("consequent", &self.consequent())
+                .finish()
+        } else {
+            f.debug_struct("MDefaultClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MDefaultClause> for SyntaxNode {
-    fn from(n: MDefaultClause) -> SyntaxNode {
+    fn from(n: MDefaultClause) -> Self {
         n.syntax
     }
 }
 impl From<MDefaultClause> for SyntaxElement {
-    fn from(n: MDefaultClause) -> SyntaxElement {
+    fn from(n: MDefaultClause) -> Self {
         n.syntax.into()
     }
 }
@@ -6955,25 +7146,231 @@ impl AstNode for MDirective {
 }
 impl std::fmt::Debug for MDirective {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MDirective")
-            .field(
-                "version_token",
-                &support::DebugSyntaxResult(self.version_token()),
-            )
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MDirective")
+                .field(
+                    "version_token",
+                    &support::DebugSyntaxResult(self.version_token()),
+                )
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MDirective").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MDirective> for SyntaxNode {
-    fn from(n: MDirective) -> SyntaxNode {
+    fn from(n: MDirective) -> Self {
         n.syntax
     }
 }
 impl From<MDirective> for SyntaxElement {
-    fn from(n: MDirective) -> SyntaxElement {
+    fn from(n: MDirective) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MElseClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_ELSE_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_ELSE_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MElseClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MElseClause")
+                .field("else_token", &support::DebugSyntaxResult(self.else_token()))
+                .field("alternate", &support::DebugSyntaxResult(self.alternate()))
+                .finish()
+        } else {
+            f.debug_struct("MElseClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MElseClause> for SyntaxNode {
+    fn from(n: MElseClause) -> Self {
+        n.syntax
+    }
+}
+impl From<MElseClause> for SyntaxElement {
+    fn from(n: MElseClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MEmptyStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_EMPTY_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_EMPTY_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MEmptyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MEmptyStatement")
+                .field(
+                    "semicolon_token",
+                    &support::DebugSyntaxResult(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MEmptyStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MEmptyStatement> for SyntaxNode {
+    fn from(n: MEmptyStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<MEmptyStatement> for SyntaxElement {
+    fn from(n: MEmptyStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MExpressionSnipped {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_EXPRESSION_SNIPPED as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_EXPRESSION_SNIPPED
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MExpressionSnipped {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MExpressionSnipped")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
+                .finish()
+        } else {
+            f.debug_struct("MExpressionSnipped").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MExpressionSnipped> for SyntaxNode {
+    fn from(n: MExpressionSnipped) -> Self {
+        n.syntax
+    }
+}
+impl From<MExpressionSnipped> for SyntaxElement {
+    fn from(n: MExpressionSnipped) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MExpressionStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_EXPRESSION_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_EXPRESSION_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MExpressionStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MExpressionStatement")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MExpressionStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MExpressionStatement> for SyntaxNode {
+    fn from(n: MExpressionStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<MExpressionStatement> for SyntaxElement {
+    fn from(n: MExpressionStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -7029,167 +7426,6 @@ impl From<MExtendedBinding> for SyntaxElement {
         n.syntax.into()
     }
 }
-impl AstNode for MElseClause {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_ELSE_CLAUSE as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_ELSE_CLAUSE
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
-impl std::fmt::Debug for MElseClause {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MElseClause")
-            .field("else_token", &support::DebugSyntaxResult(self.else_token()))
-            .field("alternate", &support::DebugSyntaxResult(self.alternate()))
-            .finish()
-    }
-}
-impl From<MElseClause> for SyntaxNode {
-    fn from(n: MElseClause) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MElseClause> for SyntaxElement {
-    fn from(n: MElseClause) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl AstNode for MEmptyStatement {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_EMPTY_STATEMENT as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_EMPTY_STATEMENT
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
-impl std::fmt::Debug for MEmptyStatement {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MEmptyStatement")
-            .field(
-                "semicolon_token",
-                &support::DebugSyntaxResult(self.semicolon_token()),
-            )
-            .finish()
-    }
-}
-impl From<MEmptyStatement> for SyntaxNode {
-    fn from(n: MEmptyStatement) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MEmptyStatement> for SyntaxElement {
-    fn from(n: MEmptyStatement) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl AstNode for MExpressionSnipped {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_EXPRESSION_SNIPPED as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_EXPRESSION_SNIPPED
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
-impl std::fmt::Debug for MExpressionSnipped {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MExpressionSnipped")
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
-            .finish()
-    }
-}
-impl From<MExpressionSnipped> for SyntaxNode {
-    fn from(n: MExpressionSnipped) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MExpressionSnipped> for SyntaxElement {
-    fn from(n: MExpressionSnipped) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl AstNode for MExpressionStatement {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_EXPRESSION_STATEMENT as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_EXPRESSION_STATEMENT
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
-impl std::fmt::Debug for MExpressionStatement {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MExpressionStatement")
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
-    }
-}
-impl From<MExpressionStatement> for SyntaxNode {
-    fn from(n: MExpressionStatement) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MExpressionStatement> for SyntaxElement {
-    fn from(n: MExpressionStatement) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
 impl AstNode for MExtendsClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -7213,25 +7449,34 @@ impl AstNode for MExtendsClause {
 }
 impl std::fmt::Debug for MExtendsClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MExtendsClause")
-            .field(
-                "extends_token",
-                &support::DebugSyntaxResult(self.extends_token()),
-            )
-            .field(
-                "super_class",
-                &support::DebugSyntaxResult(self.super_class()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MExtendsClause")
+                .field(
+                    "extends_token",
+                    &support::DebugSyntaxResult(self.extends_token()),
+                )
+                .field(
+                    "super_class",
+                    &support::DebugSyntaxResult(self.super_class()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MExtendsClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MExtendsClause> for SyntaxNode {
-    fn from(n: MExtendsClause) -> SyntaxNode {
+    fn from(n: MExtendsClause) -> Self {
         n.syntax
     }
 }
 impl From<MExtendsClause> for SyntaxElement {
-    fn from(n: MExtendsClause) -> SyntaxElement {
+    fn from(n: MExtendsClause) -> Self {
         n.syntax.into()
     }
 }
@@ -7258,22 +7503,31 @@ impl AstNode for MFinallyClause {
 }
 impl std::fmt::Debug for MFinallyClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MFinallyClause")
-            .field(
-                "finally_token",
-                &support::DebugSyntaxResult(self.finally_token()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MFinallyClause")
+                .field(
+                    "finally_token",
+                    &support::DebugSyntaxResult(self.finally_token()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MFinallyClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MFinallyClause> for SyntaxNode {
-    fn from(n: MFinallyClause) -> SyntaxNode {
+    fn from(n: MFinallyClause) -> Self {
         n.syntax
     }
 }
 impl From<MFinallyClause> for SyntaxElement {
-    fn from(n: MFinallyClause) -> SyntaxElement {
+    fn from(n: MFinallyClause) -> Self {
         n.syntax.into()
     }
 }
@@ -7300,36 +7554,45 @@ impl AstNode for MForAllInStatement {
 }
 impl std::fmt::Debug for MForAllInStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MForAllInStatement")
-            .field(
-                "forall_token",
-                &support::DebugSyntaxResult(self.forall_token()),
-            )
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field(
-                "initializer",
-                &support::DebugSyntaxResult(self.initializer()),
-            )
-            .field("in_token", &support::DebugSyntaxResult(self.in_token()))
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MForAllInStatement")
+                .field(
+                    "forall_token",
+                    &support::DebugSyntaxResult(self.forall_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "initializer",
+                    &support::DebugSyntaxResult(self.initializer()),
+                )
+                .field("in_token", &support::DebugSyntaxResult(self.in_token()))
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MForAllInStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MForAllInStatement> for SyntaxNode {
-    fn from(n: MForAllInStatement) -> SyntaxNode {
+    fn from(n: MForAllInStatement) -> Self {
         n.syntax
     }
 }
 impl From<MForAllInStatement> for SyntaxElement {
-    fn from(n: MForAllInStatement) -> SyntaxElement {
+    fn from(n: MForAllInStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -7356,31 +7619,40 @@ impl AstNode for MForAllStatement {
 }
 impl std::fmt::Debug for MForAllStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MForAllStatement")
-            .field(
-                "forall_token",
-                &support::DebugSyntaxResult(self.forall_token()),
-            )
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("iter", &support::DebugSyntaxResult(self.iter()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MForAllStatement")
+                .field(
+                    "forall_token",
+                    &support::DebugSyntaxResult(self.forall_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("iter", &support::DebugSyntaxResult(self.iter()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MForAllStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MForAllStatement> for SyntaxNode {
-    fn from(n: MForAllStatement) -> SyntaxNode {
+    fn from(n: MForAllStatement) -> Self {
         n.syntax
     }
 }
 impl From<MForAllStatement> for SyntaxElement {
-    fn from(n: MForAllStatement) -> SyntaxElement {
+    fn from(n: MForAllStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -7407,35 +7679,44 @@ impl AstNode for MForIteratorFactory {
 }
 impl std::fmt::Debug for MForIteratorFactory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MForIteratorFactory")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .field(
-                "comma_token",
-                &support::DebugSyntaxResult(self.comma_token()),
-            )
-            .field(
-                "initializer",
-                &support::DebugSyntaxResult(self.initializer()),
-            )
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MForIteratorFactory")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "comma_token",
+                    &support::DebugSyntaxResult(self.comma_token()),
+                )
+                .field(
+                    "initializer",
+                    &support::DebugSyntaxResult(self.initializer()),
+                )
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MForIteratorFactory").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MForIteratorFactory> for SyntaxNode {
-    fn from(n: MForIteratorFactory) -> SyntaxNode {
+    fn from(n: MForIteratorFactory) -> Self {
         n.syntax
     }
 }
 impl From<MForIteratorFactory> for SyntaxElement {
-    fn from(n: MForIteratorFactory) -> SyntaxElement {
+    fn from(n: MForIteratorFactory) -> Self {
         n.syntax.into()
     }
 }
@@ -7462,41 +7743,50 @@ impl AstNode for MForStatement {
 }
 impl std::fmt::Debug for MForStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MForStatement")
-            .field("for_token", &support::DebugSyntaxResult(self.for_token()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field(
-                "initializer",
-                &support::DebugOptionalElement(self.initializer()),
-            )
-            .field(
-                "first_semi_token",
-                &support::DebugSyntaxResult(self.first_semi_token()),
-            )
-            .field("test", &support::DebugOptionalElement(self.test()))
-            .field(
-                "second_semi_token",
-                &support::DebugSyntaxResult(self.second_semi_token()),
-            )
-            .field("update", &support::DebugOptionalElement(self.update()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MForStatement")
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "initializer",
+                    &support::DebugOptionalElement(self.initializer()),
+                )
+                .field(
+                    "first_semi_token",
+                    &support::DebugSyntaxResult(self.first_semi_token()),
+                )
+                .field("test", &support::DebugOptionalElement(self.test()))
+                .field(
+                    "second_semi_token",
+                    &support::DebugSyntaxResult(self.second_semi_token()),
+                )
+                .field("update", &support::DebugOptionalElement(self.update()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MForStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MForStatement> for SyntaxNode {
-    fn from(n: MForStatement) -> SyntaxNode {
+    fn from(n: MForStatement) -> Self {
         n.syntax
     }
 }
 impl From<MForStatement> for SyntaxElement {
-    fn from(n: MForStatement) -> SyntaxElement {
+    fn from(n: MForStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -7523,22 +7813,31 @@ impl AstNode for MForVariableDeclaration {
 }
 impl std::fmt::Debug for MForVariableDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MForVariableDeclaration")
-            .field(
-                "var_token",
-                &support::DebugOptionalElement(self.var_token()),
-            )
-            .field("declarator", &support::DebugSyntaxResult(self.declarator()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MForVariableDeclaration")
+                .field(
+                    "var_token",
+                    &support::DebugOptionalElement(self.var_token()),
+                )
+                .field("declarator", &support::DebugSyntaxResult(self.declarator()))
+                .finish()
+        } else {
+            f.debug_struct("MForVariableDeclaration").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MForVariableDeclaration> for SyntaxNode {
-    fn from(n: MForVariableDeclaration) -> SyntaxNode {
+    fn from(n: MForVariableDeclaration) -> Self {
         n.syntax
     }
 }
 impl From<MForVariableDeclaration> for SyntaxElement {
-    fn from(n: MForVariableDeclaration) -> SyntaxElement {
+    fn from(n: MForVariableDeclaration) -> Self {
         n.syntax.into()
     }
 }
@@ -7565,22 +7864,31 @@ impl AstNode for MFormalParameter {
 }
 impl std::fmt::Debug for MFormalParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MFormalParameter")
-            .field("binding", &support::DebugSyntaxResult(self.binding()))
-            .field(
-                "initializer",
-                &support::DebugOptionalElement(self.initializer()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MFormalParameter")
+                .field("binding", &support::DebugSyntaxResult(self.binding()))
+                .field(
+                    "initializer",
+                    &support::DebugOptionalElement(self.initializer()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MFormalParameter").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MFormalParameter> for SyntaxNode {
-    fn from(n: MFormalParameter) -> SyntaxNode {
+    fn from(n: MFormalParameter) -> Self {
         n.syntax
     }
 }
 impl From<MFormalParameter> for SyntaxElement {
-    fn from(n: MFormalParameter) -> SyntaxElement {
+    fn from(n: MFormalParameter) -> Self {
         n.syntax.into()
     }
 }
@@ -7607,27 +7915,36 @@ impl AstNode for MFunctionBody {
 }
 impl std::fmt::Debug for MFunctionBody {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MFunctionBody")
-            .field(
-                "l_curly_token",
-                &support::DebugSyntaxResult(self.l_curly_token()),
-            )
-            .field("directives", &self.directives())
-            .field("statements", &self.statements())
-            .field(
-                "r_curly_token",
-                &support::DebugSyntaxResult(self.r_curly_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MFunctionBody")
+                .field(
+                    "l_curly_token",
+                    &support::DebugSyntaxResult(self.l_curly_token()),
+                )
+                .field("directives", &self.directives())
+                .field("statements", &self.statements())
+                .field(
+                    "r_curly_token",
+                    &support::DebugSyntaxResult(self.r_curly_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MFunctionBody").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MFunctionBody> for SyntaxNode {
-    fn from(n: MFunctionBody) -> SyntaxNode {
+    fn from(n: MFunctionBody) -> Self {
         n.syntax
     }
 }
 impl From<MFunctionBody> for SyntaxElement {
-    fn from(n: MFunctionBody) -> SyntaxElement {
+    fn from(n: MFunctionBody) -> Self {
         n.syntax.into()
     }
 }
@@ -7654,33 +7971,42 @@ impl AstNode for MFunctionDeclaration {
 }
 impl std::fmt::Debug for MFunctionDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MFunctionDeclaration")
-            .field("annotation", &self.annotation())
-            .field(
-                "inline_token",
-                &support::DebugOptionalElement(self.inline_token()),
-            )
-            .field(
-                "function_token",
-                &support::DebugSyntaxResult(self.function_token()),
-            )
-            .field("id", &support::DebugSyntaxResult(self.id()))
-            .field("parameters", &support::DebugSyntaxResult(self.parameters()))
-            .field(
-                "doc_string",
-                &support::DebugOptionalElement(self.doc_string()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MFunctionDeclaration")
+                .field("annotation", &self.annotation())
+                .field(
+                    "inline_token",
+                    &support::DebugOptionalElement(self.inline_token()),
+                )
+                .field(
+                    "function_token",
+                    &support::DebugSyntaxResult(self.function_token()),
+                )
+                .field("id", &support::DebugSyntaxResult(self.id()))
+                .field("parameters", &support::DebugSyntaxResult(self.parameters()))
+                .field(
+                    "doc_string",
+                    &support::DebugOptionalElement(self.doc_string()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MFunctionDeclaration").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MFunctionDeclaration> for SyntaxNode {
-    fn from(n: MFunctionDeclaration) -> SyntaxNode {
+    fn from(n: MFunctionDeclaration) -> Self {
         n.syntax
     }
 }
 impl From<MFunctionDeclaration> for SyntaxElement {
-    fn from(n: MFunctionDeclaration) -> SyntaxElement {
+    fn from(n: MFunctionDeclaration) -> Self {
         n.syntax.into()
     }
 }
@@ -7707,23 +8033,32 @@ impl AstNode for MFunctionExpression {
 }
 impl std::fmt::Debug for MFunctionExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MFunctionExpression")
-            .field(
-                "function_token",
-                &support::DebugSyntaxResult(self.function_token()),
-            )
-            .field("parameters", &support::DebugSyntaxResult(self.parameters()))
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MFunctionExpression")
+                .field(
+                    "function_token",
+                    &support::DebugSyntaxResult(self.function_token()),
+                )
+                .field("parameters", &support::DebugSyntaxResult(self.parameters()))
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MFunctionExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MFunctionExpression> for SyntaxNode {
-    fn from(n: MFunctionExpression) -> SyntaxNode {
+    fn from(n: MFunctionExpression) -> Self {
         n.syntax
     }
 }
 impl From<MFunctionExpression> for SyntaxElement {
-    fn from(n: MFunctionExpression) -> SyntaxElement {
+    fn from(n: MFunctionExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -7750,33 +8085,42 @@ impl AstNode for MGetterClassMember {
 }
 impl std::fmt::Debug for MGetterClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MGetterClassMember")
-            .field("annotation", &self.annotation())
-            .field("get_token", &support::DebugSyntaxResult(self.get_token()))
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field(
-                "doc_string",
-                &support::DebugOptionalElement(self.doc_string()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MGetterClassMember")
+                .field("annotation", &self.annotation())
+                .field("get_token", &support::DebugSyntaxResult(self.get_token()))
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field(
+                    "doc_string",
+                    &support::DebugOptionalElement(self.doc_string()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MGetterClassMember").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MGetterClassMember> for SyntaxNode {
-    fn from(n: MGetterClassMember) -> SyntaxNode {
+    fn from(n: MGetterClassMember) -> Self {
         n.syntax
     }
 }
 impl From<MGetterClassMember> for SyntaxElement {
-    fn from(n: MGetterClassMember) -> SyntaxElement {
+    fn from(n: MGetterClassMember) -> Self {
         n.syntax.into()
     }
 }
@@ -7803,27 +8147,36 @@ impl AstNode for MHashMapExpression {
 }
 impl std::fmt::Debug for MHashMapExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MHashMapExpression")
-            .field("at_token", &support::DebugSyntaxResult(self.at_token()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("members", &self.members())
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MHashMapExpression")
+                .field("at_token", &support::DebugSyntaxResult(self.at_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("members", &self.members())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MHashMapExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MHashMapExpression> for SyntaxNode {
-    fn from(n: MHashMapExpression) -> SyntaxNode {
+    fn from(n: MHashMapExpression) -> Self {
         n.syntax
     }
 }
 impl From<MHashMapExpression> for SyntaxElement {
-    fn from(n: MHashMapExpression) -> SyntaxElement {
+    fn from(n: MHashMapExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -7850,27 +8203,36 @@ impl AstNode for MHashSetExpression {
 }
 impl std::fmt::Debug for MHashSetExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MHashSetExpression")
-            .field("set_token", &support::DebugSyntaxResult(self.set_token()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("members", &self.members())
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MHashSetExpression")
+                .field("set_token", &support::DebugSyntaxResult(self.set_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("members", &self.members())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MHashSetExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MHashSetExpression> for SyntaxNode {
-    fn from(n: MHashSetExpression) -> SyntaxNode {
+    fn from(n: MHashSetExpression) -> Self {
         n.syntax
     }
 }
 impl From<MHashSetExpression> for SyntaxElement {
-    fn from(n: MHashSetExpression) -> SyntaxElement {
+    fn from(n: MHashSetExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -7897,18 +8259,27 @@ impl AstNode for MIdentifierAssignment {
 }
 impl std::fmt::Debug for MIdentifierAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MIdentifierAssignment")
-            .field("name_token", &support::DebugSyntaxResult(self.name_token()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MIdentifierAssignment")
+                .field("name_token", &support::DebugSyntaxResult(self.name_token()))
+                .finish()
+        } else {
+            f.debug_struct("MIdentifierAssignment").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MIdentifierAssignment> for SyntaxNode {
-    fn from(n: MIdentifierAssignment) -> SyntaxNode {
+    fn from(n: MIdentifierAssignment) -> Self {
         n.syntax
     }
 }
 impl From<MIdentifierAssignment> for SyntaxElement {
-    fn from(n: MIdentifierAssignment) -> SyntaxElement {
+    fn from(n: MIdentifierAssignment) -> Self {
         n.syntax.into()
     }
 }
@@ -7935,18 +8306,27 @@ impl AstNode for MIdentifierBinding {
 }
 impl std::fmt::Debug for MIdentifierBinding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MIdentifierBinding")
-            .field("name_token", &support::DebugSyntaxResult(self.name_token()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MIdentifierBinding")
+                .field("name_token", &support::DebugSyntaxResult(self.name_token()))
+                .finish()
+        } else {
+            f.debug_struct("MIdentifierBinding").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MIdentifierBinding> for SyntaxNode {
-    fn from(n: MIdentifierBinding) -> SyntaxNode {
+    fn from(n: MIdentifierBinding) -> Self {
         n.syntax
     }
 }
 impl From<MIdentifierBinding> for SyntaxElement {
-    fn from(n: MIdentifierBinding) -> SyntaxElement {
+    fn from(n: MIdentifierBinding) -> Self {
         n.syntax.into()
     }
 }
@@ -7973,18 +8353,27 @@ impl AstNode for MIdentifierExpression {
 }
 impl std::fmt::Debug for MIdentifierExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MIdentifierExpression")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MIdentifierExpression")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("MIdentifierExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MIdentifierExpression> for SyntaxNode {
-    fn from(n: MIdentifierExpression) -> SyntaxNode {
+    fn from(n: MIdentifierExpression) -> Self {
         n.syntax
     }
 }
 impl From<MIdentifierExpression> for SyntaxElement {
-    fn from(n: MIdentifierExpression) -> SyntaxElement {
+    fn from(n: MIdentifierExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8011,32 +8400,41 @@ impl AstNode for MIfStatement {
 }
 impl std::fmt::Debug for MIfStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MIfStatement")
-            .field("if_token", &support::DebugSyntaxResult(self.if_token()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("test", &support::DebugSyntaxResult(self.test()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field("consequent", &support::DebugSyntaxResult(self.consequent()))
-            .field(
-                "else_clause",
-                &support::DebugOptionalElement(self.else_clause()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MIfStatement")
+                .field("if_token", &support::DebugSyntaxResult(self.if_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("test", &support::DebugSyntaxResult(self.test()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("consequent", &support::DebugSyntaxResult(self.consequent()))
+                .field(
+                    "else_clause",
+                    &support::DebugOptionalElement(self.else_clause()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MIfStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MIfStatement> for SyntaxNode {
-    fn from(n: MIfStatement) -> SyntaxNode {
+    fn from(n: MIfStatement) -> Self {
         n.syntax
     }
 }
 impl From<MIfStatement> for SyntaxElement {
-    fn from(n: MIfStatement) -> SyntaxElement {
+    fn from(n: MIfStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -8063,20 +8461,29 @@ impl AstNode for MInExpression {
 }
 impl std::fmt::Debug for MInExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MInExpression")
-            .field("property", &support::DebugSyntaxResult(self.property()))
-            .field("in_token", &support::DebugSyntaxResult(self.in_token()))
-            .field("object", &support::DebugSyntaxResult(self.object()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MInExpression")
+                .field("property", &support::DebugSyntaxResult(self.property()))
+                .field("in_token", &support::DebugSyntaxResult(self.in_token()))
+                .field("object", &support::DebugSyntaxResult(self.object()))
+                .finish()
+        } else {
+            f.debug_struct("MInExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MInExpression> for SyntaxNode {
-    fn from(n: MInExpression) -> SyntaxNode {
+    fn from(n: MInExpression) -> Self {
         n.syntax
     }
 }
 impl From<MInExpression> for SyntaxElement {
-    fn from(n: MInExpression) -> SyntaxElement {
+    fn from(n: MInExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8103,19 +8510,28 @@ impl AstNode for MInitializerClause {
 }
 impl std::fmt::Debug for MInitializerClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MInitializerClause")
-            .field("eq_token", &support::DebugSyntaxResult(self.eq_token()))
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MInitializerClause")
+                .field("eq_token", &support::DebugSyntaxResult(self.eq_token()))
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .finish()
+        } else {
+            f.debug_struct("MInitializerClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MInitializerClause> for SyntaxNode {
-    fn from(n: MInitializerClause) -> SyntaxNode {
+    fn from(n: MInitializerClause) -> Self {
         n.syntax
     }
 }
 impl From<MInitializerClause> for SyntaxElement {
-    fn from(n: MInitializerClause) -> SyntaxElement {
+    fn from(n: MInitializerClause) -> Self {
         n.syntax.into()
     }
 }
@@ -8194,18 +8610,27 @@ impl AstNode for MLiteralMemberName {
 }
 impl std::fmt::Debug for MLiteralMemberName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MLiteralMemberName")
-            .field("value", &support::DebugSyntaxResult(self.value()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MLiteralMemberName")
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("MLiteralMemberName").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MLiteralMemberName> for SyntaxNode {
-    fn from(n: MLiteralMemberName) -> SyntaxNode {
+    fn from(n: MLiteralMemberName) -> Self {
         n.syntax
     }
 }
 impl From<MLiteralMemberName> for SyntaxElement {
-    fn from(n: MLiteralMemberName) -> SyntaxElement {
+    fn from(n: MLiteralMemberName) -> Self {
         n.syntax.into()
     }
 }
@@ -8232,23 +8657,32 @@ impl AstNode for MLogicalExpression {
 }
 impl std::fmt::Debug for MLogicalExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MLogicalExpression")
-            .field("left", &support::DebugSyntaxResult(self.left()))
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .field("right", &support::DebugSyntaxResult(self.right()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MLogicalExpression")
+                .field("left", &support::DebugSyntaxResult(self.left()))
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("right", &support::DebugSyntaxResult(self.right()))
+                .finish()
+        } else {
+            f.debug_struct("MLogicalExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MLogicalExpression> for SyntaxNode {
-    fn from(n: MLogicalExpression) -> SyntaxNode {
+    fn from(n: MLogicalExpression) -> Self {
         n.syntax
     }
 }
 impl From<MLogicalExpression> for SyntaxElement {
-    fn from(n: MLogicalExpression) -> SyntaxElement {
+    fn from(n: MLogicalExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8273,64 +8707,32 @@ impl AstNode for MLongStringLiteralExpression {
         self.syntax
     }
 }
-impl AstNode for MSqlLongStringLiteralExpression {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_LONG_STRING_LITERAL_EXPRESSION as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_LONG_STRING_LITERAL_EXPRESSION
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
 impl std::fmt::Debug for MLongStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MLongStringLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
-    }
-}
-impl std::fmt::Debug for MSqlLongStringLiteralExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSqlLongStringLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MLongStringLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MLongStringLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MLongStringLiteralExpression> for SyntaxNode {
-    fn from(n: MLongStringLiteralExpression) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MSqlLongStringLiteralExpression> for SyntaxNode {
-    fn from(n: MSqlLongStringLiteralExpression) -> SyntaxNode {
+    fn from(n: MLongStringLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MLongStringLiteralExpression> for SyntaxElement {
-    fn from(n: MLongStringLiteralExpression) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl From<MSqlLongStringLiteralExpression> for SyntaxElement {
-    fn from(n: MSqlLongStringLiteralExpression) -> SyntaxElement {
+    fn from(n: MLongStringLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8357,25 +8759,34 @@ impl AstNode for MMethodClassMember {
 }
 impl std::fmt::Debug for MMethodClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MMethodClassMember")
-            .field("annotation", &self.annotation())
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field("parameters", &support::DebugSyntaxResult(self.parameters()))
-            .field(
-                "doc_string",
-                &support::DebugOptionalElement(self.doc_string()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MMethodClassMember")
+                .field("annotation", &self.annotation())
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("parameters", &support::DebugSyntaxResult(self.parameters()))
+                .field(
+                    "doc_string",
+                    &support::DebugOptionalElement(self.doc_string()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MMethodClassMember").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MMethodClassMember> for SyntaxNode {
-    fn from(n: MMethodClassMember) -> SyntaxNode {
+    fn from(n: MMethodClassMember) -> Self {
         n.syntax
     }
 }
 impl From<MMethodClassMember> for SyntaxElement {
-    fn from(n: MMethodClassMember) -> SyntaxElement {
+    fn from(n: MMethodClassMember) -> Self {
         n.syntax.into()
     }
 }
@@ -8402,20 +8813,29 @@ impl AstNode for MModule {
 }
 impl std::fmt::Debug for MModule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MModule")
-            .field("directives", &self.directives())
-            .field("items", &self.items())
-            .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MModule")
+                .field("directives", &self.directives())
+                .field("items", &self.items())
+                .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
+                .finish()
+        } else {
+            f.debug_struct("MModule").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MModule> for SyntaxNode {
-    fn from(n: MModule) -> SyntaxNode {
+    fn from(n: MModule) -> Self {
         n.syntax
     }
 }
 impl From<MModule> for SyntaxElement {
-    fn from(n: MModule) -> SyntaxElement {
+    fn from(n: MModule) -> Self {
         n.syntax.into()
     }
 }
@@ -8441,21 +8861,30 @@ impl AstNode for MName {
 }
 impl std::fmt::Debug for MName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MName")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MName")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MName").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MName> for SyntaxNode {
-    fn from(n: MName) -> SyntaxNode {
+    fn from(n: MName) -> Self {
         n.syntax
     }
 }
 impl From<MName> for SyntaxElement {
-    fn from(n: MName) -> SyntaxElement {
+    fn from(n: MName) -> Self {
         n.syntax.into()
     }
 }
@@ -8482,23 +8911,32 @@ impl AstNode for MNewExpression {
 }
 impl std::fmt::Debug for MNewExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MNewExpression")
-            .field("new_token", &support::DebugSyntaxResult(self.new_token()))
-            .field("callee", &support::DebugSyntaxResult(self.callee()))
-            .field(
-                "arguments",
-                &support::DebugOptionalElement(self.arguments()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MNewExpression")
+                .field("new_token", &support::DebugSyntaxResult(self.new_token()))
+                .field("callee", &support::DebugSyntaxResult(self.callee()))
+                .field(
+                    "arguments",
+                    &support::DebugOptionalElement(self.arguments()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MNewExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MNewExpression> for SyntaxNode {
-    fn from(n: MNewExpression) -> SyntaxNode {
+    fn from(n: MNewExpression) -> Self {
         n.syntax
     }
 }
 impl From<MNewExpression> for SyntaxElement {
-    fn from(n: MNewExpression) -> SyntaxElement {
+    fn from(n: MNewExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8525,21 +8963,30 @@ impl AstNode for MNullLiteralExpression {
 }
 impl std::fmt::Debug for MNullLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MNullLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MNullLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MNullLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MNullLiteralExpression> for SyntaxNode {
-    fn from(n: MNullLiteralExpression) -> SyntaxNode {
+    fn from(n: MNullLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MNullLiteralExpression> for SyntaxElement {
-    fn from(n: MNullLiteralExpression) -> SyntaxElement {
+    fn from(n: MNullLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8566,21 +9013,30 @@ impl AstNode for MNumberLiteralExpression {
 }
 impl std::fmt::Debug for MNumberLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MNumberLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MNumberLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MNumberLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MNumberLiteralExpression> for SyntaxNode {
-    fn from(n: MNumberLiteralExpression) -> SyntaxNode {
+    fn from(n: MNumberLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MNumberLiteralExpression> for SyntaxElement {
-    fn from(n: MNumberLiteralExpression) -> SyntaxElement {
+    fn from(n: MNumberLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8607,27 +9063,36 @@ impl AstNode for MObjectExpression {
 }
 impl std::fmt::Debug for MObjectExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MObjectExpression")
-            .field("at_token", &support::DebugSyntaxResult(self.at_token()))
-            .field(
-                "l_curly_token",
-                &support::DebugSyntaxResult(self.l_curly_token()),
-            )
-            .field("members", &self.members())
-            .field(
-                "r_curly_token",
-                &support::DebugSyntaxResult(self.r_curly_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MObjectExpression")
+                .field("at_token", &support::DebugSyntaxResult(self.at_token()))
+                .field(
+                    "l_curly_token",
+                    &support::DebugSyntaxResult(self.l_curly_token()),
+                )
+                .field("members", &self.members())
+                .field(
+                    "r_curly_token",
+                    &support::DebugSyntaxResult(self.r_curly_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MObjectExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MObjectExpression> for SyntaxNode {
-    fn from(n: MObjectExpression) -> SyntaxNode {
+    fn from(n: MObjectExpression) -> Self {
         n.syntax
     }
 }
 impl From<MObjectExpression> for SyntaxElement {
-    fn from(n: MObjectExpression) -> SyntaxElement {
+    fn from(n: MObjectExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8654,26 +9119,35 @@ impl AstNode for MParameters {
 }
 impl std::fmt::Debug for MParameters {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MParameters")
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("items", &self.items())
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MParameters")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MParameters").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MParameters> for SyntaxNode {
-    fn from(n: MParameters) -> SyntaxNode {
+    fn from(n: MParameters) -> Self {
         n.syntax
     }
 }
 impl From<MParameters> for SyntaxElement {
-    fn from(n: MParameters) -> SyntaxElement {
+    fn from(n: MParameters) -> Self {
         n.syntax.into()
     }
 }
@@ -8700,26 +9174,35 @@ impl AstNode for MParenthesizedAssignment {
 }
 impl std::fmt::Debug for MParenthesizedAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MParenthesizedAssignment")
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("assignment", &support::DebugSyntaxResult(self.assignment()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MParenthesizedAssignment")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("assignment", &support::DebugSyntaxResult(self.assignment()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MParenthesizedAssignment").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MParenthesizedAssignment> for SyntaxNode {
-    fn from(n: MParenthesizedAssignment) -> SyntaxNode {
+    fn from(n: MParenthesizedAssignment) -> Self {
         n.syntax
     }
 }
 impl From<MParenthesizedAssignment> for SyntaxElement {
-    fn from(n: MParenthesizedAssignment) -> SyntaxElement {
+    fn from(n: MParenthesizedAssignment) -> Self {
         n.syntax.into()
     }
 }
@@ -8746,26 +9229,35 @@ impl AstNode for MParenthesizedExpression {
 }
 impl std::fmt::Debug for MParenthesizedExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MParenthesizedExpression")
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("expression", &support::DebugSyntaxResult(self.expression()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MParenthesizedExpression")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MParenthesizedExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MParenthesizedExpression> for SyntaxNode {
-    fn from(n: MParenthesizedExpression) -> SyntaxNode {
+    fn from(n: MParenthesizedExpression) -> Self {
         n.syntax
     }
 }
 impl From<MParenthesizedExpression> for SyntaxElement {
-    fn from(n: MParenthesizedExpression) -> SyntaxElement {
+    fn from(n: MParenthesizedExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8792,22 +9284,31 @@ impl AstNode for MPostUpdateExpression {
 }
 impl std::fmt::Debug for MPostUpdateExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MPostUpdateExpression")
-            .field("operand", &support::DebugSyntaxResult(self.operand()))
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MPostUpdateExpression")
+                .field("operand", &support::DebugSyntaxResult(self.operand()))
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MPostUpdateExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MPostUpdateExpression> for SyntaxNode {
-    fn from(n: MPostUpdateExpression) -> SyntaxNode {
+    fn from(n: MPostUpdateExpression) -> Self {
         n.syntax
     }
 }
 impl From<MPostUpdateExpression> for SyntaxElement {
-    fn from(n: MPostUpdateExpression) -> SyntaxElement {
+    fn from(n: MPostUpdateExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8834,22 +9335,31 @@ impl AstNode for MPreUpdateExpression {
 }
 impl std::fmt::Debug for MPreUpdateExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MPreUpdateExpression")
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .field("operand", &support::DebugSyntaxResult(self.operand()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MPreUpdateExpression")
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("operand", &support::DebugSyntaxResult(self.operand()))
+                .finish()
+        } else {
+            f.debug_struct("MPreUpdateExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MPreUpdateExpression> for SyntaxNode {
-    fn from(n: MPreUpdateExpression) -> SyntaxNode {
+    fn from(n: MPreUpdateExpression) -> Self {
         n.syntax
     }
 }
 impl From<MPreUpdateExpression> for SyntaxElement {
-    fn from(n: MPreUpdateExpression) -> SyntaxElement {
+    fn from(n: MPreUpdateExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -8876,23 +9386,32 @@ impl AstNode for MPropertyObjectMember {
 }
 impl std::fmt::Debug for MPropertyObjectMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MPropertyObjectMember")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field(
-                "colon_token",
-                &support::DebugSyntaxResult(self.colon_token()),
-            )
-            .field("value", &support::DebugSyntaxResult(self.value()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MPropertyObjectMember")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "colon_token",
+                    &support::DebugSyntaxResult(self.colon_token()),
+                )
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("MPropertyObjectMember").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MPropertyObjectMember> for SyntaxNode {
-    fn from(n: MPropertyObjectMember) -> SyntaxNode {
+    fn from(n: MPropertyObjectMember) -> Self {
         n.syntax
     }
 }
 impl From<MPropertyObjectMember> for SyntaxElement {
-    fn from(n: MPropertyObjectMember) -> SyntaxElement {
+    fn from(n: MPropertyObjectMember) -> Self {
         n.syntax.into()
     }
 }
@@ -8919,21 +9438,30 @@ impl AstNode for MReferenceIdentifier {
 }
 impl std::fmt::Debug for MReferenceIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MReferenceIdentifier")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MReferenceIdentifier")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MReferenceIdentifier").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MReferenceIdentifier> for SyntaxNode {
-    fn from(n: MReferenceIdentifier) -> SyntaxNode {
+    fn from(n: MReferenceIdentifier) -> Self {
         n.syntax
     }
 }
 impl From<MReferenceIdentifier> for SyntaxElement {
-    fn from(n: MReferenceIdentifier) -> SyntaxElement {
+    fn from(n: MReferenceIdentifier) -> Self {
         n.syntax.into()
     }
 }
@@ -9202,22 +9730,31 @@ impl AstNode for MRestParameter {
 }
 impl std::fmt::Debug for MRestParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MRestParameter")
-            .field(
-                "dotdotdot_token",
-                &support::DebugSyntaxResult(self.dotdotdot_token()),
-            )
-            .field("binding", &support::DebugOptionalElement(self.binding()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MRestParameter")
+                .field(
+                    "dotdotdot_token",
+                    &support::DebugSyntaxResult(self.dotdotdot_token()),
+                )
+                .field("binding", &support::DebugOptionalElement(self.binding()))
+                .finish()
+        } else {
+            f.debug_struct("MRestParameter").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MRestParameter> for SyntaxNode {
-    fn from(n: MRestParameter) -> SyntaxNode {
+    fn from(n: MRestParameter) -> Self {
         n.syntax
     }
 }
 impl From<MRestParameter> for SyntaxElement {
-    fn from(n: MRestParameter) -> SyntaxElement {
+    fn from(n: MRestParameter) -> Self {
         n.syntax.into()
     }
 }
@@ -9244,26 +9781,35 @@ impl AstNode for MReturnStatement {
 }
 impl std::fmt::Debug for MReturnStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MReturnStatement")
-            .field(
-                "return_token",
-                &support::DebugSyntaxResult(self.return_token()),
-            )
-            .field("argument", &support::DebugOptionalElement(self.argument()))
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MReturnStatement")
+                .field(
+                    "return_token",
+                    &support::DebugSyntaxResult(self.return_token()),
+                )
+                .field("argument", &support::DebugOptionalElement(self.argument()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MReturnStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MReturnStatement> for SyntaxNode {
-    fn from(n: MReturnStatement) -> SyntaxNode {
+    fn from(n: MReturnStatement) -> Self {
         n.syntax
     }
 }
 impl From<MReturnStatement> for SyntaxElement {
-    fn from(n: MReturnStatement) -> SyntaxElement {
+    fn from(n: MReturnStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -9290,19 +9836,28 @@ impl AstNode for MScript {
 }
 impl std::fmt::Debug for MScript {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MScript")
-            .field("statements", &self.statements())
-            .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MScript")
+                .field("statements", &self.statements())
+                .field("eof_token", &support::DebugSyntaxResult(self.eof_token()))
+                .finish()
+        } else {
+            f.debug_struct("MScript").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MScript> for SyntaxNode {
-    fn from(n: MScript) -> SyntaxNode {
+    fn from(n: MScript) -> Self {
         n.syntax
     }
 }
 impl From<MScript> for SyntaxElement {
-    fn from(n: MScript) -> SyntaxElement {
+    fn from(n: MScript) -> Self {
         n.syntax.into()
     }
 }
@@ -9329,23 +9884,32 @@ impl AstNode for MSequenceExpression {
 }
 impl std::fmt::Debug for MSequenceExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSequenceExpression")
-            .field("left", &support::DebugSyntaxResult(self.left()))
-            .field(
-                "comma_token",
-                &support::DebugSyntaxResult(self.comma_token()),
-            )
-            .field("right", &support::DebugSyntaxResult(self.right()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSequenceExpression")
+                .field("left", &support::DebugSyntaxResult(self.left()))
+                .field(
+                    "comma_token",
+                    &support::DebugSyntaxResult(self.comma_token()),
+                )
+                .field("right", &support::DebugSyntaxResult(self.right()))
+                .finish()
+        } else {
+            f.debug_struct("MSequenceExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MSequenceExpression> for SyntaxNode {
-    fn from(n: MSequenceExpression) -> SyntaxNode {
+    fn from(n: MSequenceExpression) -> Self {
         n.syntax
     }
 }
 impl From<MSequenceExpression> for SyntaxElement {
-    fn from(n: MSequenceExpression) -> SyntaxElement {
+    fn from(n: MSequenceExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9372,38 +9936,47 @@ impl AstNode for MSetterClassMember {
 }
 impl std::fmt::Debug for MSetterClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSetterClassMember")
-            .field("annotation", &self.annotation())
-            .field("set_token", &support::DebugSyntaxResult(self.set_token()))
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("parameter", &support::DebugSyntaxResult(self.parameter()))
-            .field(
-                "comma_token",
-                &support::DebugOptionalElement(self.comma_token()),
-            )
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field(
-                "doc_string",
-                &support::DebugOptionalElement(self.doc_string()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSetterClassMember")
+                .field("annotation", &self.annotation())
+                .field("set_token", &support::DebugSyntaxResult(self.set_token()))
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("parameter", &support::DebugSyntaxResult(self.parameter()))
+                .field(
+                    "comma_token",
+                    &support::DebugOptionalElement(self.comma_token()),
+                )
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field(
+                    "doc_string",
+                    &support::DebugOptionalElement(self.doc_string()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MSetterClassMember").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MSetterClassMember> for SyntaxNode {
-    fn from(n: MSetterClassMember) -> SyntaxNode {
+    fn from(n: MSetterClassMember) -> Self {
         n.syntax
     }
 }
 impl From<MSetterClassMember> for SyntaxElement {
-    fn from(n: MSetterClassMember) -> SyntaxElement {
+    fn from(n: MSetterClassMember) -> Self {
         n.syntax.into()
     }
 }
@@ -9430,18 +10003,27 @@ impl AstNode for MShorthandPropertyObjectMember {
 }
 impl std::fmt::Debug for MShorthandPropertyObjectMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MShorthandPropertyObjectMember")
-            .field("name", &support::DebugSyntaxResult(self.name()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MShorthandPropertyObjectMember")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("MShorthandPropertyObjectMember").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MShorthandPropertyObjectMember> for SyntaxNode {
-    fn from(n: MShorthandPropertyObjectMember) -> SyntaxNode {
+    fn from(n: MShorthandPropertyObjectMember) -> Self {
         n.syntax
     }
 }
 impl From<MShorthandPropertyObjectMember> for SyntaxElement {
-    fn from(n: MShorthandPropertyObjectMember) -> SyntaxElement {
+    fn from(n: MShorthandPropertyObjectMember) -> Self {
         n.syntax.into()
     }
 }
@@ -9468,22 +10050,178 @@ impl AstNode for MSpread {
 }
 impl std::fmt::Debug for MSpread {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSpread")
-            .field(
-                "dotdotdot_token",
-                &support::DebugSyntaxResult(self.dotdotdot_token()),
-            )
-            .field("argument", &support::DebugSyntaxResult(self.argument()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSpread")
+                .field(
+                    "dotdotdot_token",
+                    &support::DebugSyntaxResult(self.dotdotdot_token()),
+                )
+                .field("argument", &support::DebugSyntaxResult(self.argument()))
+                .finish()
+        } else {
+            f.debug_struct("MSpread").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MSpread> for SyntaxNode {
-    fn from(n: MSpread) -> SyntaxNode {
+    fn from(n: MSpread) -> Self {
         n.syntax
     }
 }
 impl From<MSpread> for SyntaxElement {
-    fn from(n: MSpread) -> SyntaxElement {
+    fn from(n: MSpread) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MSqlConcatenationExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_SQL_CONCATENATION_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_SQL_CONCATENATION_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MSqlConcatenationExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSqlConcatenationExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .finish()
+        } else {
+            f.debug_struct("MSqlConcatenationExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MSqlConcatenationExpression> for SyntaxNode {
+    fn from(n: MSqlConcatenationExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<MSqlConcatenationExpression> for SyntaxElement {
+    fn from(n: MSqlConcatenationExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MSqlLongStringLiteralExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_SQL_LONG_STRING_LITERAL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_SQL_LONG_STRING_LITERAL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MSqlLongStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSqlLongStringLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MSqlLongStringLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MSqlLongStringLiteralExpression> for SyntaxNode {
+    fn from(n: MSqlLongStringLiteralExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<MSqlLongStringLiteralExpression> for SyntaxElement {
+    fn from(n: MSqlLongStringLiteralExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MSqlStringLiteralExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_SQL_STRING_LITERAL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_SQL_STRING_LITERAL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MSqlStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSqlStringLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MSqlStringLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MSqlStringLiteralExpression> for SyntaxNode {
+    fn from(n: MSqlStringLiteralExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<MSqlStringLiteralExpression> for SyntaxElement {
+    fn from(n: MSqlStringLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9510,20 +10248,29 @@ impl AstNode for MStaticMemberAssignment {
 }
 impl std::fmt::Debug for MStaticMemberAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MStaticMemberAssignment")
-            .field("object", &support::DebugSyntaxResult(self.object()))
-            .field("dot_token", &support::DebugSyntaxResult(self.dot_token()))
-            .field("member", &support::DebugSyntaxResult(self.member()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MStaticMemberAssignment")
+                .field("object", &support::DebugSyntaxResult(self.object()))
+                .field("dot_token", &support::DebugSyntaxResult(self.dot_token()))
+                .field("member", &support::DebugSyntaxResult(self.member()))
+                .finish()
+        } else {
+            f.debug_struct("MStaticMemberAssignment").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MStaticMemberAssignment> for SyntaxNode {
-    fn from(n: MStaticMemberAssignment) -> SyntaxNode {
+    fn from(n: MStaticMemberAssignment) -> Self {
         n.syntax
     }
 }
 impl From<MStaticMemberAssignment> for SyntaxElement {
-    fn from(n: MStaticMemberAssignment) -> SyntaxElement {
+    fn from(n: MStaticMemberAssignment) -> Self {
         n.syntax.into()
     }
 }
@@ -9550,23 +10297,32 @@ impl AstNode for MStaticMemberExpression {
 }
 impl std::fmt::Debug for MStaticMemberExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MStaticMemberExpression")
-            .field("object", &support::DebugSyntaxResult(self.object()))
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .field("member", &support::DebugSyntaxResult(self.member()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MStaticMemberExpression")
+                .field("object", &support::DebugSyntaxResult(self.object()))
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("member", &support::DebugSyntaxResult(self.member()))
+                .finish()
+        } else {
+            f.debug_struct("MStaticMemberExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MStaticMemberExpression> for SyntaxNode {
-    fn from(n: MStaticMemberExpression) -> SyntaxNode {
+    fn from(n: MStaticMemberExpression) -> Self {
         n.syntax
     }
 }
 impl From<MStaticMemberExpression> for SyntaxElement {
-    fn from(n: MStaticMemberExpression) -> SyntaxElement {
+    fn from(n: MStaticMemberExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9591,64 +10347,32 @@ impl AstNode for MStringLiteralExpression {
         self.syntax
     }
 }
-impl AstNode for MSqlStringLiteralExpression {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(M_STRING_LITERAL_EXPRESSION as u16));
-    fn can_cast(kind: SyntaxKind) -> bool {
-        kind == M_STRING_LITERAL_EXPRESSION
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        &self.syntax
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        self.syntax
-    }
-}
 impl std::fmt::Debug for MStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MStringLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
-    }
-}
-impl std::fmt::Debug for MSqlStringLiteralExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSqlStringLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MStringLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MStringLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MStringLiteralExpression> for SyntaxNode {
-    fn from(n: MStringLiteralExpression) -> SyntaxNode {
-        n.syntax
-    }
-}
-impl From<MSqlStringLiteralExpression> for SyntaxNode {
-    fn from(n: MSqlStringLiteralExpression) -> SyntaxNode {
+    fn from(n: MStringLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MStringLiteralExpression> for SyntaxElement {
-    fn from(n: MStringLiteralExpression) -> SyntaxElement {
-        n.syntax.into()
-    }
-}
-impl From<MSqlStringLiteralExpression> for SyntaxElement {
-    fn from(n: MSqlStringLiteralExpression) -> SyntaxElement {
+    fn from(n: MStringLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9675,21 +10399,30 @@ impl AstNode for MSuperExpression {
 }
 impl std::fmt::Debug for MSuperExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSuperExpression")
-            .field(
-                "super_token",
-                &support::DebugSyntaxResult(self.super_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSuperExpression")
+                .field(
+                    "super_token",
+                    &support::DebugSyntaxResult(self.super_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MSuperExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MSuperExpression> for SyntaxNode {
-    fn from(n: MSuperExpression) -> SyntaxNode {
+    fn from(n: MSuperExpression) -> Self {
         n.syntax
     }
 }
 impl From<MSuperExpression> for SyntaxElement {
-    fn from(n: MSuperExpression) -> SyntaxElement {
+    fn from(n: MSuperExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9716,42 +10449,99 @@ impl AstNode for MSwitchStatement {
 }
 impl std::fmt::Debug for MSwitchStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MSwitchStatement")
-            .field(
-                "switch_token",
-                &support::DebugSyntaxResult(self.switch_token()),
-            )
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field(
-                "discriminant",
-                &support::DebugSyntaxResult(self.discriminant()),
-            )
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field(
-                "l_curly_token",
-                &support::DebugSyntaxResult(self.l_curly_token()),
-            )
-            .field("cases", &self.cases())
-            .field(
-                "r_curly_token",
-                &support::DebugSyntaxResult(self.r_curly_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MSwitchStatement")
+                .field(
+                    "switch_token",
+                    &support::DebugSyntaxResult(self.switch_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "discriminant",
+                    &support::DebugSyntaxResult(self.discriminant()),
+                )
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field(
+                    "l_curly_token",
+                    &support::DebugSyntaxResult(self.l_curly_token()),
+                )
+                .field("cases", &self.cases())
+                .field(
+                    "r_curly_token",
+                    &support::DebugSyntaxResult(self.r_curly_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MSwitchStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MSwitchStatement> for SyntaxNode {
-    fn from(n: MSwitchStatement) -> SyntaxNode {
+    fn from(n: MSwitchStatement) -> Self {
         n.syntax
     }
 }
 impl From<MSwitchStatement> for SyntaxElement {
-    fn from(n: MSwitchStatement) -> SyntaxElement {
+    fn from(n: MSwitchStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MTemplateExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_TEMPLATE_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_TEMPLATE_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MTemplateExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MTemplateExpression")
+                .field("token", &support::DebugSyntaxResult(self.token()))
+                .field("template", &support::DebugSyntaxResult(self.template()))
+                .finish()
+        } else {
+            f.debug_struct("MTemplateExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MTemplateExpression> for SyntaxNode {
+    fn from(n: MTemplateExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<MTemplateExpression> for SyntaxElement {
+    fn from(n: MTemplateExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9778,18 +10568,27 @@ impl AstNode for MThisExpression {
 }
 impl std::fmt::Debug for MThisExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MThisExpression")
-            .field("this_token", &support::DebugSyntaxResult(self.this_token()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MThisExpression")
+                .field("this_token", &support::DebugSyntaxResult(self.this_token()))
+                .finish()
+        } else {
+            f.debug_struct("MThisExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MThisExpression> for SyntaxNode {
-    fn from(n: MThisExpression) -> SyntaxNode {
+    fn from(n: MThisExpression) -> Self {
         n.syntax
     }
 }
 impl From<MThisExpression> for SyntaxElement {
-    fn from(n: MThisExpression) -> SyntaxElement {
+    fn from(n: MThisExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9816,26 +10615,35 @@ impl AstNode for MThrowStatement {
 }
 impl std::fmt::Debug for MThrowStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MThrowStatement")
-            .field(
-                "throw_token",
-                &support::DebugSyntaxResult(self.throw_token()),
-            )
-            .field("argument", &support::DebugSyntaxResult(self.argument()))
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MThrowStatement")
+                .field(
+                    "throw_token",
+                    &support::DebugSyntaxResult(self.throw_token()),
+                )
+                .field("argument", &support::DebugSyntaxResult(self.argument()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MThrowStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MThrowStatement> for SyntaxNode {
-    fn from(n: MThrowStatement) -> SyntaxNode {
+    fn from(n: MThrowStatement) -> Self {
         n.syntax
     }
 }
 impl From<MThrowStatement> for SyntaxElement {
-    fn from(n: MThrowStatement) -> SyntaxElement {
+    fn from(n: MThrowStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -9862,21 +10670,30 @@ impl AstNode for MTimeLiteralExpression {
 }
 impl std::fmt::Debug for MTimeLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MTimeLiteralExpression")
-            .field(
-                "value_token",
-                &support::DebugSyntaxResult(self.value_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MTimeLiteralExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MTimeLiteralExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MTimeLiteralExpression> for SyntaxNode {
-    fn from(n: MTimeLiteralExpression) -> SyntaxNode {
+    fn from(n: MTimeLiteralExpression) -> Self {
         n.syntax
     }
 }
 impl From<MTimeLiteralExpression> for SyntaxElement {
-    fn from(n: MTimeLiteralExpression) -> SyntaxElement {
+    fn from(n: MTimeLiteralExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -9903,27 +10720,36 @@ impl AstNode for MTryFinallyStatement {
 }
 impl std::fmt::Debug for MTryFinallyStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MTryFinallyStatement")
-            .field("try_token", &support::DebugSyntaxResult(self.try_token()))
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .field(
-                "catch_clause",
-                &support::DebugOptionalElement(self.catch_clause()),
-            )
-            .field(
-                "finally_clause",
-                &support::DebugSyntaxResult(self.finally_clause()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MTryFinallyStatement")
+                .field("try_token", &support::DebugSyntaxResult(self.try_token()))
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .field(
+                    "catch_clause",
+                    &support::DebugOptionalElement(self.catch_clause()),
+                )
+                .field(
+                    "finally_clause",
+                    &support::DebugSyntaxResult(self.finally_clause()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MTryFinallyStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MTryFinallyStatement> for SyntaxNode {
-    fn from(n: MTryFinallyStatement) -> SyntaxNode {
+    fn from(n: MTryFinallyStatement) -> Self {
         n.syntax
     }
 }
 impl From<MTryFinallyStatement> for SyntaxElement {
-    fn from(n: MTryFinallyStatement) -> SyntaxElement {
+    fn from(n: MTryFinallyStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -9950,23 +10776,32 @@ impl AstNode for MTryStatement {
 }
 impl std::fmt::Debug for MTryStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MTryStatement")
-            .field("try_token", &support::DebugSyntaxResult(self.try_token()))
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .field(
-                "catch_clause",
-                &support::DebugSyntaxResult(self.catch_clause()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MTryStatement")
+                .field("try_token", &support::DebugSyntaxResult(self.try_token()))
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .field(
+                    "catch_clause",
+                    &support::DebugSyntaxResult(self.catch_clause()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MTryStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MTryStatement> for SyntaxNode {
-    fn from(n: MTryStatement) -> SyntaxNode {
+    fn from(n: MTryStatement) -> Self {
         n.syntax
     }
 }
 impl From<MTryStatement> for SyntaxElement {
-    fn from(n: MTryStatement) -> SyntaxElement {
+    fn from(n: MTryStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -9993,22 +10828,31 @@ impl AstNode for MUnaryExpression {
 }
 impl std::fmt::Debug for MUnaryExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MUnaryExpression")
-            .field(
-                "operator_token",
-                &support::DebugSyntaxResult(self.operator_token()),
-            )
-            .field("argument", &support::DebugSyntaxResult(self.argument()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MUnaryExpression")
+                .field(
+                    "operator_token",
+                    &support::DebugSyntaxResult(self.operator_token()),
+                )
+                .field("argument", &support::DebugSyntaxResult(self.argument()))
+                .finish()
+        } else {
+            f.debug_struct("MUnaryExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MUnaryExpression> for SyntaxNode {
-    fn from(n: MUnaryExpression) -> SyntaxNode {
+    fn from(n: MUnaryExpression) -> Self {
         n.syntax
     }
 }
 impl From<MUnaryExpression> for SyntaxElement {
-    fn from(n: MUnaryExpression) -> SyntaxElement {
+    fn from(n: MUnaryExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -10035,19 +10879,28 @@ impl AstNode for MVariableDeclaration {
 }
 impl std::fmt::Debug for MVariableDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MVariableDeclaration")
-            .field("kind_token", &support::DebugSyntaxResult(self.kind_token()))
-            .field("declarators", &self.declarators())
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MVariableDeclaration")
+                .field("kind_token", &support::DebugSyntaxResult(self.kind_token()))
+                .field("declarators", &self.declarators())
+                .finish()
+        } else {
+            f.debug_struct("MVariableDeclaration").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MVariableDeclaration> for SyntaxNode {
-    fn from(n: MVariableDeclaration) -> SyntaxNode {
+    fn from(n: MVariableDeclaration) -> Self {
         n.syntax
     }
 }
 impl From<MVariableDeclaration> for SyntaxElement {
-    fn from(n: MVariableDeclaration) -> SyntaxElement {
+    fn from(n: MVariableDeclaration) -> Self {
         n.syntax.into()
     }
 }
@@ -10074,25 +10927,34 @@ impl AstNode for MVariableDeclarationClause {
 }
 impl std::fmt::Debug for MVariableDeclarationClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MVariableDeclarationClause")
-            .field(
-                "declaration",
-                &support::DebugSyntaxResult(self.declaration()),
-            )
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MVariableDeclarationClause")
+                .field(
+                    "declaration",
+                    &support::DebugSyntaxResult(self.declaration()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MVariableDeclarationClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MVariableDeclarationClause> for SyntaxNode {
-    fn from(n: MVariableDeclarationClause) -> SyntaxNode {
+    fn from(n: MVariableDeclarationClause) -> Self {
         n.syntax
     }
 }
 impl From<MVariableDeclarationClause> for SyntaxElement {
-    fn from(n: MVariableDeclarationClause) -> SyntaxElement {
+    fn from(n: MVariableDeclarationClause) -> Self {
         n.syntax.into()
     }
 }
@@ -10119,22 +10981,31 @@ impl AstNode for MVariableDeclarator {
 }
 impl std::fmt::Debug for MVariableDeclarator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MVariableDeclarator")
-            .field("id", &support::DebugSyntaxResult(self.id()))
-            .field(
-                "initializer",
-                &support::DebugOptionalElement(self.initializer()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MVariableDeclarator")
+                .field("id", &support::DebugSyntaxResult(self.id()))
+                .field(
+                    "initializer",
+                    &support::DebugOptionalElement(self.initializer()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MVariableDeclarator").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MVariableDeclarator> for SyntaxNode {
-    fn from(n: MVariableDeclarator) -> SyntaxNode {
+    fn from(n: MVariableDeclarator) -> Self {
         n.syntax
     }
 }
 impl From<MVariableDeclarator> for SyntaxElement {
-    fn from(n: MVariableDeclarator) -> SyntaxElement {
+    fn from(n: MVariableDeclarator) -> Self {
         n.syntax.into()
     }
 }
@@ -10161,25 +11032,34 @@ impl AstNode for MVariableStatement {
 }
 impl std::fmt::Debug for MVariableStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MVariableStatement")
-            .field(
-                "declaration",
-                &support::DebugSyntaxResult(self.declaration()),
-            )
-            .field(
-                "semicolon_token",
-                &support::DebugOptionalElement(self.semicolon_token()),
-            )
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MVariableStatement")
+                .field(
+                    "declaration",
+                    &support::DebugSyntaxResult(self.declaration()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MVariableStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MVariableStatement> for SyntaxNode {
-    fn from(n: MVariableStatement) -> SyntaxNode {
+    fn from(n: MVariableStatement) -> Self {
         n.syntax
     }
 }
 impl From<MVariableStatement> for SyntaxElement {
-    fn from(n: MVariableStatement) -> SyntaxElement {
+    fn from(n: MVariableStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -10206,42 +11086,51 @@ impl AstNode for MWhileStatement {
 }
 impl std::fmt::Debug for MWhileStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MWhileStatement")
-            .field(
-                "while_token",
-                &support::DebugSyntaxResult(self.while_token()),
-            )
-            .field(
-                "l_paren_token",
-                &support::DebugSyntaxResult(self.l_paren_token()),
-            )
-            .field("test", &support::DebugSyntaxResult(self.test()))
-            .field(
-                "r_paren_token",
-                &support::DebugSyntaxResult(self.r_paren_token()),
-            )
-            .field("body", &support::DebugSyntaxResult(self.body()))
-            .finish()
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MWhileStatement")
+                .field(
+                    "while_token",
+                    &support::DebugSyntaxResult(self.while_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("test", &support::DebugSyntaxResult(self.test()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("MWhileStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
     }
 }
 impl From<MWhileStatement> for SyntaxNode {
-    fn from(n: MWhileStatement) -> SyntaxNode {
+    fn from(n: MWhileStatement) -> Self {
         n.syntax
     }
 }
 impl From<MWhileStatement> for SyntaxElement {
-    fn from(n: MWhileStatement) -> SyntaxElement {
+    fn from(n: MWhileStatement) -> Self {
         n.syntax.into()
     }
 }
 impl From<MAnnotationBinding> for AnyMAnnotationElement {
-    fn from(node: MAnnotationBinding) -> AnyMAnnotationElement {
-        AnyMAnnotationElement::MAnnotationBinding(node)
+    fn from(node: MAnnotationBinding) -> Self {
+        Self::MAnnotationBinding(node)
     }
 }
 impl From<MAnnotationElement> for AnyMAnnotationElement {
-    fn from(node: MAnnotationElement) -> AnyMAnnotationElement {
-        AnyMAnnotationElement::MAnnotationElement(node)
+    fn from(node: MAnnotationElement) -> Self {
+        Self::MAnnotationElement(node)
     }
 }
 impl AstNode for AnyMAnnotationElement {
@@ -10253,39 +11142,35 @@ impl AstNode for AnyMAnnotationElement {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_ANNOTATION_BINDING => {
-                AnyMAnnotationElement::MAnnotationBinding(MAnnotationBinding { syntax })
-            }
-            M_ANNOTATION_ELEMENT => {
-                AnyMAnnotationElement::MAnnotationElement(MAnnotationElement { syntax })
-            }
+            M_ANNOTATION_BINDING => Self::MAnnotationBinding(MAnnotationBinding { syntax }),
+            M_ANNOTATION_ELEMENT => Self::MAnnotationElement(MAnnotationElement { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMAnnotationElement::MAnnotationBinding(it) => &it.syntax,
-            AnyMAnnotationElement::MAnnotationElement(it) => &it.syntax,
+            Self::MAnnotationBinding(it) => &it.syntax,
+            Self::MAnnotationElement(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMAnnotationElement::MAnnotationBinding(it) => it.syntax,
-            AnyMAnnotationElement::MAnnotationElement(it) => it.syntax,
+            Self::MAnnotationBinding(it) => it.syntax,
+            Self::MAnnotationElement(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMAnnotationElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMAnnotationElement::MAnnotationBinding(it) => std::fmt::Debug::fmt(it, f),
-            AnyMAnnotationElement::MAnnotationElement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MAnnotationBinding(it) => std::fmt::Debug::fmt(it, f),
+            Self::MAnnotationElement(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMAnnotationElement> for SyntaxNode {
-    fn from(n: AnyMAnnotationElement) -> SyntaxNode {
+    fn from(n: AnyMAnnotationElement) -> Self {
         match n {
             AnyMAnnotationElement::MAnnotationBinding(it) => it.into(),
             AnyMAnnotationElement::MAnnotationElement(it) => it.into(),
@@ -10293,19 +11178,19 @@ impl From<AnyMAnnotationElement> for SyntaxNode {
     }
 }
 impl From<AnyMAnnotationElement> for SyntaxElement {
-    fn from(n: AnyMAnnotationElement) -> SyntaxElement {
+    fn from(n: AnyMAnnotationElement) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MArrayHole> for AnyMArrayElement {
-    fn from(node: MArrayHole) -> AnyMArrayElement {
-        AnyMArrayElement::MArrayHole(node)
+    fn from(node: MArrayHole) -> Self {
+        Self::MArrayHole(node)
     }
 }
 impl From<MSpread> for AnyMArrayElement {
-    fn from(node: MSpread) -> AnyMArrayElement {
-        AnyMArrayElement::MSpread(node)
+    fn from(node: MSpread) -> Self {
+        Self::MSpread(node)
     }
 }
 impl AstNode for AnyMArrayElement {
@@ -10322,11 +11207,11 @@ impl AstNode for AnyMArrayElement {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_ARRAY_HOLE => AnyMArrayElement::MArrayHole(MArrayHole { syntax }),
-            M_SPREAD => AnyMArrayElement::MSpread(MSpread { syntax }),
+            M_ARRAY_HOLE => Self::MArrayHole(MArrayHole { syntax }),
+            M_SPREAD => Self::MSpread(MSpread { syntax }),
             _ => {
                 if let Some(any_m_expression) = AnyMExpression::cast(syntax) {
-                    return Some(AnyMArrayElement::AnyMExpression(any_m_expression));
+                    return Some(Self::AnyMExpression(any_m_expression));
                 }
                 return None;
             }
@@ -10335,30 +11220,30 @@ impl AstNode for AnyMArrayElement {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMArrayElement::MArrayHole(it) => &it.syntax,
-            AnyMArrayElement::MSpread(it) => &it.syntax,
-            AnyMArrayElement::AnyMExpression(it) => it.syntax(),
+            Self::MArrayHole(it) => &it.syntax,
+            Self::MSpread(it) => &it.syntax,
+            Self::AnyMExpression(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMArrayElement::MArrayHole(it) => it.syntax,
-            AnyMArrayElement::MSpread(it) => it.syntax,
-            AnyMArrayElement::AnyMExpression(it) => it.into_syntax(),
+            Self::MArrayHole(it) => it.syntax,
+            Self::MSpread(it) => it.syntax,
+            Self::AnyMExpression(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMArrayElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMArrayElement::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMArrayElement::MArrayHole(it) => std::fmt::Debug::fmt(it, f),
-            AnyMArrayElement::MSpread(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MArrayHole(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSpread(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMArrayElement> for SyntaxNode {
-    fn from(n: AnyMArrayElement) -> SyntaxNode {
+    fn from(n: AnyMArrayElement) -> Self {
         match n {
             AnyMArrayElement::AnyMExpression(it) => it.into(),
             AnyMArrayElement::MArrayHole(it) => it.into(),
@@ -10367,34 +11252,34 @@ impl From<AnyMArrayElement> for SyntaxNode {
     }
 }
 impl From<AnyMArrayElement> for SyntaxElement {
-    fn from(n: AnyMArrayElement) -> SyntaxElement {
+    fn from(n: AnyMArrayElement) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MBogusAssignment> for AnyMAssignment {
-    fn from(node: MBogusAssignment) -> AnyMAssignment {
-        AnyMAssignment::MBogusAssignment(node)
+    fn from(node: MBogusAssignment) -> Self {
+        Self::MBogusAssignment(node)
     }
 }
 impl From<MComputedMemberAssignment> for AnyMAssignment {
-    fn from(node: MComputedMemberAssignment) -> AnyMAssignment {
-        AnyMAssignment::MComputedMemberAssignment(node)
+    fn from(node: MComputedMemberAssignment) -> Self {
+        Self::MComputedMemberAssignment(node)
     }
 }
 impl From<MIdentifierAssignment> for AnyMAssignment {
-    fn from(node: MIdentifierAssignment) -> AnyMAssignment {
-        AnyMAssignment::MIdentifierAssignment(node)
+    fn from(node: MIdentifierAssignment) -> Self {
+        Self::MIdentifierAssignment(node)
     }
 }
 impl From<MParenthesizedAssignment> for AnyMAssignment {
-    fn from(node: MParenthesizedAssignment) -> AnyMAssignment {
-        AnyMAssignment::MParenthesizedAssignment(node)
+    fn from(node: MParenthesizedAssignment) -> Self {
+        Self::MParenthesizedAssignment(node)
     }
 }
 impl From<MStaticMemberAssignment> for AnyMAssignment {
-    fn from(node: MStaticMemberAssignment) -> AnyMAssignment {
-        AnyMAssignment::MStaticMemberAssignment(node)
+    fn from(node: MStaticMemberAssignment) -> Self {
+        Self::MStaticMemberAssignment(node)
     }
 }
 impl AstNode for AnyMAssignment {
@@ -10416,18 +11301,18 @@ impl AstNode for AnyMAssignment {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_BOGUS_ASSIGNMENT => AnyMAssignment::MBogusAssignment(MBogusAssignment { syntax }),
+            M_BOGUS_ASSIGNMENT => Self::MBogusAssignment(MBogusAssignment { syntax }),
             M_COMPUTED_MEMBER_ASSIGNMENT => {
-                AnyMAssignment::MComputedMemberAssignment(MComputedMemberAssignment { syntax })
+                Self::MComputedMemberAssignment(MComputedMemberAssignment { syntax })
             }
             M_IDENTIFIER_ASSIGNMENT => {
-                AnyMAssignment::MIdentifierAssignment(MIdentifierAssignment { syntax })
+                Self::MIdentifierAssignment(MIdentifierAssignment { syntax })
             }
             M_PARENTHESIZED_ASSIGNMENT => {
-                AnyMAssignment::MParenthesizedAssignment(MParenthesizedAssignment { syntax })
+                Self::MParenthesizedAssignment(MParenthesizedAssignment { syntax })
             }
             M_STATIC_MEMBER_ASSIGNMENT => {
-                AnyMAssignment::MStaticMemberAssignment(MStaticMemberAssignment { syntax })
+                Self::MStaticMemberAssignment(MStaticMemberAssignment { syntax })
             }
             _ => return None,
         };
@@ -10435,36 +11320,36 @@ impl AstNode for AnyMAssignment {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMAssignment::MBogusAssignment(it) => &it.syntax,
-            AnyMAssignment::MComputedMemberAssignment(it) => &it.syntax,
-            AnyMAssignment::MIdentifierAssignment(it) => &it.syntax,
-            AnyMAssignment::MParenthesizedAssignment(it) => &it.syntax,
-            AnyMAssignment::MStaticMemberAssignment(it) => &it.syntax,
+            Self::MBogusAssignment(it) => &it.syntax,
+            Self::MComputedMemberAssignment(it) => &it.syntax,
+            Self::MIdentifierAssignment(it) => &it.syntax,
+            Self::MParenthesizedAssignment(it) => &it.syntax,
+            Self::MStaticMemberAssignment(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMAssignment::MBogusAssignment(it) => it.syntax,
-            AnyMAssignment::MComputedMemberAssignment(it) => it.syntax,
-            AnyMAssignment::MIdentifierAssignment(it) => it.syntax,
-            AnyMAssignment::MParenthesizedAssignment(it) => it.syntax,
-            AnyMAssignment::MStaticMemberAssignment(it) => it.syntax,
+            Self::MBogusAssignment(it) => it.syntax,
+            Self::MComputedMemberAssignment(it) => it.syntax,
+            Self::MIdentifierAssignment(it) => it.syntax,
+            Self::MParenthesizedAssignment(it) => it.syntax,
+            Self::MStaticMemberAssignment(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMAssignment::MBogusAssignment(it) => std::fmt::Debug::fmt(it, f),
-            AnyMAssignment::MComputedMemberAssignment(it) => std::fmt::Debug::fmt(it, f),
-            AnyMAssignment::MIdentifierAssignment(it) => std::fmt::Debug::fmt(it, f),
-            AnyMAssignment::MParenthesizedAssignment(it) => std::fmt::Debug::fmt(it, f),
-            AnyMAssignment::MStaticMemberAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MComputedMemberAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MIdentifierAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MParenthesizedAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MStaticMemberAssignment(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMAssignment> for SyntaxNode {
-    fn from(n: AnyMAssignment) -> SyntaxNode {
+    fn from(n: AnyMAssignment) -> Self {
         match n {
             AnyMAssignment::MBogusAssignment(it) => it.into(),
             AnyMAssignment::MComputedMemberAssignment(it) => it.into(),
@@ -10475,19 +11360,19 @@ impl From<AnyMAssignment> for SyntaxNode {
     }
 }
 impl From<AnyMAssignment> for SyntaxElement {
-    fn from(n: AnyMAssignment) -> SyntaxElement {
+    fn from(n: AnyMAssignment) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MBogusBinding> for AnyMBinding {
-    fn from(node: MBogusBinding) -> AnyMBinding {
-        AnyMBinding::MBogusBinding(node)
+    fn from(node: MBogusBinding) -> Self {
+        Self::MBogusBinding(node)
     }
 }
 impl From<MIdentifierBinding> for AnyMBinding {
-    fn from(node: MIdentifierBinding) -> AnyMBinding {
-        AnyMBinding::MIdentifierBinding(node)
+    fn from(node: MIdentifierBinding) -> Self {
+        Self::MIdentifierBinding(node)
     }
 }
 impl AstNode for AnyMBinding {
@@ -10499,35 +11384,35 @@ impl AstNode for AnyMBinding {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_BOGUS_BINDING => AnyMBinding::MBogusBinding(MBogusBinding { syntax }),
-            M_IDENTIFIER_BINDING => AnyMBinding::MIdentifierBinding(MIdentifierBinding { syntax }),
+            M_BOGUS_BINDING => Self::MBogusBinding(MBogusBinding { syntax }),
+            M_IDENTIFIER_BINDING => Self::MIdentifierBinding(MIdentifierBinding { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMBinding::MBogusBinding(it) => &it.syntax,
-            AnyMBinding::MIdentifierBinding(it) => &it.syntax,
+            Self::MBogusBinding(it) => &it.syntax,
+            Self::MIdentifierBinding(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMBinding::MBogusBinding(it) => it.syntax,
-            AnyMBinding::MIdentifierBinding(it) => it.syntax,
+            Self::MBogusBinding(it) => it.syntax,
+            Self::MIdentifierBinding(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMBinding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMBinding::MBogusBinding(it) => std::fmt::Debug::fmt(it, f),
-            AnyMBinding::MIdentifierBinding(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusBinding(it) => std::fmt::Debug::fmt(it, f),
+            Self::MIdentifierBinding(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMBinding> for SyntaxNode {
-    fn from(n: AnyMBinding) -> SyntaxNode {
+    fn from(n: AnyMBinding) -> Self {
         match n {
             AnyMBinding::MBogusBinding(it) => it.into(),
             AnyMBinding::MIdentifierBinding(it) => it.into(),
@@ -10535,14 +11420,14 @@ impl From<AnyMBinding> for SyntaxNode {
     }
 }
 impl From<AnyMBinding> for SyntaxElement {
-    fn from(n: AnyMBinding) -> SyntaxElement {
+    fn from(n: AnyMBinding) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MSpread> for AnyMCallArgument {
-    fn from(node: MSpread) -> AnyMCallArgument {
-        AnyMCallArgument::MSpread(node)
+    fn from(node: MSpread) -> Self {
+        Self::MSpread(node)
     }
 }
 impl AstNode for AnyMCallArgument {
@@ -10557,10 +11442,10 @@ impl AstNode for AnyMCallArgument {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_SPREAD => AnyMCallArgument::MSpread(MSpread { syntax }),
+            M_SPREAD => Self::MSpread(MSpread { syntax }),
             _ => {
                 if let Some(any_m_expression) = AnyMExpression::cast(syntax) {
-                    return Some(AnyMCallArgument::AnyMExpression(any_m_expression));
+                    return Some(Self::AnyMExpression(any_m_expression));
                 }
                 return None;
             }
@@ -10569,27 +11454,27 @@ impl AstNode for AnyMCallArgument {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMCallArgument::MSpread(it) => &it.syntax,
-            AnyMCallArgument::AnyMExpression(it) => it.syntax(),
+            Self::MSpread(it) => &it.syntax,
+            Self::AnyMExpression(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMCallArgument::MSpread(it) => it.syntax,
-            AnyMCallArgument::AnyMExpression(it) => it.into_syntax(),
+            Self::MSpread(it) => it.syntax,
+            Self::AnyMExpression(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMCallArgument {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMCallArgument::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMCallArgument::MSpread(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSpread(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMCallArgument> for SyntaxNode {
-    fn from(n: AnyMCallArgument) -> SyntaxNode {
+    fn from(n: AnyMCallArgument) -> Self {
         match n {
             AnyMCallArgument::AnyMExpression(it) => it.into(),
             AnyMCallArgument::MSpread(it) => it.into(),
@@ -10597,34 +11482,34 @@ impl From<AnyMCallArgument> for SyntaxNode {
     }
 }
 impl From<AnyMCallArgument> for SyntaxElement {
-    fn from(n: AnyMCallArgument) -> SyntaxElement {
+    fn from(n: AnyMCallArgument) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MBogusMember> for AnyMClassMember {
-    fn from(node: MBogusMember) -> AnyMClassMember {
-        AnyMClassMember::MBogusMember(node)
+    fn from(node: MBogusMember) -> Self {
+        Self::MBogusMember(node)
     }
 }
 impl From<MConstructorClassMember> for AnyMClassMember {
-    fn from(node: MConstructorClassMember) -> AnyMClassMember {
-        AnyMClassMember::MConstructorClassMember(node)
+    fn from(node: MConstructorClassMember) -> Self {
+        Self::MConstructorClassMember(node)
     }
 }
 impl From<MGetterClassMember> for AnyMClassMember {
-    fn from(node: MGetterClassMember) -> AnyMClassMember {
-        AnyMClassMember::MGetterClassMember(node)
+    fn from(node: MGetterClassMember) -> Self {
+        Self::MGetterClassMember(node)
     }
 }
 impl From<MMethodClassMember> for AnyMClassMember {
-    fn from(node: MMethodClassMember) -> AnyMClassMember {
-        AnyMClassMember::MMethodClassMember(node)
+    fn from(node: MMethodClassMember) -> Self {
+        Self::MMethodClassMember(node)
     }
 }
 impl From<MSetterClassMember> for AnyMClassMember {
-    fn from(node: MSetterClassMember) -> AnyMClassMember {
-        AnyMClassMember::MSetterClassMember(node)
+    fn from(node: MSetterClassMember) -> Self {
+        Self::MSetterClassMember(node)
     }
 }
 impl AstNode for AnyMClassMember {
@@ -10646,55 +11531,49 @@ impl AstNode for AnyMClassMember {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_BOGUS_MEMBER => AnyMClassMember::MBogusMember(MBogusMember { syntax }),
+            M_BOGUS_MEMBER => Self::MBogusMember(MBogusMember { syntax }),
             M_CONSTRUCTOR_CLASS_MEMBER => {
-                AnyMClassMember::MConstructorClassMember(MConstructorClassMember { syntax })
+                Self::MConstructorClassMember(MConstructorClassMember { syntax })
             }
-            M_GETTER_CLASS_MEMBER => {
-                AnyMClassMember::MGetterClassMember(MGetterClassMember { syntax })
-            }
-            M_METHOD_CLASS_MEMBER => {
-                AnyMClassMember::MMethodClassMember(MMethodClassMember { syntax })
-            }
-            M_SETTER_CLASS_MEMBER => {
-                AnyMClassMember::MSetterClassMember(MSetterClassMember { syntax })
-            }
+            M_GETTER_CLASS_MEMBER => Self::MGetterClassMember(MGetterClassMember { syntax }),
+            M_METHOD_CLASS_MEMBER => Self::MMethodClassMember(MMethodClassMember { syntax }),
+            M_SETTER_CLASS_MEMBER => Self::MSetterClassMember(MSetterClassMember { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMClassMember::MBogusMember(it) => &it.syntax,
-            AnyMClassMember::MConstructorClassMember(it) => &it.syntax,
-            AnyMClassMember::MGetterClassMember(it) => &it.syntax,
-            AnyMClassMember::MMethodClassMember(it) => &it.syntax,
-            AnyMClassMember::MSetterClassMember(it) => &it.syntax,
+            Self::MBogusMember(it) => &it.syntax,
+            Self::MConstructorClassMember(it) => &it.syntax,
+            Self::MGetterClassMember(it) => &it.syntax,
+            Self::MMethodClassMember(it) => &it.syntax,
+            Self::MSetterClassMember(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMClassMember::MBogusMember(it) => it.syntax,
-            AnyMClassMember::MConstructorClassMember(it) => it.syntax,
-            AnyMClassMember::MGetterClassMember(it) => it.syntax,
-            AnyMClassMember::MMethodClassMember(it) => it.syntax,
-            AnyMClassMember::MSetterClassMember(it) => it.syntax,
+            Self::MBogusMember(it) => it.syntax,
+            Self::MConstructorClassMember(it) => it.syntax,
+            Self::MGetterClassMember(it) => it.syntax,
+            Self::MMethodClassMember(it) => it.syntax,
+            Self::MSetterClassMember(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMClassMember::MBogusMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMClassMember::MConstructorClassMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMClassMember::MGetterClassMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMClassMember::MMethodClassMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMClassMember::MSetterClassMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MConstructorClassMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MGetterClassMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MMethodClassMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSetterClassMember(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMClassMember> for SyntaxNode {
-    fn from(n: AnyMClassMember) -> SyntaxNode {
+    fn from(n: AnyMClassMember) -> Self {
         match n {
             AnyMClassMember::MBogusMember(it) => it.into(),
             AnyMClassMember::MConstructorClassMember(it) => it.into(),
@@ -10705,14 +11584,14 @@ impl From<AnyMClassMember> for SyntaxNode {
     }
 }
 impl From<AnyMClassMember> for SyntaxElement {
-    fn from(n: AnyMClassMember) -> SyntaxElement {
+    fn from(n: AnyMClassMember) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MRestParameter> for AnyMConstructorParameter {
-    fn from(node: MRestParameter) -> AnyMConstructorParameter {
-        AnyMConstructorParameter::MRestParameter(node)
+    fn from(node: MRestParameter) -> Self {
+        Self::MRestParameter(node)
     }
 }
 impl AstNode for AnyMConstructorParameter {
@@ -10728,12 +11607,10 @@ impl AstNode for AnyMConstructorParameter {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_REST_PARAMETER => AnyMConstructorParameter::MRestParameter(MRestParameter { syntax }),
+            M_REST_PARAMETER => Self::MRestParameter(MRestParameter { syntax }),
             _ => {
                 if let Some(any_m_formal_parameter) = AnyMFormalParameter::cast(syntax) {
-                    return Some(AnyMConstructorParameter::AnyMFormalParameter(
-                        any_m_formal_parameter,
-                    ));
+                    return Some(Self::AnyMFormalParameter(any_m_formal_parameter));
                 }
                 return None;
             }
@@ -10742,27 +11619,27 @@ impl AstNode for AnyMConstructorParameter {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMConstructorParameter::MRestParameter(it) => &it.syntax,
-            AnyMConstructorParameter::AnyMFormalParameter(it) => it.syntax(),
+            Self::MRestParameter(it) => &it.syntax,
+            Self::AnyMFormalParameter(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMConstructorParameter::MRestParameter(it) => it.syntax,
-            AnyMConstructorParameter::AnyMFormalParameter(it) => it.into_syntax(),
+            Self::MRestParameter(it) => it.syntax,
+            Self::AnyMFormalParameter(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMConstructorParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMConstructorParameter::AnyMFormalParameter(it) => std::fmt::Debug::fmt(it, f),
-            AnyMConstructorParameter::MRestParameter(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMFormalParameter(it) => std::fmt::Debug::fmt(it, f),
+            Self::MRestParameter(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMConstructorParameter> for SyntaxNode {
-    fn from(n: AnyMConstructorParameter) -> SyntaxNode {
+    fn from(n: AnyMConstructorParameter) -> Self {
         match n {
             AnyMConstructorParameter::AnyMFormalParameter(it) => it.into(),
             AnyMConstructorParameter::MRestParameter(it) => it.into(),
@@ -10770,24 +11647,24 @@ impl From<AnyMConstructorParameter> for SyntaxNode {
     }
 }
 impl From<AnyMConstructorParameter> for SyntaxElement {
-    fn from(n: AnyMConstructorParameter) -> SyntaxElement {
+    fn from(n: AnyMConstructorParameter) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MClassDeclaration> for AnyMDeclaration {
-    fn from(node: MClassDeclaration) -> AnyMDeclaration {
-        AnyMDeclaration::MClassDeclaration(node)
+    fn from(node: MClassDeclaration) -> Self {
+        Self::MClassDeclaration(node)
     }
 }
 impl From<MFunctionDeclaration> for AnyMDeclaration {
-    fn from(node: MFunctionDeclaration) -> AnyMDeclaration {
-        AnyMDeclaration::MFunctionDeclaration(node)
+    fn from(node: MFunctionDeclaration) -> Self {
+        Self::MFunctionDeclaration(node)
     }
 }
 impl From<MVariableDeclaration> for AnyMDeclaration {
-    fn from(node: MVariableDeclaration) -> AnyMDeclaration {
-        AnyMDeclaration::MVariableDeclaration(node)
+    fn from(node: MVariableDeclaration) -> Self {
+        Self::MVariableDeclaration(node)
     }
 }
 impl AstNode for AnyMDeclaration {
@@ -10803,43 +11680,39 @@ impl AstNode for AnyMDeclaration {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_CLASS_DECLARATION => AnyMDeclaration::MClassDeclaration(MClassDeclaration { syntax }),
-            M_FUNCTION_DECLARATION => {
-                AnyMDeclaration::MFunctionDeclaration(MFunctionDeclaration { syntax })
-            }
-            M_VARIABLE_DECLARATION => {
-                AnyMDeclaration::MVariableDeclaration(MVariableDeclaration { syntax })
-            }
+            M_CLASS_DECLARATION => Self::MClassDeclaration(MClassDeclaration { syntax }),
+            M_FUNCTION_DECLARATION => Self::MFunctionDeclaration(MFunctionDeclaration { syntax }),
+            M_VARIABLE_DECLARATION => Self::MVariableDeclaration(MVariableDeclaration { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMDeclaration::MClassDeclaration(it) => &it.syntax,
-            AnyMDeclaration::MFunctionDeclaration(it) => &it.syntax,
-            AnyMDeclaration::MVariableDeclaration(it) => &it.syntax,
+            Self::MClassDeclaration(it) => &it.syntax,
+            Self::MFunctionDeclaration(it) => &it.syntax,
+            Self::MVariableDeclaration(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMDeclaration::MClassDeclaration(it) => it.syntax,
-            AnyMDeclaration::MFunctionDeclaration(it) => it.syntax,
-            AnyMDeclaration::MVariableDeclaration(it) => it.syntax,
+            Self::MClassDeclaration(it) => it.syntax,
+            Self::MFunctionDeclaration(it) => it.syntax,
+            Self::MVariableDeclaration(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMDeclaration::MClassDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMDeclaration::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMDeclaration::MVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MClassDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMDeclaration> for SyntaxNode {
-    fn from(n: AnyMDeclaration) -> SyntaxNode {
+    fn from(n: AnyMDeclaration) -> Self {
         match n {
             AnyMDeclaration::MClassDeclaration(it) => it.into(),
             AnyMDeclaration::MFunctionDeclaration(it) => it.into(),
@@ -10848,24 +11721,24 @@ impl From<AnyMDeclaration> for SyntaxNode {
     }
 }
 impl From<AnyMDeclaration> for SyntaxElement {
-    fn from(n: AnyMDeclaration) -> SyntaxElement {
+    fn from(n: AnyMDeclaration) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MClassDeclaration> for AnyMDeclarationClause {
-    fn from(node: MClassDeclaration) -> AnyMDeclarationClause {
-        AnyMDeclarationClause::MClassDeclaration(node)
+    fn from(node: MClassDeclaration) -> Self {
+        Self::MClassDeclaration(node)
     }
 }
 impl From<MFunctionDeclaration> for AnyMDeclarationClause {
-    fn from(node: MFunctionDeclaration) -> AnyMDeclarationClause {
-        AnyMDeclarationClause::MFunctionDeclaration(node)
+    fn from(node: MFunctionDeclaration) -> Self {
+        Self::MFunctionDeclaration(node)
     }
 }
 impl From<MVariableDeclarationClause> for AnyMDeclarationClause {
-    fn from(node: MVariableDeclarationClause) -> AnyMDeclarationClause {
-        AnyMDeclarationClause::MVariableDeclarationClause(node)
+    fn from(node: MVariableDeclarationClause) -> Self {
+        Self::MVariableDeclarationClause(node)
     }
 }
 impl AstNode for AnyMDeclarationClause {
@@ -10881,16 +11754,10 @@ impl AstNode for AnyMDeclarationClause {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_CLASS_DECLARATION => {
-                AnyMDeclarationClause::MClassDeclaration(MClassDeclaration { syntax })
-            }
-            M_FUNCTION_DECLARATION => {
-                AnyMDeclarationClause::MFunctionDeclaration(MFunctionDeclaration { syntax })
-            }
+            M_CLASS_DECLARATION => Self::MClassDeclaration(MClassDeclaration { syntax }),
+            M_FUNCTION_DECLARATION => Self::MFunctionDeclaration(MFunctionDeclaration { syntax }),
             M_VARIABLE_DECLARATION_CLAUSE => {
-                AnyMDeclarationClause::MVariableDeclarationClause(MVariableDeclarationClause {
-                    syntax,
-                })
+                Self::MVariableDeclarationClause(MVariableDeclarationClause { syntax })
             }
             _ => return None,
         };
@@ -10898,30 +11765,30 @@ impl AstNode for AnyMDeclarationClause {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMDeclarationClause::MClassDeclaration(it) => &it.syntax,
-            AnyMDeclarationClause::MFunctionDeclaration(it) => &it.syntax,
-            AnyMDeclarationClause::MVariableDeclarationClause(it) => &it.syntax,
+            Self::MClassDeclaration(it) => &it.syntax,
+            Self::MFunctionDeclaration(it) => &it.syntax,
+            Self::MVariableDeclarationClause(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMDeclarationClause::MClassDeclaration(it) => it.syntax,
-            AnyMDeclarationClause::MFunctionDeclaration(it) => it.syntax,
-            AnyMDeclarationClause::MVariableDeclarationClause(it) => it.syntax,
+            Self::MClassDeclaration(it) => it.syntax,
+            Self::MFunctionDeclaration(it) => it.syntax,
+            Self::MVariableDeclarationClause(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMDeclarationClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMDeclarationClause::MClassDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMDeclarationClause::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMDeclarationClause::MVariableDeclarationClause(it) => std::fmt::Debug::fmt(it, f),
+            Self::MClassDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MVariableDeclarationClause(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMDeclarationClause> for SyntaxNode {
-    fn from(n: AnyMDeclarationClause) -> SyntaxNode {
+    fn from(n: AnyMDeclarationClause) -> Self {
         match n {
             AnyMDeclarationClause::MClassDeclaration(it) => it.into(),
             AnyMDeclarationClause::MFunctionDeclaration(it) => it.into(),
@@ -10930,249 +11797,144 @@ impl From<AnyMDeclarationClause> for SyntaxNode {
     }
 }
 impl From<AnyMDeclarationClause> for SyntaxElement {
-    fn from(n: AnyMDeclarationClause) -> SyntaxElement {
-        let node: SyntaxNode = n.into();
-        node.into()
-    }
-}
-impl From<MLongStringLiteralExpression> for AnyMStringLiteralExpression {
-    fn from(node: MLongStringLiteralExpression) -> AnyMStringLiteralExpression {
-        AnyMStringLiteralExpression::MLongStringLiteralExpression(node)
-    }
-}
-impl From<MSqlLongStringLiteralExpression> for AnyMStringLiteralExpression {
-    fn from(node: MSqlLongStringLiteralExpression) -> AnyMStringLiteralExpression {
-        AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(node)
-    }
-}
-impl From<MStringLiteralExpression> for AnyMStringLiteralExpression {
-    fn from(node: MStringLiteralExpression) -> AnyMStringLiteralExpression {
-        AnyMStringLiteralExpression::MStringLiteralExpression(node)
-    }
-}
-impl From<MSqlStringLiteralExpression> for AnyMStringLiteralExpression {
-    fn from(node: MSqlStringLiteralExpression) -> AnyMStringLiteralExpression {
-        AnyMStringLiteralExpression::MSqlStringLiteralExpression(node)
-    }
-}
-impl AstNode for AnyMStringLiteralExpression {
-    type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        MLongStringLiteralExpression::KIND_SET.union(MSqlLongStringLiteralExpression::KIND_SET).union(MStringLiteralExpression::KIND_SET).union(MSqlStringLiteralExpression::KIND_SET);
-    fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(
-            kind,
-            M_LONG_STRING_LITERAL_EXPRESSION | M_SQL_LONG_STRING_LITERAL_EXPRESSION | M_STRING_LITERAL_EXPRESSION | M_SQL_STRING_LITERAL_EXPRESSION
-        )
-    }
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        let res = match syntax.kind() {
-            M_LONG_STRING_LITERAL_EXPRESSION => {
-                AnyMStringLiteralExpression::MLongStringLiteralExpression(
-                    MLongStringLiteralExpression { syntax },
-                )
-            }
-            M_STRING_LITERAL_EXPRESSION => {
-                AnyMStringLiteralExpression::MStringLiteralExpression(MStringLiteralExpression {
-                    syntax,
-                })
-            }
-            M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
-                AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(
-                    MSqlLongStringLiteralExpression { syntax },
-                )
-            }
-            M_SQL_STRING_LITERAL_EXPRESSION => AnyMStringLiteralExpression::MSqlStringLiteralExpression(
-                MSqlStringLiteralExpression { syntax },
-            ),
-            _ => return None,
-        };
-        Some(res)
-    }
-    fn syntax(&self) -> &SyntaxNode {
-        match self {
-            AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => &it.syntax,
-            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => &it.syntax,
-            AnyMStringLiteralExpression::MStringLiteralExpression(it) => &it.syntax,
-            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => &it.syntax,
-        }
-    }
-    fn into_syntax(self) -> SyntaxNode {
-        match self {
-            AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => it.syntax,
-            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => it.syntax,
-            AnyMStringLiteralExpression::MStringLiteralExpression(it) => it.syntax,
-            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => it.syntax,
-        }
-    }
-}
-impl std::fmt::Debug for AnyMStringLiteralExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => {
-                std::fmt::Debug::fmt(it, f)
-            }
-            AnyMStringLiteralExpression::MStringLiteralExpression(it) => {
-                std::fmt::Debug::fmt(it, f)
-            }
-            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => {
-                std::fmt::Debug::fmt(it, f)
-            }
-            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => {
-                std::fmt::Debug::fmt(it, f)
-            }
-        }
-    }
-}
-impl From<AnyMStringLiteralExpression> for SyntaxNode {
-    fn from(n: AnyMStringLiteralExpression) -> SyntaxNode {
-        match n {
-            AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => it.into(),
-            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => it.into(),
-            AnyMStringLiteralExpression::MStringLiteralExpression(it) => it.into(),
-            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => it.into(),
-        }
-    }
-}
-impl From<AnyMStringLiteralExpression> for SyntaxElement {
-    fn from(n: AnyMStringLiteralExpression) -> SyntaxElement {
+    fn from(n: AnyMDeclarationClause) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MArrayExpression> for AnyMExpression {
-    fn from(node: MArrayExpression) -> AnyMExpression {
-        AnyMExpression::MArrayExpression(node)
+    fn from(node: MArrayExpression) -> Self {
+        Self::MArrayExpression(node)
     }
 }
 impl From<MAssignmentExpression> for AnyMExpression {
-    fn from(node: MAssignmentExpression) -> AnyMExpression {
-        AnyMExpression::MAssignmentExpression(node)
+    fn from(node: MAssignmentExpression) -> Self {
+        Self::MAssignmentExpression(node)
     }
 }
 impl From<MBinaryExpression> for AnyMExpression {
-    fn from(node: MBinaryExpression) -> AnyMExpression {
-        AnyMExpression::MBinaryExpression(node)
-    }
-}
-impl From<MSqlConcatenationExpression> for AnyMExpression {
-    fn from(node: MSqlConcatenationExpression) -> AnyMExpression {
-        AnyMExpression::MSqlConcatenationExpression(node)
+    fn from(node: MBinaryExpression) -> Self {
+        Self::MBinaryExpression(node)
     }
 }
 impl From<MBogusExpression> for AnyMExpression {
-    fn from(node: MBogusExpression) -> AnyMExpression {
-        AnyMExpression::MBogusExpression(node)
+    fn from(node: MBogusExpression) -> Self {
+        Self::MBogusExpression(node)
     }
 }
 impl From<MCallExpression> for AnyMExpression {
-    fn from(node: MCallExpression) -> AnyMExpression {
-        AnyMExpression::MCallExpression(node)
+    fn from(node: MCallExpression) -> Self {
+        Self::MCallExpression(node)
     }
 }
 impl From<MComputedMemberExpression> for AnyMExpression {
-    fn from(node: MComputedMemberExpression) -> AnyMExpression {
-        AnyMExpression::MComputedMemberExpression(node)
+    fn from(node: MComputedMemberExpression) -> Self {
+        Self::MComputedMemberExpression(node)
     }
 }
 impl From<MConditionalExpression> for AnyMExpression {
-    fn from(node: MConditionalExpression) -> AnyMExpression {
-        AnyMExpression::MConditionalExpression(node)
+    fn from(node: MConditionalExpression) -> Self {
+        Self::MConditionalExpression(node)
     }
 }
 impl From<MConstantExpression> for AnyMExpression {
-    fn from(node: MConstantExpression) -> AnyMExpression {
-        AnyMExpression::MConstantExpression(node)
-    }
-}
-impl From<MTemplateExpression> for AnyMExpression {
-    fn from(node: MTemplateExpression) -> AnyMExpression {
-        AnyMExpression::MTemplateExpression(node)
+    fn from(node: MConstantExpression) -> Self {
+        Self::MConstantExpression(node)
     }
 }
 impl From<MFunctionExpression> for AnyMExpression {
-    fn from(node: MFunctionExpression) -> AnyMExpression {
-        AnyMExpression::MFunctionExpression(node)
+    fn from(node: MFunctionExpression) -> Self {
+        Self::MFunctionExpression(node)
     }
 }
 impl From<MHashMapExpression> for AnyMExpression {
-    fn from(node: MHashMapExpression) -> AnyMExpression {
-        AnyMExpression::MHashMapExpression(node)
+    fn from(node: MHashMapExpression) -> Self {
+        Self::MHashMapExpression(node)
     }
 }
 impl From<MHashSetExpression> for AnyMExpression {
-    fn from(node: MHashSetExpression) -> AnyMExpression {
-        AnyMExpression::MHashSetExpression(node)
+    fn from(node: MHashSetExpression) -> Self {
+        Self::MHashSetExpression(node)
     }
 }
 impl From<MIdentifierExpression> for AnyMExpression {
-    fn from(node: MIdentifierExpression) -> AnyMExpression {
-        AnyMExpression::MIdentifierExpression(node)
+    fn from(node: MIdentifierExpression) -> Self {
+        Self::MIdentifierExpression(node)
     }
 }
 impl From<MInExpression> for AnyMExpression {
-    fn from(node: MInExpression) -> AnyMExpression {
-        AnyMExpression::MInExpression(node)
+    fn from(node: MInExpression) -> Self {
+        Self::MInExpression(node)
     }
 }
 impl From<MInstanceofExpression> for AnyMExpression {
-    fn from(node: MInstanceofExpression) -> AnyMExpression {
-        AnyMExpression::MInstanceofExpression(node)
+    fn from(node: MInstanceofExpression) -> Self {
+        Self::MInstanceofExpression(node)
     }
 }
 impl From<MLogicalExpression> for AnyMExpression {
-    fn from(node: MLogicalExpression) -> AnyMExpression {
-        AnyMExpression::MLogicalExpression(node)
+    fn from(node: MLogicalExpression) -> Self {
+        Self::MLogicalExpression(node)
     }
 }
 impl From<MNewExpression> for AnyMExpression {
-    fn from(node: MNewExpression) -> AnyMExpression {
-        AnyMExpression::MNewExpression(node)
+    fn from(node: MNewExpression) -> Self {
+        Self::MNewExpression(node)
     }
 }
 impl From<MObjectExpression> for AnyMExpression {
-    fn from(node: MObjectExpression) -> AnyMExpression {
-        AnyMExpression::MObjectExpression(node)
+    fn from(node: MObjectExpression) -> Self {
+        Self::MObjectExpression(node)
     }
 }
 impl From<MParenthesizedExpression> for AnyMExpression {
-    fn from(node: MParenthesizedExpression) -> AnyMExpression {
-        AnyMExpression::MParenthesizedExpression(node)
+    fn from(node: MParenthesizedExpression) -> Self {
+        Self::MParenthesizedExpression(node)
     }
 }
 impl From<MPostUpdateExpression> for AnyMExpression {
-    fn from(node: MPostUpdateExpression) -> AnyMExpression {
-        AnyMExpression::MPostUpdateExpression(node)
+    fn from(node: MPostUpdateExpression) -> Self {
+        Self::MPostUpdateExpression(node)
     }
 }
 impl From<MPreUpdateExpression> for AnyMExpression {
-    fn from(node: MPreUpdateExpression) -> AnyMExpression {
-        AnyMExpression::MPreUpdateExpression(node)
+    fn from(node: MPreUpdateExpression) -> Self {
+        Self::MPreUpdateExpression(node)
     }
 }
 impl From<MSequenceExpression> for AnyMExpression {
-    fn from(node: MSequenceExpression) -> AnyMExpression {
-        AnyMExpression::MSequenceExpression(node)
+    fn from(node: MSequenceExpression) -> Self {
+        Self::MSequenceExpression(node)
+    }
+}
+impl From<MSqlConcatenationExpression> for AnyMExpression {
+    fn from(node: MSqlConcatenationExpression) -> Self {
+        Self::MSqlConcatenationExpression(node)
     }
 }
 impl From<MStaticMemberExpression> for AnyMExpression {
-    fn from(node: MStaticMemberExpression) -> AnyMExpression {
-        AnyMExpression::MStaticMemberExpression(node)
+    fn from(node: MStaticMemberExpression) -> Self {
+        Self::MStaticMemberExpression(node)
     }
 }
 impl From<MSuperExpression> for AnyMExpression {
-    fn from(node: MSuperExpression) -> AnyMExpression {
-        AnyMExpression::MSuperExpression(node)
+    fn from(node: MSuperExpression) -> Self {
+        Self::MSuperExpression(node)
+    }
+}
+impl From<MTemplateExpression> for AnyMExpression {
+    fn from(node: MTemplateExpression) -> Self {
+        Self::MTemplateExpression(node)
     }
 }
 impl From<MThisExpression> for AnyMExpression {
-    fn from(node: MThisExpression) -> AnyMExpression {
-        AnyMExpression::MThisExpression(node)
+    fn from(node: MThisExpression) -> Self {
+        Self::MThisExpression(node)
     }
 }
 impl From<MUnaryExpression> for AnyMExpression {
-    fn from(node: MUnaryExpression) -> AnyMExpression {
-        AnyMExpression::MUnaryExpression(node)
+    fn from(node: MUnaryExpression) -> Self {
+        Self::MUnaryExpression(node)
     }
 }
 impl AstNode for AnyMExpression {
@@ -11180,13 +11942,12 @@ impl AstNode for AnyMExpression {
     const KIND_SET: SyntaxKindSet<Language> = AnyMLiteralExpression::KIND_SET
         .union(MArrayExpression::KIND_SET)
         .union(MAssignmentExpression::KIND_SET)
-        .union(MBinaryExpression::KIND_SET).union(MSqlConcatenationExpression::KIND_SET)
+        .union(MBinaryExpression::KIND_SET)
         .union(MBogusExpression::KIND_SET)
         .union(MCallExpression::KIND_SET)
         .union(MComputedMemberExpression::KIND_SET)
         .union(MConditionalExpression::KIND_SET)
         .union(MConstantExpression::KIND_SET)
-        .union(MTemplateExpression::KIND_SET)
         .union(MFunctionExpression::KIND_SET)
         .union(MHashMapExpression::KIND_SET)
         .union(MHashSetExpression::KIND_SET)
@@ -11200,21 +11961,22 @@ impl AstNode for AnyMExpression {
         .union(MPostUpdateExpression::KIND_SET)
         .union(MPreUpdateExpression::KIND_SET)
         .union(MSequenceExpression::KIND_SET)
+        .union(MSqlConcatenationExpression::KIND_SET)
         .union(MStaticMemberExpression::KIND_SET)
         .union(MSuperExpression::KIND_SET)
+        .union(MTemplateExpression::KIND_SET)
         .union(MThisExpression::KIND_SET)
         .union(MUnaryExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
             M_ARRAY_EXPRESSION
             | M_ASSIGNMENT_EXPRESSION
-            | M_BINARY_EXPRESSION | M_SQL_CONCATENATION_EXPRESSION
+            | M_BINARY_EXPRESSION
             | M_BOGUS_EXPRESSION
             | M_CALL_EXPRESSION
             | M_COMPUTED_MEMBER_EXPRESSION
-            | M_CONSTANT_EXPRESSION
-            | M_TEMPLATE_EXPRESSION
             | M_CONDITIONAL_EXPRESSION
+            | M_CONSTANT_EXPRESSION
             | M_FUNCTION_EXPRESSION
             | M_HASH_MAP_EXPRESSION
             | M_HASH_SET_EXPRESSION
@@ -11228,8 +11990,10 @@ impl AstNode for AnyMExpression {
             | M_POST_UPDATE_EXPRESSION
             | M_PRE_UPDATE_EXPRESSION
             | M_SEQUENCE_EXPRESSION
+            | M_SQL_CONCATENATION_EXPRESSION
             | M_STATIC_MEMBER_EXPRESSION
             | M_SUPER_EXPRESSION
+            | M_TEMPLATE_EXPRESSION
             | M_THIS_EXPRESSION
             | M_UNARY_EXPRESSION => true,
             k if AnyMLiteralExpression::can_cast(k) => true,
@@ -11238,70 +12002,54 @@ impl AstNode for AnyMExpression {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_ARRAY_EXPRESSION => AnyMExpression::MArrayExpression(MArrayExpression { syntax }),
+            M_ARRAY_EXPRESSION => Self::MArrayExpression(MArrayExpression { syntax }),
             M_ASSIGNMENT_EXPRESSION => {
-                AnyMExpression::MAssignmentExpression(MAssignmentExpression { syntax })
+                Self::MAssignmentExpression(MAssignmentExpression { syntax })
             }
-            M_BINARY_EXPRESSION => AnyMExpression::MBinaryExpression(MBinaryExpression { syntax }),
-            M_SQL_CONCATENATION_EXPRESSION => AnyMExpression::MSqlConcatenationExpression(MSqlConcatenationExpression { syntax }),
-            M_BOGUS_EXPRESSION => AnyMExpression::MBogusExpression(MBogusExpression { syntax }),
-            M_CALL_EXPRESSION => AnyMExpression::MCallExpression(MCallExpression { syntax }),
+            M_BINARY_EXPRESSION => Self::MBinaryExpression(MBinaryExpression { syntax }),
+            M_BOGUS_EXPRESSION => Self::MBogusExpression(MBogusExpression { syntax }),
+            M_CALL_EXPRESSION => Self::MCallExpression(MCallExpression { syntax }),
             M_COMPUTED_MEMBER_EXPRESSION => {
-                AnyMExpression::MComputedMemberExpression(MComputedMemberExpression { syntax })
+                Self::MComputedMemberExpression(MComputedMemberExpression { syntax })
             }
             M_CONDITIONAL_EXPRESSION => {
-                AnyMExpression::MConditionalExpression(MConditionalExpression { syntax })
+                Self::MConditionalExpression(MConditionalExpression { syntax })
             }
-            M_CONSTANT_EXPRESSION => {
-                AnyMExpression::MConstantExpression(MConstantExpression { syntax })
-            }
-            M_TEMPLATE_EXPRESSION => {
-                AnyMExpression::MTemplateExpression(MTemplateExpression { syntax })
-            }
-            M_FUNCTION_EXPRESSION => {
-                AnyMExpression::MFunctionExpression(MFunctionExpression { syntax })
-            }
-            M_HASH_MAP_EXPRESSION => {
-                AnyMExpression::MHashMapExpression(MHashMapExpression { syntax })
-            }
-            M_HASH_SET_EXPRESSION => {
-                AnyMExpression::MHashSetExpression(MHashSetExpression { syntax })
-            }
+            M_CONSTANT_EXPRESSION => Self::MConstantExpression(MConstantExpression { syntax }),
+            M_FUNCTION_EXPRESSION => Self::MFunctionExpression(MFunctionExpression { syntax }),
+            M_HASH_MAP_EXPRESSION => Self::MHashMapExpression(MHashMapExpression { syntax }),
+            M_HASH_SET_EXPRESSION => Self::MHashSetExpression(MHashSetExpression { syntax }),
             M_IDENTIFIER_EXPRESSION => {
-                AnyMExpression::MIdentifierExpression(MIdentifierExpression { syntax })
+                Self::MIdentifierExpression(MIdentifierExpression { syntax })
             }
-            M_IN_EXPRESSION => AnyMExpression::MInExpression(MInExpression { syntax }),
+            M_IN_EXPRESSION => Self::MInExpression(MInExpression { syntax }),
             M_INSTANCEOF_EXPRESSION => {
-                AnyMExpression::MInstanceofExpression(MInstanceofExpression { syntax })
+                Self::MInstanceofExpression(MInstanceofExpression { syntax })
             }
-            M_LOGICAL_EXPRESSION => {
-                AnyMExpression::MLogicalExpression(MLogicalExpression { syntax })
-            }
-            M_NEW_EXPRESSION => AnyMExpression::MNewExpression(MNewExpression { syntax }),
-            M_OBJECT_EXPRESSION => AnyMExpression::MObjectExpression(MObjectExpression { syntax }),
+            M_LOGICAL_EXPRESSION => Self::MLogicalExpression(MLogicalExpression { syntax }),
+            M_NEW_EXPRESSION => Self::MNewExpression(MNewExpression { syntax }),
+            M_OBJECT_EXPRESSION => Self::MObjectExpression(MObjectExpression { syntax }),
             M_PARENTHESIZED_EXPRESSION => {
-                AnyMExpression::MParenthesizedExpression(MParenthesizedExpression { syntax })
+                Self::MParenthesizedExpression(MParenthesizedExpression { syntax })
             }
             M_POST_UPDATE_EXPRESSION => {
-                AnyMExpression::MPostUpdateExpression(MPostUpdateExpression { syntax })
+                Self::MPostUpdateExpression(MPostUpdateExpression { syntax })
             }
-            M_PRE_UPDATE_EXPRESSION => {
-                AnyMExpression::MPreUpdateExpression(MPreUpdateExpression { syntax })
-            }
-            M_SEQUENCE_EXPRESSION => {
-                AnyMExpression::MSequenceExpression(MSequenceExpression { syntax })
+            M_PRE_UPDATE_EXPRESSION => Self::MPreUpdateExpression(MPreUpdateExpression { syntax }),
+            M_SEQUENCE_EXPRESSION => Self::MSequenceExpression(MSequenceExpression { syntax }),
+            M_SQL_CONCATENATION_EXPRESSION => {
+                Self::MSqlConcatenationExpression(MSqlConcatenationExpression { syntax })
             }
             M_STATIC_MEMBER_EXPRESSION => {
-                AnyMExpression::MStaticMemberExpression(MStaticMemberExpression { syntax })
+                Self::MStaticMemberExpression(MStaticMemberExpression { syntax })
             }
-            M_SUPER_EXPRESSION => AnyMExpression::MSuperExpression(MSuperExpression { syntax }),
-            M_THIS_EXPRESSION => AnyMExpression::MThisExpression(MThisExpression { syntax }),
-            M_UNARY_EXPRESSION => AnyMExpression::MUnaryExpression(MUnaryExpression { syntax }),
+            M_SUPER_EXPRESSION => Self::MSuperExpression(MSuperExpression { syntax }),
+            M_TEMPLATE_EXPRESSION => Self::MTemplateExpression(MTemplateExpression { syntax }),
+            M_THIS_EXPRESSION => Self::MThisExpression(MThisExpression { syntax }),
+            M_UNARY_EXPRESSION => Self::MUnaryExpression(MUnaryExpression { syntax }),
             _ => {
                 if let Some(any_m_literal_expression) = AnyMLiteralExpression::cast(syntax) {
-                    return Some(AnyMExpression::AnyMLiteralExpression(
-                        any_m_literal_expression,
-                    ));
+                    return Some(Self::AnyMLiteralExpression(any_m_literal_expression));
                 }
                 return None;
             }
@@ -11310,117 +12058,115 @@ impl AstNode for AnyMExpression {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMExpression::MArrayExpression(it) => &it.syntax,
-            AnyMExpression::MAssignmentExpression(it) => &it.syntax,
-            AnyMExpression::MBinaryExpression(it) => &it.syntax,
-            AnyMExpression::MSqlConcatenationExpression(it) => &it.syntax,
-            AnyMExpression::MBogusExpression(it) => &it.syntax,
-            AnyMExpression::MCallExpression(it) => &it.syntax,
-            AnyMExpression::MComputedMemberExpression(it) => &it.syntax,
-            AnyMExpression::MConditionalExpression(it) => &it.syntax,
-            AnyMExpression::MConstantExpression(it) => &it.syntax,
-            AnyMExpression::MTemplateExpression(it) => &it.syntax,
-            AnyMExpression::MFunctionExpression(it) => &it.syntax,
-            AnyMExpression::MHashMapExpression(it) => &it.syntax,
-            AnyMExpression::MHashSetExpression(it) => &it.syntax,
-            AnyMExpression::MIdentifierExpression(it) => &it.syntax,
-            AnyMExpression::MInExpression(it) => &it.syntax,
-            AnyMExpression::MInstanceofExpression(it) => &it.syntax,
-            AnyMExpression::MLogicalExpression(it) => &it.syntax,
-            AnyMExpression::MNewExpression(it) => &it.syntax,
-            AnyMExpression::MObjectExpression(it) => &it.syntax,
-            AnyMExpression::MParenthesizedExpression(it) => &it.syntax,
-            AnyMExpression::MPostUpdateExpression(it) => &it.syntax,
-            AnyMExpression::MPreUpdateExpression(it) => &it.syntax,
-            AnyMExpression::MSequenceExpression(it) => &it.syntax,
-            AnyMExpression::MStaticMemberExpression(it) => &it.syntax,
-            AnyMExpression::MSuperExpression(it) => &it.syntax,
-            AnyMExpression::MThisExpression(it) => &it.syntax,
-            AnyMExpression::MUnaryExpression(it) => &it.syntax,
-            AnyMExpression::AnyMLiteralExpression(it) => it.syntax(),
+            Self::MArrayExpression(it) => &it.syntax,
+            Self::MAssignmentExpression(it) => &it.syntax,
+            Self::MBinaryExpression(it) => &it.syntax,
+            Self::MBogusExpression(it) => &it.syntax,
+            Self::MCallExpression(it) => &it.syntax,
+            Self::MComputedMemberExpression(it) => &it.syntax,
+            Self::MConditionalExpression(it) => &it.syntax,
+            Self::MConstantExpression(it) => &it.syntax,
+            Self::MFunctionExpression(it) => &it.syntax,
+            Self::MHashMapExpression(it) => &it.syntax,
+            Self::MHashSetExpression(it) => &it.syntax,
+            Self::MIdentifierExpression(it) => &it.syntax,
+            Self::MInExpression(it) => &it.syntax,
+            Self::MInstanceofExpression(it) => &it.syntax,
+            Self::MLogicalExpression(it) => &it.syntax,
+            Self::MNewExpression(it) => &it.syntax,
+            Self::MObjectExpression(it) => &it.syntax,
+            Self::MParenthesizedExpression(it) => &it.syntax,
+            Self::MPostUpdateExpression(it) => &it.syntax,
+            Self::MPreUpdateExpression(it) => &it.syntax,
+            Self::MSequenceExpression(it) => &it.syntax,
+            Self::MSqlConcatenationExpression(it) => &it.syntax,
+            Self::MStaticMemberExpression(it) => &it.syntax,
+            Self::MSuperExpression(it) => &it.syntax,
+            Self::MTemplateExpression(it) => &it.syntax,
+            Self::MThisExpression(it) => &it.syntax,
+            Self::MUnaryExpression(it) => &it.syntax,
+            Self::AnyMLiteralExpression(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMExpression::MArrayExpression(it) => it.syntax,
-            AnyMExpression::MAssignmentExpression(it) => it.syntax,
-            AnyMExpression::MBinaryExpression(it) => it.syntax,
-            AnyMExpression::MSqlConcatenationExpression(it) => it.syntax,
-            AnyMExpression::MBogusExpression(it) => it.syntax,
-            AnyMExpression::MCallExpression(it) => it.syntax,
-            AnyMExpression::MComputedMemberExpression(it) => it.syntax,
-            AnyMExpression::MConditionalExpression(it) => it.syntax,
-            AnyMExpression::MConstantExpression(it) => it.syntax,
-            AnyMExpression::MTemplateExpression(it) => it.syntax,
-            AnyMExpression::MFunctionExpression(it) => it.syntax,
-            AnyMExpression::MHashMapExpression(it) => it.syntax,
-            AnyMExpression::MHashSetExpression(it) => it.syntax,
-            AnyMExpression::MIdentifierExpression(it) => it.syntax,
-            AnyMExpression::MInExpression(it) => it.syntax,
-            AnyMExpression::MInstanceofExpression(it) => it.syntax,
-            AnyMExpression::MLogicalExpression(it) => it.syntax,
-            AnyMExpression::MNewExpression(it) => it.syntax,
-            AnyMExpression::MObjectExpression(it) => it.syntax,
-            AnyMExpression::MParenthesizedExpression(it) => it.syntax,
-            AnyMExpression::MPostUpdateExpression(it) => it.syntax,
-            AnyMExpression::MPreUpdateExpression(it) => it.syntax,
-            AnyMExpression::MSequenceExpression(it) => it.syntax,
-            AnyMExpression::MStaticMemberExpression(it) => it.syntax,
-            AnyMExpression::MSuperExpression(it) => it.syntax,
-            AnyMExpression::MThisExpression(it) => it.syntax,
-            AnyMExpression::MUnaryExpression(it) => it.syntax,
-            AnyMExpression::AnyMLiteralExpression(it) => it.into_syntax(),
+            Self::MArrayExpression(it) => it.syntax,
+            Self::MAssignmentExpression(it) => it.syntax,
+            Self::MBinaryExpression(it) => it.syntax,
+            Self::MBogusExpression(it) => it.syntax,
+            Self::MCallExpression(it) => it.syntax,
+            Self::MComputedMemberExpression(it) => it.syntax,
+            Self::MConditionalExpression(it) => it.syntax,
+            Self::MConstantExpression(it) => it.syntax,
+            Self::MFunctionExpression(it) => it.syntax,
+            Self::MHashMapExpression(it) => it.syntax,
+            Self::MHashSetExpression(it) => it.syntax,
+            Self::MIdentifierExpression(it) => it.syntax,
+            Self::MInExpression(it) => it.syntax,
+            Self::MInstanceofExpression(it) => it.syntax,
+            Self::MLogicalExpression(it) => it.syntax,
+            Self::MNewExpression(it) => it.syntax,
+            Self::MObjectExpression(it) => it.syntax,
+            Self::MParenthesizedExpression(it) => it.syntax,
+            Self::MPostUpdateExpression(it) => it.syntax,
+            Self::MPreUpdateExpression(it) => it.syntax,
+            Self::MSequenceExpression(it) => it.syntax,
+            Self::MSqlConcatenationExpression(it) => it.syntax,
+            Self::MStaticMemberExpression(it) => it.syntax,
+            Self::MSuperExpression(it) => it.syntax,
+            Self::MTemplateExpression(it) => it.syntax,
+            Self::MThisExpression(it) => it.syntax,
+            Self::MUnaryExpression(it) => it.syntax,
+            Self::AnyMLiteralExpression(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMExpression::AnyMLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MArrayExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MAssignmentExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MSqlConcatenationExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MBogusExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MCallExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MComputedMemberExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MConditionalExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MConstantExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MTemplateExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MHashMapExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MHashSetExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MIdentifierExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MInExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MInstanceofExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MLogicalExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MNewExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MObjectExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MPostUpdateExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MPreUpdateExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MSequenceExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MStaticMemberExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MSuperExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MThisExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMExpression::MUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MArrayExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MAssignmentExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBinaryExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MCallExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MComputedMemberExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MConditionalExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MConstantExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MHashMapExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MHashSetExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MIdentifierExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MInExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MInstanceofExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MLogicalExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MNewExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MObjectExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MPostUpdateExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MPreUpdateExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSequenceExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSqlConcatenationExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MStaticMemberExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSuperExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MTemplateExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MThisExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMExpression> for SyntaxNode {
-    fn from(n: AnyMExpression) -> SyntaxNode {
+    fn from(n: AnyMExpression) -> Self {
         match n {
             AnyMExpression::AnyMLiteralExpression(it) => it.into(),
             AnyMExpression::MArrayExpression(it) => it.into(),
             AnyMExpression::MAssignmentExpression(it) => it.into(),
             AnyMExpression::MBinaryExpression(it) => it.into(),
-            AnyMExpression::MSqlConcatenationExpression(it) => it.into(),
             AnyMExpression::MBogusExpression(it) => it.into(),
             AnyMExpression::MCallExpression(it) => it.into(),
             AnyMExpression::MComputedMemberExpression(it) => it.into(),
             AnyMExpression::MConditionalExpression(it) => it.into(),
             AnyMExpression::MConstantExpression(it) => it.into(),
-            AnyMExpression::MTemplateExpression(it) => it.into(),
             AnyMExpression::MFunctionExpression(it) => it.into(),
             AnyMExpression::MHashMapExpression(it) => it.into(),
             AnyMExpression::MHashSetExpression(it) => it.into(),
@@ -11434,22 +12180,24 @@ impl From<AnyMExpression> for SyntaxNode {
             AnyMExpression::MPostUpdateExpression(it) => it.into(),
             AnyMExpression::MPreUpdateExpression(it) => it.into(),
             AnyMExpression::MSequenceExpression(it) => it.into(),
+            AnyMExpression::MSqlConcatenationExpression(it) => it.into(),
             AnyMExpression::MStaticMemberExpression(it) => it.into(),
             AnyMExpression::MSuperExpression(it) => it.into(),
+            AnyMExpression::MTemplateExpression(it) => it.into(),
             AnyMExpression::MThisExpression(it) => it.into(),
             AnyMExpression::MUnaryExpression(it) => it.into(),
         }
     }
 }
 impl From<AnyMExpression> for SyntaxElement {
-    fn from(n: AnyMExpression) -> SyntaxElement {
+    fn from(n: AnyMExpression) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MForVariableDeclaration> for AnyMForInInitializer {
-    fn from(node: MForVariableDeclaration) -> AnyMForInInitializer {
-        AnyMForInInitializer::MForVariableDeclaration(node)
+    fn from(node: MForVariableDeclaration) -> Self {
+        Self::MForVariableDeclaration(node)
     }
 }
 impl AstNode for AnyMForInInitializer {
@@ -11466,11 +12214,11 @@ impl AstNode for AnyMForInInitializer {
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             M_FOR_VARIABLE_DECLARATION => {
-                AnyMForInInitializer::MForVariableDeclaration(MForVariableDeclaration { syntax })
+                Self::MForVariableDeclaration(MForVariableDeclaration { syntax })
             }
             _ => {
                 if let Some(any_m_assignment) = AnyMAssignment::cast(syntax) {
-                    return Some(AnyMForInInitializer::AnyMAssignment(any_m_assignment));
+                    return Some(Self::AnyMAssignment(any_m_assignment));
                 }
                 return None;
             }
@@ -11479,27 +12227,27 @@ impl AstNode for AnyMForInInitializer {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMForInInitializer::MForVariableDeclaration(it) => &it.syntax,
-            AnyMForInInitializer::AnyMAssignment(it) => it.syntax(),
+            Self::MForVariableDeclaration(it) => &it.syntax,
+            Self::AnyMAssignment(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMForInInitializer::MForVariableDeclaration(it) => it.syntax,
-            AnyMForInInitializer::AnyMAssignment(it) => it.into_syntax(),
+            Self::MForVariableDeclaration(it) => it.syntax,
+            Self::AnyMAssignment(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMForInInitializer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMForInInitializer::AnyMAssignment(it) => std::fmt::Debug::fmt(it, f),
-            AnyMForInInitializer::MForVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MForVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMForInInitializer> for SyntaxNode {
-    fn from(n: AnyMForInInitializer) -> SyntaxNode {
+    fn from(n: AnyMForInInitializer) -> Self {
         match n {
             AnyMForInInitializer::AnyMAssignment(it) => it.into(),
             AnyMForInInitializer::MForVariableDeclaration(it) => it.into(),
@@ -11507,14 +12255,14 @@ impl From<AnyMForInInitializer> for SyntaxNode {
     }
 }
 impl From<AnyMForInInitializer> for SyntaxElement {
-    fn from(n: AnyMForInInitializer) -> SyntaxElement {
+    fn from(n: AnyMForInInitializer) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MVariableDeclaration> for AnyMForInitializer {
-    fn from(node: MVariableDeclaration) -> AnyMForInitializer {
-        AnyMForInitializer::MVariableDeclaration(node)
+    fn from(node: MVariableDeclaration) -> Self {
+        Self::MVariableDeclaration(node)
     }
 }
 impl AstNode for AnyMForInitializer {
@@ -11530,12 +12278,10 @@ impl AstNode for AnyMForInitializer {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_VARIABLE_DECLARATION => {
-                AnyMForInitializer::MVariableDeclaration(MVariableDeclaration { syntax })
-            }
+            M_VARIABLE_DECLARATION => Self::MVariableDeclaration(MVariableDeclaration { syntax }),
             _ => {
                 if let Some(any_m_expression) = AnyMExpression::cast(syntax) {
-                    return Some(AnyMForInitializer::AnyMExpression(any_m_expression));
+                    return Some(Self::AnyMExpression(any_m_expression));
                 }
                 return None;
             }
@@ -11544,27 +12290,27 @@ impl AstNode for AnyMForInitializer {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMForInitializer::MVariableDeclaration(it) => &it.syntax,
-            AnyMForInitializer::AnyMExpression(it) => it.syntax(),
+            Self::MVariableDeclaration(it) => &it.syntax,
+            Self::AnyMExpression(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMForInitializer::MVariableDeclaration(it) => it.syntax,
-            AnyMForInitializer::AnyMExpression(it) => it.into_syntax(),
+            Self::MVariableDeclaration(it) => it.syntax,
+            Self::AnyMExpression(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMForInitializer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMForInitializer::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMForInitializer::MVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMForInitializer> for SyntaxNode {
-    fn from(n: AnyMForInitializer) -> SyntaxNode {
+    fn from(n: AnyMForInitializer) -> Self {
         match n {
             AnyMForInitializer::AnyMExpression(it) => it.into(),
             AnyMForInitializer::MVariableDeclaration(it) => it.into(),
@@ -11572,19 +12318,19 @@ impl From<AnyMForInitializer> for SyntaxNode {
     }
 }
 impl From<AnyMForInitializer> for SyntaxElement {
-    fn from(n: AnyMForInitializer) -> SyntaxElement {
+    fn from(n: AnyMForInitializer) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MBogusParameter> for AnyMFormalParameter {
-    fn from(node: MBogusParameter) -> AnyMFormalParameter {
-        AnyMFormalParameter::MBogusParameter(node)
+    fn from(node: MBogusParameter) -> Self {
+        Self::MBogusParameter(node)
     }
 }
 impl From<MFormalParameter> for AnyMFormalParameter {
-    fn from(node: MFormalParameter) -> AnyMFormalParameter {
-        AnyMFormalParameter::MFormalParameter(node)
+    fn from(node: MFormalParameter) -> Self {
+        Self::MFormalParameter(node)
     }
 }
 impl AstNode for AnyMFormalParameter {
@@ -11596,37 +12342,35 @@ impl AstNode for AnyMFormalParameter {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_BOGUS_PARAMETER => AnyMFormalParameter::MBogusParameter(MBogusParameter { syntax }),
-            M_FORMAL_PARAMETER => {
-                AnyMFormalParameter::MFormalParameter(MFormalParameter { syntax })
-            }
+            M_BOGUS_PARAMETER => Self::MBogusParameter(MBogusParameter { syntax }),
+            M_FORMAL_PARAMETER => Self::MFormalParameter(MFormalParameter { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMFormalParameter::MBogusParameter(it) => &it.syntax,
-            AnyMFormalParameter::MFormalParameter(it) => &it.syntax,
+            Self::MBogusParameter(it) => &it.syntax,
+            Self::MFormalParameter(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMFormalParameter::MBogusParameter(it) => it.syntax,
-            AnyMFormalParameter::MFormalParameter(it) => it.syntax,
+            Self::MBogusParameter(it) => it.syntax,
+            Self::MFormalParameter(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMFormalParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMFormalParameter::MBogusParameter(it) => std::fmt::Debug::fmt(it, f),
-            AnyMFormalParameter::MFormalParameter(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusParameter(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFormalParameter(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMFormalParameter> for SyntaxNode {
-    fn from(n: AnyMFormalParameter) -> SyntaxNode {
+    fn from(n: AnyMFormalParameter) -> Self {
         match n {
             AnyMFormalParameter::MBogusParameter(it) => it.into(),
             AnyMFormalParameter::MFormalParameter(it) => it.into(),
@@ -11634,19 +12378,19 @@ impl From<AnyMFormalParameter> for SyntaxNode {
     }
 }
 impl From<AnyMFormalParameter> for SyntaxElement {
-    fn from(n: AnyMFormalParameter) -> SyntaxElement {
+    fn from(n: AnyMFormalParameter) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MFunctionDeclaration> for AnyMFunction {
-    fn from(node: MFunctionDeclaration) -> AnyMFunction {
-        AnyMFunction::MFunctionDeclaration(node)
+    fn from(node: MFunctionDeclaration) -> Self {
+        Self::MFunctionDeclaration(node)
     }
 }
 impl From<MFunctionExpression> for AnyMFunction {
-    fn from(node: MFunctionExpression) -> AnyMFunction {
-        AnyMFunction::MFunctionExpression(node)
+    fn from(node: MFunctionExpression) -> Self {
+        Self::MFunctionExpression(node)
     }
 }
 impl AstNode for AnyMFunction {
@@ -11658,39 +12402,35 @@ impl AstNode for AnyMFunction {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_FUNCTION_DECLARATION => {
-                AnyMFunction::MFunctionDeclaration(MFunctionDeclaration { syntax })
-            }
-            M_FUNCTION_EXPRESSION => {
-                AnyMFunction::MFunctionExpression(MFunctionExpression { syntax })
-            }
+            M_FUNCTION_DECLARATION => Self::MFunctionDeclaration(MFunctionDeclaration { syntax }),
+            M_FUNCTION_EXPRESSION => Self::MFunctionExpression(MFunctionExpression { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMFunction::MFunctionDeclaration(it) => &it.syntax,
-            AnyMFunction::MFunctionExpression(it) => &it.syntax,
+            Self::MFunctionDeclaration(it) => &it.syntax,
+            Self::MFunctionExpression(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMFunction::MFunctionDeclaration(it) => it.syntax,
-            AnyMFunction::MFunctionExpression(it) => it.syntax,
+            Self::MFunctionDeclaration(it) => it.syntax,
+            Self::MFunctionExpression(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMFunction::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMFunction::MFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMFunction> for SyntaxNode {
-    fn from(n: AnyMFunction) -> SyntaxNode {
+    fn from(n: AnyMFunction) -> Self {
         match n {
             AnyMFunction::MFunctionDeclaration(it) => it.into(),
             AnyMFunction::MFunctionExpression(it) => it.into(),
@@ -11698,7 +12438,7 @@ impl From<AnyMFunction> for SyntaxNode {
     }
 }
 impl From<AnyMFunction> for SyntaxElement {
-    fn from(n: AnyMFunction) -> SyntaxElement {
+    fn from(n: AnyMFunction) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
@@ -11708,32 +12448,32 @@ impl From<MBogusBinding> for AnyMFunctionBinding {
         Self::MBogusBinding(node)
     }
 }
-impl From<MIdentifierBinding> for AnyMFunctionBinding {
-    fn from(node: MIdentifierBinding) -> Self {
-        Self::MIdentifierBinding(node)
-    }
-}
 impl From<MExtendedBinding> for AnyMFunctionBinding {
     fn from(node: MExtendedBinding) -> Self {
         Self::MExtendedBinding(node)
     }
 }
+impl From<MIdentifierBinding> for AnyMFunctionBinding {
+    fn from(node: MIdentifierBinding) -> Self {
+        Self::MIdentifierBinding(node)
+    }
+}
 impl AstNode for AnyMFunctionBinding {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = MBogusBinding::KIND_SET
-        .union(MIdentifierBinding::KIND_SET)
-        .union(MStaticMemberExpression::KIND_SET);
+        .union(MExtendedBinding::KIND_SET)
+        .union(MIdentifierBinding::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            M_BOGUS_BINDING | M_IDENTIFIER_BINDING | M_EXTENDED_BINDING
+            M_BOGUS_BINDING | M_EXTENDED_BINDING | M_IDENTIFIER_BINDING
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             M_BOGUS_BINDING => Self::MBogusBinding(MBogusBinding { syntax }),
-            M_IDENTIFIER_BINDING => Self::MIdentifierBinding(MIdentifierBinding { syntax }),
             M_EXTENDED_BINDING => Self::MExtendedBinding(MExtendedBinding { syntax }),
+            M_IDENTIFIER_BINDING => Self::MIdentifierBinding(MIdentifierBinding { syntax }),
             _ => return None,
         };
         Some(res)
@@ -11778,8 +12518,8 @@ impl From<AnyMFunctionBinding> for SyntaxElement {
     }
 }
 impl From<MFunctionBody> for AnyMFunctionBody {
-    fn from(node: MFunctionBody) -> AnyMFunctionBody {
-        AnyMFunctionBody::MFunctionBody(node)
+    fn from(node: MFunctionBody) -> Self {
+        Self::MFunctionBody(node)
     }
 }
 impl AstNode for AnyMFunctionBody {
@@ -11795,10 +12535,10 @@ impl AstNode for AnyMFunctionBody {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_FUNCTION_BODY => AnyMFunctionBody::MFunctionBody(MFunctionBody { syntax }),
+            M_FUNCTION_BODY => Self::MFunctionBody(MFunctionBody { syntax }),
             _ => {
                 if let Some(any_m_expression) = AnyMExpression::cast(syntax) {
-                    return Some(AnyMFunctionBody::AnyMExpression(any_m_expression));
+                    return Some(Self::AnyMExpression(any_m_expression));
                 }
                 return None;
             }
@@ -11807,27 +12547,27 @@ impl AstNode for AnyMFunctionBody {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMFunctionBody::MFunctionBody(it) => &it.syntax,
-            AnyMFunctionBody::AnyMExpression(it) => it.syntax(),
+            Self::MFunctionBody(it) => &it.syntax,
+            Self::AnyMExpression(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMFunctionBody::MFunctionBody(it) => it.syntax,
-            AnyMFunctionBody::AnyMExpression(it) => it.into_syntax(),
+            Self::MFunctionBody(it) => it.syntax,
+            Self::AnyMExpression(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMFunctionBody {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMFunctionBody::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMFunctionBody::MFunctionBody(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionBody(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMFunctionBody> for SyntaxNode {
-    fn from(n: AnyMFunctionBody) -> SyntaxNode {
+    fn from(n: AnyMFunctionBody) -> Self {
         match n {
             AnyMFunctionBody::AnyMExpression(it) => it.into(),
             AnyMFunctionBody::MFunctionBody(it) => it.into(),
@@ -11835,112 +12575,109 @@ impl From<AnyMFunctionBody> for SyntaxNode {
     }
 }
 impl From<AnyMFunctionBody> for SyntaxElement {
-    fn from(n: AnyMFunctionBody) -> SyntaxElement {
+    fn from(n: AnyMFunctionBody) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
-impl From<MDateLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MDateLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MDateLiteralExpression(node)
+impl From<MBooleanLiteralExpression> for AnyMLiteralExpression {
+    fn from(node: MBooleanLiteralExpression) -> Self {
+        Self::MBooleanLiteralExpression(node)
     }
 }
-impl From<MBooleanLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MBooleanLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MBooleanLiteralExpression(node)
+impl From<MDateLiteralExpression> for AnyMLiteralExpression {
+    fn from(node: MDateLiteralExpression) -> Self {
+        Self::MDateLiteralExpression(node)
     }
 }
 impl From<MLongStringLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MLongStringLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MLongStringLiteralExpression(node)
-    }
-}
-impl From<MSqlLongStringLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MSqlLongStringLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MSqlLongStringLiteralExpression(node)
+    fn from(node: MLongStringLiteralExpression) -> Self {
+        Self::MLongStringLiteralExpression(node)
     }
 }
 impl From<MNullLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MNullLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MNullLiteralExpression(node)
+    fn from(node: MNullLiteralExpression) -> Self {
+        Self::MNullLiteralExpression(node)
     }
 }
 impl From<MNumberLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MNumberLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MNumberLiteralExpression(node)
+    fn from(node: MNumberLiteralExpression) -> Self {
+        Self::MNumberLiteralExpression(node)
     }
 }
-impl From<MStringLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MStringLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MStringLiteralExpression(node)
+impl From<MSqlLongStringLiteralExpression> for AnyMLiteralExpression {
+    fn from(node: MSqlLongStringLiteralExpression) -> Self {
+        Self::MSqlLongStringLiteralExpression(node)
     }
 }
 impl From<MSqlStringLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MSqlStringLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MSqlStringLiteralExpression(node)
+    fn from(node: MSqlStringLiteralExpression) -> Self {
+        Self::MSqlStringLiteralExpression(node)
+    }
+}
+impl From<MStringLiteralExpression> for AnyMLiteralExpression {
+    fn from(node: MStringLiteralExpression) -> Self {
+        Self::MStringLiteralExpression(node)
     }
 }
 impl From<MTimeLiteralExpression> for AnyMLiteralExpression {
-    fn from(node: MTimeLiteralExpression) -> AnyMLiteralExpression {
-        AnyMLiteralExpression::MTimeLiteralExpression(node)
+    fn from(node: MTimeLiteralExpression) -> Self {
+        Self::MTimeLiteralExpression(node)
     }
 }
 impl AstNode for AnyMLiteralExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = MBooleanLiteralExpression::KIND_SET
         .union(MDateLiteralExpression::KIND_SET)
+        .union(MLongStringLiteralExpression::KIND_SET)
         .union(MNullLiteralExpression::KIND_SET)
         .union(MNumberLiteralExpression::KIND_SET)
-        .union(MStringLiteralExpression::KIND_SET).union(MSqlStringLiteralExpression::KIND_SET)
+        .union(MSqlLongStringLiteralExpression::KIND_SET)
+        .union(MSqlStringLiteralExpression::KIND_SET)
+        .union(MStringLiteralExpression::KIND_SET)
         .union(MTimeLiteralExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
             M_BOOLEAN_LITERAL_EXPRESSION
                 | M_DATE_LITERAL_EXPRESSION
-                | M_LONG_STRING_LITERAL_EXPRESSION | M_SQL_LONG_STRING_LITERAL_EXPRESSION
+                | M_LONG_STRING_LITERAL_EXPRESSION
                 | M_NULL_LITERAL_EXPRESSION
                 | M_NUMBER_LITERAL_EXPRESSION
-                | M_STRING_LITERAL_EXPRESSION | M_SQL_STRING_LITERAL_EXPRESSION
+                | M_SQL_LONG_STRING_LITERAL_EXPRESSION
+                | M_SQL_STRING_LITERAL_EXPRESSION
+                | M_STRING_LITERAL_EXPRESSION
                 | M_TIME_LITERAL_EXPRESSION
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             M_BOOLEAN_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MBooleanLiteralExpression(MBooleanLiteralExpression {
-                    syntax,
-                })
+                Self::MBooleanLiteralExpression(MBooleanLiteralExpression { syntax })
             }
             M_DATE_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MDateLiteralExpression(MDateLiteralExpression { syntax })
-            }
-            M_NULL_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MNullLiteralExpression(MNullLiteralExpression { syntax })
-            }
-            M_NUMBER_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MNumberLiteralExpression(MNumberLiteralExpression { syntax })
-            }
-            M_STRING_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MStringLiteralExpression(MStringLiteralExpression { syntax })
-            }
-            M_SQL_STRING_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MSqlStringLiteralExpression(MSqlStringLiteralExpression {
-                    syntax,
-                })
+                Self::MDateLiteralExpression(MDateLiteralExpression { syntax })
             }
             M_LONG_STRING_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MLongStringLiteralExpression(MLongStringLiteralExpression {
-                    syntax,
-                })
+                Self::MLongStringLiteralExpression(MLongStringLiteralExpression { syntax })
+            }
+            M_NULL_LITERAL_EXPRESSION => {
+                Self::MNullLiteralExpression(MNullLiteralExpression { syntax })
+            }
+            M_NUMBER_LITERAL_EXPRESSION => {
+                Self::MNumberLiteralExpression(MNumberLiteralExpression { syntax })
             }
             M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MSqlLongStringLiteralExpression(
-                    MSqlLongStringLiteralExpression { syntax },
-                )
+                Self::MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression { syntax })
+            }
+            M_SQL_STRING_LITERAL_EXPRESSION => {
+                Self::MSqlStringLiteralExpression(MSqlStringLiteralExpression { syntax })
+            }
+            M_STRING_LITERAL_EXPRESSION => {
+                Self::MStringLiteralExpression(MStringLiteralExpression { syntax })
             }
             M_TIME_LITERAL_EXPRESSION => {
-                AnyMLiteralExpression::MTimeLiteralExpression(MTimeLiteralExpression { syntax })
+                Self::MTimeLiteralExpression(MTimeLiteralExpression { syntax })
             }
             _ => return None,
         };
@@ -11948,85 +12685,85 @@ impl AstNode for AnyMLiteralExpression {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMLiteralExpression::MBooleanLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MDateLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MNullLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MNumberLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MStringLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MLongStringLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => &it.syntax,
-            AnyMLiteralExpression::MTimeLiteralExpression(it) => &it.syntax,
+            Self::MBooleanLiteralExpression(it) => &it.syntax,
+            Self::MDateLiteralExpression(it) => &it.syntax,
+            Self::MLongStringLiteralExpression(it) => &it.syntax,
+            Self::MNullLiteralExpression(it) => &it.syntax,
+            Self::MNumberLiteralExpression(it) => &it.syntax,
+            Self::MSqlLongStringLiteralExpression(it) => &it.syntax,
+            Self::MSqlStringLiteralExpression(it) => &it.syntax,
+            Self::MStringLiteralExpression(it) => &it.syntax,
+            Self::MTimeLiteralExpression(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMLiteralExpression::MBooleanLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MDateLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MNullLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MNumberLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MStringLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MLongStringLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => it.syntax,
-            AnyMLiteralExpression::MTimeLiteralExpression(it) => it.syntax,
+            Self::MBooleanLiteralExpression(it) => it.syntax,
+            Self::MDateLiteralExpression(it) => it.syntax,
+            Self::MLongStringLiteralExpression(it) => it.syntax,
+            Self::MNullLiteralExpression(it) => it.syntax,
+            Self::MNumberLiteralExpression(it) => it.syntax,
+            Self::MSqlLongStringLiteralExpression(it) => it.syntax,
+            Self::MSqlStringLiteralExpression(it) => it.syntax,
+            Self::MStringLiteralExpression(it) => it.syntax,
+            Self::MTimeLiteralExpression(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMLiteralExpression::MBooleanLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MDateLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MNullLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MNumberLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
-            AnyMLiteralExpression::MTimeLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBooleanLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MDateLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MNullLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MNumberLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSqlLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSqlStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MTimeLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMLiteralExpression> for SyntaxNode {
-    fn from(n: AnyMLiteralExpression) -> SyntaxNode {
+    fn from(n: AnyMLiteralExpression) -> Self {
         match n {
             AnyMLiteralExpression::MBooleanLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MDateLiteralExpression(it) => it.into(),
+            AnyMLiteralExpression::MLongStringLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MNullLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MNumberLiteralExpression(it) => it.into(),
-            AnyMLiteralExpression::MStringLiteralExpression(it) => it.into(),
-            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => it.into(),
-            AnyMLiteralExpression::MLongStringLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MSqlLongStringLiteralExpression(it) => it.into(),
+            AnyMLiteralExpression::MSqlStringLiteralExpression(it) => it.into(),
+            AnyMLiteralExpression::MStringLiteralExpression(it) => it.into(),
             AnyMLiteralExpression::MTimeLiteralExpression(it) => it.into(),
         }
     }
 }
 impl From<AnyMLiteralExpression> for SyntaxElement {
-    fn from(n: AnyMLiteralExpression) -> SyntaxElement {
+    fn from(n: AnyMLiteralExpression) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MBogusMember> for AnyMObjectMember {
-    fn from(node: MBogusMember) -> AnyMObjectMember {
-        AnyMObjectMember::MBogusMember(node)
+    fn from(node: MBogusMember) -> Self {
+        Self::MBogusMember(node)
     }
 }
 impl From<MPropertyObjectMember> for AnyMObjectMember {
-    fn from(node: MPropertyObjectMember) -> AnyMObjectMember {
-        AnyMObjectMember::MPropertyObjectMember(node)
+    fn from(node: MPropertyObjectMember) -> Self {
+        Self::MPropertyObjectMember(node)
     }
 }
 impl From<MShorthandPropertyObjectMember> for AnyMObjectMember {
-    fn from(node: MShorthandPropertyObjectMember) -> AnyMObjectMember {
-        AnyMObjectMember::MShorthandPropertyObjectMember(node)
+    fn from(node: MShorthandPropertyObjectMember) -> Self {
+        Self::MShorthandPropertyObjectMember(node)
     }
 }
 impl From<MSpread> for AnyMObjectMember {
-    fn from(node: MSpread) -> AnyMObjectMember {
-        AnyMObjectMember::MSpread(node)
+    fn from(node: MSpread) -> Self {
+        Self::MSpread(node)
     }
 }
 impl AstNode for AnyMObjectMember {
@@ -12046,49 +12783,47 @@ impl AstNode for AnyMObjectMember {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_BOGUS_MEMBER => AnyMObjectMember::MBogusMember(MBogusMember { syntax }),
+            M_BOGUS_MEMBER => Self::MBogusMember(MBogusMember { syntax }),
             M_PROPERTY_OBJECT_MEMBER => {
-                AnyMObjectMember::MPropertyObjectMember(MPropertyObjectMember { syntax })
+                Self::MPropertyObjectMember(MPropertyObjectMember { syntax })
             }
             M_SHORTHAND_PROPERTY_OBJECT_MEMBER => {
-                AnyMObjectMember::MShorthandPropertyObjectMember(MShorthandPropertyObjectMember {
-                    syntax,
-                })
+                Self::MShorthandPropertyObjectMember(MShorthandPropertyObjectMember { syntax })
             }
-            M_SPREAD => AnyMObjectMember::MSpread(MSpread { syntax }),
+            M_SPREAD => Self::MSpread(MSpread { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMObjectMember::MBogusMember(it) => &it.syntax,
-            AnyMObjectMember::MPropertyObjectMember(it) => &it.syntax,
-            AnyMObjectMember::MShorthandPropertyObjectMember(it) => &it.syntax,
-            AnyMObjectMember::MSpread(it) => &it.syntax,
+            Self::MBogusMember(it) => &it.syntax,
+            Self::MPropertyObjectMember(it) => &it.syntax,
+            Self::MShorthandPropertyObjectMember(it) => &it.syntax,
+            Self::MSpread(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMObjectMember::MBogusMember(it) => it.syntax,
-            AnyMObjectMember::MPropertyObjectMember(it) => it.syntax,
-            AnyMObjectMember::MShorthandPropertyObjectMember(it) => it.syntax,
-            AnyMObjectMember::MSpread(it) => it.syntax,
+            Self::MBogusMember(it) => it.syntax,
+            Self::MPropertyObjectMember(it) => it.syntax,
+            Self::MShorthandPropertyObjectMember(it) => it.syntax,
+            Self::MSpread(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMObjectMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMObjectMember::MBogusMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMObjectMember::MPropertyObjectMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMObjectMember::MShorthandPropertyObjectMember(it) => std::fmt::Debug::fmt(it, f),
-            AnyMObjectMember::MSpread(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MPropertyObjectMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MShorthandPropertyObjectMember(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSpread(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMObjectMember> for SyntaxNode {
-    fn from(n: AnyMObjectMember) -> SyntaxNode {
+    fn from(n: AnyMObjectMember) -> Self {
         match n {
             AnyMObjectMember::MBogusMember(it) => it.into(),
             AnyMObjectMember::MPropertyObjectMember(it) => it.into(),
@@ -12098,19 +12833,19 @@ impl From<AnyMObjectMember> for SyntaxNode {
     }
 }
 impl From<AnyMObjectMember> for SyntaxElement {
-    fn from(n: AnyMObjectMember) -> SyntaxElement {
+    fn from(n: AnyMObjectMember) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MComputedMemberName> for AnyMObjectMemberName {
-    fn from(node: MComputedMemberName) -> AnyMObjectMemberName {
-        AnyMObjectMemberName::MComputedMemberName(node)
+    fn from(node: MComputedMemberName) -> Self {
+        Self::MComputedMemberName(node)
     }
 }
 impl From<MLiteralMemberName> for AnyMObjectMemberName {
-    fn from(node: MLiteralMemberName) -> AnyMObjectMemberName {
-        AnyMObjectMemberName::MLiteralMemberName(node)
+    fn from(node: MLiteralMemberName) -> Self {
+        Self::MLiteralMemberName(node)
     }
 }
 impl AstNode for AnyMObjectMemberName {
@@ -12122,39 +12857,35 @@ impl AstNode for AnyMObjectMemberName {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_COMPUTED_MEMBER_NAME => {
-                AnyMObjectMemberName::MComputedMemberName(MComputedMemberName { syntax })
-            }
-            M_LITERAL_MEMBER_NAME => {
-                AnyMObjectMemberName::MLiteralMemberName(MLiteralMemberName { syntax })
-            }
+            M_COMPUTED_MEMBER_NAME => Self::MComputedMemberName(MComputedMemberName { syntax }),
+            M_LITERAL_MEMBER_NAME => Self::MLiteralMemberName(MLiteralMemberName { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMObjectMemberName::MComputedMemberName(it) => &it.syntax,
-            AnyMObjectMemberName::MLiteralMemberName(it) => &it.syntax,
+            Self::MComputedMemberName(it) => &it.syntax,
+            Self::MLiteralMemberName(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMObjectMemberName::MComputedMemberName(it) => it.syntax,
-            AnyMObjectMemberName::MLiteralMemberName(it) => it.syntax,
+            Self::MComputedMemberName(it) => it.syntax,
+            Self::MLiteralMemberName(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMObjectMemberName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMObjectMemberName::MComputedMemberName(it) => std::fmt::Debug::fmt(it, f),
-            AnyMObjectMemberName::MLiteralMemberName(it) => std::fmt::Debug::fmt(it, f),
+            Self::MComputedMemberName(it) => std::fmt::Debug::fmt(it, f),
+            Self::MLiteralMemberName(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMObjectMemberName> for SyntaxNode {
-    fn from(n: AnyMObjectMemberName) -> SyntaxNode {
+    fn from(n: AnyMObjectMemberName) -> Self {
         match n {
             AnyMObjectMemberName::MComputedMemberName(it) => it.into(),
             AnyMObjectMemberName::MLiteralMemberName(it) => it.into(),
@@ -12162,14 +12893,14 @@ impl From<AnyMObjectMemberName> for SyntaxNode {
     }
 }
 impl From<AnyMObjectMemberName> for SyntaxElement {
-    fn from(n: AnyMObjectMemberName) -> SyntaxElement {
+    fn from(n: AnyMObjectMemberName) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MRestParameter> for AnyMParameter {
-    fn from(node: MRestParameter) -> AnyMParameter {
-        AnyMParameter::MRestParameter(node)
+    fn from(node: MRestParameter) -> Self {
+        Self::MRestParameter(node)
     }
 }
 impl AstNode for AnyMParameter {
@@ -12185,10 +12916,10 @@ impl AstNode for AnyMParameter {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_REST_PARAMETER => AnyMParameter::MRestParameter(MRestParameter { syntax }),
+            M_REST_PARAMETER => Self::MRestParameter(MRestParameter { syntax }),
             _ => {
                 if let Some(any_m_formal_parameter) = AnyMFormalParameter::cast(syntax) {
-                    return Some(AnyMParameter::AnyMFormalParameter(any_m_formal_parameter));
+                    return Some(Self::AnyMFormalParameter(any_m_formal_parameter));
                 }
                 return None;
             }
@@ -12197,27 +12928,27 @@ impl AstNode for AnyMParameter {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMParameter::MRestParameter(it) => &it.syntax,
-            AnyMParameter::AnyMFormalParameter(it) => it.syntax(),
+            Self::MRestParameter(it) => &it.syntax,
+            Self::AnyMFormalParameter(it) => it.syntax(),
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMParameter::MRestParameter(it) => it.syntax,
-            AnyMParameter::AnyMFormalParameter(it) => it.into_syntax(),
+            Self::MRestParameter(it) => it.syntax,
+            Self::AnyMFormalParameter(it) => it.into_syntax(),
         }
     }
 }
 impl std::fmt::Debug for AnyMParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMParameter::AnyMFormalParameter(it) => std::fmt::Debug::fmt(it, f),
-            AnyMParameter::MRestParameter(it) => std::fmt::Debug::fmt(it, f),
+            Self::AnyMFormalParameter(it) => std::fmt::Debug::fmt(it, f),
+            Self::MRestParameter(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMParameter> for SyntaxNode {
-    fn from(n: AnyMParameter) -> SyntaxNode {
+    fn from(n: AnyMParameter) -> Self {
         match n {
             AnyMParameter::AnyMFormalParameter(it) => it.into(),
             AnyMParameter::MRestParameter(it) => it.into(),
@@ -12225,19 +12956,19 @@ impl From<AnyMParameter> for SyntaxNode {
     }
 }
 impl From<AnyMParameter> for SyntaxElement {
-    fn from(n: AnyMParameter) -> SyntaxElement {
+    fn from(n: AnyMParameter) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MExpressionSnipped> for AnyMRoot {
-    fn from(node: MExpressionSnipped) -> AnyMRoot {
-        AnyMRoot::MExpressionSnipped(node)
+    fn from(node: MExpressionSnipped) -> Self {
+        Self::MExpressionSnipped(node)
     }
 }
 impl From<MModule> for AnyMRoot {
-    fn from(node: MModule) -> AnyMRoot {
-        AnyMRoot::MModule(node)
+    fn from(node: MModule) -> Self {
+        Self::MModule(node)
     }
 }
 impl From<MReportFile> for AnyMRoot {
@@ -12246,8 +12977,8 @@ impl From<MReportFile> for AnyMRoot {
     }
 }
 impl From<MScript> for AnyMRoot {
-    fn from(node: MScript) -> AnyMRoot {
-        AnyMRoot::MScript(node)
+    fn from(node: MScript) -> Self {
+        Self::MScript(node)
     }
 }
 impl AstNode for AnyMRoot {
@@ -12264,43 +12995,43 @@ impl AstNode for AnyMRoot {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_EXPRESSION_SNIPPED => AnyMRoot::MExpressionSnipped(MExpressionSnipped { syntax }),
-            M_MODULE => AnyMRoot::MModule(MModule { syntax }),
+            M_EXPRESSION_SNIPPED => Self::MExpressionSnipped(MExpressionSnipped { syntax }),
+            M_MODULE => Self::MModule(MModule { syntax }),
             M_REPORT_FILE => Self::MReportFile(MReportFile { syntax }),
-            M_SCRIPT => AnyMRoot::MScript(MScript { syntax }),
+            M_SCRIPT => Self::MScript(MScript { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMRoot::MExpressionSnipped(it) => &it.syntax,
-            AnyMRoot::MModule(it) => &it.syntax,
-            AnyMRoot::MReportFile(it) => &it.syntax,
-            AnyMRoot::MScript(it) => &it.syntax,
+            Self::MExpressionSnipped(it) => &it.syntax,
+            Self::MModule(it) => &it.syntax,
+            Self::MReportFile(it) => &it.syntax,
+            Self::MScript(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMRoot::MExpressionSnipped(it) => it.syntax,
-            AnyMRoot::MModule(it) => it.syntax,
-            AnyMRoot::MReportFile(it) => it.syntax,
-            AnyMRoot::MScript(it) => it.syntax,
+            Self::MExpressionSnipped(it) => it.syntax,
+            Self::MModule(it) => it.syntax,
+            Self::MReportFile(it) => it.syntax,
+            Self::MScript(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMRoot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMRoot::MExpressionSnipped(it) => std::fmt::Debug::fmt(it, f),
-            AnyMRoot::MModule(it) => std::fmt::Debug::fmt(it, f),
-            AnyMRoot::MReportFile(it) => std::fmt::Debug::fmt(it, f),
-            AnyMRoot::MScript(it) => std::fmt::Debug::fmt(it, f),
+            Self::MExpressionSnipped(it) => std::fmt::Debug::fmt(it, f),
+            Self::MModule(it) => std::fmt::Debug::fmt(it, f),
+            Self::MReportFile(it) => std::fmt::Debug::fmt(it, f),
+            Self::MScript(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMRoot> for SyntaxNode {
-    fn from(n: AnyMRoot) -> SyntaxNode {
+    fn from(n: AnyMRoot) -> Self {
         match n {
             AnyMRoot::MExpressionSnipped(it) => it.into(),
             AnyMRoot::MModule(it) => it.into(),
@@ -12310,109 +13041,109 @@ impl From<AnyMRoot> for SyntaxNode {
     }
 }
 impl From<AnyMRoot> for SyntaxElement {
-    fn from(n: AnyMRoot) -> SyntaxElement {
+    fn from(n: AnyMRoot) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MBlockStatement> for AnyMStatement {
-    fn from(node: MBlockStatement) -> AnyMStatement {
-        AnyMStatement::MBlockStatement(node)
+    fn from(node: MBlockStatement) -> Self {
+        Self::MBlockStatement(node)
     }
 }
 impl From<MBogusStatement> for AnyMStatement {
-    fn from(node: MBogusStatement) -> AnyMStatement {
-        AnyMStatement::MBogusStatement(node)
+    fn from(node: MBogusStatement) -> Self {
+        Self::MBogusStatement(node)
     }
 }
 impl From<MBreakStatement> for AnyMStatement {
-    fn from(node: MBreakStatement) -> AnyMStatement {
-        AnyMStatement::MBreakStatement(node)
+    fn from(node: MBreakStatement) -> Self {
+        Self::MBreakStatement(node)
     }
 }
 impl From<MClassDeclaration> for AnyMStatement {
-    fn from(node: MClassDeclaration) -> AnyMStatement {
-        AnyMStatement::MClassDeclaration(node)
+    fn from(node: MClassDeclaration) -> Self {
+        Self::MClassDeclaration(node)
     }
 }
 impl From<MContinueStatement> for AnyMStatement {
-    fn from(node: MContinueStatement) -> AnyMStatement {
-        AnyMStatement::MContinueStatement(node)
+    fn from(node: MContinueStatement) -> Self {
+        Self::MContinueStatement(node)
     }
 }
 impl From<MDebugStatement> for AnyMStatement {
-    fn from(node: MDebugStatement) -> AnyMStatement {
-        AnyMStatement::MDebugStatement(node)
+    fn from(node: MDebugStatement) -> Self {
+        Self::MDebugStatement(node)
     }
 }
 impl From<MEmptyStatement> for AnyMStatement {
-    fn from(node: MEmptyStatement) -> AnyMStatement {
-        AnyMStatement::MEmptyStatement(node)
+    fn from(node: MEmptyStatement) -> Self {
+        Self::MEmptyStatement(node)
     }
 }
 impl From<MExpressionStatement> for AnyMStatement {
-    fn from(node: MExpressionStatement) -> AnyMStatement {
-        AnyMStatement::MExpressionStatement(node)
+    fn from(node: MExpressionStatement) -> Self {
+        Self::MExpressionStatement(node)
     }
 }
 impl From<MForAllInStatement> for AnyMStatement {
-    fn from(node: MForAllInStatement) -> AnyMStatement {
-        AnyMStatement::MForAllInStatement(node)
+    fn from(node: MForAllInStatement) -> Self {
+        Self::MForAllInStatement(node)
     }
 }
 impl From<MForAllStatement> for AnyMStatement {
-    fn from(node: MForAllStatement) -> AnyMStatement {
-        AnyMStatement::MForAllStatement(node)
+    fn from(node: MForAllStatement) -> Self {
+        Self::MForAllStatement(node)
     }
 }
 impl From<MForStatement> for AnyMStatement {
-    fn from(node: MForStatement) -> AnyMStatement {
-        AnyMStatement::MForStatement(node)
+    fn from(node: MForStatement) -> Self {
+        Self::MForStatement(node)
     }
 }
 impl From<MFunctionDeclaration> for AnyMStatement {
-    fn from(node: MFunctionDeclaration) -> AnyMStatement {
-        AnyMStatement::MFunctionDeclaration(node)
+    fn from(node: MFunctionDeclaration) -> Self {
+        Self::MFunctionDeclaration(node)
     }
 }
 impl From<MIfStatement> for AnyMStatement {
-    fn from(node: MIfStatement) -> AnyMStatement {
-        AnyMStatement::MIfStatement(node)
+    fn from(node: MIfStatement) -> Self {
+        Self::MIfStatement(node)
     }
 }
 impl From<MReturnStatement> for AnyMStatement {
-    fn from(node: MReturnStatement) -> AnyMStatement {
-        AnyMStatement::MReturnStatement(node)
+    fn from(node: MReturnStatement) -> Self {
+        Self::MReturnStatement(node)
     }
 }
 impl From<MSwitchStatement> for AnyMStatement {
-    fn from(node: MSwitchStatement) -> AnyMStatement {
-        AnyMStatement::MSwitchStatement(node)
+    fn from(node: MSwitchStatement) -> Self {
+        Self::MSwitchStatement(node)
     }
 }
 impl From<MThrowStatement> for AnyMStatement {
-    fn from(node: MThrowStatement) -> AnyMStatement {
-        AnyMStatement::MThrowStatement(node)
+    fn from(node: MThrowStatement) -> Self {
+        Self::MThrowStatement(node)
     }
 }
 impl From<MTryFinallyStatement> for AnyMStatement {
-    fn from(node: MTryFinallyStatement) -> AnyMStatement {
-        AnyMStatement::MTryFinallyStatement(node)
+    fn from(node: MTryFinallyStatement) -> Self {
+        Self::MTryFinallyStatement(node)
     }
 }
 impl From<MTryStatement> for AnyMStatement {
-    fn from(node: MTryStatement) -> AnyMStatement {
-        AnyMStatement::MTryStatement(node)
+    fn from(node: MTryStatement) -> Self {
+        Self::MTryStatement(node)
     }
 }
 impl From<MVariableStatement> for AnyMStatement {
-    fn from(node: MVariableStatement) -> AnyMStatement {
-        AnyMStatement::MVariableStatement(node)
+    fn from(node: MVariableStatement) -> Self {
+        Self::MVariableStatement(node)
     }
 }
 impl From<MWhileStatement> for AnyMStatement {
-    fn from(node: MWhileStatement) -> AnyMStatement {
-        AnyMStatement::MWhileStatement(node)
+    fn from(node: MWhileStatement) -> Self {
+        Self::MWhileStatement(node)
     }
 }
 impl AstNode for AnyMStatement {
@@ -12425,8 +13156,8 @@ impl AstNode for AnyMStatement {
         .union(MDebugStatement::KIND_SET)
         .union(MEmptyStatement::KIND_SET)
         .union(MExpressionStatement::KIND_SET)
-        .union(MForAllStatement::KIND_SET)
         .union(MForAllInStatement::KIND_SET)
+        .union(MForAllStatement::KIND_SET)
         .union(MForStatement::KIND_SET)
         .union(MFunctionDeclaration::KIND_SET)
         .union(MIfStatement::KIND_SET)
@@ -12448,8 +13179,8 @@ impl AstNode for AnyMStatement {
                 | M_DEBUG_STATEMENT
                 | M_EMPTY_STATEMENT
                 | M_EXPRESSION_STATEMENT
-                | M_FOR_ALL_STATEMENT
                 | M_FOR_ALL_IN_STATEMENT
+                | M_FOR_ALL_STATEMENT
                 | M_FOR_STATEMENT
                 | M_FUNCTION_DECLARATION
                 | M_IF_STATEMENT
@@ -12464,119 +13195,107 @@ impl AstNode for AnyMStatement {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_BLOCK_STATEMENT => AnyMStatement::MBlockStatement(MBlockStatement { syntax }),
-            M_BOGUS_STATEMENT => AnyMStatement::MBogusStatement(MBogusStatement { syntax }),
-            M_BREAK_STATEMENT => AnyMStatement::MBreakStatement(MBreakStatement { syntax }),
-            M_CLASS_DECLARATION => AnyMStatement::MClassDeclaration(MClassDeclaration { syntax }),
-            M_CONTINUE_STATEMENT => {
-                AnyMStatement::MContinueStatement(MContinueStatement { syntax })
-            }
-            M_DEBUG_STATEMENT => AnyMStatement::MDebugStatement(MDebugStatement { syntax }),
-            M_EMPTY_STATEMENT => AnyMStatement::MEmptyStatement(MEmptyStatement { syntax }),
-            M_EXPRESSION_STATEMENT => {
-                AnyMStatement::MExpressionStatement(MExpressionStatement { syntax })
-            }
-            M_FOR_ALL_IN_STATEMENT => {
-                AnyMStatement::MForAllInStatement(MForAllInStatement { syntax })
-            }
-            M_FOR_ALL_STATEMENT => AnyMStatement::MForAllStatement(MForAllStatement { syntax }),
-            M_FOR_STATEMENT => AnyMStatement::MForStatement(MForStatement { syntax }),
-            M_FUNCTION_DECLARATION => {
-                AnyMStatement::MFunctionDeclaration(MFunctionDeclaration { syntax })
-            }
-            M_IF_STATEMENT => AnyMStatement::MIfStatement(MIfStatement { syntax }),
-            M_RETURN_STATEMENT => AnyMStatement::MReturnStatement(MReturnStatement { syntax }),
-            M_SWITCH_STATEMENT => AnyMStatement::MSwitchStatement(MSwitchStatement { syntax }),
-            M_THROW_STATEMENT => AnyMStatement::MThrowStatement(MThrowStatement { syntax }),
-            M_TRY_FINALLY_STATEMENT => {
-                AnyMStatement::MTryFinallyStatement(MTryFinallyStatement { syntax })
-            }
-            M_TRY_STATEMENT => AnyMStatement::MTryStatement(MTryStatement { syntax }),
-            M_VARIABLE_STATEMENT => {
-                AnyMStatement::MVariableStatement(MVariableStatement { syntax })
-            }
-            M_WHILE_STATEMENT => AnyMStatement::MWhileStatement(MWhileStatement { syntax }),
+            M_BLOCK_STATEMENT => Self::MBlockStatement(MBlockStatement { syntax }),
+            M_BOGUS_STATEMENT => Self::MBogusStatement(MBogusStatement { syntax }),
+            M_BREAK_STATEMENT => Self::MBreakStatement(MBreakStatement { syntax }),
+            M_CLASS_DECLARATION => Self::MClassDeclaration(MClassDeclaration { syntax }),
+            M_CONTINUE_STATEMENT => Self::MContinueStatement(MContinueStatement { syntax }),
+            M_DEBUG_STATEMENT => Self::MDebugStatement(MDebugStatement { syntax }),
+            M_EMPTY_STATEMENT => Self::MEmptyStatement(MEmptyStatement { syntax }),
+            M_EXPRESSION_STATEMENT => Self::MExpressionStatement(MExpressionStatement { syntax }),
+            M_FOR_ALL_IN_STATEMENT => Self::MForAllInStatement(MForAllInStatement { syntax }),
+            M_FOR_ALL_STATEMENT => Self::MForAllStatement(MForAllStatement { syntax }),
+            M_FOR_STATEMENT => Self::MForStatement(MForStatement { syntax }),
+            M_FUNCTION_DECLARATION => Self::MFunctionDeclaration(MFunctionDeclaration { syntax }),
+            M_IF_STATEMENT => Self::MIfStatement(MIfStatement { syntax }),
+            M_RETURN_STATEMENT => Self::MReturnStatement(MReturnStatement { syntax }),
+            M_SWITCH_STATEMENT => Self::MSwitchStatement(MSwitchStatement { syntax }),
+            M_THROW_STATEMENT => Self::MThrowStatement(MThrowStatement { syntax }),
+            M_TRY_FINALLY_STATEMENT => Self::MTryFinallyStatement(MTryFinallyStatement { syntax }),
+            M_TRY_STATEMENT => Self::MTryStatement(MTryStatement { syntax }),
+            M_VARIABLE_STATEMENT => Self::MVariableStatement(MVariableStatement { syntax }),
+            M_WHILE_STATEMENT => Self::MWhileStatement(MWhileStatement { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMStatement::MBlockStatement(it) => &it.syntax,
-            AnyMStatement::MBogusStatement(it) => &it.syntax,
-            AnyMStatement::MBreakStatement(it) => &it.syntax,
-            AnyMStatement::MClassDeclaration(it) => &it.syntax,
-            AnyMStatement::MContinueStatement(it) => &it.syntax,
-            AnyMStatement::MDebugStatement(it) => &it.syntax,
-            AnyMStatement::MEmptyStatement(it) => &it.syntax,
-            AnyMStatement::MExpressionStatement(it) => &it.syntax,
-            AnyMStatement::MForAllStatement(it) => &it.syntax,
-            AnyMStatement::MForAllInStatement(it) => &it.syntax,
-            AnyMStatement::MForStatement(it) => &it.syntax,
-            AnyMStatement::MFunctionDeclaration(it) => &it.syntax,
-            AnyMStatement::MIfStatement(it) => &it.syntax,
-            AnyMStatement::MReturnStatement(it) => &it.syntax,
-            AnyMStatement::MSwitchStatement(it) => &it.syntax,
-            AnyMStatement::MThrowStatement(it) => &it.syntax,
-            AnyMStatement::MTryFinallyStatement(it) => &it.syntax,
-            AnyMStatement::MTryStatement(it) => &it.syntax,
-            AnyMStatement::MVariableStatement(it) => &it.syntax,
-            AnyMStatement::MWhileStatement(it) => &it.syntax,
+            Self::MBlockStatement(it) => &it.syntax,
+            Self::MBogusStatement(it) => &it.syntax,
+            Self::MBreakStatement(it) => &it.syntax,
+            Self::MClassDeclaration(it) => &it.syntax,
+            Self::MContinueStatement(it) => &it.syntax,
+            Self::MDebugStatement(it) => &it.syntax,
+            Self::MEmptyStatement(it) => &it.syntax,
+            Self::MExpressionStatement(it) => &it.syntax,
+            Self::MForAllInStatement(it) => &it.syntax,
+            Self::MForAllStatement(it) => &it.syntax,
+            Self::MForStatement(it) => &it.syntax,
+            Self::MFunctionDeclaration(it) => &it.syntax,
+            Self::MIfStatement(it) => &it.syntax,
+            Self::MReturnStatement(it) => &it.syntax,
+            Self::MSwitchStatement(it) => &it.syntax,
+            Self::MThrowStatement(it) => &it.syntax,
+            Self::MTryFinallyStatement(it) => &it.syntax,
+            Self::MTryStatement(it) => &it.syntax,
+            Self::MVariableStatement(it) => &it.syntax,
+            Self::MWhileStatement(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMStatement::MBlockStatement(it) => it.syntax,
-            AnyMStatement::MBogusStatement(it) => it.syntax,
-            AnyMStatement::MBreakStatement(it) => it.syntax,
-            AnyMStatement::MClassDeclaration(it) => it.syntax,
-            AnyMStatement::MContinueStatement(it) => it.syntax,
-            AnyMStatement::MDebugStatement(it) => it.syntax,
-            AnyMStatement::MEmptyStatement(it) => it.syntax,
-            AnyMStatement::MExpressionStatement(it) => it.syntax,
-            AnyMStatement::MForAllStatement(it) => it.syntax,
-            AnyMStatement::MForAllInStatement(it) => it.syntax,
-            AnyMStatement::MForStatement(it) => it.syntax,
-            AnyMStatement::MFunctionDeclaration(it) => it.syntax,
-            AnyMStatement::MIfStatement(it) => it.syntax,
-            AnyMStatement::MReturnStatement(it) => it.syntax,
-            AnyMStatement::MSwitchStatement(it) => it.syntax,
-            AnyMStatement::MThrowStatement(it) => it.syntax,
-            AnyMStatement::MTryFinallyStatement(it) => it.syntax,
-            AnyMStatement::MTryStatement(it) => it.syntax,
-            AnyMStatement::MVariableStatement(it) => it.syntax,
-            AnyMStatement::MWhileStatement(it) => it.syntax,
+            Self::MBlockStatement(it) => it.syntax,
+            Self::MBogusStatement(it) => it.syntax,
+            Self::MBreakStatement(it) => it.syntax,
+            Self::MClassDeclaration(it) => it.syntax,
+            Self::MContinueStatement(it) => it.syntax,
+            Self::MDebugStatement(it) => it.syntax,
+            Self::MEmptyStatement(it) => it.syntax,
+            Self::MExpressionStatement(it) => it.syntax,
+            Self::MForAllInStatement(it) => it.syntax,
+            Self::MForAllStatement(it) => it.syntax,
+            Self::MForStatement(it) => it.syntax,
+            Self::MFunctionDeclaration(it) => it.syntax,
+            Self::MIfStatement(it) => it.syntax,
+            Self::MReturnStatement(it) => it.syntax,
+            Self::MSwitchStatement(it) => it.syntax,
+            Self::MThrowStatement(it) => it.syntax,
+            Self::MTryFinallyStatement(it) => it.syntax,
+            Self::MTryStatement(it) => it.syntax,
+            Self::MVariableStatement(it) => it.syntax,
+            Self::MWhileStatement(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMStatement::MBlockStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MBogusStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MBreakStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MClassDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MContinueStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MDebugStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MExpressionStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MForAllStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MForAllInStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MForStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MIfStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MReturnStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MSwitchStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MThrowStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MTryFinallyStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MTryStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MVariableStatement(it) => std::fmt::Debug::fmt(it, f),
-            AnyMStatement::MWhileStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBlockStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBogusStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MBreakStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MClassDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MContinueStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MDebugStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MExpressionStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MForAllInStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MForAllStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MForStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MFunctionDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::MIfStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MReturnStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSwitchStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MThrowStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MTryFinallyStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MTryStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MVariableStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MWhileStatement(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMStatement> for SyntaxNode {
-    fn from(n: AnyMStatement) -> SyntaxNode {
+    fn from(n: AnyMStatement) -> Self {
         match n {
             AnyMStatement::MBlockStatement(it) => it.into(),
             AnyMStatement::MBogusStatement(it) => it.into(),
@@ -12586,8 +13305,8 @@ impl From<AnyMStatement> for SyntaxNode {
             AnyMStatement::MDebugStatement(it) => it.into(),
             AnyMStatement::MEmptyStatement(it) => it.into(),
             AnyMStatement::MExpressionStatement(it) => it.into(),
-            AnyMStatement::MForAllStatement(it) => it.into(),
             AnyMStatement::MForAllInStatement(it) => it.into(),
+            AnyMStatement::MForAllStatement(it) => it.into(),
             AnyMStatement::MForStatement(it) => it.into(),
             AnyMStatement::MFunctionDeclaration(it) => it.into(),
             AnyMStatement::MIfStatement(it) => it.into(),
@@ -12602,19 +13321,115 @@ impl From<AnyMStatement> for SyntaxNode {
     }
 }
 impl From<AnyMStatement> for SyntaxElement {
-    fn from(n: AnyMStatement) -> SyntaxElement {
+    fn from(n: AnyMStatement) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
+impl From<MLongStringLiteralExpression> for AnyMStringLiteralExpression {
+    fn from(node: MLongStringLiteralExpression) -> Self {
+        Self::MLongStringLiteralExpression(node)
+    }
+}
+impl From<MSqlLongStringLiteralExpression> for AnyMStringLiteralExpression {
+    fn from(node: MSqlLongStringLiteralExpression) -> Self {
+        Self::MSqlLongStringLiteralExpression(node)
+    }
+}
+impl From<MSqlStringLiteralExpression> for AnyMStringLiteralExpression {
+    fn from(node: MSqlStringLiteralExpression) -> Self {
+        Self::MSqlStringLiteralExpression(node)
+    }
+}
+impl From<MStringLiteralExpression> for AnyMStringLiteralExpression {
+    fn from(node: MStringLiteralExpression) -> Self {
+        Self::MStringLiteralExpression(node)
+    }
+}
+impl AstNode for AnyMStringLiteralExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = MLongStringLiteralExpression::KIND_SET
+        .union(MSqlLongStringLiteralExpression::KIND_SET)
+        .union(MSqlStringLiteralExpression::KIND_SET)
+        .union(MStringLiteralExpression::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            M_LONG_STRING_LITERAL_EXPRESSION
+                | M_SQL_LONG_STRING_LITERAL_EXPRESSION
+                | M_SQL_STRING_LITERAL_EXPRESSION
+                | M_STRING_LITERAL_EXPRESSION
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            M_LONG_STRING_LITERAL_EXPRESSION => {
+                Self::MLongStringLiteralExpression(MLongStringLiteralExpression { syntax })
+            }
+            M_SQL_LONG_STRING_LITERAL_EXPRESSION => {
+                Self::MSqlLongStringLiteralExpression(MSqlLongStringLiteralExpression { syntax })
+            }
+            M_SQL_STRING_LITERAL_EXPRESSION => {
+                Self::MSqlStringLiteralExpression(MSqlStringLiteralExpression { syntax })
+            }
+            M_STRING_LITERAL_EXPRESSION => {
+                Self::MStringLiteralExpression(MStringLiteralExpression { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::MLongStringLiteralExpression(it) => &it.syntax,
+            Self::MSqlLongStringLiteralExpression(it) => &it.syntax,
+            Self::MSqlStringLiteralExpression(it) => &it.syntax,
+            Self::MStringLiteralExpression(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::MLongStringLiteralExpression(it) => it.syntax,
+            Self::MSqlLongStringLiteralExpression(it) => it.syntax,
+            Self::MSqlStringLiteralExpression(it) => it.syntax,
+            Self::MStringLiteralExpression(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyMStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSqlLongStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MSqlStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::MStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyMStringLiteralExpression> for SyntaxNode {
+    fn from(n: AnyMStringLiteralExpression) -> Self {
+        match n {
+            AnyMStringLiteralExpression::MLongStringLiteralExpression(it) => it.into(),
+            AnyMStringLiteralExpression::MSqlLongStringLiteralExpression(it) => it.into(),
+            AnyMStringLiteralExpression::MSqlStringLiteralExpression(it) => it.into(),
+            AnyMStringLiteralExpression::MStringLiteralExpression(it) => it.into(),
+        }
+    }
+}
+impl From<AnyMStringLiteralExpression> for SyntaxElement {
+    fn from(n: AnyMStringLiteralExpression) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
 }
 impl From<MCaseClause> for AnyMSwitchClause {
-    fn from(node: MCaseClause) -> AnyMSwitchClause {
-        AnyMSwitchClause::MCaseClause(node)
+    fn from(node: MCaseClause) -> Self {
+        Self::MCaseClause(node)
     }
 }
 impl From<MDefaultClause> for AnyMSwitchClause {
-    fn from(node: MDefaultClause) -> AnyMSwitchClause {
-        AnyMSwitchClause::MDefaultClause(node)
+    fn from(node: MDefaultClause) -> Self {
+        Self::MDefaultClause(node)
     }
 }
 impl AstNode for AnyMSwitchClause {
@@ -12625,35 +13440,35 @@ impl AstNode for AnyMSwitchClause {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
-            M_CASE_CLAUSE => AnyMSwitchClause::MCaseClause(MCaseClause { syntax }),
-            M_DEFAULT_CLAUSE => AnyMSwitchClause::MDefaultClause(MDefaultClause { syntax }),
+            M_CASE_CLAUSE => Self::MCaseClause(MCaseClause { syntax }),
+            M_DEFAULT_CLAUSE => Self::MDefaultClause(MDefaultClause { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
-            AnyMSwitchClause::MCaseClause(it) => &it.syntax,
-            AnyMSwitchClause::MDefaultClause(it) => &it.syntax,
+            Self::MCaseClause(it) => &it.syntax,
+            Self::MDefaultClause(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
-            AnyMSwitchClause::MCaseClause(it) => it.syntax,
-            AnyMSwitchClause::MDefaultClause(it) => it.syntax,
+            Self::MCaseClause(it) => it.syntax,
+            Self::MDefaultClause(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnyMSwitchClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnyMSwitchClause::MCaseClause(it) => std::fmt::Debug::fmt(it, f),
-            AnyMSwitchClause::MDefaultClause(it) => std::fmt::Debug::fmt(it, f),
+            Self::MCaseClause(it) => std::fmt::Debug::fmt(it, f),
+            Self::MDefaultClause(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnyMSwitchClause> for SyntaxNode {
-    fn from(n: AnyMSwitchClause) -> SyntaxNode {
+    fn from(n: AnyMSwitchClause) -> Self {
         match n {
             AnyMSwitchClause::MCaseClause(it) => it.into(),
             AnyMSwitchClause::MDefaultClause(it) => it.into(),
@@ -12661,7 +13476,7 @@ impl From<AnyMSwitchClause> for SyntaxNode {
     }
 }
 impl From<AnyMSwitchClause> for SyntaxElement {
-    fn from(n: AnyMSwitchClause) -> SyntaxElement {
+    fn from(n: AnyMSwitchClause) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
     }
@@ -12707,11 +13522,6 @@ impl std::fmt::Display for AnyMDeclaration {
     }
 }
 impl std::fmt::Display for AnyMDeclarationClause {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
-impl std::fmt::Display for AnyMStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -12781,6 +13591,11 @@ impl std::fmt::Display for AnyMStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyMStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyMSwitchClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12822,11 +13637,6 @@ impl std::fmt::Display for MAssignmentExpression {
     }
 }
 impl std::fmt::Display for MBinaryExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
-impl std::fmt::Display for MSqlConcatenationExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -12906,11 +13716,6 @@ impl std::fmt::Display for MConstantExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
-impl std::fmt::Display for MTemplateExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
 impl std::fmt::Display for MConstructorClassMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12946,11 +13751,6 @@ impl std::fmt::Display for MDirective {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
-impl std::fmt::Display for MExtendedBinding {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
 impl std::fmt::Display for MElseClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -12967,6 +13767,11 @@ impl std::fmt::Display for MExpressionSnipped {
     }
 }
 impl std::fmt::Display for MExpressionStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MExtendedBinding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -13087,11 +13892,6 @@ impl std::fmt::Display for MLogicalExpression {
     }
 }
 impl std::fmt::Display for MLongStringLiteralExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
-impl std::fmt::Display for MSqlLongStringLiteralExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -13226,6 +14026,21 @@ impl std::fmt::Display for MSpread {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for MSqlConcatenationExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MSqlLongStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MSqlStringLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for MStaticMemberAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -13241,17 +14056,17 @@ impl std::fmt::Display for MStringLiteralExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
-impl std::fmt::Display for MSqlStringLiteralExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
 impl std::fmt::Display for MSuperExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
 impl std::fmt::Display for MSwitchStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MTemplateExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -13358,12 +14173,12 @@ impl std::fmt::Debug for MBogus {
     }
 }
 impl From<MBogus> for SyntaxNode {
-    fn from(n: MBogus) -> SyntaxNode {
+    fn from(n: MBogus) -> Self {
         n.syntax
     }
 }
 impl From<MBogus> for SyntaxElement {
-    fn from(n: MBogus) -> SyntaxElement {
+    fn from(n: MBogus) -> Self {
         n.syntax.into()
     }
 }
@@ -13414,12 +14229,12 @@ impl std::fmt::Debug for MBogusAssignment {
     }
 }
 impl From<MBogusAssignment> for SyntaxNode {
-    fn from(n: MBogusAssignment) -> SyntaxNode {
+    fn from(n: MBogusAssignment) -> Self {
         n.syntax
     }
 }
 impl From<MBogusAssignment> for SyntaxElement {
-    fn from(n: MBogusAssignment) -> SyntaxElement {
+    fn from(n: MBogusAssignment) -> Self {
         n.syntax.into()
     }
 }
@@ -13470,12 +14285,12 @@ impl std::fmt::Debug for MBogusBinding {
     }
 }
 impl From<MBogusBinding> for SyntaxNode {
-    fn from(n: MBogusBinding) -> SyntaxNode {
+    fn from(n: MBogusBinding) -> Self {
         n.syntax
     }
 }
 impl From<MBogusBinding> for SyntaxElement {
-    fn from(n: MBogusBinding) -> SyntaxElement {
+    fn from(n: MBogusBinding) -> Self {
         n.syntax.into()
     }
 }
@@ -13526,12 +14341,12 @@ impl std::fmt::Debug for MBogusExpression {
     }
 }
 impl From<MBogusExpression> for SyntaxNode {
-    fn from(n: MBogusExpression) -> SyntaxNode {
+    fn from(n: MBogusExpression) -> Self {
         n.syntax
     }
 }
 impl From<MBogusExpression> for SyntaxElement {
-    fn from(n: MBogusExpression) -> SyntaxElement {
+    fn from(n: MBogusExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -13582,12 +14397,12 @@ impl std::fmt::Debug for MBogusMember {
     }
 }
 impl From<MBogusMember> for SyntaxNode {
-    fn from(n: MBogusMember) -> SyntaxNode {
+    fn from(n: MBogusMember) -> Self {
         n.syntax
     }
 }
 impl From<MBogusMember> for SyntaxElement {
-    fn from(n: MBogusMember) -> SyntaxElement {
+    fn from(n: MBogusMember) -> Self {
         n.syntax.into()
     }
 }
@@ -13638,12 +14453,12 @@ impl std::fmt::Debug for MBogusParameter {
     }
 }
 impl From<MBogusParameter> for SyntaxNode {
-    fn from(n: MBogusParameter) -> SyntaxNode {
+    fn from(n: MBogusParameter) -> Self {
         n.syntax
     }
 }
 impl From<MBogusParameter> for SyntaxElement {
-    fn from(n: MBogusParameter) -> SyntaxElement {
+    fn from(n: MBogusParameter) -> Self {
         n.syntax.into()
     }
 }
@@ -13694,15 +14509,16 @@ impl std::fmt::Debug for MBogusStatement {
     }
 }
 impl From<MBogusStatement> for SyntaxNode {
-    fn from(n: MBogusStatement) -> SyntaxNode {
+    fn from(n: MBogusStatement) -> Self {
         n.syntax
     }
 }
 impl From<MBogusStatement> for SyntaxElement {
-    fn from(n: MBogusStatement) -> SyntaxElement {
+    fn from(n: MBogusStatement) -> Self {
         n.syntax.into()
     }
 }
+biome_rowan::declare_node_union! { pub AnyMBogusNode = MBogus | MBogusAssignment | MBogusBinding | MBogusExpression | MBogusMember | MBogusParameter | MBogusStatement }
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct MAnnotationAttributeList {
     syntax_list: SyntaxList,
@@ -13727,9 +14543,9 @@ impl AstNode for MAnnotationAttributeList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_ANNOTATION_ATTRIBUTE_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MAnnotationAttributeList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MAnnotationAttributeList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -13809,9 +14625,9 @@ impl AstNode for MAnnotationGroupList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_ANNOTATION_GROUP_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MAnnotationGroupList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MAnnotationGroupList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -13891,9 +14707,9 @@ impl AstNode for MAnnotationList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_ANNOTATION_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MAnnotationList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MAnnotationList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -13973,9 +14789,9 @@ impl AstNode for MArrayElementList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_ARRAY_ELEMENT_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MArrayElementList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MArrayElementList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14055,9 +14871,9 @@ impl AstNode for MCallArgumentList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_CALL_ARGUMENT_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MCallArgumentList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MCallArgumentList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14137,9 +14953,9 @@ impl AstNode for MClassMemberList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_CLASS_MEMBER_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MClassMemberList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MClassMemberList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14219,9 +15035,9 @@ impl AstNode for MConstructorParameterList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_CONSTRUCTOR_PARAMETER_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MConstructorParameterList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MConstructorParameterList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14301,9 +15117,9 @@ impl AstNode for MDirectiveList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_DIRECTIVE_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MDirectiveList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MDirectiveList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14383,9 +15199,9 @@ impl AstNode for MHashMapMemberList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_HASH_MAP_MEMBER_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MHashMapMemberList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MHashMapMemberList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14465,9 +15281,9 @@ impl AstNode for MHashSetElementList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_HASH_SET_ELEMENT_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MHashSetElementList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MHashSetElementList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14547,9 +15363,9 @@ impl AstNode for MModuleItemList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_MODULE_ITEM_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MModuleItemList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MModuleItemList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14629,9 +15445,9 @@ impl AstNode for MObjectMemberList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_OBJECT_MEMBER_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MObjectMemberList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MObjectMemberList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -14711,9 +15527,9 @@ impl AstNode for MParameterList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_PARAMETER_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MParameterList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MParameterList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -15039,9 +15855,9 @@ impl AstNode for MStatementList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_STATEMENT_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MStatementList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MStatementList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -15121,9 +15937,9 @@ impl AstNode for MSwitchCaseList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_SWITCH_CASE_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MSwitchCaseList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MSwitchCaseList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {
@@ -15203,9 +16019,9 @@ impl AstNode for MVariableDeclaratorList {
     fn can_cast(kind: SyntaxKind) -> bool {
         kind == M_VARIABLE_DECLARATOR_LIST
     }
-    fn cast(syntax: SyntaxNode) -> Option<MVariableDeclaratorList> {
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
-            Some(MVariableDeclaratorList {
+            Some(Self {
                 syntax_list: syntax.into_list(),
             })
         } else {

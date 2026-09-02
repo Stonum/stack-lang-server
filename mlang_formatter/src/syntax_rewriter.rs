@@ -382,7 +382,7 @@ impl MFormatSyntaxRewriter {
                     {
                         logical
                             .with_left(new_left)
-                            .with_operator_token_token(new_operator)
+                            .with_operator_token(new_operator)
                             .with_right(new_right)
                             .into()
                     } else {
