@@ -587,6 +587,8 @@ AnyMAssignment =
 	| MStaticMemberAssignment
 	| MParenthesizedAssignment
 	| MComputedMemberAssignment
+	| MArrayAssignmentPattern
+	| MObjectAssignmentPattern
 	| MBogusAssignment
 
 // (a) = "test"
@@ -615,6 +617,64 @@ MComputedMemberAssignment =
 	'['
 	member: AnyMExpression
 	']'
+
+///////////////
+// DESTRUCTURING ASSIGNMENT TARGETS
+///////////////
+
+// @[a, b] = arr
+// @[a, ...rest] = arr
+// @[a, _, b] = arr
+MArrayAssignmentPattern =
+	'@''['
+	elements: MArrayAssignmentPatternElementList
+	']'
+
+MArrayAssignmentPatternElementList = (AnyMArrayAssignmentPatternElement (',' AnyMArrayAssignmentPatternElement)* ','?)
+
+AnyMArrayAssignmentPatternElement =
+	AnyMAssignment
+	| MArrayAssignmentPatternRestElement
+	| MArrayHole
+
+// @[a, ...rest] = arr
+//        ^^^^^^
+MArrayAssignmentPatternRestElement =
+	'...'
+	pattern: AnyMAssignment
+
+// @{a, b} = obj
+// @{a: x, b: y} = obj
+// @{a, ...rest} = obj
+MObjectAssignmentPattern =
+	'@''{'
+	members: MObjectAssignmentPatternPropertyList
+	'}'
+
+MObjectAssignmentPatternPropertyList = (AnyMObjectAssignmentPatternMember (',' AnyMObjectAssignmentPatternMember)* ','?)
+
+AnyMObjectAssignmentPatternMember =
+	MObjectAssignmentPatternProperty
+	| MObjectAssignmentPatternShorthandProperty
+	| MObjectAssignmentPatternRest
+	| MBogusAssignment
+
+// @{a: x} = obj
+//   ^^^^
+MObjectAssignmentPatternProperty =
+	member: AnyMObjectMemberName
+	':'
+	pattern: AnyMAssignment
+
+// @{a} = obj
+//   ^
+MObjectAssignmentPatternShorthandProperty = identifier: MReferenceIdentifier
+
+// @{a, ...rest} = obj
+//        ^^^^^^
+MObjectAssignmentPatternRest =
+	'...'
+	target: AnyMAssignment
 
 ///////////////
 // BINDINGS

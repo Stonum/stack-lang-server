@@ -1,5 +1,6 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
+pub(crate) mod array_assignment_pattern_element;
 pub(crate) mod array_element;
 pub(crate) mod assignment;
 pub(crate) mod binding;
@@ -15,6 +16,7 @@ pub(crate) mod formal_parameter;
 pub(crate) mod function;
 pub(crate) mod function_body;
 pub(crate) mod literal_expression;
+pub(crate) mod object_assignment_pattern_member;
 pub(crate) mod object_member;
 pub(crate) mod object_member_name;
 pub(crate) mod parameter;

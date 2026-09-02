@@ -582,6 +582,98 @@ fn test_use_instanceof_keyword() {
 }
 
 #[test]
+fn test_array_destructuring_assignment() {
+    let res = parse(
+        r#"
+            myarr = @[10, 15, 20];
+            @[a, b, c] = myarr;
+            @[a] = myarr;
+            @[a, _, c] = myarr;
+            @[_, _, a, _, b] = myarr;
+            @[a, ...rest] = myarr;
+            @[a, b, _, _, c, _, d, ...e] = myarr;
+            @[] = myarr;
+            @[a.b, c[0]] = myarr;
+            @[a, b] = @[b, a];
+        "#,
+        MFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_object_destructuring_assignment() {
+    let res = parse(
+        r#"
+            myobj = @{a: 10, b: 15};
+            @{a, b} = myobj;
+            @{b: thisY, a: thisX} = myobj;
+            @{y: thisY, A, ...s} = myobj;
+            @{...s} = myobj;
+            @{} = myobj;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_err_array_destructuring_assignment_rest_not_last() {
+    let res = parse(
+        r#"
+            @[a, ...rest, other] = arr;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+
+    let res = parse(
+        r#"
+            @[a, ...rest,] = arr;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_err_object_destructuring_assignment_rest_not_last() {
+    let res = parse(
+        r#"
+            @{...rest, other} = obj;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+
+    let res = parse(
+        r#"
+            @{...rest,} = obj;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_err_object_destructuring_assignment_nested_pattern_rest() {
+    let res = parse(
+        r#"
+            @{...@{a, b}} = obj;
+        "#,
+        MFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
 fn test_use_classof_keyword() {
     let res = parse(
         r#"

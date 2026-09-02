@@ -3,7 +3,7 @@ use crate::prelude::*;
 use super::context::trailing_commas::FormatTrailingCommas;
 use biome_formatter::write;
 use biome_rowan::{AstNode, AstSeparatedList};
-use mlang_syntax::{AnyMArrayElement, MLanguage};
+use mlang_syntax::{AnyMArrayAssignmentPatternElement, AnyMArrayElement, MLanguage};
 
 /// Utility function to print array-like nodes (array expressions, array bindings and assignment patterns)
 pub(crate) fn write_array_node<N, I>(node: &N, f: &mut MFormatter) -> FormatResult<()>
@@ -24,6 +24,7 @@ where
         let node = element.node()?;
         let separator_mode = node.separator_mode();
 
+        let is_disallow = matches!(separator_mode, TrailingSeparatorMode::Disallow);
         let is_force = matches!(separator_mode, TrailingSeparatorMode::Force);
 
         join.entry(
@@ -31,7 +32,12 @@ where
             &format_with(|f| {
                 write!(f, [group(&node.format())])?;
 
-                if is_force || index != last_index {
+                if is_disallow {
+                    // Trailing separators are disallowed, replace it with an empty element
+                    if let Some(separator) = element.trailing_separator()? {
+                        write!(f, [format_removed(separator)])?;
+                    }
+                } else if is_force || index != last_index {
                     // In forced separator mode or if this element is not the last in the list, print the separator
                     match element.trailing_separator()? {
                         Some(trailing) => write!(f, [trailing.format()])?,
@@ -60,6 +66,8 @@ where
 
 /// Determines if a trailing separator should be inserted after an array element
 pub(crate) enum TrailingSeparatorMode {
+    /// Trailing separators are not allowed after this element (eg. rest elements)
+    Disallow,
     /// Trailing separators are inserted after this element except if its the
     /// last element and the group is not breaking
     Auto,
@@ -76,6 +84,16 @@ impl ArrayNodeElement for AnyMArrayElement {
     fn separator_mode(&self) -> TrailingSeparatorMode {
         match self {
             Self::MArrayHole(_) => TrailingSeparatorMode::Force,
+            _ => TrailingSeparatorMode::Auto,
+        }
+    }
+}
+
+impl ArrayNodeElement for AnyMArrayAssignmentPatternElement {
+    fn separator_mode(&self) -> TrailingSeparatorMode {
+        match self {
+            Self::MArrayHole(_) => TrailingSeparatorMode::Force,
+            Self::MArrayAssignmentPatternRestElement(_) => TrailingSeparatorMode::Disallow,
             _ => TrailingSeparatorMode::Auto,
         }
     }

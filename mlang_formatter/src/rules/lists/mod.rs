@@ -3,6 +3,7 @@
 pub(crate) mod annotation_attribute_list;
 pub(crate) mod annotation_group_list;
 pub(crate) mod annotation_list;
+pub(crate) mod array_assignment_pattern_element_list;
 pub(crate) mod array_element_list;
 pub(crate) mod call_argument_list;
 pub(crate) mod class_member_list;
@@ -11,6 +12,7 @@ pub(crate) mod directive_list;
 pub(crate) mod hash_map_member_list;
 pub(crate) mod hash_set_member_list;
 pub(crate) mod module_item_list;
+pub(crate) mod object_assignment_pattern_property_list;
 pub(crate) mod object_member_list;
 pub(crate) mod parameter_list;
 pub(crate) mod report_init_list;

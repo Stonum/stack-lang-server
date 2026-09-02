@@ -1,6 +1,6 @@
 use crate::{
-    AnyMAssignment, MComputedMemberAssignment, MIdentifierAssignment, MStaticMemberAssignment,
-    parentheses::NeedsParentheses,
+    AnyMAssignment, MArrayAssignmentPattern, MComputedMemberAssignment, MIdentifierAssignment,
+    MObjectAssignmentPattern, MStaticMemberAssignment, parentheses::NeedsParentheses,
 };
 
 impl NeedsParentheses for AnyMAssignment {
@@ -10,8 +10,24 @@ impl NeedsParentheses for AnyMAssignment {
             Self::MComputedMemberAssignment(assignment) => assignment.needs_parentheses(),
             Self::MIdentifierAssignment(assignment) => assignment.needs_parentheses(),
             Self::MStaticMemberAssignment(assignment) => assignment.needs_parentheses(),
+            Self::MArrayAssignmentPattern(assignment) => assignment.needs_parentheses(),
+            Self::MObjectAssignmentPattern(assignment) => assignment.needs_parentheses(),
             Self::MParenthesizedAssignment(_) | Self::MBogusAssignment(_) => false,
         }
+    }
+}
+
+impl NeedsParentheses for MArrayAssignmentPattern {
+    #[inline]
+    fn needs_parentheses(&self) -> bool {
+        false
+    }
+}
+
+impl NeedsParentheses for MObjectAssignmentPattern {
+    #[inline]
+    fn needs_parentheses(&self) -> bool {
+        false
     }
 }
 

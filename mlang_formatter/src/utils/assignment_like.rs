@@ -8,7 +8,8 @@ use biome_rowan::{AstNode, SyntaxNodeOptionExt, SyntaxResult, declare_node_union
 use mlang_syntax::binary_like_expression::AnyMBinaryLikeExpression;
 use mlang_syntax::{
     AnyMAssignment, AnyMCallArgument, AnyMExpression, MAssignmentExpression, MInitializerClause,
-    MPropertyObjectMember, MSyntaxKind, MSyntaxToken, MVariableDeclarator,
+    MObjectAssignmentPatternProperty, MPropertyObjectMember, MSyntaxKind, MSyntaxToken,
+    MVariableDeclarator,
 };
 use mlang_syntax::{AnyMLiteralExpression, MUnaryExpression};
 use std::iter;
@@ -17,6 +18,7 @@ declare_node_union! {
     pub(crate) AnyMAssignmentLike =
         MPropertyObjectMember |
         MAssignmentExpression |
+        MObjectAssignmentPatternProperty |
         MVariableDeclarator
 }
 
@@ -155,6 +157,9 @@ impl AnyMAssignmentLike {
         let right = match self {
             AnyMAssignmentLike::MPropertyObjectMember(property) => property.value()?.into(),
             AnyMAssignmentLike::MAssignmentExpression(assignment) => assignment.right()?.into(),
+            AnyMAssignmentLike::MObjectAssignmentPatternProperty(property) => {
+                property.pattern()?.into()
+            }
             AnyMAssignmentLike::MVariableDeclarator(variable_declarator) => {
                 // SAFETY: Calling `unwrap` here is safe because we check `has_only_left_hand_side` variant at the beginning of the `layout` function
                 variable_declarator.initializer().unwrap().into()
@@ -186,6 +191,21 @@ impl AnyMAssignmentLike {
                 write!(f, [&left.format()])?;
                 Ok(false)
             }
+            AnyMAssignmentLike::MObjectAssignmentPatternProperty(property) => {
+                let member = property.member()?;
+
+                // It's safe to mark the name as checked here because it is at the beginning of the property
+                // and any suppression comment that would apply to the name applies to the property too and is,
+                // thus, handled on the property level.
+                f.context()
+                    .comments()
+                    .mark_suppression_checked(member.syntax());
+
+                let width = write_member_name(&member, f)?;
+                let text_width_for_break =
+                    (u8::from(f.options().tab_width()) + MIN_OVERLAP_FOR_BREAK) as usize;
+                Ok(width < text_width_for_break)
+            }
             AnyMAssignmentLike::MVariableDeclarator(variable_declarator) => {
                 let id = variable_declarator.id()?;
                 write!(f, [id.format()])?;
@@ -203,6 +223,10 @@ impl AnyMAssignmentLike {
             AnyMAssignmentLike::MAssignmentExpression(assignment) => {
                 let operator_token = assignment.operator_token()?;
                 write!(f, [space(), operator_token.format()])
+            }
+            AnyMAssignmentLike::MObjectAssignmentPatternProperty(property) => {
+                let colon_token = property.colon_token()?;
+                write!(f, [colon_token.format()])
             }
             AnyMAssignmentLike::MVariableDeclarator(variable_declarator) => {
                 if let Some(initializer) = variable_declarator.initializer() {
@@ -223,6 +247,10 @@ impl AnyMAssignmentLike {
             AnyMAssignmentLike::MAssignmentExpression(assignment) => {
                 let right = assignment.right()?;
                 write!(f, [space(), with_assignment_layout(&right)])
+            }
+            AnyMAssignmentLike::MObjectAssignmentPatternProperty(property) => {
+                let pattern = property.pattern()?;
+                write!(f, [pattern.format()])
             }
             AnyMAssignmentLike::MVariableDeclarator(variable_declarator) => {
                 if let Some(initializer) = variable_declarator.initializer() {
@@ -249,7 +277,8 @@ impl AnyMAssignmentLike {
             }
 
             AnyMAssignmentLike::MPropertyObjectMember(_)
-            | AnyMAssignmentLike::MAssignmentExpression(_) => {
+            | AnyMAssignmentLike::MAssignmentExpression(_)
+            | AnyMAssignmentLike::MObjectAssignmentPatternProperty(_) => {
                 unreachable!("These variants have no initializer")
             }
         };

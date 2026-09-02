@@ -198,6 +198,96 @@ pub struct MAnnotationGroupFields {
     pub r_brack_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MArrayAssignmentPattern {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MArrayAssignmentPattern {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MArrayAssignmentPatternFields {
+        MArrayAssignmentPatternFields {
+            at_token: self.at_token(),
+            l_brack_token: self.l_brack_token(),
+            elements: self.elements(),
+            r_brack_token: self.r_brack_token(),
+        }
+    }
+    pub fn at_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn elements(&self) -> MArrayAssignmentPatternElementList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_brack_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for MArrayAssignmentPattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MArrayAssignmentPatternFields {
+    pub at_token: SyntaxResult<SyntaxToken>,
+    pub l_brack_token: SyntaxResult<SyntaxToken>,
+    pub elements: MArrayAssignmentPatternElementList,
+    pub r_brack_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MArrayAssignmentPatternRestElement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MArrayAssignmentPatternRestElement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MArrayAssignmentPatternRestElementFields {
+        MArrayAssignmentPatternRestElementFields {
+            dotdotdot_token: self.dotdotdot_token(),
+            pattern: self.pattern(),
+        }
+    }
+    pub fn dotdotdot_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn pattern(&self) -> SyntaxResult<AnyMAssignment> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for MArrayAssignmentPatternRestElement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MArrayAssignmentPatternRestElementFields {
+    pub dotdotdot_token: SyntaxResult<SyntaxToken>,
+    pub pattern: SyntaxResult<AnyMAssignment>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MArrayExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2949,6 +3039,176 @@ pub struct MNumberLiteralExpressionFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MObjectAssignmentPattern {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MObjectAssignmentPattern {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MObjectAssignmentPatternFields {
+        MObjectAssignmentPatternFields {
+            at_token: self.at_token(),
+            l_curly_token: self.l_curly_token(),
+            members: self.members(),
+            r_curly_token: self.r_curly_token(),
+        }
+    }
+    pub fn at_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_curly_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn members(&self) -> MObjectAssignmentPatternPropertyList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_curly_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for MObjectAssignmentPattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MObjectAssignmentPatternFields {
+    pub at_token: SyntaxResult<SyntaxToken>,
+    pub l_curly_token: SyntaxResult<SyntaxToken>,
+    pub members: MObjectAssignmentPatternPropertyList,
+    pub r_curly_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MObjectAssignmentPatternProperty {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MObjectAssignmentPatternProperty {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MObjectAssignmentPatternPropertyFields {
+        MObjectAssignmentPatternPropertyFields {
+            member: self.member(),
+            colon_token: self.colon_token(),
+            pattern: self.pattern(),
+        }
+    }
+    pub fn member(&self) -> SyntaxResult<AnyMObjectMemberName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn colon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn pattern(&self) -> SyntaxResult<AnyMAssignment> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for MObjectAssignmentPatternProperty {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MObjectAssignmentPatternPropertyFields {
+    pub member: SyntaxResult<AnyMObjectMemberName>,
+    pub colon_token: SyntaxResult<SyntaxToken>,
+    pub pattern: SyntaxResult<AnyMAssignment>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MObjectAssignmentPatternRest {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MObjectAssignmentPatternRest {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MObjectAssignmentPatternRestFields {
+        MObjectAssignmentPatternRestFields {
+            dotdotdot_token: self.dotdotdot_token(),
+            target: self.target(),
+        }
+    }
+    pub fn dotdotdot_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn target(&self) -> SyntaxResult<AnyMAssignment> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for MObjectAssignmentPatternRest {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MObjectAssignmentPatternRestFields {
+    pub dotdotdot_token: SyntaxResult<SyntaxToken>,
+    pub target: SyntaxResult<AnyMAssignment>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct MObjectAssignmentPatternShorthandProperty {
+    pub(crate) syntax: SyntaxNode,
+}
+impl MObjectAssignmentPatternShorthandProperty {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> MObjectAssignmentPatternShorthandPropertyFields {
+        MObjectAssignmentPatternShorthandPropertyFields {
+            identifier: self.identifier(),
+        }
+    }
+    pub fn identifier(&self) -> SyntaxResult<MReferenceIdentifier> {
+        support::required_node(&self.syntax, 0usize)
+    }
+}
+impl Serialize for MObjectAssignmentPatternShorthandProperty {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct MObjectAssignmentPatternShorthandPropertyFields {
+    pub identifier: SyntaxResult<MReferenceIdentifier>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MObjectExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4676,6 +4936,34 @@ impl AnyMAnnotationElement {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyMArrayAssignmentPatternElement {
+    AnyMAssignment(AnyMAssignment),
+    MArrayAssignmentPatternRestElement(MArrayAssignmentPatternRestElement),
+    MArrayHole(MArrayHole),
+}
+impl AnyMArrayAssignmentPatternElement {
+    pub fn as_any_m_assignment(&self) -> Option<&AnyMAssignment> {
+        match &self {
+            Self::AnyMAssignment(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_array_assignment_pattern_rest_element(
+        &self,
+    ) -> Option<&MArrayAssignmentPatternRestElement> {
+        match &self {
+            Self::MArrayAssignmentPatternRestElement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_array_hole(&self) -> Option<&MArrayHole> {
+        match &self {
+            Self::MArrayHole(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyMArrayElement {
     AnyMExpression(AnyMExpression),
     MArrayHole(MArrayHole),
@@ -4703,13 +4991,21 @@ impl AnyMArrayElement {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyMAssignment {
+    MArrayAssignmentPattern(MArrayAssignmentPattern),
     MBogusAssignment(MBogusAssignment),
     MComputedMemberAssignment(MComputedMemberAssignment),
     MIdentifierAssignment(MIdentifierAssignment),
+    MObjectAssignmentPattern(MObjectAssignmentPattern),
     MParenthesizedAssignment(MParenthesizedAssignment),
     MStaticMemberAssignment(MStaticMemberAssignment),
 }
 impl AnyMAssignment {
+    pub fn as_m_array_assignment_pattern(&self) -> Option<&MArrayAssignmentPattern> {
+        match &self {
+            Self::MArrayAssignmentPattern(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_m_bogus_assignment(&self) -> Option<&MBogusAssignment> {
         match &self {
             Self::MBogusAssignment(item) => Some(item),
@@ -4725,6 +5021,12 @@ impl AnyMAssignment {
     pub fn as_m_identifier_assignment(&self) -> Option<&MIdentifierAssignment> {
         match &self {
             Self::MIdentifierAssignment(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_object_assignment_pattern(&self) -> Option<&MObjectAssignmentPattern> {
+        match &self {
+            Self::MObjectAssignmentPattern(item) => Some(item),
             _ => None,
         }
     }
@@ -5283,6 +5585,43 @@ impl AnyMLiteralExpression {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyMObjectAssignmentPatternMember {
+    MBogusAssignment(MBogusAssignment),
+    MObjectAssignmentPatternProperty(MObjectAssignmentPatternProperty),
+    MObjectAssignmentPatternRest(MObjectAssignmentPatternRest),
+    MObjectAssignmentPatternShorthandProperty(MObjectAssignmentPatternShorthandProperty),
+}
+impl AnyMObjectAssignmentPatternMember {
+    pub fn as_m_bogus_assignment(&self) -> Option<&MBogusAssignment> {
+        match &self {
+            Self::MBogusAssignment(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_object_assignment_pattern_property(
+        &self,
+    ) -> Option<&MObjectAssignmentPatternProperty> {
+        match &self {
+            Self::MObjectAssignmentPatternProperty(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_object_assignment_pattern_rest(&self) -> Option<&MObjectAssignmentPatternRest> {
+        match &self {
+            Self::MObjectAssignmentPatternRest(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_m_object_assignment_pattern_shorthand_property(
+        &self,
+    ) -> Option<&MObjectAssignmentPatternShorthandProperty> {
+        match &self {
+            Self::MObjectAssignmentPatternShorthandProperty(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyMObjectMember {
     MBogusMember(MBogusMember),
     MPropertyObjectMember(MPropertyObjectMember),
@@ -5793,6 +6132,115 @@ impl From<MAnnotationGroup> for SyntaxNode {
 }
 impl From<MAnnotationGroup> for SyntaxElement {
     fn from(n: MAnnotationGroup) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MArrayAssignmentPattern {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_ARRAY_ASSIGNMENT_PATTERN as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_ARRAY_ASSIGNMENT_PATTERN
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MArrayAssignmentPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MArrayAssignmentPattern")
+                .field("at_token", &support::DebugSyntaxResult(self.at_token()))
+                .field(
+                    "l_brack_token",
+                    &support::DebugSyntaxResult(self.l_brack_token()),
+                )
+                .field("elements", &self.elements())
+                .field(
+                    "r_brack_token",
+                    &support::DebugSyntaxResult(self.r_brack_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MArrayAssignmentPattern").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MArrayAssignmentPattern> for SyntaxNode {
+    fn from(n: MArrayAssignmentPattern) -> Self {
+        n.syntax
+    }
+}
+impl From<MArrayAssignmentPattern> for SyntaxElement {
+    fn from(n: MArrayAssignmentPattern) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MArrayAssignmentPatternRestElement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SyntaxKindSet::from_raw(RawSyntaxKind(
+        M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT as u16,
+    ));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MArrayAssignmentPatternRestElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MArrayAssignmentPatternRestElement")
+                .field(
+                    "dotdotdot_token",
+                    &support::DebugSyntaxResult(self.dotdotdot_token()),
+                )
+                .field("pattern", &support::DebugSyntaxResult(self.pattern()))
+                .finish()
+        } else {
+            f.debug_struct("MArrayAssignmentPatternRestElement")
+                .finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MArrayAssignmentPatternRestElement> for SyntaxNode {
+    fn from(n: MArrayAssignmentPatternRestElement) -> Self {
+        n.syntax
+    }
+}
+impl From<MArrayAssignmentPatternRestElement> for SyntaxElement {
+    fn from(n: MArrayAssignmentPatternRestElement) -> Self {
         n.syntax.into()
     }
 }
@@ -9040,6 +9488,214 @@ impl From<MNumberLiteralExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for MObjectAssignmentPattern {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_OBJECT_ASSIGNMENT_PATTERN as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_OBJECT_ASSIGNMENT_PATTERN
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MObjectAssignmentPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MObjectAssignmentPattern")
+                .field("at_token", &support::DebugSyntaxResult(self.at_token()))
+                .field(
+                    "l_curly_token",
+                    &support::DebugSyntaxResult(self.l_curly_token()),
+                )
+                .field("members", &self.members())
+                .field(
+                    "r_curly_token",
+                    &support::DebugSyntaxResult(self.r_curly_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("MObjectAssignmentPattern").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MObjectAssignmentPattern> for SyntaxNode {
+    fn from(n: MObjectAssignmentPattern) -> Self {
+        n.syntax
+    }
+}
+impl From<MObjectAssignmentPattern> for SyntaxElement {
+    fn from(n: MObjectAssignmentPattern) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MObjectAssignmentPatternProperty {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MObjectAssignmentPatternProperty {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MObjectAssignmentPatternProperty")
+                .field("member", &support::DebugSyntaxResult(self.member()))
+                .field(
+                    "colon_token",
+                    &support::DebugSyntaxResult(self.colon_token()),
+                )
+                .field("pattern", &support::DebugSyntaxResult(self.pattern()))
+                .finish()
+        } else {
+            f.debug_struct("MObjectAssignmentPatternProperty").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MObjectAssignmentPatternProperty> for SyntaxNode {
+    fn from(n: MObjectAssignmentPatternProperty) -> Self {
+        n.syntax
+    }
+}
+impl From<MObjectAssignmentPatternProperty> for SyntaxElement {
+    fn from(n: MObjectAssignmentPatternProperty) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MObjectAssignmentPatternRest {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(M_OBJECT_ASSIGNMENT_PATTERN_REST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_OBJECT_ASSIGNMENT_PATTERN_REST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MObjectAssignmentPatternRest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MObjectAssignmentPatternRest")
+                .field(
+                    "dotdotdot_token",
+                    &support::DebugSyntaxResult(self.dotdotdot_token()),
+                )
+                .field("target", &support::DebugSyntaxResult(self.target()))
+                .finish()
+        } else {
+            f.debug_struct("MObjectAssignmentPatternRest").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MObjectAssignmentPatternRest> for SyntaxNode {
+    fn from(n: MObjectAssignmentPatternRest) -> Self {
+        n.syntax
+    }
+}
+impl From<MObjectAssignmentPatternRest> for SyntaxElement {
+    fn from(n: MObjectAssignmentPatternRest) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for MObjectAssignmentPatternShorthandProperty {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SyntaxKindSet::from_raw(RawSyntaxKind(
+        M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY as u16,
+    ));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for MObjectAssignmentPatternShorthandProperty {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("MObjectAssignmentPatternShorthandProperty")
+                .field("identifier", &support::DebugSyntaxResult(self.identifier()))
+                .finish()
+        } else {
+            f.debug_struct("MObjectAssignmentPatternShorthandProperty")
+                .finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<MObjectAssignmentPatternShorthandProperty> for SyntaxNode {
+    fn from(n: MObjectAssignmentPatternShorthandProperty) -> Self {
+        n.syntax
+    }
+}
+impl From<MObjectAssignmentPatternShorthandProperty> for SyntaxElement {
+    fn from(n: MObjectAssignmentPatternShorthandProperty) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for MObjectExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11183,6 +11839,84 @@ impl From<AnyMAnnotationElement> for SyntaxElement {
         node.into()
     }
 }
+impl From<MArrayAssignmentPatternRestElement> for AnyMArrayAssignmentPatternElement {
+    fn from(node: MArrayAssignmentPatternRestElement) -> Self {
+        Self::MArrayAssignmentPatternRestElement(node)
+    }
+}
+impl From<MArrayHole> for AnyMArrayAssignmentPatternElement {
+    fn from(node: MArrayHole) -> Self {
+        Self::MArrayHole(node)
+    }
+}
+impl AstNode for AnyMArrayAssignmentPatternElement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = AnyMAssignment::KIND_SET
+        .union(MArrayAssignmentPatternRestElement::KIND_SET)
+        .union(MArrayHole::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        match kind {
+            M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT | M_ARRAY_HOLE => true,
+            k if AnyMAssignment::can_cast(k) => true,
+            _ => false,
+        }
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT => {
+                Self::MArrayAssignmentPatternRestElement(MArrayAssignmentPatternRestElement {
+                    syntax,
+                })
+            }
+            M_ARRAY_HOLE => Self::MArrayHole(MArrayHole { syntax }),
+            _ => {
+                if let Some(any_m_assignment) = AnyMAssignment::cast(syntax) {
+                    return Some(Self::AnyMAssignment(any_m_assignment));
+                }
+                return None;
+            }
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::MArrayAssignmentPatternRestElement(it) => &it.syntax,
+            Self::MArrayHole(it) => &it.syntax,
+            Self::AnyMAssignment(it) => it.syntax(),
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::MArrayAssignmentPatternRestElement(it) => it.syntax,
+            Self::MArrayHole(it) => it.syntax,
+            Self::AnyMAssignment(it) => it.into_syntax(),
+        }
+    }
+}
+impl std::fmt::Debug for AnyMArrayAssignmentPatternElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AnyMAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MArrayAssignmentPatternRestElement(it) => std::fmt::Debug::fmt(it, f),
+            Self::MArrayHole(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyMArrayAssignmentPatternElement> for SyntaxNode {
+    fn from(n: AnyMArrayAssignmentPatternElement) -> Self {
+        match n {
+            AnyMArrayAssignmentPatternElement::AnyMAssignment(it) => it.into(),
+            AnyMArrayAssignmentPatternElement::MArrayAssignmentPatternRestElement(it) => it.into(),
+            AnyMArrayAssignmentPatternElement::MArrayHole(it) => it.into(),
+        }
+    }
+}
+impl From<AnyMArrayAssignmentPatternElement> for SyntaxElement {
+    fn from(n: AnyMArrayAssignmentPatternElement) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<MArrayHole> for AnyMArrayElement {
     fn from(node: MArrayHole) -> Self {
         Self::MArrayHole(node)
@@ -11257,6 +11991,11 @@ impl From<AnyMArrayElement> for SyntaxElement {
         node.into()
     }
 }
+impl From<MArrayAssignmentPattern> for AnyMAssignment {
+    fn from(node: MArrayAssignmentPattern) -> Self {
+        Self::MArrayAssignmentPattern(node)
+    }
+}
 impl From<MBogusAssignment> for AnyMAssignment {
     fn from(node: MBogusAssignment) -> Self {
         Self::MBogusAssignment(node)
@@ -11272,6 +12011,11 @@ impl From<MIdentifierAssignment> for AnyMAssignment {
         Self::MIdentifierAssignment(node)
     }
 }
+impl From<MObjectAssignmentPattern> for AnyMAssignment {
+    fn from(node: MObjectAssignmentPattern) -> Self {
+        Self::MObjectAssignmentPattern(node)
+    }
+}
 impl From<MParenthesizedAssignment> for AnyMAssignment {
     fn from(node: MParenthesizedAssignment) -> Self {
         Self::MParenthesizedAssignment(node)
@@ -11284,29 +12028,39 @@ impl From<MStaticMemberAssignment> for AnyMAssignment {
 }
 impl AstNode for AnyMAssignment {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = MBogusAssignment::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = MArrayAssignmentPattern::KIND_SET
+        .union(MBogusAssignment::KIND_SET)
         .union(MComputedMemberAssignment::KIND_SET)
         .union(MIdentifierAssignment::KIND_SET)
+        .union(MObjectAssignmentPattern::KIND_SET)
         .union(MParenthesizedAssignment::KIND_SET)
         .union(MStaticMemberAssignment::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            M_BOGUS_ASSIGNMENT
+            M_ARRAY_ASSIGNMENT_PATTERN
+                | M_BOGUS_ASSIGNMENT
                 | M_COMPUTED_MEMBER_ASSIGNMENT
                 | M_IDENTIFIER_ASSIGNMENT
+                | M_OBJECT_ASSIGNMENT_PATTERN
                 | M_PARENTHESIZED_ASSIGNMENT
                 | M_STATIC_MEMBER_ASSIGNMENT
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            M_ARRAY_ASSIGNMENT_PATTERN => {
+                Self::MArrayAssignmentPattern(MArrayAssignmentPattern { syntax })
+            }
             M_BOGUS_ASSIGNMENT => Self::MBogusAssignment(MBogusAssignment { syntax }),
             M_COMPUTED_MEMBER_ASSIGNMENT => {
                 Self::MComputedMemberAssignment(MComputedMemberAssignment { syntax })
             }
             M_IDENTIFIER_ASSIGNMENT => {
                 Self::MIdentifierAssignment(MIdentifierAssignment { syntax })
+            }
+            M_OBJECT_ASSIGNMENT_PATTERN => {
+                Self::MObjectAssignmentPattern(MObjectAssignmentPattern { syntax })
             }
             M_PARENTHESIZED_ASSIGNMENT => {
                 Self::MParenthesizedAssignment(MParenthesizedAssignment { syntax })
@@ -11320,18 +12074,22 @@ impl AstNode for AnyMAssignment {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::MArrayAssignmentPattern(it) => &it.syntax,
             Self::MBogusAssignment(it) => &it.syntax,
             Self::MComputedMemberAssignment(it) => &it.syntax,
             Self::MIdentifierAssignment(it) => &it.syntax,
+            Self::MObjectAssignmentPattern(it) => &it.syntax,
             Self::MParenthesizedAssignment(it) => &it.syntax,
             Self::MStaticMemberAssignment(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::MArrayAssignmentPattern(it) => it.syntax,
             Self::MBogusAssignment(it) => it.syntax,
             Self::MComputedMemberAssignment(it) => it.syntax,
             Self::MIdentifierAssignment(it) => it.syntax,
+            Self::MObjectAssignmentPattern(it) => it.syntax,
             Self::MParenthesizedAssignment(it) => it.syntax,
             Self::MStaticMemberAssignment(it) => it.syntax,
         }
@@ -11340,9 +12098,11 @@ impl AstNode for AnyMAssignment {
 impl std::fmt::Debug for AnyMAssignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::MArrayAssignmentPattern(it) => std::fmt::Debug::fmt(it, f),
             Self::MBogusAssignment(it) => std::fmt::Debug::fmt(it, f),
             Self::MComputedMemberAssignment(it) => std::fmt::Debug::fmt(it, f),
             Self::MIdentifierAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MObjectAssignmentPattern(it) => std::fmt::Debug::fmt(it, f),
             Self::MParenthesizedAssignment(it) => std::fmt::Debug::fmt(it, f),
             Self::MStaticMemberAssignment(it) => std::fmt::Debug::fmt(it, f),
         }
@@ -11351,9 +12111,11 @@ impl std::fmt::Debug for AnyMAssignment {
 impl From<AnyMAssignment> for SyntaxNode {
     fn from(n: AnyMAssignment) -> Self {
         match n {
+            AnyMAssignment::MArrayAssignmentPattern(it) => it.into(),
             AnyMAssignment::MBogusAssignment(it) => it.into(),
             AnyMAssignment::MComputedMemberAssignment(it) => it.into(),
             AnyMAssignment::MIdentifierAssignment(it) => it.into(),
+            AnyMAssignment::MObjectAssignmentPattern(it) => it.into(),
             AnyMAssignment::MParenthesizedAssignment(it) => it.into(),
             AnyMAssignment::MStaticMemberAssignment(it) => it.into(),
         }
@@ -12746,6 +13508,104 @@ impl From<AnyMLiteralExpression> for SyntaxElement {
         node.into()
     }
 }
+impl From<MBogusAssignment> for AnyMObjectAssignmentPatternMember {
+    fn from(node: MBogusAssignment) -> Self {
+        Self::MBogusAssignment(node)
+    }
+}
+impl From<MObjectAssignmentPatternProperty> for AnyMObjectAssignmentPatternMember {
+    fn from(node: MObjectAssignmentPatternProperty) -> Self {
+        Self::MObjectAssignmentPatternProperty(node)
+    }
+}
+impl From<MObjectAssignmentPatternRest> for AnyMObjectAssignmentPatternMember {
+    fn from(node: MObjectAssignmentPatternRest) -> Self {
+        Self::MObjectAssignmentPatternRest(node)
+    }
+}
+impl From<MObjectAssignmentPatternShorthandProperty> for AnyMObjectAssignmentPatternMember {
+    fn from(node: MObjectAssignmentPatternShorthandProperty) -> Self {
+        Self::MObjectAssignmentPatternShorthandProperty(node)
+    }
+}
+impl AstNode for AnyMObjectAssignmentPatternMember {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = MBogusAssignment::KIND_SET
+        .union(MObjectAssignmentPatternProperty::KIND_SET)
+        .union(MObjectAssignmentPatternRest::KIND_SET)
+        .union(MObjectAssignmentPatternShorthandProperty::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            M_BOGUS_ASSIGNMENT
+                | M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY
+                | M_OBJECT_ASSIGNMENT_PATTERN_REST
+                | M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            M_BOGUS_ASSIGNMENT => Self::MBogusAssignment(MBogusAssignment { syntax }),
+            M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY => {
+                Self::MObjectAssignmentPatternProperty(MObjectAssignmentPatternProperty { syntax })
+            }
+            M_OBJECT_ASSIGNMENT_PATTERN_REST => {
+                Self::MObjectAssignmentPatternRest(MObjectAssignmentPatternRest { syntax })
+            }
+            M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY => {
+                Self::MObjectAssignmentPatternShorthandProperty(
+                    MObjectAssignmentPatternShorthandProperty { syntax },
+                )
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::MBogusAssignment(it) => &it.syntax,
+            Self::MObjectAssignmentPatternProperty(it) => &it.syntax,
+            Self::MObjectAssignmentPatternRest(it) => &it.syntax,
+            Self::MObjectAssignmentPatternShorthandProperty(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::MBogusAssignment(it) => it.syntax,
+            Self::MObjectAssignmentPatternProperty(it) => it.syntax,
+            Self::MObjectAssignmentPatternRest(it) => it.syntax,
+            Self::MObjectAssignmentPatternShorthandProperty(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyMObjectAssignmentPatternMember {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MBogusAssignment(it) => std::fmt::Debug::fmt(it, f),
+            Self::MObjectAssignmentPatternProperty(it) => std::fmt::Debug::fmt(it, f),
+            Self::MObjectAssignmentPatternRest(it) => std::fmt::Debug::fmt(it, f),
+            Self::MObjectAssignmentPatternShorthandProperty(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyMObjectAssignmentPatternMember> for SyntaxNode {
+    fn from(n: AnyMObjectAssignmentPatternMember) -> Self {
+        match n {
+            AnyMObjectAssignmentPatternMember::MBogusAssignment(it) => it.into(),
+            AnyMObjectAssignmentPatternMember::MObjectAssignmentPatternProperty(it) => it.into(),
+            AnyMObjectAssignmentPatternMember::MObjectAssignmentPatternRest(it) => it.into(),
+            AnyMObjectAssignmentPatternMember::MObjectAssignmentPatternShorthandProperty(it) => {
+                it.into()
+            }
+        }
+    }
+}
+impl From<AnyMObjectAssignmentPatternMember> for SyntaxElement {
+    fn from(n: AnyMObjectAssignmentPatternMember) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<MBogusMember> for AnyMObjectMember {
     fn from(node: MBogusMember) -> Self {
         Self::MBogusMember(node)
@@ -13486,6 +14346,11 @@ impl std::fmt::Display for AnyMAnnotationElement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyMArrayAssignmentPatternElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyMArrayElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -13566,6 +14431,11 @@ impl std::fmt::Display for AnyMLiteralExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyMObjectAssignmentPatternMember {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyMObjectMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -13617,6 +14487,16 @@ impl std::fmt::Display for MAnnotationElement {
     }
 }
 impl std::fmt::Display for MAnnotationGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MArrayAssignmentPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MArrayAssignmentPatternRestElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -13922,6 +14802,26 @@ impl std::fmt::Display for MNullLiteralExpression {
     }
 }
 impl std::fmt::Display for MNumberLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MObjectAssignmentPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MObjectAssignmentPatternProperty {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MObjectAssignmentPatternRest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for MObjectAssignmentPatternShorthandProperty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -14766,6 +15666,89 @@ impl IntoIterator for &MAnnotationList {
     }
 }
 #[derive(Clone, Eq, PartialEq, Hash)]
+pub struct MArrayAssignmentPatternElementList {
+    syntax_list: SyntaxList,
+}
+impl MArrayAssignmentPatternElementList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for MArrayAssignmentPatternElementList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SyntaxKindSet::from_raw(RawSyntaxKind(
+        M_ARRAY_ASSIGNMENT_PATTERN_ELEMENT_LIST as u16,
+    ));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_ARRAY_ASSIGNMENT_PATTERN_ELEMENT_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for MArrayAssignmentPatternElementList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for MArrayAssignmentPatternElementList {
+    type Language = Language;
+    type Node = AnyMArrayAssignmentPatternElement;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for MArrayAssignmentPatternElementList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("MArrayAssignmentPatternElementList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for MArrayAssignmentPatternElementList {
+    type Item = SyntaxResult<AnyMArrayAssignmentPatternElement>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyMArrayAssignmentPatternElement>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &MArrayAssignmentPatternElementList {
+    type Item = SyntaxResult<AnyMArrayAssignmentPatternElement>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyMArrayAssignmentPatternElement>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct MArrayElementList {
     syntax_list: SyntaxList,
 }
@@ -15417,6 +16400,89 @@ impl IntoIterator for &MModuleItemList {
 impl IntoIterator for MModuleItemList {
     type Item = AnyMStatement;
     type IntoIter = AstNodeListIterator<Language, AnyMStatement>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct MObjectAssignmentPatternPropertyList {
+    syntax_list: SyntaxList,
+}
+impl MObjectAssignmentPatternPropertyList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for MObjectAssignmentPatternPropertyList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SyntaxKindSet::from_raw(RawSyntaxKind(
+        M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY_LIST as u16,
+    ));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for MObjectAssignmentPatternPropertyList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for MObjectAssignmentPatternPropertyList {
+    type Language = Language;
+    type Node = AnyMObjectAssignmentPatternMember;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for MObjectAssignmentPatternPropertyList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("MObjectAssignmentPatternPropertyList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for MObjectAssignmentPatternPropertyList {
+    type Item = SyntaxResult<AnyMObjectAssignmentPatternMember>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyMObjectAssignmentPatternMember>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &MObjectAssignmentPatternPropertyList {
+    type Item = SyntaxResult<AnyMObjectAssignmentPatternMember>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyMObjectAssignmentPatternMember>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

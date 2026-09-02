@@ -32,6 +32,15 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MAnnotationGroup::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_ARRAY_ASSIGNMENT_PATTERN => {
+                    let $pattern = unsafe { $crate::MArrayAssignmentPattern::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT => {
+                    let $pattern =
+                        unsafe { $crate::MArrayAssignmentPatternRestElement::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_ARRAY_EXPRESSION => {
                     let $pattern = unsafe { $crate::MArrayExpression::new_unchecked(node) };
                     $body
@@ -280,6 +289,26 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MNumberLiteralExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN => {
+                    let $pattern = unsafe { $crate::MObjectAssignmentPattern::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY => {
+                    let $pattern =
+                        unsafe { $crate::MObjectAssignmentPatternProperty::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_REST => {
+                    let $pattern =
+                        unsafe { $crate::MObjectAssignmentPatternRest::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY => {
+                    let $pattern = unsafe {
+                        $crate::MObjectAssignmentPatternShorthandProperty::new_unchecked(node)
+                    };
+                    $body
+                }
                 $crate::MSyntaxKind::M_OBJECT_EXPRESSION => {
                     let $pattern = unsafe { $crate::MObjectExpression::new_unchecked(node) };
                     $body
@@ -485,6 +514,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::MAnnotationList::new_unchecked(node) };
                     $body
                 }
+                $crate::MSyntaxKind::M_ARRAY_ASSIGNMENT_PATTERN_ELEMENT_LIST => {
+                    let $pattern =
+                        unsafe { $crate::MArrayAssignmentPatternElementList::new_unchecked(node) };
+                    $body
+                }
                 $crate::MSyntaxKind::M_ARRAY_ELEMENT_LIST => {
                     let $pattern = unsafe { $crate::MArrayElementList::new_unchecked(node) };
                     $body
@@ -516,6 +550,12 @@ macro_rules! map_syntax_node {
                 }
                 $crate::MSyntaxKind::M_MODULE_ITEM_LIST => {
                     let $pattern = unsafe { $crate::MModuleItemList::new_unchecked(node) };
+                    $body
+                }
+                $crate::MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY_LIST => {
+                    let $pattern = unsafe {
+                        $crate::MObjectAssignmentPatternPropertyList::new_unchecked(node)
+                    };
                     $body
                 }
                 $crate::MSyntaxKind::M_OBJECT_MEMBER_LIST => {

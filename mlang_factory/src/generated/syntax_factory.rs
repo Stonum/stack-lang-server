@@ -150,6 +150,72 @@ impl SyntaxFactory for MSyntaxFactory {
                 }
                 slots.into_node(M_ANNOTATION_GROUP, children)
             }
+            M_ARRAY_ASSIGNMENT_PATTERN => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [@]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T!['[']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && MArrayAssignmentPatternElementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![']']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        M_ARRAY_ASSIGNMENT_PATTERN.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(M_ARRAY_ASSIGNMENT_PATTERN, children)
+            }
+            M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [...]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnyMAssignment::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT, children)
+            }
             M_ARRAY_EXPRESSION => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
@@ -2189,6 +2255,124 @@ impl SyntaxFactory for MSyntaxFactory {
                 }
                 slots.into_node(M_NUMBER_LITERAL_EXPRESSION, children)
             }
+            M_OBJECT_ASSIGNMENT_PATTERN => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [@]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T!['{']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && MObjectAssignmentPatternPropertyList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T!['}']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        M_OBJECT_ASSIGNMENT_PATTERN.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(M_OBJECT_ASSIGNMENT_PATTERN, children)
+            }
+            M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && AnyMObjectMemberName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [:]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnyMAssignment::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY, children)
+            }
+            M_OBJECT_ASSIGNMENT_PATTERN_REST => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [...]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnyMAssignment::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        M_OBJECT_ASSIGNMENT_PATTERN_REST.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(M_OBJECT_ASSIGNMENT_PATTERN_REST, children)
+            }
+            M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && MReferenceIdentifier::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY, children)
+            }
             M_OBJECT_EXPRESSION => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
@@ -3394,6 +3578,13 @@ impl SyntaxFactory for MSyntaxFactory {
                 T ! [,],
                 true,
             ),
+            M_ARRAY_ASSIGNMENT_PATTERN_ELEMENT_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                AnyMArrayAssignmentPatternElement::can_cast,
+                T ! [,],
+                true,
+            ),
             M_ARRAY_ELEMENT_LIST => Self::make_separated_list_syntax(
                 kind,
                 children,
@@ -3436,6 +3627,13 @@ impl SyntaxFactory for MSyntaxFactory {
             M_MODULE_ITEM_LIST => {
                 Self::make_node_list_syntax(kind, children, AnyMStatement::can_cast)
             }
+            M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                AnyMObjectAssignmentPatternMember::can_cast,
+                T ! [,],
+                true,
+            ),
             M_OBJECT_MEMBER_LIST => Self::make_separated_list_syntax(
                 kind,
                 children,

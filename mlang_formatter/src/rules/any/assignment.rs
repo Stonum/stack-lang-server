@@ -10,9 +10,11 @@ impl FormatRule<AnyMAssignment> for FormatAnyMAssignment {
     type Context = MFormatContext;
     fn fmt(&self, node: &AnyMAssignment, f: &mut MFormatter) -> FormatResult<()> {
         match node {
+            AnyMAssignment::MArrayAssignmentPattern(node) => node.format().fmt(f),
             AnyMAssignment::MBogusAssignment(node) => node.format().fmt(f),
             AnyMAssignment::MComputedMemberAssignment(node) => node.format().fmt(f),
             AnyMAssignment::MIdentifierAssignment(node) => node.format().fmt(f),
+            AnyMAssignment::MObjectAssignmentPattern(node) => node.format().fmt(f),
             AnyMAssignment::MParenthesizedAssignment(node) => node.format().fmt(f),
             AnyMAssignment::MStaticMemberAssignment(node) => node.format().fmt(f),
         }

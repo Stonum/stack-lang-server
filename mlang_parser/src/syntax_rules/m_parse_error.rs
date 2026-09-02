@@ -50,6 +50,21 @@ pub fn expected_simple_assignment_target(p: &MParser, range: TextRange) -> Parse
     expected_any(&["identifier", "member expression"], range, p)
 }
 
+pub fn expected_assignment_target(p: &MParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("assignment target", range, p)
+}
+
+pub fn expected_array_assignment_target_element(p: &MParser, range: TextRange) -> ParseDiagnostic {
+    expected_any(&["assignment target", "rest element", "comma"], range, p)
+}
+
+pub fn expected_object_assignment_target_property(
+    p: &MParser,
+    range: TextRange,
+) -> ParseDiagnostic {
+    expected_any(&["assignment target", "rest property"], range, p)
+}
+
 pub fn expected_identifier(p: &MParser, range: TextRange) -> ParseDiagnostic {
     expected_node("identifier", range, p)
 }

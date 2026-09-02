@@ -866,7 +866,7 @@ fn parse_forall_head(p: &mut MParser, has_l_paren: bool) -> MSyntaxKind {
         if p.at_ts(ts_in) {
             // forall (assignment_pattern in ...
             if let Present(assignment_expr) = init_expr {
-                expression_to_assignment_pattern(p, assignment_expr, checkpoint);
+                let _ = expression_to_assignment_pattern(p, assignment_expr, checkpoint);
             }
 
             return parse_forall_in_head(p);

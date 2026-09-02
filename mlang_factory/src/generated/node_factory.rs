@@ -58,6 +58,34 @@ pub fn m_annotation_group(
         ],
     ))
 }
+pub fn m_array_assignment_pattern(
+    at_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    elements: MArrayAssignmentPatternElementList,
+    r_brack_token: SyntaxToken,
+) -> MArrayAssignmentPattern {
+    MArrayAssignmentPattern::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_ARRAY_ASSIGNMENT_PATTERN,
+        [
+            Some(SyntaxElement::Token(at_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(elements.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+        ],
+    ))
+}
+pub fn m_array_assignment_pattern_rest_element(
+    dotdotdot_token: SyntaxToken,
+    pattern: AnyMAssignment,
+) -> MArrayAssignmentPatternRestElement {
+    MArrayAssignmentPatternRestElement::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_ARRAY_ASSIGNMENT_PATTERN_REST_ELEMENT,
+        [
+            Some(SyntaxElement::Token(dotdotdot_token)),
+            Some(SyntaxElement::Node(pattern.into_syntax())),
+        ],
+    ))
+}
 pub fn m_array_expression(
     at_token: SyntaxToken,
     l_brack_token: SyntaxToken,
@@ -1193,6 +1221,56 @@ pub fn m_number_literal_expression(value_token: SyntaxToken) -> MNumberLiteralEx
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
+pub fn m_object_assignment_pattern(
+    at_token: SyntaxToken,
+    l_curly_token: SyntaxToken,
+    members: MObjectAssignmentPatternPropertyList,
+    r_curly_token: SyntaxToken,
+) -> MObjectAssignmentPattern {
+    MObjectAssignmentPattern::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN,
+        [
+            Some(SyntaxElement::Token(at_token)),
+            Some(SyntaxElement::Token(l_curly_token)),
+            Some(SyntaxElement::Node(members.into_syntax())),
+            Some(SyntaxElement::Token(r_curly_token)),
+        ],
+    ))
+}
+pub fn m_object_assignment_pattern_property(
+    member: AnyMObjectMemberName,
+    colon_token: SyntaxToken,
+    pattern: AnyMAssignment,
+) -> MObjectAssignmentPatternProperty {
+    MObjectAssignmentPatternProperty::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY,
+        [
+            Some(SyntaxElement::Node(member.into_syntax())),
+            Some(SyntaxElement::Token(colon_token)),
+            Some(SyntaxElement::Node(pattern.into_syntax())),
+        ],
+    ))
+}
+pub fn m_object_assignment_pattern_rest(
+    dotdotdot_token: SyntaxToken,
+    target: AnyMAssignment,
+) -> MObjectAssignmentPatternRest {
+    MObjectAssignmentPatternRest::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_REST,
+        [
+            Some(SyntaxElement::Token(dotdotdot_token)),
+            Some(SyntaxElement::Node(target.into_syntax())),
+        ],
+    ))
+}
+pub fn m_object_assignment_pattern_shorthand_property(
+    identifier: MReferenceIdentifier,
+) -> MObjectAssignmentPatternShorthandProperty {
+    MObjectAssignmentPatternShorthandProperty::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_SHORTHAND_PROPERTY,
+        [Some(SyntaxElement::Node(identifier.into_syntax()))],
+    ))
+}
 pub fn m_object_expression(
     at_token: SyntaxToken,
     l_curly_token: SyntaxToken,
@@ -1892,6 +1970,30 @@ where
         }),
     ))
 }
+pub fn m_array_assignment_pattern_element_list<I, S>(
+    items: I,
+    separators: S,
+) -> MArrayAssignmentPatternElementList
+where
+    I: IntoIterator<Item = AnyMArrayAssignmentPatternElement>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = MSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    MArrayAssignmentPatternElementList::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_ARRAY_ASSIGNMENT_PATTERN_ELEMENT_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
 pub fn m_array_element_list<I, S>(items: I, separators: S) -> MArrayElementList
 where
     I: IntoIterator<Item = AnyMArrayElement>,
@@ -2031,6 +2133,30 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn m_object_assignment_pattern_property_list<I, S>(
+    items: I,
+    separators: S,
+) -> MObjectAssignmentPatternPropertyList
+where
+    I: IntoIterator<Item = AnyMObjectAssignmentPatternMember>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = MSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    MObjectAssignmentPatternPropertyList::unwrap_cast(SyntaxNode::new_detached(
+        MSyntaxKind::M_OBJECT_ASSIGNMENT_PATTERN_PROPERTY_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn m_object_member_list<I, S>(items: I, separators: S) -> MObjectMemberList

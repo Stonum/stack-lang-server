@@ -257,7 +257,10 @@ fn parse_assign_expr_recursive(
             target.change_kind(p, M_BOGUS_ASSIGNMENT);
             target
         } else {
-            expression_to_assignment_pattern(p, target, checkpoint)
+            match expression_to_assignment_pattern(p, target, checkpoint) {
+                Present(target) => target,
+                Absent => return Absent,
+            }
         };
 
         let m = target.precede(p);

@@ -71,6 +71,8 @@ impl AnyMExpressionLeftSide {
                     }
                     AnyMAssignment::MParenthesizedAssignment(_)
                     | AnyMAssignment::MIdentifierAssignment(_)
+                    | AnyMAssignment::MArrayAssignmentPattern(_)
+                    | AnyMAssignment::MObjectAssignmentPattern(_)
                     | AnyMAssignment::MBogusAssignment(_) => None,
                 };
                 left
