@@ -435,6 +435,7 @@ pub(crate) fn parse_statements(p: &mut MParser, stop_on_r_curly: bool, statement
 /// An expression wrapped in parentheses such as `()`
 /// Returns `true` if the closing parentheses is present
 fn parenthesized_expression(p: &mut MParser) -> bool {
+    let l_paren_range = p.cur_range();
     let has_l_paren = p.expect(T!['(']);
 
     parse_expression(
@@ -443,7 +444,7 @@ fn parenthesized_expression(p: &mut MParser) -> bool {
     )
     .or_add_diagnostic(p, m_parse_error::expected_expression);
 
-    p.expect(T![')'])
+    m_parse_error::expect_closing_delimiter(p, T![')'], has_l_paren.then_some(l_paren_range))
 }
 
 /// An if statement such as `if (foo) { bar(); }`
@@ -833,6 +834,7 @@ fn parse_forall_head(p: &mut MParser, has_l_paren: bool) -> MSyntaxKind {
     } else if p.nth_at(1, T!['(']) {
         let m = p.start();
         if let Present(_identifier) = parse_identifier_expression(p) {
+            let l_paren_range = p.cur_range();
             p.bump(T!['(']);
 
             parse_assignment_expression_or_higher(p, ExpressionContext::default())
@@ -845,7 +847,7 @@ fn parse_forall_head(p: &mut MParser, has_l_paren: bool) -> MSyntaxKind {
             parse_variable_declarator(p, &context)
                 .or_add_diagnostic(p, m_parse_error::expected_declaration);
 
-            if p.expect(T![')']) {
+            if m_parse_error::expect_closing_delimiter(p, T![')'], Some(l_paren_range)) {
                 m.complete(p, M_FOR_ITERATOR_FACTORY);
             } else {
                 m.complete(p, M_BOGUS_EXPRESSION);
@@ -896,9 +898,10 @@ fn parse_for_statement(p: &mut MParser) -> ParsedSyntax {
     let m = p.start();
     p.expect(T![for]);
 
+    let l_paren_range = p.cur_range();
     let has_l_paren = p.expect(T!['(']);
     let kind = parse_for_head(p, has_l_paren);
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], has_l_paren.then_some(l_paren_range));
 
     p.with_state(EnterBreakable(BreakableKind::Iteration), |p| {
         parse_statement(p, StatementContext::For)
@@ -921,9 +924,10 @@ fn parse_forall_statement(p: &mut MParser) -> ParsedSyntax {
     let m = p.start();
     p.expect(T![forall]);
 
+    let l_paren_range = p.cur_range();
     let has_l_paren = p.expect(T!['(']);
     let kind = parse_forall_head(p, has_l_paren);
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], has_l_paren.then_some(l_paren_range));
 
     p.with_state(EnterBreakable(BreakableKind::Iteration), |p| {
         parse_statement(p, StatementContext::For)
@@ -1128,10 +1132,11 @@ fn parse_catch_declaration(p: &mut MParser) -> ParsedSyntax {
 
     let declaration_marker = p.start();
 
+    let l_paren_range = p.cur_range();
     p.bump_any(); // bump (
     parse_identifier_binding(p).or_add_diagnostic(p, expected_binding);
 
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], Some(l_paren_range));
 
     Present(declaration_marker.complete(p, M_CATCH_DECLARATION))
 }

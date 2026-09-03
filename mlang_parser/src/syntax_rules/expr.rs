@@ -567,12 +567,13 @@ pub(crate) fn parse_computed_member_expression(
         p.start()
     };
 
-    p.expect(T!['[']);
+    let l_brack_range = p.cur_range();
+    let has_l_brack = p.expect(T!['[']);
     // test  computed_member_in
     // for ({}["x" in {}];;) {}
     parse_expression(p, ExpressionContext::default()).or_add_diagnostic(p, expected_expression);
 
-    p.expect(T![']']);
+    m_parse_error::expect_closing_delimiter(p, T![']'], has_l_brack.then_some(l_brack_range));
 
     Present(m.complete(p, M_COMPUTED_MEMBER_EXPRESSION))
 }
@@ -617,6 +618,7 @@ fn parse_call_arguments(p: &mut MParser) -> ParsedSyntax {
     // for (foo("call" in foo);;) {}
 
     let m = p.start();
+    let l_paren_range = p.cur_range();
     p.bump(T!['(']);
     let args_list = p.start();
     let mut first = true;
@@ -665,7 +667,7 @@ fn parse_call_arguments(p: &mut MParser) -> ParsedSyntax {
     }
 
     args_list.complete(p, M_CALL_ARGUMENT_LIST);
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], Some(l_paren_range));
     Present(m.complete(p, M_CALL_ARGUMENTS))
 }
 
@@ -690,6 +692,7 @@ fn parse_parenthesized_expression(p: &mut MParser) -> ParsedSyntax {
     }
 
     let m = p.start();
+    let l_paren_range = p.cur_range();
     p.bump(T!['(']);
 
     // test for_with_in_in_parenthesized_expression
@@ -713,7 +716,7 @@ fn parse_parenthesized_expression(p: &mut MParser) -> ParsedSyntax {
         }
     }
 
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], Some(l_paren_range));
     Present(m.complete(p, M_PARENTHESIZED_EXPRESSION))
 }
 
@@ -944,7 +947,8 @@ impl ParseSeparatedList for ArrayElementsList {
             &ParseRecoveryTokenSet::new(
                 M_BOGUS_EXPRESSION,
                 EXPR_RECOVERY_SET.union(token_set!(T![']'])),
-            ),
+            )
+            .enable_recovery_on_line_break(),
             m_parse_error::expected_array_element,
         )
     }
@@ -975,13 +979,14 @@ fn parse_array_expr(p: &mut MParser) -> ParsedSyntax {
     }
     let m = p.start();
     p.bump(T![@]);
+    let l_brack_range = p.cur_range();
     p.bump(T!['[']);
 
     // test array_element_in_expr
     // for(["a" in {}];;) {}
     ArrayElementsList.parse_list(p);
 
-    p.expect(T![']']);
+    m_parse_error::expect_closing_delimiter(p, T![']'], Some(l_brack_range));
     Present(m.complete(p, M_ARRAY_EXPRESSION))
 }
 
@@ -1010,7 +1015,8 @@ impl ParseSeparatedList for HashSetElementList {
             &ParseRecoveryTokenSet::new(
                 M_BOGUS_EXPRESSION,
                 EXPR_RECOVERY_SET.union(token_set!(T![')'])),
-            ),
+            )
+            .enable_recovery_on_line_break(),
             m_parse_error::expected_array_element,
         )
     }
@@ -1030,11 +1036,12 @@ fn parse_hashset_expr(p: &mut MParser) -> ParsedSyntax {
     }
     let m = p.start();
     p.bump(T![set]);
+    let l_paren_range = p.cur_range();
     p.bump(T!['(']);
 
     HashSetElementList.parse_list(p);
 
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], Some(l_paren_range));
     Present(m.complete(p, M_HASH_SET_EXPRESSION))
 }
 

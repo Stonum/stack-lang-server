@@ -255,6 +255,7 @@ pub(crate) fn parse_parameters_list(
     list_kind: MSyntaxKind,
 ) {
     let mut first = true;
+    let l_paren_range = p.cur_range();
     let has_l_paren = p.expect(T!['(']);
 
     p.with_state(EnterParameters(flags), |p| {
@@ -308,5 +309,5 @@ pub(crate) fn parse_parameters_list(
         parameters_list.complete(p, list_kind);
     });
 
-    p.expect(T![')']);
+    m_parse_error::expect_closing_delimiter(p, T![')'], has_l_paren.then_some(l_paren_range));
 }

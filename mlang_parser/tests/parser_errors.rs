@@ -371,3 +371,64 @@ fn test_err_extra_closing_brace_is_left_to_the_parser() {
         res.diagnostics()
     );
 }
+
+#[test]
+fn test_err_missing_closing_paren_highlights_the_group() {
+    // The `)` for the call is missing; the diagnostic should span the whole
+    // `(a, b, c` group, not collapse to one spot.
+    let res = parse(
+        "func f() {\n    doStuff(a, b, c\n    return 1;\n}\n",
+        MFileSource::module(),
+    );
+
+    assert!(res.has_errors());
+    assert!(
+        res.diagnostics()
+            .iter()
+            .any(|d| d.message.to_string() == "Missing closing `)`"),
+        "{:?}",
+        res.diagnostics()
+    );
+}
+
+#[test]
+fn test_err_missing_closing_bracket_stops_at_the_dedent() {
+    // The array recovery must not swallow the following statement / the `}`:
+    // exactly one "Missing closing `]`" and no runaway "Missing closing `}`".
+    let res = parse(
+        "func f() {\n    var a = @[1, 2, 3\n    return a;\n}\n",
+        MFileSource::module(),
+    );
+
+    assert!(res.has_errors());
+    let messages: Vec<String> = res
+        .diagnostics()
+        .iter()
+        .map(|d| d.message.to_string())
+        .collect();
+
+    assert!(
+        messages.iter().any(|m| m == "Missing closing `]`"),
+        "{messages:?}"
+    );
+    assert!(
+        !messages.iter().any(|m| m == "Missing closing `}`"),
+        "{messages:?}"
+    );
+}
+
+#[test]
+fn test_err_missing_closing_paren_in_condition() {
+    let res = parse(
+        "func f() {\n    if (x == 1 && y == 2 {\n        work();\n    }\n}\n",
+        MFileSource::module(),
+    );
+
+    assert!(
+        res.diagnostics()
+            .iter()
+            .any(|d| d.message.to_string() == "Missing closing `)`"),
+        "{:?}",
+        res.diagnostics()
+    );
+}

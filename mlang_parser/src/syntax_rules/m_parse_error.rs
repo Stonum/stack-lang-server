@@ -5,7 +5,7 @@ use super::span::Span;
 
 use biome_parser::diagnostic::{expected_any, expected_node, expected_token};
 use biome_parser::prelude::*;
-use biome_rowan::TextRange;
+use biome_rowan::{TextRange, TextSize};
 use mlang_syntax::{MSyntaxKind, T};
 
 pub fn expected_function_body(p: &MParser, range: TextRange) -> ParseDiagnostic {
@@ -142,8 +142,17 @@ pub fn expect_closing_delimiter(
         }
     };
 
+    // For `{}` the span is just the opening glyph — `delimiter_balance` widens it
+    // to the whole header line afterwards. `()` / `[]` have no such post-pass and
+    // never span much, so highlight the entire unclosed group here.
+    let primary = if closing == T!['}'] {
+        open_range
+    } else {
+        unclosed_group_range(p, open_range)
+    };
+
     let diagnostic = p
-        .err_builder(format!("Missing closing `{close}`"), open_range)
+        .err_builder(format!("Missing closing `{close}`"), primary)
         .with_detail(
             p.cur_range(),
             format!("expected `{close}` here to match this `{open}`"),
@@ -152,6 +161,51 @@ pub fn expect_closing_delimiter(
     p.error(diagnostic);
 
     false
+}
+
+/// Range from the opening `(` / `[` to the end of what was actually consumed
+/// inside it, stopping before the first non-blank line that dedents back to (or
+/// past) the opener's own indentation — that line is no longer part of the group.
+fn unclosed_group_range(p: &MParser, opener: TextRange) -> TextRange {
+    let src = p.source().text();
+    let start = usize::from(opener.start());
+    let hard_end = p
+        .last_end()
+        .map_or(start, usize::from)
+        .max(usize::from(opener.end()))
+        .min(src.len());
+
+    let line_start = src[..start].rfind('\n').map_or(0, |i| i + 1);
+    let opener_indent = indent_width(&src[line_start..start]);
+
+    let mut end = hard_end;
+    let mut cursor = start;
+    while let Some(rel_nl) = src[cursor..hard_end].find('\n') {
+        let nl = cursor + rel_nl;
+        let next_line = nl + 1;
+        let rest = &src[next_line..];
+        let indent = indent_width(rest);
+        let is_blank = rest[indent..]
+            .bytes()
+            .next()
+            .is_none_or(|b| b == b'\n' || b == b'\r');
+        if !is_blank && indent <= opener_indent {
+            end = nl;
+            break;
+        }
+        cursor = next_line;
+    }
+
+    TextRange::new(
+        opener.start(),
+        TextSize::try_from(end).unwrap_or(opener.end()),
+    )
+}
+
+fn indent_width(line: &str) -> usize {
+    line.bytes()
+        .take_while(|b| *b == b' ' || *b == b'\t')
+        .count()
 }
 
 pub fn invalid_assignment_error(p: &MParser, range: TextRange) -> ParseDiagnostic {
