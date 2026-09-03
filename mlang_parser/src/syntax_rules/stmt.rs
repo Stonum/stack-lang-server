@@ -376,6 +376,7 @@ pub(super) fn parse_block_impl(p: &mut MParser, block_kind: MSyntaxKind) -> Pars
     }
 
     let m = p.start();
+    let l_curly_range = p.cur_range();
     p.bump(T!['{']);
 
     if block_kind == M_FUNCTION_BODY {
@@ -387,7 +388,7 @@ pub(super) fn parse_block_impl(p: &mut MParser, block_kind: MSyntaxKind) -> Pars
 
     parse_statements(p, true, statement_list);
 
-    p.expect(T!['}']);
+    m_parse_error::expect_closing_delimiter(p, T!['}'], Some(l_curly_range));
 
     Present(m.complete(p, block_kind))
 }
@@ -1095,13 +1096,14 @@ fn parse_switch_statement(p: &mut MParser) -> ParsedSyntax {
     let m = p.start();
     p.expect(T![switch]);
     parenthesized_expression(p);
-    p.expect(T!['{']);
+    let l_curly_range = p.cur_range();
+    let had_l_curly = p.expect(T!['{']);
 
     p.with_state(EnterBreakable(BreakableKind::Switch), |p| {
         SwitchCasesList::default().parse_list(p)
     });
 
-    p.expect(T!['}']);
+    m_parse_error::expect_closing_delimiter(p, T!['}'], had_l_curly.then_some(l_curly_range));
     Present(m.complete(p, M_SWITCH_STATEMENT))
 }
 

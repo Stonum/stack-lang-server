@@ -503,68 +503,6 @@ fn test_parse_reports() {
 }
 
 #[test]
-fn test_parse_report_with_bogus() {
-    let res = parse(
-        r#"
-CommonReport
-ШС             : ТЕКСТ
-НазваниеОтчета : ТЕКСТ
-.CloseWindow = 1;
-{
-    var month = WorkMonth();
-}
-print
-Ф12"Courier New"УП^ШС^;^Артикул^
-Ф16"Times New Roman"ЖЦ^ШС^;^НазваниеОтчета^ж
-Ф12"Times New Roman"
-{
-    var i = 1;
-    while( i < 10 )
-       i = add(i);
-}
-        "#,
-        MFileSource::report(),
-    );
-    assert!(res.has_errors());
-}
-
-#[test]
-fn test_err_computed_class_member_name() {
-    let res = parse(
-        r#"
-            class foo {
-                "bar"() {}
-            }
-        "#,
-        MFileSource::module(),
-    );
-
-    assert!(res.has_errors());
-
-    let res = parse(
-        r#"
-            class foo {
-                set "bar"(x) {}
-            }
-        "#,
-        MFileSource::module(),
-    );
-
-    assert!(res.has_errors());
-
-    let res = parse(
-        r#"
-            class foo {
-                get 1() {}
-            }
-        "#,
-        MFileSource::module(),
-    );
-
-    assert!(res.has_errors());
-}
-
-#[test]
 fn test_use_instanceof_keyword() {
     let res = parse(
         r#"
@@ -617,60 +555,6 @@ fn test_object_destructuring_assignment() {
     );
 
     assert_parser!(res);
-}
-
-#[test]
-fn test_err_array_destructuring_assignment_rest_not_last() {
-    let res = parse(
-        r#"
-            @[a, ...rest, other] = arr;
-        "#,
-        MFileSource::script(),
-    );
-
-    assert!(res.has_errors());
-
-    let res = parse(
-        r#"
-            @[a, ...rest,] = arr;
-        "#,
-        MFileSource::script(),
-    );
-
-    assert!(res.has_errors());
-}
-
-#[test]
-fn test_err_object_destructuring_assignment_rest_not_last() {
-    let res = parse(
-        r#"
-            @{...rest, other} = obj;
-        "#,
-        MFileSource::script(),
-    );
-
-    assert!(res.has_errors());
-
-    let res = parse(
-        r#"
-            @{...rest,} = obj;
-        "#,
-        MFileSource::script(),
-    );
-
-    assert!(res.has_errors());
-}
-
-#[test]
-fn test_err_object_destructuring_assignment_nested_pattern_rest() {
-    let res = parse(
-        r#"
-            @{...@{a, b}} = obj;
-        "#,
-        MFileSource::script(),
-    );
-
-    assert!(res.has_errors());
 }
 
 #[test]

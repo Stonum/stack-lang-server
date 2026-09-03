@@ -38,6 +38,69 @@ async fn opening_malformed_mlang_reports_diagnostics_not_a_panic() {
 }
 
 #[tokio::test]
+async fn missing_closing_brace_is_pinpointed_at_the_edit_site() {
+    let workspace = Workspace::new();
+    let uri = temp_uri("missing_closing_brace_is_pinpointed_at_the_edit_site.prg");
+
+    // The `}` for the inner `if` block (line 1) is missing. The parser eats the
+    // outer block's `}` to close the `if`, then runs out of tokens at EOF -- the
+    // raw diagnostic would collapse to a zero-width range on the last line. The
+    // indentation heuristic must instead point at the inner `{`.
+    let source = "func main() {\n    if (x) {\n        work();\n\n    println(\"after\");\n}\n";
+
+    let diagnostics = workspace
+        .open_document(text_document(uri, "mlang", source))
+        .await
+        .expect("open_document should not error");
+
+    let unclosed = diagnostics
+        .iter()
+        .find(|d| d.message.contains("never closed"))
+        .expect("expected an 'unclosed `{`' diagnostic");
+
+    // Anchored on the `{` of `if (x) {` (line 1), not the trailing `}` line.
+    assert_eq!(unclosed.range.start.line, 1);
+    assert!(unclosed.range.end > unclosed.range.start);
+
+    // The coarse end-of-file diagnostic is suppressed once we have the pinpoint.
+    assert!(
+        !diagnostics
+            .iter()
+            .any(|d| d.message.contains("Missing closing")),
+        "coarse EOF diagnostic should be dropped"
+    );
+}
+
+#[tokio::test]
+async fn missing_closing_brace_highlights_the_whole_header_line() {
+    let workspace = Workspace::new();
+    let uri = temp_uri("missing_closing_brace_highlights_the_whole_header_line.prg");
+
+    // K&R style: the `{` sits alone on its line, so the squiggle should land on
+    // the `while (b)` header line above it and span the whole line, not a single
+    // character.
+    let source = "func main()\n{\n    while (b)\n    {\n        work();\n}\n";
+
+    let diagnostics = workspace
+        .open_document(text_document(uri, "mlang", source))
+        .await
+        .expect("open_document should not error");
+
+    let unclosed = diagnostics
+        .iter()
+        .find(|d| d.message.contains("never closed"))
+        .expect("expected an 'unclosed `{`' diagnostic");
+
+    // `while (b)` is line 2 (0-based), indented 4.
+    assert_eq!(unclosed.range.start.line, 2);
+    assert_eq!(unclosed.range.end.line, 2);
+    assert_eq!(unclosed.range.start.character, 4);
+    assert!(
+        unclosed.range.end.character - unclosed.range.start.character >= "while (b)".len() as u32
+    );
+}
+
+#[tokio::test]
 async fn hover_on_an_mlang_document_does_not_panic() {
     let workspace = Workspace::new();
     let uri = temp_uri("hover_on_an_mlang_document_does_not_panic.prg");

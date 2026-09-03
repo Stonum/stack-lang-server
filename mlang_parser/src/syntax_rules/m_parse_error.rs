@@ -3,9 +3,10 @@
 use super::MParser;
 use super::span::Span;
 
-use biome_parser::diagnostic::{expected_any, expected_node};
+use biome_parser::diagnostic::{expected_any, expected_node, expected_token};
 use biome_parser::prelude::*;
 use biome_rowan::TextRange;
+use mlang_syntax::{MSyntaxKind, T};
 
 pub fn expected_function_body(p: &MParser, range: TextRange) -> ParseDiagnostic {
     expected_node("function body", range, p)
@@ -107,6 +108,50 @@ pub fn expected_expression_assignment(p: &MParser, range: TextRange) -> ParseDia
 
 pub fn expected_declaration(p: &MParser, range: TextRange) -> ParseDiagnostic {
     expected_any(&["function", "class", "variable declaration"], range, p)
+}
+
+/// Eats the expected `closing` delimiter. On failure, anchors the diagnostic on the
+/// *opening* delimiter (`opener`) instead of the current position, so the red range
+/// lands on the still-visible construct the user is editing rather than collapsing to
+/// a zero-width spot at the end of the file. The point where the closer was expected
+/// is kept as a secondary detail label.
+///
+/// `opener` should be `None` when the opening delimiter itself was missing; in that
+/// case the plain "expected token" diagnostic is emitted.
+pub fn expect_closing_delimiter(
+    p: &mut MParser,
+    closing: MSyntaxKind,
+    opener: Option<TextRange>,
+) -> bool {
+    if p.eat(closing) {
+        return true;
+    }
+
+    let Some(open_range) = opener else {
+        p.error(expected_token(closing));
+        return false;
+    };
+
+    let (open, close) = match closing {
+        T!['}'] => ('{', '}'),
+        T![')'] => ('(', ')'),
+        T![']'] => ('[', ']'),
+        _ => {
+            p.error(expected_token(closing));
+            return false;
+        }
+    };
+
+    let diagnostic = p
+        .err_builder(format!("Missing closing `{close}`"), open_range)
+        .with_detail(
+            p.cur_range(),
+            format!("expected `{close}` here to match this `{open}`"),
+        )
+        .with_hint(format!("this `{open}` is never closed"));
+    p.error(diagnostic);
+
+    false
 }
 
 pub fn invalid_assignment_error(p: &MParser, range: TextRange) -> ParseDiagnostic {

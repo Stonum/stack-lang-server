@@ -1,3 +1,4 @@
+mod delimiter_balance;
 mod lexer;
 mod rewrite;
 mod rewrite_parser;
@@ -255,8 +256,9 @@ fn parse_m_with_cache(
         let (events, errors, tokens) = parse_common(text, source_type);
         let mut tree_sink = MLosslessTreeSink::with_cache(text, &tokens, cache);
         biome_parser::event::process(&mut tree_sink, events, errors);
-        let (green, parse_errors) = tree_sink.finish();
+        let (green, mut parse_errors) = tree_sink.finish();
         let green = sql_literal_rewriter::rewrite_sql_literals(green);
+        delimiter_balance::refine(text, &green, &mut parse_errors);
         Parse::new(green, parse_errors)
     })
 }

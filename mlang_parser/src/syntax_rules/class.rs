@@ -112,9 +112,10 @@ fn parse_class(
 
     eat_doc_string_expression(p);
 
-    p.expect(T!['{']);
+    let l_curly_range = p.cur_range();
+    let had_l_curly = p.expect(T!['{']);
     ClassMembersList.parse_list(p);
-    p.expect(T!['}']);
+    m_parse_error::expect_closing_delimiter(p, T!['}'], had_l_curly.then_some(l_curly_range));
 
     m.complete(p, kind.into())
 }
@@ -345,12 +346,13 @@ fn parse_class_member_impl(p: &mut MParser, member_marker: Marker) -> ParsedSynt
 
     match member_name {
         Some(_) => {
-            debug_assert_eq!(
-                p.source().position(),
-                start_token_pos,
-                "Parser shouldn't be progressing when returning Absent"
-            );
-            Absent
+            // A member name not followed by `(` — mlang classes have no bare
+            // fields, so this is an incomplete member (e.g. a method whose `{`
+            // was dropped). We've already consumed the name, so completing a
+            // bogus member is the only way to keep the parser progressing.
+            let bogus = member_marker.complete(p, M_BOGUS_MEMBER);
+            p.error(p.err_builder("Expected a method, getter, or setter", bogus.range(p)));
+            Present(bogus)
         }
         None => {
             // test_err block_stmt_in_class
@@ -436,7 +438,36 @@ impl ClassMethodMemberKind {
 fn expect_method_body(p: &mut MParser, method_kind: ClassMethodMemberKind) {
     let body = parse_function_body(p, method_kind.signature_flags());
 
-    body.or_add_diagnostic(p, m_parse_error::expected_class_method_body);
+    if body
+        .or_add_diagnostic(p, m_parse_error::expected_class_method_body)
+        .is_none()
+    {
+        // The `{` is missing. Rather than let the class member list try to parse
+        // the orphaned statements as members (a diagnostic storm), swallow them
+        // as one bogus node up to the `}` that closes the class.
+        skip_orphaned_method_body(p);
+    }
+}
+
+/// Consumes tokens up to the `}` that would close the enclosing class (tracking
+/// nested `{}`), or EOF. Used to recover from a method whose body `{` is missing.
+fn skip_orphaned_method_body(p: &mut MParser) {
+    if p.at(T!['{']) || p.at(T!['}']) || p.at(EOF) {
+        return;
+    }
+
+    let m = p.start();
+    let mut depth: i32 = 0;
+    while !p.at(EOF) {
+        match p.cur() {
+            T!['}'] if depth == 0 => break,
+            T!['{'] => depth += 1,
+            T!['}'] => depth -= 1,
+            _ => {}
+        }
+        p.bump_any();
+    }
+    m.complete(p, M_BOGUS);
 }
 
 // test_err getter_class_no_body

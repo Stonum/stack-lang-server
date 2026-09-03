@@ -346,11 +346,12 @@ fn parse_object_assignment_pattern(p: &mut MParser) -> ParsedSyntax {
     }
     let m = p.start();
     p.bump(T![@]);
+    let l_curly_range = p.cur_range();
     p.bump(T!['{']);
 
     ObjectAssignmentPatternPropertyList.parse_list(p);
 
-    p.expect(T!['}']);
+    m_parse_error::expect_closing_delimiter(p, T!['}'], Some(l_curly_range));
     Present(m.complete(p, M_OBJECT_ASSIGNMENT_PATTERN))
 }
 
