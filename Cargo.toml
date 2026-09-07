@@ -15,7 +15,11 @@ members = [
    "sql_syntax",
    "sql_factory",
    "sql_parser",
-   "sql_formatter"
+   "sql_formatter",
+   "xml_syntax",
+   "xml_factory",
+   "xml_parser",
+   "xml_formatter"
 ]
 
 [workspace.package]
@@ -41,6 +45,11 @@ sql_syntax = { path = 'sql_syntax' }
 sql_factory = { path = 'sql_factory' }
 sql_parser = { path = 'sql_parser' }
 sql_formatter = { path = 'sql_formatter' }
+
+xml_syntax = { path = 'xml_syntax' }
+xml_factory = { path = 'xml_factory' }
+xml_parser = { path = 'xml_parser' }
+xml_formatter = { path = 'xml_formatter' }
 
 tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "io-std", "fs", "sync"] }
 tower-lsp = { version = "0.20.0", features = ["proposed"] }

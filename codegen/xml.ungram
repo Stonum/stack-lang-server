@@ -1,0 +1,126 @@
+// XML Un-Grammar.
+//
+// This grammar specifies the structure of the XML concrete syntax tree.
+// It does not specify parsing rules (ambiguities, precedence, etc are out of scope).
+//
+// Legend:
+//
+//   //          				-- comment
+//   Name =      				-- non-terminal definition
+//   'ident'     				-- token (terminal)
+//   A B         				-- sequence
+//   A | B       				-- alternation
+//   A*          				-- zero or more repetition
+//   A?          				-- zero or one repetition
+//   (A)         				-- same as A
+//   label:A     				-- suggested name for field of AST node
+
+// NOTES
+//
+// - SyntaxNode, SyntaxToken and SyntaxElement will be stripped from the codegen
+// - Bogus nodes are special nodes used to keep track of broken code; they are
+//   not part of the grammar but they will appear inside the green tree
+
+SyntaxElement = SyntaxElement
+
+XmlBogus = SyntaxElement*
+XmlBogusElement = SyntaxElement*
+XmlBogusAttribute = SyntaxElement*
+
+XmlRoot =
+	bom: 'UNICODE_BOM'?
+	prolog: XmlProlog?
+	content: XmlElementList
+	eof: 'EOF'
+
+// <?xml version="1.1" encoding="UTF-8"?>
+XmlProlog =
+	'<?xml'
+	attributes: XmlAttributeList
+	'?>'
+
+// ==================================
+// Elements
+// ==================================
+
+XmlElementList = AnyXmlElement*
+
+AnyXmlElement =
+	  XmlElement
+	| XmlSelfClosingElement
+	| XmlText
+	| XmlComment
+	| XmlCdataSection
+	| XmlProcessingInstruction
+	| XmlBogusElement
+
+XmlElement =
+	opening: XmlOpeningElement
+	children: XmlElementList
+	closing: XmlClosingElement
+
+// <a href="">
+// ^^        ^
+XmlOpeningElement =
+	'<'
+	name: XmlName
+	attributes: XmlAttributeList
+	'>'
+
+// <a href="" />
+XmlSelfClosingElement =
+	'<'
+	name: XmlName
+	attributes: XmlAttributeList
+	'/'
+	'>'
+
+// </a>
+XmlClosingElement =
+	'<'
+	'/'
+	name: XmlName
+	'>'
+
+// <?target instruction?>
+XmlProcessingInstruction =
+	'<?'
+	target: XmlName
+	content: 'xml_literal'?
+	'?>'
+
+// <!-- comment -->
+XmlComment =
+	'<!--'
+	content: 'xml_literal'
+	'-->'
+
+// <![CDATA[ example ]]>
+XmlCdataSection =
+	'<![CDATA['
+	content: 'xml_literal'
+	']]>'
+
+// ==================================
+// Attributes
+// ==================================
+
+XmlAttributeList = AnyXmlAttribute*
+
+AnyXmlAttribute =
+	  XmlAttribute
+	| XmlBogusAttribute
+
+XmlAttribute =
+	name: XmlName
+	initializer: XmlAttributeInitializerClause?
+
+// href="value"
+//     ^^^^^^^^^
+XmlAttributeInitializerClause =
+	'='
+	value: XmlString
+
+XmlName = value: 'xml_literal'
+XmlString = value: 'xml_string_literal'
+XmlText = value: 'xml_literal'

@@ -2197,6 +2197,47 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
 
 [[package]]
+name = "xml_factory"
+version = "0.0.1"
+dependencies = [
+ "biome_rowan",
+ "xml_syntax",
+]
+
+[[package]]
+name = "xml_formatter"
+version = "0.0.1"
+dependencies = [
+ "biome_formatter",
+ "biome_rowan",
+ "serde",
+ "xml_factory",
+ "xml_parser",
+ "xml_syntax",
+]
+
+[[package]]
+name = "xml_parser"
+version = "0.0.1"
+dependencies = [
+ "biome_parser",
+ "biome_rowan",
+ "biome_unicode_table",
+ "xml_factory",
+ "xml_syntax",
+]
+
+[[package]]
+name = "xml_syntax"
+version = "0.0.1"
+dependencies = [
+ "biome_rowan",
+ "serde",
+ "serde_json",
+ "xml_parser",
+]
+
+[[package]]
 name = "yoke"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
