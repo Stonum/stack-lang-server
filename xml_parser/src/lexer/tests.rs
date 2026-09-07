@@ -105,6 +105,7 @@ fn single_quoted_attribute() {
 fn attribute_value_may_contain_angle_brackets_and_newlines() {
     assert_lex! {
         XmlLexContext::Regular,
+        // The attribute value spans a literal newline and contains `>`/`<`.
         "<p e=\"a>0\nand b<9\"/>",
         L_ANGLE: 1, XML_LITERAL: 1, WHITESPACE: 1, XML_LITERAL: 1, EQ: 1,
         XML_STRING_LITERAL: 13, SLASH: 1, R_ANGLE: 1,
@@ -113,15 +114,17 @@ fn attribute_value_may_contain_angle_brackets_and_newlines() {
 
 #[test]
 fn cyrillic_names_and_values() {
+    // `тег` = 3 chars / 6 bytes, `имя` = 3 / 6, `"значение"` = 8 chars + 2
+    // quotes = 18 bytes.
     assert_lex! {
         XmlLexContext::Regular,
-        r#"<Поле Имя="ЮлФл"/>"#,
+        r#"<тег имя="значение"/>"#,
         L_ANGLE: 1,
-        XML_LITERAL: 8,
+        XML_LITERAL: 6,
         WHITESPACE: 1,
         XML_LITERAL: 6,
         EQ: 1,
-        XML_STRING_LITERAL: 10,
+        XML_STRING_LITERAL: 18,
         SLASH: 1,
         R_ANGLE: 1,
     }
@@ -215,12 +218,12 @@ fn element_content_text_and_trivia() {
     assert_lex! {
         XmlLexContext::ElementList,
         "hello world ",
-        XML_TEXT: 12,
+        XML_LITERAL: 12,
     }
     assert_lex! {
         XmlLexContext::ElementList,
         "text<",
-        XML_TEXT: 4, L_ANGLE: 1,
+        XML_LITERAL: 4, L_ANGLE: 1,
     }
 }
 
@@ -237,7 +240,7 @@ fn bom_is_consumed_once_at_start() {
     assert_lex! {
         XmlLexContext::ElementList,
         "\u{feff}text",
-        UNICODE_BOM: 3, XML_TEXT: 4,
+        UNICODE_BOM: 3, XML_LITERAL: 4,
     }
 }
 
@@ -245,7 +248,7 @@ fn bom_is_consumed_once_at_start() {
 fn unterminated_string_is_an_error() {
     assert_lex! {
         XmlLexContext::Regular,
-        "<a b=\"oops",
+        r#"<a b="oops"#,
         L_ANGLE: 1, XML_LITERAL: 1, WHITESPACE: 1, XML_LITERAL: 1, EQ: 1,
         ERROR_TOKEN: 5,
     }

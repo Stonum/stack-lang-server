@@ -6,7 +6,7 @@ use biome_rowan::SyntaxKind;
 use xml_syntax::XmlSyntaxKind::{
     self, CDATA_END, CDATA_START, COMMENT_END, COMMENT_START, EOF, ERROR_TOKEN, L_ANGLE_QUESTION,
     NEWLINE, QUESTION_R_ANGLE, TOMBSTONE, UNICODE_BOM, WHITESPACE, XML_DECL_START, XML_LITERAL,
-    XML_STRING_LITERAL, XML_TEXT,
+    XML_STRING_LITERAL,
 };
 use xml_syntax::{T, TextRange, TextSize};
 
@@ -242,7 +242,9 @@ impl<'src> XmlLexer<'src> {
             }
             self.advance_byte_or_char(byte);
         }
-        XML_TEXT
+        // Element content shares the `XML_LITERAL` token kind with names; the
+        // two never collide because they are lexed in different contexts.
+        XML_LITERAL
     }
 
     fn consume_string_literal(&mut self, quote: u8) -> XmlSyntaxKind {
