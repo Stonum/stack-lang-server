@@ -92,13 +92,13 @@ XmlProcessingInstruction =
 // <!-- comment -->
 XmlComment =
 	'<!--'
-	content: 'xml_literal'
+	content: 'xml_literal'?
 	'-->'
 
 // <![CDATA[ example ]]>
 XmlCdataSection =
 	'<![CDATA['
-	content: 'xml_literal'
+	content: 'xml_literal'?
 	']]>'
 
 // ==================================

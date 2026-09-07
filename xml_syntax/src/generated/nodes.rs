@@ -123,8 +123,8 @@ impl XmlCdataSection {
     pub fn cdata_start_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn content_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 1usize)
+    pub fn content_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
     }
     pub fn cdata_end_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 2usize)
@@ -141,7 +141,7 @@ impl Serialize for XmlCdataSection {
 #[derive(Serialize)]
 pub struct XmlCdataSectionFields {
     pub cdata_start_token: SyntaxResult<SyntaxToken>,
-    pub content_token: SyntaxResult<SyntaxToken>,
+    pub content_token: Option<SyntaxToken>,
     pub cdata_end_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -218,8 +218,8 @@ impl XmlComment {
     pub fn comment_start_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn content_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 1usize)
+    pub fn content_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
     }
     pub fn comment_end_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 2usize)
@@ -236,7 +236,7 @@ impl Serialize for XmlComment {
 #[derive(Serialize)]
 pub struct XmlCommentFields {
     pub comment_start_token: SyntaxResult<SyntaxToken>,
-    pub content_token: SyntaxResult<SyntaxToken>,
+    pub content_token: Option<SyntaxToken>,
     pub comment_end_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -845,7 +845,7 @@ impl std::fmt::Debug for XmlCdataSection {
                 )
                 .field(
                     "content_token",
-                    &support::DebugSyntaxResult(self.content_token()),
+                    &support::DebugOptionalElement(self.content_token()),
                 )
                 .field(
                     "cdata_end_token",
@@ -962,7 +962,7 @@ impl std::fmt::Debug for XmlComment {
                 )
                 .field(
                     "content_token",
-                    &support::DebugSyntaxResult(self.content_token()),
+                    &support::DebugOptionalElement(self.content_token()),
                 )
                 .field(
                     "comment_end_token",
