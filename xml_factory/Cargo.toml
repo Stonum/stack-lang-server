@@ -1,0 +1,9 @@
+[package]
+name = "xml_factory"
+version = "0.0.1"
+edition.workspace = true
+
+[dependencies]
+xml_syntax = { workspace = true }
+
+biome_rowan = { workspace = true }
