@@ -38,10 +38,10 @@ impl XmlCdataSection {
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
-    pub fn with_content_token(self, element: SyntaxToken) -> Self {
+    pub fn with_content_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
         )
     }
     pub fn with_cdata_end_token(self, element: SyntaxToken) -> Self {
@@ -84,10 +84,10 @@ impl XmlComment {
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
-    pub fn with_content_token(self, element: SyntaxToken) -> Self {
+    pub fn with_content_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
         )
     }
     pub fn with_comment_end_token(self, element: SyntaxToken) -> Self {

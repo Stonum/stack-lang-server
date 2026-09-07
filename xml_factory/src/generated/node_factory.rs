@@ -47,17 +47,34 @@ pub fn xml_attribute_initializer_clause(
 }
 pub fn xml_cdata_section(
     cdata_start_token: SyntaxToken,
-    content_token: SyntaxToken,
     cdata_end_token: SyntaxToken,
-) -> XmlCdataSection {
-    XmlCdataSection::unwrap_cast(SyntaxNode::new_detached(
-        XmlSyntaxKind::XML_CDATA_SECTION,
-        [
-            Some(SyntaxElement::Token(cdata_start_token)),
-            Some(SyntaxElement::Token(content_token)),
-            Some(SyntaxElement::Token(cdata_end_token)),
-        ],
-    ))
+) -> XmlCdataSectionBuilder {
+    XmlCdataSectionBuilder {
+        cdata_start_token,
+        cdata_end_token,
+        content_token: None,
+    }
+}
+pub struct XmlCdataSectionBuilder {
+    cdata_start_token: SyntaxToken,
+    cdata_end_token: SyntaxToken,
+    content_token: Option<SyntaxToken>,
+}
+impl XmlCdataSectionBuilder {
+    pub fn with_content_token(mut self, content_token: SyntaxToken) -> Self {
+        self.content_token = Some(content_token);
+        self
+    }
+    pub fn build(self) -> XmlCdataSection {
+        XmlCdataSection::unwrap_cast(SyntaxNode::new_detached(
+            XmlSyntaxKind::XML_CDATA_SECTION,
+            [
+                Some(SyntaxElement::Token(self.cdata_start_token)),
+                self.content_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.cdata_end_token)),
+            ],
+        ))
+    }
 }
 pub fn xml_closing_element(
     l_angle_token: SyntaxToken,
@@ -77,17 +94,34 @@ pub fn xml_closing_element(
 }
 pub fn xml_comment(
     comment_start_token: SyntaxToken,
-    content_token: SyntaxToken,
     comment_end_token: SyntaxToken,
-) -> XmlComment {
-    XmlComment::unwrap_cast(SyntaxNode::new_detached(
-        XmlSyntaxKind::XML_COMMENT,
-        [
-            Some(SyntaxElement::Token(comment_start_token)),
-            Some(SyntaxElement::Token(content_token)),
-            Some(SyntaxElement::Token(comment_end_token)),
-        ],
-    ))
+) -> XmlCommentBuilder {
+    XmlCommentBuilder {
+        comment_start_token,
+        comment_end_token,
+        content_token: None,
+    }
+}
+pub struct XmlCommentBuilder {
+    comment_start_token: SyntaxToken,
+    comment_end_token: SyntaxToken,
+    content_token: Option<SyntaxToken>,
+}
+impl XmlCommentBuilder {
+    pub fn with_content_token(mut self, content_token: SyntaxToken) -> Self {
+        self.content_token = Some(content_token);
+        self
+    }
+    pub fn build(self) -> XmlComment {
+        XmlComment::unwrap_cast(SyntaxNode::new_detached(
+            XmlSyntaxKind::XML_COMMENT,
+            [
+                Some(SyntaxElement::Token(self.comment_start_token)),
+                self.content_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.comment_end_token)),
+            ],
+        ))
+    }
 }
 pub fn xml_element(
     opening: XmlOpeningElement,
