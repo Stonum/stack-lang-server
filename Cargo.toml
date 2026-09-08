@@ -20,7 +20,8 @@ members = [
    "xml_factory",
    "xml_parser",
    "xml_formatter",
-   "xml_semantic"
+   "xml_semantic",
+   "xml_lint"
 ]
 
 [workspace.package]
@@ -52,6 +53,7 @@ xml_factory = { path = 'xml_factory' }
 xml_parser = { path = 'xml_parser' }
 xml_formatter = { path = 'xml_formatter' }
 xml_semantic = { path = 'xml_semantic' }
+xml_lint = { path = 'xml_lint' }
 
 tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "io-std", "fs", "sync"] }
 tower-lsp = { version = "0.20.0", features = ["proposed"] }

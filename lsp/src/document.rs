@@ -315,7 +315,7 @@ impl CurrentDocument {
             ))
         });
 
-        let from_lint = semantic_lint.iter().filter_map(|diagnostic| {
+        let from_mlang_lint = semantic_lint.iter().filter_map(|diagnostic| {
             let range = to_lsp_range(line_index, diagnostic.range)?;
             let severity = match diagnostic.severity {
                 mlang_lint::Severity::Error => DiagnosticSeverity::ERROR,
@@ -332,7 +332,34 @@ impl CurrentDocument {
             ))
         });
 
-        from_parser.chain(from_lint).collect()
+        let from_xml_lint = self.xml_lint().into_iter().filter_map(|diagnostic| {
+            let range = to_lsp_range(line_index, diagnostic.range)?;
+            let severity = match diagnostic.severity {
+                xml_lint::Severity::Error => DiagnosticSeverity::ERROR,
+                xml_lint::Severity::Warning => DiagnosticSeverity::WARNING,
+            };
+            Some(Diagnostic::new(
+                range,
+                Some(severity),
+                Some(NumberOrString::String(diagnostic.code.to_string())),
+                Some(format!("{source}-lint")),
+                diagnostic.message,
+                None,
+                None,
+            ))
+        });
+
+        from_parser
+            .chain(from_mlang_lint)
+            .chain(from_xml_lint)
+            .collect()
+    }
+
+    fn xml_lint(&self) -> Vec<xml_lint::Diagnostic> {
+        match self.xml_syntax() {
+            Some(root) => xml_lint::syntax_diagnostics(&root),
+            None => Vec::new(),
+        }
     }
 }
 
@@ -440,5 +467,21 @@ mod tests {
         let doc =
             CurrentDocument::new(uri, &std::path::PathBuf::from("a.sql"), "select 1").unwrap();
         assert!(doc.xml_document_symbols().is_none());
+    }
+
+    #[test]
+    fn xml_lint_flags_a_duplicate_attribute() {
+        let uri = Url::parse("file:///a.rx").unwrap();
+        let doc = CurrentDocument::new(
+            uri,
+            &std::path::PathBuf::from("a.rx"),
+            r#"<root a="1" a="2"/>"#,
+        )
+        .unwrap();
+
+        let diagnostics = doc.diagnostics(&[]);
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].source.as_deref(), Some("xml-lint"));
+        assert_eq!(diagnostics[0].severity, Some(DiagnosticSeverity::ERROR));
     }
 }
