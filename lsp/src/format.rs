@@ -2,11 +2,12 @@ use line_index::{LineCol, LineColRange};
 use mlang_formatter::{IndentStyle, IndentWidth, LineWidth};
 use mlang_syntax::MFileSource;
 use sql_syntax::SqlFileSource;
+use xml_syntax::XmlFileSource;
 
 use tower_lsp::lsp_types::{FormattingOptions, Position};
 use tower_lsp::lsp_types::{Range, TextEdit};
 
-use crate::document::{CurrentDocument, DocumentLanguage};
+use crate::document::{CurrentDocument, DocumentKind};
 
 const FORMAT_LINE_WIDTH: u16 = 120;
 const FORMAT_PRETTY_LINE_WIDTH: u16 = 90;
@@ -39,9 +40,14 @@ pub fn format(
         line_index.range(range)?
     };
 
-    let formatted_text = match document.language() {
-        DocumentLanguage::Mlang => {
-            let format_options = mlang_formatter::MFormatOptions::new(MFileSource::module())
+    let formatted_text = match document.kind() {
+        DocumentKind::Module | DocumentKind::Handler | DocumentKind::Report => {
+            let file_source = document
+                .kind()
+                .mlang_file_source()
+                .unwrap_or_else(MFileSource::module);
+
+            let format_options = mlang_formatter::MFormatOptions::new(file_source)
                 .with_indent_style(indent_style)
                 .with_line_width(line_width)
                 .with_pretty_line_width(LineWidth::try_from(FORMAT_PRETTY_LINE_WIDTH).unwrap())
@@ -52,13 +58,30 @@ pub fn format(
             mlang_formatter::format_range(format_options, &document.mlang_syntax()?, text_range)
                 .ok()?
         }
-        DocumentLanguage::Sql => {
+        DocumentKind::Sql => {
             let format_options = sql_formatter::SqlFormatOptions::new(SqlFileSource::script())
                 .with_indent_style(indent_style)
                 .with_line_width(line_width)
                 .with_indent_width(indent_width);
 
             sql_formatter::format_range(format_options, &document.sql_syntax()?, text_range).ok()?
+        }
+        DocumentKind::Resource | DocumentKind::Dictionary | DocumentKind::Xml => {
+            let file_source = document
+                .xml_file_source()
+                .unwrap_or_else(XmlFileSource::plain);
+
+            // Indentation comes from the editor (`FormattingOptions`), same
+            // as the other languages. `XmlFormatOptions::new` still seeds a
+            // per-flavour default (`.xdic` = 4, `.rx*` = 3) for non-LSP
+            // callers; the client is expected to default the editor's tab
+            // size to those via language-scoped settings.
+            let format_options = xml_formatter::XmlFormatOptions::new(file_source)
+                .with_indent_style(indent_style)
+                .with_line_width(line_width)
+                .with_indent_width(indent_width);
+
+            xml_formatter::format_range(format_options, &document.xml_syntax()?, text_range).ok()?
         }
     };
 
@@ -83,8 +106,12 @@ mod tests {
     use tower_lsp::lsp_types::{Position, Url};
 
     fn formatting_options() -> FormattingOptions {
+        formatting_options_with(4)
+    }
+
+    fn formatting_options_with(tab_size: u32) -> FormattingOptions {
         FormattingOptions {
-            tab_size: 4,
+            tab_size,
             insert_spaces: true,
             properties: Default::default(),
             trim_trailing_whitespace: None,
@@ -184,6 +211,75 @@ mod tests {
 
         assert_eq!(edits.len(), 1);
         assert_eq!(edits[0].new_text, "select from where;;;");
+    }
+
+    #[test]
+    fn xml_formatting_uses_the_editor_indent_size() {
+        let uri = Url::parse("file:///doc.rx").unwrap();
+        let text = "<root><group name=\"a\"><fields/></group></root>\n";
+        let document = CurrentDocument::new_xml(uri, text, XmlFileSource::resource());
+
+        // The editor asks for 3 spaces (the .rx house style); the server honours it.
+        let edits = format(
+            &document,
+            formatting_options_with(3),
+            whole_document_range(text),
+        )
+        .expect("xml document should format");
+
+        assert_eq!(edits.len(), 1);
+        // Range formatting omits the document-final newline that whole-file
+        // formatting would add.
+        assert_eq!(
+            edits[0].new_text,
+            "<root>\n   <group name=\"a\">\n      <fields/>\n   </group>\n</root>"
+        );
+    }
+
+    #[test]
+    fn xml_formatting_honours_a_four_space_request() {
+        let uri = Url::parse("file:///doc.xdic").unwrap();
+        let text = "<root><outer><inner/></outer></root>\n";
+        let document = CurrentDocument::new_xml(uri, text, XmlFileSource::dictionary());
+
+        let edits = format(
+            &document,
+            formatting_options_with(4),
+            whole_document_range(text),
+        )
+        .expect("xml document should format");
+
+        assert_eq!(
+            edits[0].new_text,
+            "<root>\n    <outer>\n        <inner/>\n    </outer>\n</root>"
+        );
+    }
+
+    #[test]
+    fn empty_xml_document_does_not_panic() {
+        let uri = Url::parse("file:///doc.rx").unwrap();
+        let text = "";
+        let document = CurrentDocument::new_xml(uri, text, XmlFileSource::resource());
+
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("an empty document still produces a (no-op) edit");
+
+        assert_eq!(edits.len(), 1);
+        assert_eq!(edits[0].new_text, "");
+    }
+
+    #[test]
+    fn malformed_xml_does_not_panic() {
+        let uri = Url::parse("file:///doc.rx").unwrap();
+        let text = "<root><child></root>\n";
+        let document = CurrentDocument::new_xml(uri, text, XmlFileSource::resource());
+
+        // The parser recovers; the formatter must not panic on the bogus
+        // subtree it produces.
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("malformed input should not panic");
+
+        assert_eq!(edits.len(), 1);
     }
 
     #[test]
