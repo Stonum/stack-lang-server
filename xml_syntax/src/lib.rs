@@ -81,3 +81,15 @@ impl TryFrom<XmlSyntaxKind> for TriviaPieceKind {
         }
     }
 }
+
+/// The text of an attribute-value string token without its surrounding
+/// quotes. Entity references (`&apos;`, `&quot;`, …) are **not** decoded.
+pub fn inner_string_text(token: &XmlSyntaxToken) -> TokenText {
+    let mut text = token.token_text_trimmed();
+    if token.kind() == XmlSyntaxKind::XML_STRING_LITERAL && text.len() >= TextSize::from(2) {
+        // A string literal token always has a delimiter at each end.
+        let range = TextRange::new(1.into(), text.len() - TextSize::from(1));
+        text = text.slice(range);
+    }
+    text
+}

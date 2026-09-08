@@ -1582,6 +1582,7 @@ dependencies = [
  "walkdir",
  "xml_formatter",
  "xml_parser",
+ "xml_semantic",
  "xml_syntax",
 ]
 
@@ -2227,6 +2228,15 @@ dependencies = [
  "biome_rowan",
  "biome_unicode_table",
  "xml_factory",
+ "xml_syntax",
+]
+
+[[package]]
+name = "xml_semantic"
+version = "0.0.1"
+dependencies = [
+ "biome_rowan",
+ "xml_parser",
  "xml_syntax",
 ]
 
