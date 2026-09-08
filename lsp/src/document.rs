@@ -14,7 +14,10 @@ use std::{
     any::type_name,
     path::{Path, PathBuf},
 };
-use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Url};
+use tower_lsp::lsp_types::{
+    Diagnostic, DiagnosticSeverity, DocumentSymbol, NumberOrString, Position, Range, SymbolKind,
+    Url,
+};
 
 /// What kind of Stack document this is, derived from the file extension.
 ///
@@ -274,6 +277,14 @@ impl CurrentDocument {
         self.kind.xml_file_source()
     }
 
+    /// A nested outline of the document, for `textDocument/documentSymbol`.
+    /// `None` for non-XML documents (those go through `definitions()`).
+    pub fn xml_document_symbols(&self) -> Option<Vec<DocumentSymbol>> {
+        let root = self.xml_syntax()?;
+        let symbols = xml_semantic::document_symbols(&root);
+        Some(to_lsp_symbols(&self.line_index, &symbols))
+    }
+
     pub fn definitions(&self) -> core::slice::Iter<'_, AnyMDefinition> {
         static EMPTY: &[AnyMDefinition] = &[];
         self.semantics
@@ -333,6 +344,35 @@ fn to_lsp_range(line_index: &LineIndex, text_range: TextRange) -> Option<Range> 
     ))
 }
 
+fn to_lsp_symbols(
+    line_index: &LineIndex,
+    symbols: &[xml_semantic::DocumentSymbol],
+) -> Vec<DocumentSymbol> {
+    symbols
+        .iter()
+        .filter_map(|symbol| {
+            let range = to_lsp_range(line_index, symbol.range)?;
+            let selection_range = to_lsp_range(line_index, symbol.selection_range)?;
+            let kind = match symbol.kind {
+                xml_semantic::SymbolKind::Container => SymbolKind::OBJECT,
+                xml_semantic::SymbolKind::Leaf => SymbolKind::FIELD,
+            };
+
+            #[allow(deprecated)]
+            Some(DocumentSymbol {
+                name: symbol.name.clone(),
+                detail: symbol.detail.clone(),
+                kind,
+                tags: None,
+                deprecated: None,
+                range,
+                selection_range,
+                children: Some(to_lsp_symbols(line_index, &symbol.children)),
+            })
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -376,5 +416,29 @@ mod tests {
             doc.xml_file_source().map(|s| s.variant()),
             Some(XmlVariant::Dictionary)
         );
+    }
+
+    #[test]
+    fn xml_document_symbols_form_a_nested_outline() {
+        let uri = Url::parse("file:///a.rx").unwrap();
+        let text = "<root>\n  <group name=\"g\">\n    <item/>\n  </group>\n</root>\n";
+        let doc = CurrentDocument::new(uri, &std::path::PathBuf::from("a.rx"), text).unwrap();
+
+        let symbols = doc.xml_document_symbols().expect("xml document");
+        assert_eq!(symbols.len(), 1);
+        assert_eq!(symbols[0].name, "root");
+
+        let group = &symbols[0].children.as_ref().unwrap()[0];
+        assert_eq!(group.name, "g");
+        assert_eq!(group.detail.as_deref(), Some("group"));
+        assert_eq!(group.children.as_ref().unwrap()[0].name, "item");
+    }
+
+    #[test]
+    fn non_xml_document_has_no_xml_symbols() {
+        let uri = Url::parse("file:///a.sql").unwrap();
+        let doc =
+            CurrentDocument::new(uri, &std::path::PathBuf::from("a.sql"), "select 1").unwrap();
+        assert!(doc.xml_document_symbols().is_none());
     }
 }
