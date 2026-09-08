@@ -323,6 +323,10 @@ impl Workspace {
     ) -> Result<Option<DocumentSymbolResponse>, WorkspaceError> {
         let document = self.get_opened_document(uri).await?;
 
+        if let Some(symbols) = document.xml_document_symbols() {
+            return Ok(Some(DocumentSymbolResponse::Nested(symbols)));
+        }
+
         let definitions = document.definitions();
         let response = get_symbols(uri, definitions);
 

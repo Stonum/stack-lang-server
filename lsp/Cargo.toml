@@ -23,6 +23,7 @@ sql_formatter = { workspace = true }
 xml_syntax = { workspace = true }
 xml_parser = { workspace = true }
 xml_formatter = { workspace = true }
+xml_semantic = { workspace = true }
 
 env_logger = { workspace = true }
 serde_json = { workspace = true }
