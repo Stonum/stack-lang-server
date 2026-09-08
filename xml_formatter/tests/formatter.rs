@@ -164,6 +164,24 @@ fn document_without_prolog() {
 }
 
 #[test]
+fn resource_defaults_to_three_space_indent() {
+    assert_fmt_eq!(
+        "<root><a><b/></a></root>",
+        "<root>\n   <a>\n      <b/>\n   </a>\n</root>\n",
+        xml_syntax::XmlFileSource::resource(),
+    );
+}
+
+#[test]
+fn dictionary_defaults_to_four_space_indent() {
+    assert_fmt_eq!(
+        "<root><a><b/></a></root>",
+        "<root>\n    <a>\n        <b/>\n    </a>\n</root>\n",
+        xml_syntax::XmlFileSource::dictionary(),
+    );
+}
+
+#[test]
 fn stray_text_between_elements_is_trimmed() {
     // The lexer folds trailing indentation into a text token; the formatter
     // must trim it so the result is idempotent. (Real resources occasionally

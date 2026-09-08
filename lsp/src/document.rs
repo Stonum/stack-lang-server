@@ -8,6 +8,7 @@ use mlang_syntax::{
 };
 
 use sql_syntax::{SqlDialect, SqlFileSource, SqlLanguage, SqlSyntaxNode};
+use xml_syntax::{XmlFileSource, XmlLanguage, XmlSyntaxNode, XmlVariant};
 
 use std::{
     any::type_name,
@@ -15,16 +16,115 @@ use std::{
 };
 use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Url};
 
+/// What kind of Stack document this is, derived from the file extension.
+///
+/// This is the single classification the LSP layer works with; the
+/// per-language file sources ([MFileSource], [SqlFileSource],
+/// [XmlFileSource]) are re-derived from it through the accessors below.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum DocumentLanguage {
-    Mlang,
+pub enum DocumentKind {
+    /// mlang module — `.prg`
+    Module,
+    /// mlang event handler — `.hdl`
+    Handler,
+    /// mlang report — `.rpt*` / `.pa*`
+    Report,
+    /// SQL script — `.sql`
     Sql,
+    /// XML resource — `.rx`, `.rx_api`, `.rxz`, …
+    Resource,
+    /// XML dictionary — `.xdic`
+    Dictionary,
+    /// Plain XML — `.xml`
+    Xml,
+}
+
+impl DocumentKind {
+    /// Classify a document by its path. `Err` means the extension is not one
+    /// we handle.
+    pub fn from_path(path: &Path) -> Result<Self, FileSourceError> {
+        if SqlFileSource::try_from(path).is_ok() {
+            return Ok(Self::Sql);
+        }
+        if let Ok(xml) = XmlFileSource::try_from(path) {
+            return Ok(Self::from_xml(xml));
+        }
+        Ok(Self::from_mlang(MFileSource::try_from(path)?))
+    }
+
+    fn from_mlang(source: MFileSource) -> Self {
+        if source.is_handler() {
+            Self::Handler
+        } else if source.is_report() {
+            Self::Report
+        } else {
+            Self::Module
+        }
+    }
+
+    fn from_xml(source: XmlFileSource) -> Self {
+        match source.variant() {
+            XmlVariant::Resource => Self::Resource,
+            XmlVariant::Dictionary => Self::Dictionary,
+            XmlVariant::Plain => Self::Xml,
+        }
+    }
+
+    pub fn is_mlang(&self) -> bool {
+        matches!(self, Self::Module | Self::Handler | Self::Report)
+    }
+
+    pub fn is_sql(&self) -> bool {
+        matches!(self, Self::Sql)
+    }
+
+    pub fn is_xml(&self) -> bool {
+        matches!(self, Self::Resource | Self::Dictionary | Self::Xml)
+    }
+
+    pub fn mlang_file_source(&self) -> Option<MFileSource> {
+        Some(match self {
+            Self::Module => MFileSource::module(),
+            Self::Handler => MFileSource::handler(),
+            Self::Report => MFileSource::report(),
+            _ => return None,
+        })
+    }
+
+    pub fn sql_file_source(&self) -> Option<SqlFileSource> {
+        matches!(self, Self::Sql).then(|| {
+            SqlFileSource::script()
+                .with_dialect(SqlDialect::Postgres)
+                .with_mlang_extension(true)
+        })
+    }
+
+    pub fn xml_file_source(&self) -> Option<XmlFileSource> {
+        Some(match self {
+            Self::Resource => XmlFileSource::resource(),
+            Self::Dictionary => XmlFileSource::dictionary(),
+            Self::Xml => XmlFileSource::plain(),
+            _ => return None,
+        })
+    }
+
+    /// Prefix for the `source` field of the diagnostics this document
+    /// produces (`mlang-parser`, `sql-parser`, …).
+    pub fn diagnostic_source(&self) -> &'static str {
+        if self.is_sql() {
+            "sql"
+        } else if self.is_xml() {
+            "xml"
+        } else {
+            "mlang"
+        }
+    }
 }
 
 pub struct CurrentDocument {
     uri: Url,
     root: SendNode,
-    language: DocumentLanguage,
+    kind: DocumentKind,
     line_index: LineIndex,
     semantics: Option<SemanticModel>,
     parse_diagnostics: Vec<ParseDiagnostic>,
@@ -32,15 +132,19 @@ pub struct CurrentDocument {
 
 impl CurrentDocument {
     pub fn new(uri: Url, path: &Path, text: &str) -> Result<CurrentDocument, FileSourceError> {
-        if let Ok(file_source) = SqlFileSource::try_from(path) {
-            let file_source = file_source
-                .with_dialect(SqlDialect::Postgres)
-                .with_mlang_extension(true);
-            return Ok(CurrentDocument::new_sql(uri, text, file_source));
-        }
+        let kind = DocumentKind::from_path(path)?;
 
-        let file_source = MFileSource::try_from(path)?;
-        Ok(CurrentDocument::new_mlang(uri, text, file_source))
+        Ok(match kind {
+            DocumentKind::Sql => {
+                CurrentDocument::new_sql(uri, text, kind.sql_file_source().unwrap())
+            }
+            DocumentKind::Resource | DocumentKind::Dictionary | DocumentKind::Xml => {
+                CurrentDocument::new_xml(uri, text, kind.xml_file_source().unwrap())
+            }
+            DocumentKind::Module | DocumentKind::Handler | DocumentKind::Report => {
+                CurrentDocument::new_mlang(uri, text, kind.mlang_file_source().unwrap())
+            }
+        })
     }
 
     pub fn new_mlang(uri: Url, text: &str, file_source: MFileSource) -> CurrentDocument {
@@ -70,7 +174,7 @@ impl CurrentDocument {
         CurrentDocument {
             uri,
             root,
-            language: DocumentLanguage::Mlang,
+            kind: DocumentKind::from_mlang(file_source),
             semantics,
             line_index,
             parse_diagnostics,
@@ -102,15 +206,48 @@ impl CurrentDocument {
         CurrentDocument {
             uri,
             root,
-            language: DocumentLanguage::Sql,
+            kind: DocumentKind::Sql,
             semantics: None,
             line_index,
             parse_diagnostics,
         }
     }
 
-    pub fn language(&self) -> DocumentLanguage {
-        self.language
+    pub fn new_xml(uri: Url, text: &str, file_source: XmlFileSource) -> CurrentDocument {
+        let parsed = xml_parser::parse(text);
+        let diagnostics = parsed.diagnostics();
+
+        Self::from_xml_root(uri, text, file_source, parsed.syntax(), diagnostics)
+    }
+
+    pub fn from_xml_root(
+        uri: Url,
+        text: &str,
+        file_source: XmlFileSource,
+        root: XmlSyntaxNode,
+        diagnostics: &[ParseDiagnostic],
+    ) -> CurrentDocument {
+        let root = root.as_send().unwrap_or_else(|| {
+            panic!(
+                "could not upcast root node from language {}",
+                type_name::<XmlLanguage>()
+            )
+        });
+        let line_index = LineIndex::new(text);
+        let parse_diagnostics = diagnostics.to_vec();
+
+        CurrentDocument {
+            uri,
+            root,
+            kind: DocumentKind::from_xml(file_source),
+            semantics: None,
+            line_index,
+            parse_diagnostics,
+        }
+    }
+
+    pub fn kind(&self) -> DocumentKind {
+        self.kind
     }
 
     pub fn path(&self) -> PathBuf {
@@ -129,6 +266,14 @@ impl CurrentDocument {
         self.root.clone().into_node()
     }
 
+    pub fn xml_syntax(&self) -> Option<SyntaxNode<XmlLanguage>> {
+        self.root.clone().into_node()
+    }
+
+    pub fn xml_file_source(&self) -> Option<XmlFileSource> {
+        self.kind.xml_file_source()
+    }
+
     pub fn definitions(&self) -> core::slice::Iter<'_, AnyMDefinition> {
         static EMPTY: &[AnyMDefinition] = &[];
         self.semantics
@@ -143,10 +288,7 @@ impl CurrentDocument {
     pub fn diagnostics(&self, semantic_lint: &[mlang_lint::Diagnostic]) -> Vec<Diagnostic> {
         let line_index = &self.line_index;
 
-        let source = match self.language {
-            DocumentLanguage::Mlang => "mlang",
-            DocumentLanguage::Sql => "sql",
-        };
+        let source = self.kind.diagnostic_source();
 
         let from_parser = self.parse_diagnostics.iter().filter_map(|error| {
             let text_range = error.location().span?;
@@ -189,4 +331,50 @@ fn to_lsp_range(line_index: &LineIndex, text_range: TextRange) -> Option<Range> 
         Position::new(start.line, start.col),
         Position::new(end.line, end.col),
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn kind_of(name: &str) -> DocumentKind {
+        DocumentKind::from_path(&std::path::PathBuf::from(name)).expect("known extension")
+    }
+
+    #[test]
+    fn classifies_documents_by_extension() {
+        assert_eq!(kind_of("a.prg"), DocumentKind::Module);
+        assert_eq!(kind_of("a.hdl"), DocumentKind::Handler);
+        assert_eq!(kind_of("a.rpt"), DocumentKind::Report);
+        assert_eq!(kind_of("a.sql"), DocumentKind::Sql);
+        assert_eq!(kind_of("a.xdic"), DocumentKind::Dictionary);
+        assert_eq!(kind_of("a.xml"), DocumentKind::Xml);
+        for name in ["a.rx", "a.rx_api", "a.rxz"] {
+            assert_eq!(kind_of(name), DocumentKind::Resource, "{name}");
+        }
+    }
+
+    #[test]
+    fn accessors_round_trip_to_the_right_file_source() {
+        assert_eq!(
+            kind_of("a.xdic").xml_file_source().map(|s| s.variant()),
+            Some(XmlVariant::Dictionary)
+        );
+        assert!(kind_of("a.hdl").mlang_file_source().unwrap().is_handler());
+        assert!(kind_of("a.sql").sql_file_source().is_some());
+        assert!(kind_of("a.rx").mlang_file_source().is_none());
+        assert!(kind_of("a.prg").xml_file_source().is_none());
+    }
+
+    #[test]
+    fn opened_xml_document_reports_its_kind() {
+        let uri = Url::parse("file:///a.xdic").unwrap();
+        let doc =
+            CurrentDocument::new(uri, &std::path::PathBuf::from("a.xdic"), "<root/>").unwrap();
+        assert_eq!(doc.kind(), DocumentKind::Dictionary);
+        assert_eq!(
+            doc.xml_file_source().map(|s| s.variant()),
+            Some(XmlVariant::Dictionary)
+        );
+    }
 }

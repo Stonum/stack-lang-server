@@ -1,13 +1,20 @@
 use crate::prelude::*;
 use biome_formatter::write;
+use biome_rowan::AstNode;
 use xml_syntax::{AnyXmlElement, XmlElement};
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatXmlElement;
 impl FormatNodeRule<XmlElement> for FormatXmlElement {
     fn fmt_fields(&self, node: &XmlElement, f: &mut XmlFormatter) -> FormatResult<()> {
+        // Recovered/incomplete tree (missing opening or closing tag): keep
+        // the original text rather than failing the whole format request.
+        let (Ok(opening), Ok(closing)) = (node.opening(), node.closing()) else {
+            return write!(f, [format_verbatim_node(node.syntax())]);
+        };
+
         let children = node.children();
 
-        write!(f, [node.opening().format()])?;
+        write!(f, [opening.format()])?;
 
         if children.len() > 0 {
             // Content that is only text / CDATA stays inline (`<a>value</a>`);
@@ -27,6 +34,6 @@ impl FormatNodeRule<XmlElement> for FormatXmlElement {
             }
         }
 
-        write!(f, [node.closing().format()])
+        write!(f, [closing.format()])
     }
 }

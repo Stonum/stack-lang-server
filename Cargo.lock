@@ -1580,6 +1580,9 @@ dependencies = [
  "tower-lsp",
  "unicase",
  "walkdir",
+ "xml_formatter",
+ "xml_parser",
+ "xml_syntax",
 ]
 
 [[package]]

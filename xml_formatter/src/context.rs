@@ -6,7 +6,7 @@ use biome_formatter::{
 };
 use std::fmt;
 use std::rc::Rc;
-use xml_syntax::{XmlFileSource, XmlLanguage};
+use xml_syntax::{XmlFileSource, XmlLanguage, XmlVariant};
 
 #[derive(Debug, Clone)]
 pub struct XmlFormatContext {
@@ -75,6 +75,15 @@ impl SelfClosingSpacing {
     }
 }
 
+fn default_indent_width(variant: XmlVariant) -> IndentWidth {
+    let width: u8 = match variant {
+        XmlVariant::Dictionary => 4,
+        XmlVariant::Resource => 3,
+        XmlVariant::Plain => 2,
+    };
+    IndentWidth::from(width)
+}
+
 #[derive(Debug, Clone)]
 pub struct XmlFormatOptions {
     indent_style: IndentStyle,
@@ -89,8 +98,10 @@ impl XmlFormatOptions {
     pub fn new(source_type: XmlFileSource) -> Self {
         Self {
             source_type,
-            indent_style: IndentStyle::default(),
-            indent_width: IndentWidth::default(),
+            // Stack files are space-indented, and each flavour has its own
+            // house style: dictionaries use 4 spaces, resources use 3.
+            indent_style: IndentStyle::Space,
+            indent_width: default_indent_width(source_type.variant()),
             line_ending: LineEnding::default(),
             line_width: LineWidth::default(),
             self_closing_spacing: SelfClosingSpacing::default(),
