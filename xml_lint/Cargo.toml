@@ -1,0 +1,11 @@
+[package]
+name = "xml_lint"
+version = "0.0.1"
+edition.workspace = true
+
+[dependencies]
+xml_syntax = { workspace = true }
+biome_rowan = { workspace = true }
+
+[dev-dependencies]
+xml_parser = { workspace = true }

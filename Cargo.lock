@@ -1581,6 +1581,7 @@ dependencies = [
  "unicase",
  "walkdir",
  "xml_formatter",
+ "xml_lint",
  "xml_parser",
  "xml_semantic",
  "xml_syntax",
@@ -2216,6 +2217,15 @@ dependencies = [
  "biome_rowan",
  "serde",
  "xml_factory",
+ "xml_parser",
+ "xml_syntax",
+]
+
+[[package]]
+name = "xml_lint"
+version = "0.0.1"
+dependencies = [
+ "biome_rowan",
  "xml_parser",
  "xml_syntax",
 ]
