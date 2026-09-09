@@ -140,6 +140,44 @@ async fn warm_up_runs_concurrently_with_document_changes() {
 }
 
 #[tokio::test]
+async fn open_document_lints_calls_against_workspace_definitions() {
+    // `open_document` computes diagnostics on a blocking worker, linting the
+    // buffer against the warmed cross-file semantic cache. Prove that path
+    // still wires the workspace definitions in: an arity error on a call to a
+    // function defined in *another* workspace file.
+    let dir = TempDir::new("xfile_lint");
+    dir.write("lib.prg", "func Helper(a, b) {\n}\n");
+
+    let workspace = Workspace::new();
+    let folder = WorkspaceFolder {
+        uri: Url::from_file_path(&dir.0).unwrap(),
+        name: "w".to_string(),
+    };
+    workspace
+        .init_with_workspace_folders(Some(vec![folder]))
+        .await
+        .unwrap();
+    workspace.update_semantic_information().await;
+
+    let main_uri = Url::from_file_path(dir.0.join("main.prg")).unwrap();
+    let diagnostics = workspace
+        .open_document(text_document(
+            main_uri,
+            "mlang",
+            "func Main() {\n  Helper(1);\n}\n",
+        ))
+        .await
+        .expect("open_document should not error");
+
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.message.contains("Helper") && d.message.contains("1 argument")),
+        "expected a cross-file arity diagnostic, got {diagnostics:?}"
+    );
+}
+
+#[tokio::test]
 async fn queries_serve_from_a_partially_warmed_cache() {
     let dir = TempDir::new("partial");
     dir.write("a.prg", "func Foo() {\n}\n");

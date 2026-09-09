@@ -75,7 +75,8 @@ impl WorkspaceError {
 pub struct Workspace {
     opened_files: DashMap<Url, Arc<RwLock<CurrentDocument>>>,
     mlang_semantics: DashMap<PathBuf, Option<Arc<SemanticModel>>>,
-    core: Vec<AnyMCoreDefinition>,
+    // `Arc<[_]>` so it can be cheaply handed to `spawn_blocking` closures.
+    core: Arc<[AnyMCoreDefinition]>,
 }
 
 impl Workspace {
@@ -83,7 +84,7 @@ impl Workspace {
         Workspace {
             opened_files: DashMap::new(),
             mlang_semantics: DashMap::new(),
-            core: load_core_api(),
+            core: load_core_api().into(),
         }
     }
 
@@ -530,32 +531,41 @@ impl Workspace {
     }
 }
 
-impl Workspace {
-    fn semantic_lint_for(&self, document: &CurrentDocument) -> Vec<mlang_lint::Diagnostic> {
-        let Some(root) = document.mlang_syntax() else {
-            return Vec::new();
-        };
+/// Lints `document` against the core API and the workspace's cross-file definitions
+fn semantic_lint(
+    core: &[AnyMCoreDefinition],
+    workspace_semantics: &[Arc<SemanticModel>],
+    document: &CurrentDocument,
+) -> Vec<mlang_lint::Diagnostic> {
+    let Some(root) = document.mlang_syntax() else {
+        return Vec::new();
+    };
 
-        let workspace_semantics: Vec<Arc<SemanticModel>> = self
-            .mlang_semantics
+    let definitions: Vec<&AnyMDefinition> = document
+        .definitions()
+        .chain(workspace_semantics.iter().flat_map(|s| s.definitions()))
+        .collect();
+
+    let mut diagnostics = mlang_lint::syntax_diagnostics(&root);
+
+    diagnostics.extend(mlang_lint::semantic_diagnostics(
+        &root,
+        core,
+        definitions.into_iter(),
+    ));
+
+    diagnostics
+}
+
+impl Workspace {
+    /// Snapshot of the cross-file semantic models to lint an open document
+    /// against. Cheap `Arc` clones; take it before moving work into
+    /// `spawn_blocking`.
+    fn workspace_semantics_snapshot(&self) -> Vec<Arc<SemanticModel>> {
+        self.mlang_semantics
             .iter()
             .filter_map(|r| r.value().clone())
-            .collect();
-
-        let definitions: Vec<&AnyMDefinition> = document
-            .definitions()
-            .chain(workspace_semantics.iter().flat_map(|s| s.definitions()))
-            .collect();
-
-        let mut diagnostics = mlang_lint::syntax_diagnostics(&root);
-
-        diagnostics.extend(mlang_lint::semantic_diagnostics(
-            &root,
-            &self.core,
-            definitions.into_iter(),
-        ));
-
-        diagnostics
+            .collect()
     }
 
     pub async fn open_document(
@@ -569,13 +579,17 @@ impl Workspace {
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
 
         let document_uri = uri.clone();
+        let core = Arc::clone(&self.core);
+        let workspace_semantics = self.workspace_semantics_snapshot();
+
         let handle = tokio::task::spawn_blocking(move || {
-            CurrentDocument::new(document_uri, &path, &document.text)
+            let document = CurrentDocument::new(document_uri, &path, &document.text)?;
+            let lint = semantic_lint(&core, &workspace_semantics, &document);
+            let diagnostics = document.diagnostics(&lint);
+            Ok::<_, mlang_syntax::FileSourceError>((document, diagnostics))
         });
 
-        let document = handle.await??;
-        let semantic_lint = self.semantic_lint_for(&document);
-        let diagnostics = document.diagnostics(&semantic_lint);
+        let (document, diagnostics) = handle.await??;
 
         self.opened_files
             .insert(uri, Arc::new(RwLock::new(document)));
@@ -635,8 +649,15 @@ impl Workspace {
         }
 
         if let Some(mut opened_file) = opened_file {
-            let semantic_lint = self.semantic_lint_for(&document);
-            let diagnostics = document.diagnostics(&semantic_lint);
+            let core = Arc::clone(&self.core);
+            let workspace_semantics = self.workspace_semantics_snapshot();
+
+            let (document, diagnostics) = tokio::task::spawn_blocking(move || {
+                let lint = semantic_lint(&core, &workspace_semantics, &document);
+                let diagnostics = document.diagnostics(&lint);
+                (document, diagnostics)
+            })
+            .await?;
 
             *opened_file = document;
 
