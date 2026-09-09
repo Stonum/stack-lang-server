@@ -41,3 +41,8 @@ walkdir = { workspace = true }
 chrono = { workspace = true }
 
 biome_rowan = { workspace = true }
+
+[dev-dependencies]
+# `tokio::time::timeout` in the concurrency regression tests; the main
+# dependency doesn't pull in the `time` feature.
+tokio = { workspace = true, features = ["time"] }

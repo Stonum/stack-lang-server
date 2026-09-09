@@ -175,8 +175,16 @@ impl Workspace {
         let current = Handle::current();
         let semaphore = Arc::new(Semaphore::new(num_cores * 2));
 
-        for document in self.mlang_semantics.iter() {
-            let path = document.key().to_path_buf();
+        // Snapshot the keys up front: holding a `DashMap` shard guard (what
+        // `.iter()` yields) across the `.await` below would block any other
+        // task touching that shard for the whole warm-up.
+        let paths: Vec<PathBuf> = self
+            .mlang_semantics
+            .iter()
+            .map(|entry| entry.key().to_path_buf())
+            .collect();
+
+        for path in paths {
             let permit = semaphore.clone().acquire_owned().await.unwrap();
 
             let handle = current.spawn_blocking(move || {

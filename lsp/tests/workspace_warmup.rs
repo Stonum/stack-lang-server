@@ -7,6 +7,8 @@
 mod common;
 
 use std::fs;
+use std::sync::Arc;
+use std::time::Duration;
 
 use common::{temp_uri, text_document};
 use stack_lang_server::workspace::Workspace;
@@ -72,6 +74,69 @@ async fn init_from_a_missing_settings_file_errors_without_panic() {
         .await;
 
     assert!(result.is_err());
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn warm_up_runs_concurrently_with_document_changes() {
+    // Concurrency smoke test for the warm-up path: `update_semantic_information`
+    // and a storm of `change_document` writes run at the same time, both must
+    // finish (timeout guards a hang) and leave the cache consistent and
+    // queryable. Exercises the shard-snapshot in `update_semantic_information`
+    // that keeps it from parking on a `DashMap` guard across `.await`.
+    let dir = TempDir::new("concurrent");
+    for i in 0..300 {
+        dir.write(&format!("f{i}.prg"), &format!("func F{i}() {{\n}}\n"));
+    }
+
+    let workspace = Arc::new(Workspace::new());
+    let folder = WorkspaceFolder {
+        uri: Url::from_file_path(&dir.0).unwrap(),
+        name: "w".to_string(),
+    };
+    workspace
+        .init_with_workspace_folders(Some(vec![folder]))
+        .await
+        .unwrap();
+
+    let warming = {
+        let workspace = Arc::clone(&workspace);
+        tokio::spawn(async move { workspace.update_semantic_information().await })
+    };
+
+    let churning = {
+        let workspace = Arc::clone(&workspace);
+        let root = dir.0.clone();
+        tokio::spawn(async move {
+            // Hammer writes across every file (hence every `DashMap` shard),
+            // so whichever shard the warm-up is parked on gets hit.
+            for round in 0..3 {
+                for i in 0..300 {
+                    let uri = Url::from_file_path(root.join(format!("f{i}.prg"))).unwrap();
+                    let text = format!("func C{round}_{i}() {{\n}}\n");
+                    workspace
+                        .change_document(text_document(uri, "mlang", &text))
+                        .await
+                        .unwrap();
+                }
+            }
+        })
+    };
+
+    tokio::time::timeout(Duration::from_secs(30), async {
+        warming.await.unwrap();
+        churning.await.unwrap();
+    })
+    .await
+    .expect("warm-up must not deadlock against concurrent edits");
+
+    // Cache is still coherent afterwards: every one of the 300 files resolves
+    // to at least its function symbol, whichever writer landed last.
+    let symbols = workspace.symbol_information("").await.expect("Some");
+    assert!(
+        symbols.len() >= 300,
+        "expected a symbol per file, got {}",
+        symbols.len()
+    );
 }
 
 #[tokio::test]
