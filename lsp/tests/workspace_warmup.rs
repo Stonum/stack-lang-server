@@ -34,6 +34,47 @@ impl Drop for TempDir {
 }
 
 #[tokio::test]
+async fn init_from_settings_file_discovers_prg_files() {
+    let dir = TempDir::new("ini");
+    dir.write("one.prg", "func One() {\n}\n");
+    dir.write("two.prg", "func Two() {\n}\n");
+    dir.write(
+        "stack.ini",
+        &format!("[AppPath]\nPRG={}\\**\n", dir.0.display()),
+    );
+
+    let workspace = Workspace::new();
+    workspace
+        .init_with_settings_file(&dir.0.to_string_lossy())
+        .await
+        .expect("ini init should succeed");
+
+    workspace.update_semantic_information().await;
+
+    let names: Vec<String> = workspace
+        .symbol_information("")
+        .await
+        .expect("Some")
+        .into_iter()
+        .map(|s| s.name)
+        .collect();
+    assert!(names.iter().any(|n| n == "One"), "got {names:?}");
+    assert!(names.iter().any(|n| n == "Two"), "got {names:?}");
+}
+
+#[tokio::test]
+async fn init_from_a_missing_settings_file_errors_without_panic() {
+    let workspace = Workspace::new();
+    let missing = std::env::temp_dir().join("sls_warmup_definitely_missing_dir");
+
+    let result = workspace
+        .init_with_settings_file(&missing.to_string_lossy())
+        .await;
+
+    assert!(result.is_err());
+}
+
+#[tokio::test]
 async fn queries_serve_from_a_partially_warmed_cache() {
     let dir = TempDir::new("partial");
     dir.write("a.prg", "func Foo() {\n}\n");

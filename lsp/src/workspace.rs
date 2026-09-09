@@ -45,6 +45,8 @@ pub enum WorkspaceInitializationError {
     Io(#[from] std::io::Error),
     #[error("Folders not found")]
     FoldersNotFound,
+    #[error("{0}")]
+    Join(#[from] JoinError),
 }
 
 #[derive(Debug, Error)]
@@ -98,7 +100,9 @@ impl Workspace {
             .map(|path| (path, true)) // recursively all folders in workspace
             .collect::<Vec<_>>();
 
-        let files = self.get_files(folders).await?;
+        // The directory walk is blocking synchronous I/O -- keep it off the
+        // async worker so it can't stall unrelated request handling.
+        let files = tokio::task::spawn_blocking(move || get_files(folders)).await??;
 
         self.mlang_semantics.clear();
         for path in files {
@@ -113,38 +117,43 @@ impl Workspace {
         &self,
         path: &str,
     ) -> Result<(), WorkspaceInitializationError> {
-        let mut path = PathBuf::from(path);
-        if !&path.is_file() {
-            path.push("stack.ini");
-        }
+        let path = PathBuf::from(path);
 
-        info!(
-            "Get files from ini file {}!",
-            path.to_str().unwrap_or_default()
-        );
+        // Reading/parsing the ini file and walking the directories it points
+        // at is all blocking synchronous I/O -- run it on a blocking worker.
+        let files = tokio::task::spawn_blocking(move || {
+            let mut path = path;
+            if !path.is_file() {
+                path.push("stack.ini");
+            }
 
-        let ini = Ini::load_from_file_noescape(path)?;
-        let app_path =
-            ini.section(Some("AppPath"))
-                .ok_or(WorkspaceInitializationError::SectionNotFound(
-                    "AppPath".to_string(),
-                ))?;
+            info!(
+                "Get files from ini file {}!",
+                path.to_str().unwrap_or_default()
+            );
 
-        let folders = app_path
-            .get_all("PRG")
-            .map(|s| {
-                let mut path = PathBuf::from(s);
+            let ini = Ini::load_from_file_noescape(path)?;
+            let app_path = ini.section(Some("AppPath")).ok_or(
+                WorkspaceInitializationError::SectionNotFound("AppPath".to_string()),
+            )?;
 
-                // recursively only folders ends with **
-                let recursively = path.ends_with("**");
-                if recursively {
-                    path.pop();
-                }
-                (path, recursively)
-            })
-            .collect::<Vec<_>>();
+            let folders = app_path
+                .get_all("PRG")
+                .map(|s| {
+                    let mut path = PathBuf::from(s);
 
-        let files = self.get_files(folders).await?;
+                    // recursively only folders ends with **
+                    let recursively = path.ends_with("**");
+                    if recursively {
+                        path.pop();
+                    }
+                    (path, recursively)
+                })
+                .collect::<Vec<_>>();
+
+            get_files(folders).map_err(WorkspaceInitializationError::from)
+        })
+        .await??;
 
         self.mlang_semantics.clear();
         for path in files {
@@ -640,30 +649,6 @@ impl Workspace {
 }
 
 impl Workspace {
-    async fn get_files(&self, to_visit: Vec<(PathBuf, bool)>) -> std::io::Result<Vec<PathBuf>> {
-        let mut files = Vec::with_capacity(1000);
-
-        for (path, recursively) in to_visit {
-            let depth = if recursively { usize::MAX } else { 1 };
-            let walker = WalkDir::new(path).max_depth(depth);
-
-            let entries = walker
-                .into_iter()
-                .filter_map(|e| e.ok())
-                .filter(|entry| entry.file_type().is_file())
-                .filter(|entry| {
-                    MFileSource::try_from(entry.path())
-                        .is_ok_and(|m| m.is_module() || m.is_handler())
-                });
-
-            for entry in entries {
-                files.push(entry.into_path());
-            }
-        }
-
-        Ok(files)
-    }
-
     async fn identifier_from_position(
         &self,
         uri: &Url,
@@ -687,4 +672,27 @@ impl Workspace {
 
         Ok(identifier)
     }
+}
+
+fn get_files(to_visit: Vec<(PathBuf, bool)>) -> std::io::Result<Vec<PathBuf>> {
+    let mut files = Vec::with_capacity(1000);
+
+    for (path, recursively) in to_visit {
+        let depth = if recursively { usize::MAX } else { 1 };
+        let walker = WalkDir::new(path).max_depth(depth);
+
+        let entries = walker
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(|entry| entry.file_type().is_file())
+            .filter(|entry| {
+                MFileSource::try_from(entry.path()).is_ok_and(|m| m.is_module() || m.is_handler())
+            });
+
+        for entry in entries {
+            files.push(entry.into_path());
+        }
+    }
+
+    Ok(files)
 }
