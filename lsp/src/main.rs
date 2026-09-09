@@ -3,6 +3,7 @@ use chrono::Local;
 use stack_lang_server::workspace::WorkspaceError;
 use std::env;
 use std::io::Write;
+use std::sync::Arc;
 
 use env_logger::Builder;
 use log::{LevelFilter, error, info, trace};
@@ -21,7 +22,7 @@ use std::time::Instant;
 
 struct Backend {
     client: Client,
-    workspace: Workspace,
+    workspace: Arc<Workspace>,
 }
 
 #[tower_lsp::async_trait]
@@ -98,69 +99,9 @@ impl LanguageServer for Backend {
     async fn initialized(&self, _: InitializedParams) {
         info!("Stack lang server initialized!");
 
-        let start = Instant::now();
-        info!("Start workspace initialization");
-        self.send_status_bar_notofication("Workspace initialization - loading settings")
-            .await;
-
-        let settings_path = async {
-            let params = vec![ConfigurationItem {
-                scope_uri: None,
-                section: Some("stack.iniPath".to_owned()),
-            }];
-            let cfg = self.client.configuration(params).await.ok()?;
-            match cfg.first().map(|s| s.to_owned()) {
-                Some(Value::String(s)) => Some(s),
-                _ => None,
-            }
-        }
-        .await;
-
-        let get_folders = async || {
-            self.client.workspace_folders().await.unwrap_or_else(|e| {
-                error!("Error receiving workspace folders: {e}");
-                None
-            })
-        };
-
-        self.send_status_bar_notofication("Workspace initialization - getting files")
-            .await;
-
-        match settings_path {
-            Some(path) if !path.is_empty() => {
-                if let Err(error) = self.workspace.init_with_settings_file(&path).await {
-                    error!("Initialization error: {error}");
-
-                    // try init from workspace folders
-                    info!("Trying initialization from workspace folders");
-                    let folders = get_folders().await;
-                    if let Err(error) = self.workspace.init_with_workspace_folders(folders).await {
-                        error!("Initialization error: {error}");
-                        return;
-                    }
-                }
-            }
-            _ => {
-                let folders = get_folders().await;
-                if let Err(error) = self.workspace.init_with_workspace_folders(folders).await {
-                    error!("{error}");
-                    return;
-                }
-            }
-        }
-
-        self.send_status_bar_notofication(
-            "Workspace initialization - updating semantic information",
-        )
-        .await;
-
-        self.workspace.update_semantic_information().await;
-
-        info!(
-            "Workspace initialization completed for {:?}",
-            start.elapsed()
-        );
-        self.send_status_bar_notofication("").await;
+        let client = self.client.clone();
+        let workspace = Arc::clone(&self.workspace);
+        tokio::spawn(async move { warm_up_workspace(client, workspace).await });
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
@@ -393,12 +334,78 @@ impl Backend {
             .publish_diagnostics(uri, diagnostics, None)
             .await;
     }
+}
 
-    async fn send_status_bar_notofication(&self, msg: &str) {
-        self.client
-            .send_notification::<StatusBarNotification>(StatusBarNotification::create(msg))
-            .await;
+async fn send_status_bar_notofication(client: &Client, msg: &str) {
+    client
+        .send_notification::<StatusBarNotification>(StatusBarNotification::create(msg))
+        .await;
+}
+
+/// Discovers the workspace files and builds the semantic cache
+async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
+    let start = Instant::now();
+    info!("Start workspace initialization");
+    send_status_bar_notofication(&client, "Workspace initialization - loading settings").await;
+
+    let settings_path = async {
+        let params = vec![ConfigurationItem {
+            scope_uri: None,
+            section: Some("stack.iniPath".to_owned()),
+        }];
+        let cfg = client.configuration(params).await.ok()?;
+        match cfg.first().map(|s| s.to_owned()) {
+            Some(Value::String(s)) => Some(s),
+            _ => None,
+        }
     }
+    .await;
+
+    let get_folders = || async {
+        client.workspace_folders().await.unwrap_or_else(|e| {
+            error!("Error receiving workspace folders: {e}");
+            None
+        })
+    };
+
+    send_status_bar_notofication(&client, "Workspace initialization - getting files").await;
+
+    match settings_path {
+        Some(path) if !path.is_empty() => {
+            if let Err(error) = workspace.init_with_settings_file(&path).await {
+                error!("Initialization error: {error}");
+
+                // try init from workspace folders
+                info!("Trying initialization from workspace folders");
+                let folders = get_folders().await;
+                if let Err(error) = workspace.init_with_workspace_folders(folders).await {
+                    error!("Initialization error: {error}");
+                    return;
+                }
+            }
+        }
+        _ => {
+            let folders = get_folders().await;
+            if let Err(error) = workspace.init_with_workspace_folders(folders).await {
+                error!("{error}");
+                return;
+            }
+        }
+    }
+
+    send_status_bar_notofication(
+        &client,
+        "Workspace initialization - updating semantic information",
+    )
+    .await;
+
+    workspace.update_semantic_information().await;
+
+    info!(
+        "Workspace initialization completed for {:?}",
+        start.elapsed()
+    );
+    send_status_bar_notofication(&client, "").await;
 }
 
 fn log_internal_error(err: WorkspaceError) -> Error {
@@ -430,7 +437,7 @@ async fn main() {
 
     let (service, socket) = LspService::build(|client| Backend {
         client,
-        workspace: Workspace::new(),
+        workspace: Arc::new(Workspace::new()),
     })
     .finish();
 
