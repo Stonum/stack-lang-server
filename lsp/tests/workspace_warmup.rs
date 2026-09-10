@@ -42,7 +42,7 @@ async fn init_from_settings_file_discovers_prg_files() {
     dir.write("two.prg", "func Two() {\n}\n");
     dir.write(
         "stack.ini",
-        &format!("[AppPath]\nPRG={}\\**\n", dir.0.display()),
+        &format!("[AppPath]\nPRG={}\n", dir.0.join("**").display()),
     );
 
     let workspace = Workspace::new();
