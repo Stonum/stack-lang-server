@@ -484,4 +484,21 @@ mod tests {
         assert_eq!(diagnostics[0].source.as_deref(), Some("xml-lint"));
         assert_eq!(diagnostics[0].severity, Some(DiagnosticSeverity::ERROR));
     }
+
+    #[test]
+    fn xml_lint_flags_siblings_with_a_duplicate_name() {
+        let uri = Url::parse("file:///a.rx").unwrap();
+        let doc = CurrentDocument::new(
+            uri,
+            &std::path::PathBuf::from("a.rx"),
+            "<Resource>\n   <Select Имя=\"a\"/>\n   <Select Имя=\"a\"/>\n</Resource>",
+        )
+        .unwrap();
+
+        let diagnostics = doc.diagnostics(&[]);
+        assert_eq!(diagnostics.len(), 2);
+        assert!(diagnostics.iter().all(|d| {
+            d.source.as_deref() == Some("xml-lint") && d.severity == Some(DiagnosticSeverity::ERROR)
+        }));
+    }
 }
