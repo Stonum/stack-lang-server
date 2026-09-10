@@ -79,7 +79,10 @@ pub fn format(
             let format_options = xml_formatter::XmlFormatOptions::new(file_source)
                 .with_indent_style(indent_style)
                 .with_line_width(line_width)
-                .with_indent_width(indent_width);
+                .with_indent_width(indent_width)
+                // From the editor we only touch structure/indentation: leave
+                // every tag's attributes exactly as the author wrote them.
+                .with_verbatim_attributes(true);
 
             xml_formatter::format_range(format_options, &document.xml_syntax()?, text_range).ok()?
         }
@@ -252,6 +255,28 @@ mod tests {
         assert_eq!(
             edits[0].new_text,
             "<root>\n    <outer>\n        <inner/>\n    </outer>\n</root>"
+        );
+    }
+
+    #[test]
+    fn xml_formatting_leaves_attributes_verbatim() {
+        let uri = Url::parse("file:///doc.rx").unwrap();
+        // Messy attribute spacing and a list long enough to normally wrap.
+        let text = "<root><node   a=\"1\"    b=\"2\" c=\"3\" d=\"4\" e=\"5\" f=\"6\" g=\"7\" h=\"8\" i=\"9\" j=\"10\" k=\"11\" l=\"12\" m=\"13\"/></root>\n";
+        let document = CurrentDocument::new_xml(uri, text, XmlFileSource::resource());
+
+        let edits = format(
+            &document,
+            formatting_options_with(3),
+            whole_document_range(text),
+        )
+        .expect("xml document should format");
+
+        // The tag is reindented, but the attribute region -- including the
+        // padding after the tag name -- is untouched.
+        assert_eq!(
+            edits[0].new_text,
+            "<root>\n   <node   a=\"1\"    b=\"2\" c=\"3\" d=\"4\" e=\"5\" f=\"6\" g=\"7\" h=\"8\" i=\"9\" j=\"10\" k=\"11\" l=\"12\" m=\"13\"/>\n</root>"
         );
     }
 

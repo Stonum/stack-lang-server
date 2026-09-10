@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::rules::verbatim_attributes::write_verbatim_attributes;
 use biome_formatter::{format_args, write};
 use xml_syntax::XmlOpeningElement;
 #[derive(Debug, Clone, Default)]
@@ -8,6 +9,17 @@ impl FormatNodeRule<XmlOpeningElement> for FormatXmlOpeningElement {
         let attributes = node.attributes();
 
         write!(f, [node.l_angle_token().format(), node.name().format()])?;
+
+        if attributes.len() > 0 && f.options().verbatim_attributes() {
+            // Reproduce the attributes as authored; only the closing `>` is
+            // repositioned -- onto its own line when the attributes wrap,
+            // otherwise left where the last attribute ends.
+            let multiline = write_verbatim_attributes(node.name().ok(), &attributes, f)?;
+            if multiline {
+                write!(f, [hard_line_break()])?;
+            }
+            return write!(f, [node.r_angle_token().format()]);
+        }
 
         match attributes.len() {
             0 => {}

@@ -210,6 +210,81 @@ fn dictionary_defaults_to_four_space_indent() {
     );
 }
 
+/// Format `$src` with `verbatim_attributes` enabled and assert the result
+/// equals `$dest`, then assert reformatting `$dest` is a no-op.
+macro_rules! assert_verbatim_attrs_fmt_eq {
+    ($src:expr, $dest:expr $(,)?) => {{
+        use biome_formatter::{IndentStyle, LineWidth};
+        use xml_formatter::{XmlFormatOptions, format_node};
+        use xml_parser::parse;
+
+        let options = || {
+            XmlFormatOptions::new(xml_syntax::XmlFileSource::plain())
+                .with_indent_style(IndentStyle::Space)
+                .with_line_width(LineWidth::try_from(120).unwrap())
+                .with_verbatim_attributes(true)
+        };
+
+        let run = |src: &str| {
+            let tree = parse(src);
+            assert!(!tree.has_errors(), "parse errors: {:?}", tree.diagnostics());
+            format_node(options(), &tree.syntax())
+                .unwrap()
+                .print()
+                .unwrap()
+                .into_code()
+        };
+
+        let result = run($src);
+        assert_eq!($dest, result, "input:\n{}\nformatted:\n{}", $src, result);
+        assert_eq!(result, run(&result), "not idempotent:\n{}", result);
+    }};
+}
+
+#[test]
+fn verbatim_attributes_keeps_spacing_and_never_wraps() {
+    // Only the tag's own indentation is normalized; the attribute region --
+    // including the padding after the tag name -- comes through byte-for-byte,
+    // and a long list is not wrapped.
+    assert_verbatim_attrs_fmt_eq!(
+        r#"<root><node   alpha="1"    bravo="2" charlie="3" delta="4" echo="5" foxtrot="6" golf="7" hotel="8" india="9" juliet="10" kilo="11" lima="12"/></root>"#,
+        r#"<root>
+  <node   alpha="1"    bravo="2" charlie="3" delta="4" echo="5" foxtrot="6" golf="7" hotel="8" india="9" juliet="10" kilo="11" lima="12"/>
+</root>
+"#
+    );
+}
+
+#[test]
+fn verbatim_attributes_preserve_one_attribute_per_line_layout() {
+    // The hand-authored layout -- first attribute on its own line, each
+    // attribute on its own line -- survives verbatim, and because it is
+    // multi-line `/>` drops to a line of its own.
+    assert_verbatim_attrs_fmt_eq!(
+        "<Browser\n   Name=\"x\"\n   Kind=\"y\"\n   Expr=\"f(`a`,`b`)\"\n/>\n",
+        "<Browser\n   Name=\"x\"\n   Kind=\"y\"\n   Expr=\"f(`a`,`b`)\"\n/>\n"
+    );
+}
+
+#[test]
+fn verbatim_attributes_keep_a_single_line_tag_on_one_line() {
+    // Attributes authored on the tag's line stay there, `/>` included.
+    assert_verbatim_attrs_fmt_eq!(
+        "<root><a x=\"1\" y=\"2\"/></root>",
+        "<root>\n  <a x=\"1\" y=\"2\"/>\n</root>\n"
+    );
+}
+
+#[test]
+fn verbatim_attributes_multiline_opening_tag_drops_its_close() {
+    // A multi-line attribute region pushes `>` onto its own line, indented
+    // with the tag.
+    assert_verbatim_attrs_fmt_eq!(
+        "<root><a x=\"1\"\n         y=\"2\"></a></root>",
+        "<root>\n  <a x=\"1\"\n         y=\"2\"\n  ></a>\n</root>\n"
+    );
+}
+
 #[test]
 fn stray_text_between_elements_is_trimmed() {
     // The lexer folds trailing indentation into a text token; the formatter

@@ -91,6 +91,7 @@ pub struct XmlFormatOptions {
     line_ending: LineEnding,
     line_width: LineWidth,
     self_closing_spacing: SelfClosingSpacing,
+    verbatim_attributes: bool,
     source_type: XmlFileSource,
 }
 
@@ -105,6 +106,7 @@ impl XmlFormatOptions {
             line_ending: LineEnding::default(),
             line_width: LineWidth::default(),
             self_closing_spacing: SelfClosingSpacing::default(),
+            verbatim_attributes: false,
         }
     }
 
@@ -133,6 +135,13 @@ impl XmlFormatOptions {
         self
     }
 
+    /// When enabled, a tag's attributes are emitted exactly as written in the
+    /// source -- no per-attribute formatting, no wrapping, no grouping.
+    pub fn with_verbatim_attributes(mut self, verbatim: bool) -> Self {
+        self.verbatim_attributes = verbatim;
+        self
+    }
+
     pub fn set_indent_style(&mut self, indent_style: IndentStyle) {
         self.indent_style = indent_style;
     }
@@ -153,12 +162,20 @@ impl XmlFormatOptions {
         self.self_closing_spacing = spacing;
     }
 
+    pub fn set_verbatim_attributes(&mut self, verbatim: bool) {
+        self.verbatim_attributes = verbatim;
+    }
+
     pub fn source_type(&self) -> XmlFileSource {
         self.source_type
     }
 
     pub fn self_closing_spacing(&self) -> SelfClosingSpacing {
         self.self_closing_spacing
+    }
+
+    pub fn verbatim_attributes(&self) -> bool {
+        self.verbatim_attributes
     }
 }
 
