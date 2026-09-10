@@ -11,19 +11,37 @@ impl FormatNodeRule<XmlSelfClosingElement> for FormatXmlSelfClosingElement {
         write!(f, [node.l_angle_token().format(), node.name().format()])?;
 
         match attributes.len() {
-            0 => {}
-            1 => write!(f, [space(), attributes.format()])?,
+            0 | 1 => {
+                if attributes.len() == 1 {
+                    write!(f, [space(), attributes.format()])?;
+                }
+                if loose {
+                    write!(f, [space()])?;
+                }
+            }
+            // When the attributes wrap, `/>` drops to its own line, aligned
+            // with the tag name; when they fit, a space before `/>` iff the
+            // spacing option is `Loose`.
+            _ if loose => write!(
+                f,
+                [group(&format_args![
+                    indent(&format_args![
+                        soft_line_break_or_space(),
+                        attributes.format()
+                    ]),
+                    soft_line_break_or_space(),
+                ])]
+            )?,
             _ => write!(
                 f,
-                [group(&indent(&format_args![
-                    soft_line_break_or_space(),
-                    attributes.format()
-                ]))]
+                [group(&format_args![
+                    indent(&format_args![
+                        soft_line_break_or_space(),
+                        attributes.format()
+                    ]),
+                    soft_line_break(),
+                ])]
             )?,
-        }
-
-        if loose {
-            write!(f, [space()])?;
         }
 
         write!(

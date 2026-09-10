@@ -14,12 +14,17 @@ impl FormatNodeRule<XmlOpeningElement> for FormatXmlOpeningElement {
             // A single attribute never benefits from wrapping (even a huge
             // multi-line value stays attached to the tag name).
             1 => write!(f, [space(), attributes.format()])?,
+            // When the attributes wrap, `>` drops to its own line, aligned
+            // with the tag name.
             _ => write!(
                 f,
-                [group(&indent(&format_args![
-                    soft_line_break_or_space(),
-                    attributes.format()
-                ]))]
+                [group(&format_args![
+                    indent(&format_args![
+                        soft_line_break_or_space(),
+                        attributes.format()
+                    ]),
+                    soft_line_break(),
+                ])]
             )?,
         }
 

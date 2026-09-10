@@ -79,7 +79,7 @@ fn empty_element_collapses_to_one_line() {
 }
 
 #[test]
-fn long_attribute_list_wraps() {
+fn long_self_closing_attribute_list_wraps_and_moves_the_close() {
     assert_fmt_eq!(
         r#"<node alpha="1" bravo="2" charlie="3" delta="4" echo="5" foxtrot="6" golf="7" hotel="8" india="9" juliet="10" kilo="11" lima="12" mike="13" november="14"/>"#,
         r#"<node
@@ -96,7 +96,36 @@ fn long_attribute_list_wraps() {
   kilo="11"
   lima="12"
   mike="13"
-  november="14"/>
+  november="14"
+/>
+"#
+    );
+}
+
+#[test]
+fn long_opening_tag_wraps_and_moves_the_close() {
+    assert_fmt_eq!(
+        r#"<node alpha="1" bravo="2" charlie="3" delta="4" echo="5" foxtrot="6" golf="7" hotel="8" india="9" juliet="10" kilo="11" lima="12" mike="13" november="14">
+  <child/>
+</node>"#,
+        r#"<node
+  alpha="1"
+  bravo="2"
+  charlie="3"
+  delta="4"
+  echo="5"
+  foxtrot="6"
+  golf="7"
+  hotel="8"
+  india="9"
+  juliet="10"
+  kilo="11"
+  lima="12"
+  mike="13"
+  november="14"
+>
+  <child/>
+</node>
 "#
     );
 }
