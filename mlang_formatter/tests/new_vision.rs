@@ -146,6 +146,75 @@ fn pretty_format_object_property_short_call() {
 }
 
 #[test]
+fn pretty_format_assignment_call_many_simple_args() {
+    assert_fmt!(
+        r#"#
+_итог = обработатьЗначенияПолей(
+   документ, _итог, _параметрА, _параметрБ, _параметрВ, _параметрГ, _параметрД,
+   _параметрЕ, _параметрЖ, null, null, null, null, null, null, null, null
+);
+"#
+    );
+}
+
+#[test]
+fn pretty_format_assignment_call_reformats_one_arg_per_line_input() {
+    assert_fmt_eq!(
+        r#"#
+_итог = обработатьЗначенияПолей(
+   документ,
+   _итог,
+   _параметрА,
+   _параметрБ,
+   _параметрВ,
+   _параметрГ,
+   _параметрД,
+   _параметрЕ,
+   _параметрЖ,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+);
+"#,
+        r#"#
+_итог = обработатьЗначенияПолей(
+   документ, _итог, _параметрА, _параметрБ, _параметрВ, _параметрГ, _параметрД,
+   _параметрЕ, _параметрЖ, null, null, null, null, null, null, null, null
+);"#
+    );
+}
+
+#[test]
+fn pretty_format_assignment_call_wraps_same_as_bare_call() {
+    // The exact same argument list must wrap identically whether the call is
+    // an assignment's value or a standalone statement -- both pack against
+    // `pretty_line_width`, not whatever width happens to be ambient at the
+    // call site.
+    assert_fmt!(
+        r#"#
+обработатьЗначенияПолей(
+   документ, _итог, _параметрА, _параметрБ, _параметрВ, _параметрГ, _параметрД,
+   _параметрЕ, _параметрЖ, null, null, null, null, null, null, null, null
+);
+"#
+    );
+
+    assert_fmt!(
+        r#"#
+_итог = обработатьЗначенияПолей(
+   документ, _итог, _параметрА, _параметрБ, _параметрВ, _параметрГ, _параметрД,
+   _параметрЕ, _параметрЖ, null, null, null, null, null, null, null, null
+);
+"#
+    );
+}
+
+#[test]
 fn pretty_format_object_declaration() {
     assert_fmt!(
         r#"#
@@ -153,10 +222,7 @@ fn pretty_format_object_declaration() {
    метод: "GET",
    ресурс: "/v6/GetMessage",
    параметры: "boxId={}&messageId={}&entityId={}&injectEntityContent={}".format(
-      _мДанДок.boxId,
-      _мДанДок.messageId,
-      _мДанДок.entityId,
-      true
+      _мДанДок.boxId, _мДанДок.messageId, _мДанДок.entityId, true
    ),
    тело: "boxId={}&messageId={}&entityId={}&injectEntityContent={}"
       .replace("{}", "null")
@@ -165,6 +231,28 @@ fn pretty_format_object_declaration() {
       .join("===========")
 };
 "#
+    );
+}
+
+#[test]
+fn pretty_format_object_declaration_reformats_one_arg_per_line_input() {
+    assert_fmt_eq!(
+        r#"#
+перем запрос = @{
+   параметры: "boxId={}&messageId={}&entityId={}&injectEntityContent={}".format(
+      _мДанДок.boxId,
+      _мДанДок.messageId,
+      _мДанДок.entityId,
+      true
+   )
+};
+"#,
+        r#"#
+перем запрос = @{
+   параметры: "boxId={}&messageId={}&entityId={}&injectEntityContent={}".format(
+      _мДанДок.boxId, _мДанДок.messageId, _мДанДок.entityId, true
+   )
+};"#
     );
 }
 

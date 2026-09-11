@@ -275,12 +275,12 @@ fn has_block_statement(body: &AnyMStatement) -> bool {
 }
 
 pub(crate) fn write_with_custom_line_width(
-    f: &mut MFormatter,
+    f: &mut impl Buffer<Context = MFormatContext>,
     width: LineWidth,
     node: &SyntaxNode<MLanguage>,
     content: impl Format<MFormatContext>,
 ) -> FormatResult<()> {
-    let mut context = f.context().clone();
+    let mut context = f.state().context().clone();
     context.set_line_width(width);
     context.set_compact_fill_mode(true);
 

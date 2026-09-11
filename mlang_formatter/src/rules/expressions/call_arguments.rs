@@ -10,7 +10,7 @@ use crate::utils::{
     ConcatenatedQuery, is_long_curried_call, write_arguments_multi_line,
     write_with_custom_line_width,
 };
-use biome_formatter::{VecBuffer, format_args, format_element, write};
+use biome_formatter::{Buffer, LineWidth, VecBuffer, format_args, format_element, write};
 use biome_rowan::{AstSeparatedElement, AstSeparatedList, SyntaxResult};
 use mlang_syntax::{
     AnyMCallArgument, AnyMExpression, AnyMLiteralExpression, MBinaryExpressionFields,
@@ -167,12 +167,16 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                 ]
             )
         } else {
-            // When a call is the direct value of an assignment, use a context-aware GROUP
-            // so the callee stays on the operator's line and args break only when the full
-            // line > 120 chars.
-            // For M_INITIALIZER_CLAUSE: only use GROUP when the callee object is a new/call
-            // expression (complex prefix). Simple member calls like `a.method(args)` use fill
-            // mode so simple args are packed compactly.
+            // When a call is the direct value of an assignment, the callee stays on
+            // the operator's line and args break only when the full line (including
+            // that prefix) doesn't fit the *real* line width -- unlike the
+            // non-assignment path below, which always measures from a fresh column 0.
+            // Once it does break, the packed layout still targets `pretty_line_width`,
+            // same as everywhere else, so the same argument list wraps identically
+            // whether or not it's an assignment's value.
+            // For M_INITIALIZER_CLAUSE: only use this path when the callee object is a
+            // new/call expression (complex prefix). Simple member calls like
+            // `a.method(args)` use the non-assignment path's fill mode directly.
             let is_assignment_value = call_expression.as_ref().is_some_and(|call| {
                 call.syntax().parent().is_some_and(|p| match p.kind() {
                     MSyntaxKind::M_PROPERTY_OBJECT_MEMBER
@@ -191,21 +195,103 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
             });
 
             if is_assignment_value {
-                write!(
-                    f,
-                    [group(&format_args![
-                        l_paren_token.format(),
-                        soft_block_indent(&format_with(|f| {
-                            let mut join = f.join_with(soft_line_break_or_space());
-                            for entry in arguments.iter() {
-                                join.entry(entry);
-                            }
-                            join.finish()?;
-                            write!(f, [FormatTrailingCommas::All])
-                        })),
-                        r_paren_token.format(),
-                    ])]
-                )
+                let mut arguments = arguments;
+                let breaks: Vec<bool> = arguments.iter_mut().map(|a| a.will_break(f)).collect();
+
+                // If any argument is itself multi-line, a flat attempt would be
+                // invalid for the same reason as on the non-assignment path
+                // below -- skip straight to the packed layout.
+                if breaks.iter().any(|&b| b) {
+                    // Each argument's tokens were already tracked above via
+                    // `will_break`'s interning. `write_with_custom_line_width`
+                    // marks every token under `node` as accounted-for too (it
+                    // splices its isolated pass's output back in as raw text),
+                    // which would double-track them -- disable tracking for
+                    // that call and track the parens (the only tokens it would
+                    // otherwise be the sole tracker of) explicitly instead.
+                    if let (Ok(l_tok), Ok(r_tok)) = (&l_paren_token, &r_paren_token) {
+                        f.state_mut().track_token(l_tok);
+                        f.state_mut().track_token(r_tok);
+                    }
+                    f.state_mut().set_token_tracking_disabled(true);
+                    let result = write_packed_call_arguments(
+                        f,
+                        f.options().pretty_line_width(),
+                        node.syntax(),
+                        &l_paren_token.format(),
+                        &r_paren_token.format(),
+                        &arguments,
+                        &breaks,
+                    );
+                    f.state_mut().set_token_tracking_disabled(false);
+                    return result;
+                }
+
+                // No arg is multi-line. Try the compact (all-on-one-line) layout
+                // first, measured against the *real* remaining width so that
+                // whatever already precedes the call on the line (the
+                // `callee = ` prefix) is accounted for; fall back to the packed
+                // layout -- against the narrower `pretty_line_width`, consistent
+                // with every other "compact fill" list in this formatter --
+                // otherwise.
+                let pretty_width = f.options().pretty_line_width();
+                let l_paren = l_paren_token.format().memoized();
+                let r_paren = r_paren_token.format().memoized();
+
+                let flat_slice = {
+                    let mut buffer = VecBuffer::new(f.state_mut());
+                    buffer.write_element(FormatElement::Tag(Tag::StartEntry))?;
+                    write!(
+                        buffer,
+                        [
+                            l_paren,
+                            soft_block_indent(&format_with(|f: &mut MFormatter| {
+                                let mut filler = f.fill();
+                                for entry in arguments.iter() {
+                                    filler.entry(&soft_line_break_or_space(), entry);
+                                }
+                                filler.finish()?;
+                                write!(f, [FormatTrailingCommas::All])
+                            })),
+                            r_paren,
+                        ]
+                    )?;
+                    buffer.write_element(FormatElement::Tag(Tag::EndEntry))?;
+                    buffer.into_vec().into_boxed_slice()
+                };
+
+                let expanded_slice = {
+                    let mut buffer = VecBuffer::new(f.state_mut());
+                    buffer.write_element(FormatElement::Tag(Tag::StartEntry))?;
+                    // `flat_slice` above already tracked the parens (and the
+                    // arguments were tracked earlier still, via `will_break`'s
+                    // interning) -- disable tracking so
+                    // `write_with_custom_line_width`'s blanket "every token
+                    // under `node`" marking doesn't double-track them.
+                    buffer.state_mut().set_token_tracking_disabled(true);
+                    let result = write_packed_call_arguments(
+                        &mut buffer,
+                        pretty_width,
+                        node.syntax(),
+                        &l_paren,
+                        &r_paren,
+                        &arguments,
+                        &breaks,
+                    );
+                    buffer.state_mut().set_token_tracking_disabled(false);
+                    result?;
+                    buffer.write_element(FormatElement::Tag(Tag::EndEntry))?;
+                    buffer.into_vec().into_boxed_slice()
+                };
+
+                unsafe {
+                    f.write_element(FormatElement::BestFitting(
+                        format_element::BestFittingElement::from_vec_unchecked(vec![
+                            flat_slice,
+                            expanded_slice,
+                        ]),
+                    ))
+                }
             } else {
                 let custom_width = f.options().pretty_line_width();
                 // RefCell so will_break() (needs &mut) can be called inside the Fn
@@ -223,35 +309,10 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
                             .collect();
                         let args = args_cell.borrow();
 
-                        // Helper that writes the expanded fill: complex/breaking args
-                        // each on their own line, simple runs packed by fill.
+                        // Writes the expanded fill: complex/breaking args each on
+                        // their own line, simple runs packed by fill.
                         let write_expanded = |f: &mut MFormatter| -> FormatResult<()> {
-                            let mut filler = f.fill();
-                            let mut prev_was_complex = false;
-                            for (i, entry) in args.iter().enumerate() {
-                                let is_simple = entry.element().node().ok().is_some_and(|arg| {
-                                    SimpleArgument::new(arg.clone()).is_simple()
-                                });
-                                let will_break = breaks.get(i).copied().unwrap_or(false);
-                                let is_complex = !is_simple || will_break;
-                                let after_complex = prev_was_complex;
-                                let lines_before = entry.leading_lines();
-                                filler.entry(
-                                    &format_once(|f| {
-                                        if lines_before > 1 {
-                                            write!(f, [empty_line()])
-                                        } else if is_complex || after_complex {
-                                            write!(f, [hard_line_break()])
-                                        } else {
-                                            write!(f, [soft_line_break_or_space()])
-                                        }
-                                    }),
-                                    entry,
-                                );
-                                prev_was_complex = is_complex;
-                            }
-                            filler.finish()?;
-                            write!(f, [FormatTrailingCommas::All])
+                            write_call_arguments_fill(&args, &breaks, f)
                         };
 
                         // If any argument is itself multi-line (will_break), printing
@@ -338,6 +399,77 @@ impl FormatNodeRule<MCallArguments> for FormatMCallArguments {
         // Formatted inside of `fmt_fields`
         Ok(())
     }
+}
+
+/// Writes the parenthesized, packed-fill argument list through
+/// [`write_with_custom_line_width`], so the packing measures against `width`
+/// (the narrower `pretty_line_width`, same as every other "compact fill"
+/// list in this formatter) instead of whatever width happens to be ambient
+/// at the call site.
+fn write_packed_call_arguments(
+    f: &mut impl Buffer<Context = MFormatContext>,
+    width: LineWidth,
+    node: &mlang_syntax::MSyntaxNode,
+    l_paren: &dyn Format<MFormatContext>,
+    r_paren: &dyn Format<MFormatContext>,
+    args: &[FormatCallArgument],
+    breaks: &[bool],
+) -> FormatResult<()> {
+    write_with_custom_line_width(
+        f,
+        width,
+        node,
+        format_with(|f| {
+            write!(
+                f,
+                [group(&format_args![
+                    l_paren,
+                    soft_block_indent(&format_with(|f| write_call_arguments_fill(args, breaks, f))),
+                    r_paren,
+                ])
+                .should_expand(true)]
+            )
+        }),
+    )
+}
+
+/// Writes `args` through a `fill`: complex args (non-simple, or that force
+/// their own break) each get a hard line break before them and force one
+/// after too, while runs of simple args are packed onto the same line as
+/// space allows.
+fn write_call_arguments_fill(
+    args: &[FormatCallArgument],
+    breaks: &[bool],
+    f: &mut MFormatter,
+) -> FormatResult<()> {
+    let mut filler = f.fill();
+    let mut prev_was_complex = false;
+    for (i, entry) in args.iter().enumerate() {
+        let is_simple = entry
+            .element()
+            .node()
+            .ok()
+            .is_some_and(|arg| SimpleArgument::new(arg.clone()).is_simple());
+        let will_break = breaks.get(i).copied().unwrap_or(false);
+        let is_complex = !is_simple || will_break;
+        let after_complex = prev_was_complex;
+        let lines_before = entry.leading_lines();
+        filler.entry(
+            &format_once(|f| {
+                if lines_before > 1 {
+                    write!(f, [empty_line()])
+                } else if is_complex || after_complex {
+                    write!(f, [hard_line_break()])
+                } else {
+                    write!(f, [soft_line_break_or_space()])
+                }
+            }),
+            entry,
+        );
+        prev_was_complex = is_complex;
+    }
+    filler.finish()?;
+    write!(f, [FormatTrailingCommas::All])
 }
 
 /// Helper for formatting a call argument
