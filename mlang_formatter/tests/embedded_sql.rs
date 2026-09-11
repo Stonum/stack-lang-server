@@ -231,6 +231,61 @@ var qq = Query(`
 }
 
 #[test]
+fn embedded_sql_single_line_query_wraps_when_too_long_for_call_arguments() {
+    // Regression test: a query that reformats to a single line under the
+    // full `line_width` (120) but doesn't fit `pretty_line_width` (90) --
+    // the width the surrounding call-argument list actually breaks
+    // against -- used to stay single-line and get spliced in as-is,
+    // producing a too-long line dangling under a `Query(` that had *also*
+    // already broken onto multiple lines for its other arguments. Now the
+    // query itself wraps to match.
+    assert_fmt_eq!(
+        r#"#
+var qq = Query(`select row_id, "column_a" x, date_from, date_to from some_table where "long_column_name" = :1`, 10, "doc,S");
+"#,
+        r#"#
+var qq = Query(`
+   select row_id, "column_a" x, date_from, date_to
+   from some_table
+   where "long_column_name" = :1
+`, 10, "doc,S");"#
+    );
+}
+
+#[test]
+fn embedded_sql_short_query_stays_flat_when_other_arguments_are_long() {
+    // Regression test: the query itself easily fits on one line, but the
+    // call's *other* arguments are long enough that the whole call still
+    // has to break, one argument per line. A fixed reformatting width
+    // (rather than the `best_fitting!`-based choice, deferred to the real
+    // print position) can't tell this apart from a case where the query
+    // itself needs wrapping -- there's nothing about the query's own
+    // length that should change here, so it must stay single-line.
+    assert_fmt!(
+        r#"#
+var qq = someCall(
+   `select a from t where x = :1`,
+   "this_is_a_pretty_long_second_argument_value",
+   "and_this_is_a_pretty_long_third_argument_too"
+);
+"#
+    );
+}
+
+#[test]
+fn embedded_sql_stays_on_one_line_when_the_whole_call_fits() {
+    // Companion to `embedded_sql_short_query_stays_flat_when_other_arguments_are_long`:
+    // when the query *and* every other argument are short enough that the
+    // whole call fits on one line, nothing should break at all -- not even
+    // the call arguments.
+    assert_fmt!(
+        r#"#
+var qq = Query(`select a from t where x = :1`, 10, "doc,S");
+"#
+    );
+}
+
+#[test]
 fn embedded_sql_bracket_identifier_switches_double_quoted_string_to_backtick() {
     // Reformatting canonicalizes mlang's `[bracket]` identifiers to
     // Postgres's own `"..."` spelling -- which would otherwise clash with

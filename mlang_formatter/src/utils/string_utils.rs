@@ -1,7 +1,7 @@
 use super::concatenation::hole_placeholder;
 use crate::prelude::*;
 
-use biome_formatter::{FormatOptions, format_args, write};
+use biome_formatter::{FormatOptions, LineWidth, format_args, write};
 use mlang_syntax::MSyntaxKind::{M_LONG_STRING_LITERAL, M_STRING_LITERAL};
 use mlang_syntax::MSyntaxToken;
 use mlang_syntax::concatenation::substitute_format_placeholders;
@@ -186,6 +186,49 @@ impl<'token> LiteralStringNormaliser<'token> {
     }
 }
 
+/// The width-sensitive result of reformatting an embedded query: whether
+/// there's a real choice to make between a flat, single-line rendering and
+/// a wrapped, multi-line one, or the outcome is already settled either way.
+///
+/// The point of keeping both candidates (rather than picking one up front)
+/// is that how much room is actually available for this text isn't known
+/// until print time -- it depends on the ambient indent depth, which other
+/// call arguments/expression pieces share the line, and whether the
+/// surrounding call has already had to break for unrelated reasons. Only
+/// the printer, walking the real document, knows that; see
+/// [FormatSqlStringToken]'s use of `best_fitting!` for the [Fits] case,
+/// which defers the choice to exactly that point.
+///
+/// [Fits]: EmbeddedSql::Fits
+pub(crate) enum EmbeddedSql {
+    /// Fits on one line no matter where it ends up -- even the narrower
+    /// `pretty_line_width` budget doesn't force a wrap.
+    Flat(String),
+    /// Fits on one line *if* there's room; `wrapped` (already reformatted
+    /// to fit `pretty_line_width`) is the fallback for when there isn't.
+    Fits { flat: String, wrapped: String },
+    /// Doesn't fit on one line even at the document's own `line_width` (a
+    /// dollar-quoted body or a comment spanning lines verbatim, a select
+    /// list too wide for any single line, ...) -- there's no flat candidate
+    /// to offer, so this is always multi-line.
+    Wrapped(String),
+}
+
+impl EmbeddedSql {
+    /// Applies a fallible transform (placeholder restoration, see
+    /// [try_format_embedded_sql]) to every string this holds.
+    fn try_map_strings(self, f: impl Fn(&str) -> Option<String>) -> Option<Self> {
+        Some(match self {
+            EmbeddedSql::Flat(sql) => EmbeddedSql::Flat(f(&sql)?),
+            EmbeddedSql::Fits { flat, wrapped } => EmbeddedSql::Fits {
+                flat: f(&flat)?,
+                wrapped: f(&wrapped)?,
+            },
+            EmbeddedSql::Wrapped(sql) => EmbeddedSql::Wrapped(f(&sql)?),
+        })
+    }
+}
+
 /// Tries to parse `token`'s raw (still-escaped, as written in source --
 /// `LiteralStringNormaliser` doesn't decode escapes either, it only
 /// normalises `\r\n`/`\r` line endings) string content as embedded SQL and
@@ -196,17 +239,57 @@ impl<'token> LiteralStringNormaliser<'token> {
 /// safety net: a formatter must never risk corrupting a real query it
 /// doesn't fully understand (unsupported syntax, string concatenation
 /// building up the query in pieces, etc.) just to make it "prettier".
-pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> Option<String> {
+pub(crate) fn try_format_embedded_sql(token: &MSyntaxToken, f: &MFormatter) -> Option<EmbeddedSql> {
     let content = token.text_trimmed();
     let raw_content = content.get(1..content.len().saturating_sub(1))?;
 
     match substitute_format_placeholders(raw_content) {
-        Some((substituted, originals)) => {
-            let formatted = format_sql_source(&substituted, f)?;
-            restore_format_placeholders(&formatted, &originals)
-        }
-        None => format_sql_source(raw_content, f),
+        Some((substituted, originals)) => format_embedded_sql_variants(&substituted, f)?
+            .try_map_strings(|formatted| restore_format_placeholders(formatted, &originals)),
+        None => format_embedded_sql_variants(raw_content, f),
     }
+}
+
+/// Formats `raw` at the mlang document's own `line_width` to get a
+/// candidate flat, single-line rendering -- then, only if that candidate
+/// really is single-line, also formats it at the narrower `pretty_line_width`
+/// (the width every other nested/wrapped construct in this formatter
+/// already reformats against once it's known to need breaking -- call
+/// arguments, array elements, object members) to get a fallback multi-line
+/// rendering. [FormatSqlStringToken] embeds both candidates in a
+/// `best_fitting!` so the printer itself picks whichever actually fits at
+/// the real print position.
+///
+/// `line_width` (not some wider budget) is the right cap for the flat
+/// candidate: it's the hard ceiling on every line the printer will ever
+/// accept, at any indent depth, so a rendering that doesn't fit within it
+/// unindented could never be selected by `best_fitting!` regardless of how
+/// much wider a budget generated it -- there'd be no point handing the
+/// printer a flat candidate that's mathematically guaranteed to lose.
+/// Capping generation at `line_width` instead means `sql_formatter` itself
+/// already gives up and wraps once a query passes that point, so this
+/// falls straight into the `Wrapped` case below instead of manufacturing a
+/// doomed `Fits` candidate first.
+///
+/// If even that doesn't fit on one line (a dollar-quoted body or comment
+/// that must span lines verbatim, a select list too wide for any single
+/// line, ...), there's no flat candidate to offer at all -- go straight to
+/// reformatting at `pretty_line_width` so the query's *other* clauses still
+/// wrap at a sane width instead of stretching out to `line_width`.
+fn format_embedded_sql_variants(raw: &str, f: &MFormatter) -> Option<EmbeddedSql> {
+    let flat = format_sql_source(raw, f, f.options().line_width())?;
+
+    if flat.lines().count() > 1 {
+        let wrapped = format_sql_source(raw, f, f.options().pretty_line_width())?;
+        return Some(EmbeddedSql::Wrapped(wrapped));
+    }
+
+    let wrapped = format_sql_source(raw, f, f.options().pretty_line_width())?;
+    Some(if wrapped.lines().count() > 1 {
+        EmbeddedSql::Fits { flat, wrapped }
+    } else {
+        EmbeddedSql::Flat(flat)
+    })
 }
 
 /// Reverses [substitute_format_placeholders]: finds each placeholder in
@@ -229,13 +312,18 @@ fn restore_format_placeholders(formatted: &str, originals: &[String]) -> Option<
 
 /// Parses `raw` as embedded SQL (Postgres dialect + the `mlang` extension,
 /// so `~table~`/`#temp`/`:param` are understood) and reformats it with
-/// `sql_formatter`, matching the surrounding mlang code's indent
-/// style/width. Returns `None` on any parse/format failure. Shared by the
-/// single-literal path ([try_format_embedded_sql]) and the
-/// concatenation-chain path (`utils/concatenation.rs`), which parses a
-/// placeholder-substituted join of several string-literal pieces the same
-/// way.
-pub(crate) fn format_sql_source(raw: &str, f: &MFormatter) -> Option<String> {
+/// `sql_formatter` at the given `line_width`, matching the surrounding
+/// mlang code's indent style. Returns `None` on any parse/format failure.
+/// Shared by the single-literal path ([format_embedded_sql_variants], which
+/// calls this at two different widths to build its flat/wrapped
+/// candidates) and the concatenation-chain path (`utils/concatenation.rs`),
+/// which parses a placeholder-substituted join of several string-literal
+/// pieces the same way.
+pub(crate) fn format_sql_source(
+    raw: &str,
+    f: &MFormatter,
+    line_width: LineWidth,
+) -> Option<String> {
     let syntax = sql_syntax::SqlFileSource::query()
         .with_dialect(sql_syntax::SqlDialect::Postgres)
         .with_mlang_extension(true);
@@ -269,17 +357,15 @@ pub(crate) fn format_sql_source(raw: &str, f: &MFormatter) -> Option<String> {
         }
     };
 
-    // Match the embedded query's own indentation and line width to the
-    // surrounding mlang code's, since the resulting lines get spliced in as
-    // raw text (see `format_reformatted_multi_line_query`) -- a mismatch
-    // would otherwise mix, say, mlang's spaces with sql_formatter's default
-    // tabs, or wrap decisions against `SqlFormatOptions`'s own default 80
-    // instead of whatever width the mlang document is actually configured
-    // for.
+    // Match the embedded query's own indentation to the surrounding mlang
+    // code's, since the resulting lines get spliced in as raw text (see
+    // `format_reformatted_multi_line_query`) -- a mismatch would otherwise
+    // mix, say, mlang's spaces with sql_formatter's default tabs. The line
+    // width is the caller's call: see [format_embedded_sql_variants].
     let options = sql_formatter::SqlFormatOptions::new(syntax)
         .with_indent_style(f.options().indent_style())
         .with_indent_width(f.options().indent_width())
-        .with_line_width(f.options().line_width())
+        .with_line_width(line_width)
         // Legacy mlang queries use SQL-Server-style `[bracket]` identifiers
         // even where they're otherwise ordinary, valid Postgres -- always
         // normalize those to Postgres's own `"..."` spelling when
@@ -525,6 +611,77 @@ impl<'token> FormatSqlStringToken<'token> {
             )]
         )
     }
+
+    /// Splices in a `best_fitting!` choice between `flat_sql` (single-line)
+    /// and `wrapped_sql` (already reformatted multi-line, see
+    /// [format_reformatted_multi_line_query][Self::format_reformatted_multi_line_query])
+    /// -- the printer measures `flat_sql` against the real column position
+    /// and whatever else shares the line at print time, falling back to
+    /// `wrapped_sql` only if it genuinely doesn't fit. Both variants must
+    /// commit to the same delimiter up front, since which one gets printed
+    /// isn't decided until later.
+    fn format_best_fitting_query(
+        &self,
+        flat_sql: String,
+        wrapped_sql: String,
+        preferred_quote: char,
+        f: &mut MFormatter,
+    ) -> FormatResult<()> {
+        let start = self.token.text_trimmed_range().start();
+        let quote = if effective_quote(preferred_quote, &flat_sql) == '`'
+            || effective_quote(preferred_quote, &wrapped_sql) == '`'
+        {
+            '`'
+        } else {
+            preferred_quote
+        };
+        let quote_text = quote_as_static_str(quote);
+
+        let flat_escaped = escape_for_string_literal(&flat_sql, quote).into_owned();
+
+        write!(
+            f,
+            [format_replaced(
+                self.token,
+                &best_fitting![
+                    format_args![
+                        text(quote_text),
+                        dynamic_text(&flat_escaped, start),
+                        text(quote_text),
+                    ],
+                    format_args![
+                        text(quote_text),
+                        block_indent(&format_with(move |f| {
+                            let mut lines = wrapped_sql.lines();
+                            if let Some(first) = lines.next() {
+                                write!(
+                                    f,
+                                    [dynamic_text(
+                                        &escape_for_string_literal(first, quote),
+                                        start
+                                    )]
+                                )?;
+                                for line in lines {
+                                    write!(
+                                        f,
+                                        [
+                                            hard_line_break(),
+                                            dynamic_text(
+                                                &escape_for_string_literal(line, quote),
+                                                start
+                                            )
+                                        ]
+                                    )?;
+                                }
+                            }
+                            Ok(())
+                        })),
+                        text(quote_text),
+                    ],
+                ]
+            )]
+        )
+    }
 }
 
 /// The only two delimiters mlang's lexer accepts for a string literal (see
@@ -571,6 +728,22 @@ pub(crate) fn escape_for_string_literal(text: &str, quote: char) -> Cow<'_, str>
     Cow::Owned(escaped)
 }
 
+/// Reformatting can introduce `"`-quoted identifiers (e.g. an mlang
+/// `[bracket]` identifier canonicalized by `sql_formatter` to Postgres's
+/// own `"..."` spelling) that would otherwise have to be escaped to fit
+/// inside a `"`-delimited mlang string. Since mlang's `` ` `` and `"``
+/// delimiters are interchangeable (see [quote_as_static_str]'s doc
+/// comment), prefer switching to `` ` `` over escaping -- but only when the
+/// formatted SQL actually contains the conflicting quote; a query that
+/// stays clean in double quotes keeps its original delimiter untouched.
+fn effective_quote(preferred_quote: char, formatted_sql: &str) -> char {
+    if preferred_quote == '"' && formatted_sql.contains('"') {
+        '`'
+    } else {
+        preferred_quote
+    }
+}
+
 impl Format<MFormatContext> for FormatSqlStringToken<'_> {
     fn fmt(&self, f: &mut MFormatter) -> FormatResult<()> {
         // Preserve whichever delimiter the query was actually written
@@ -579,30 +752,21 @@ impl Format<MFormatContext> for FormatSqlStringToken<'_> {
         // force one over the other.
         let preferred_quote = self.token().text_trimmed().chars().next().unwrap_or('`');
 
-        if let Some(formatted_sql) = try_format_embedded_sql(self.token(), f) {
-            // Reformatting can introduce `"`-quoted identifiers (e.g. an
-            // mlang `[bracket]` identifier canonicalized by
-            // `sql_formatter` to Postgres's own `"..."` spelling) that
-            // would otherwise have to be escaped to fit inside a
-            // `"`-delimited mlang string. Since mlang's `` ` `` and `"`
-            // delimiters are interchangeable (see `quote_as_static_str`'s
-            // doc comment), prefer switching to `` ` `` over escaping --
-            // but only when the formatted SQL actually contains the
-            // conflicting quote; a query that stays clean in double quotes
-            // keeps its original delimiter untouched.
-            let effective_quote = if preferred_quote == '"' && formatted_sql.contains('"') {
-                '`'
-            } else {
-                preferred_quote
-            };
-
-            return if formatted_sql.lines().count() > 1 {
-                self.format_reformatted_multi_line_query(formatted_sql, effective_quote, f)
-            } else {
-                let escaped = escape_for_string_literal(&formatted_sql, effective_quote);
-                let content: Cow<str> =
-                    Cow::Owned(std::format!("{effective_quote}{escaped}{effective_quote}"));
-                self.format_single_line_query(content, f)
+        if let Some(embedded) = try_format_embedded_sql(self.token(), f) {
+            return match embedded {
+                EmbeddedSql::Flat(sql) => {
+                    let quote = effective_quote(preferred_quote, &sql);
+                    let escaped = escape_for_string_literal(&sql, quote);
+                    let content: Cow<str> = Cow::Owned(std::format!("{quote}{escaped}{quote}"));
+                    self.format_single_line_query(content, f)
+                }
+                EmbeddedSql::Wrapped(sql) => {
+                    let quote = effective_quote(preferred_quote, &sql);
+                    self.format_reformatted_multi_line_query(sql, quote, f)
+                }
+                EmbeddedSql::Fits { flat, wrapped } => {
+                    self.format_best_fitting_query(flat, wrapped, preferred_quote, f)
+                }
             };
         }
 

@@ -68,7 +68,15 @@ pub(crate) fn format_concatenation_chain(
     f: &MFormatter,
 ) -> Option<Vec<FormattedPiece>> {
     let joined = build_placeholder_source(parts)?;
-    let formatted = format_sql_source(&joined, f)?;
+    // Unlike the single-literal path (`string_utils.rs::format_embedded_sql_variants`),
+    // there's no printer-level fits check available here to choose between
+    // a flat and a wrapped rendering -- pieces are glued back together with
+    // a plain, unbreakable ` + ` and whatever line breaks `formatted`
+    // already contains are baked in unconditionally (see
+    // `FormatConcatenatedQuery::fmt`). Reformat directly at the narrower
+    // `pretty_line_width`, the same width every other already-committed
+    // nested/wrapped construct in this formatter uses.
+    let formatted = format_sql_source(&joined, f, f.options().pretty_line_width())?;
 
     let pieces = split_formatted_concatenation(&formatted, parts)?;
 

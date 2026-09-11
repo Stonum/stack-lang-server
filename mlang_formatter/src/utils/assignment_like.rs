@@ -1,7 +1,9 @@
 use super::format_binary_like_expression::is_flat_multiline_concatenation_candidate;
 use super::member_chain::is_member_call_chain;
 use super::object::write_member_name;
-use super::{FormatLiteralStringToken, StringLiteralParentKind, try_format_embedded_sql};
+use super::{
+    EmbeddedSql, FormatLiteralStringToken, StringLiteralParentKind, try_format_embedded_sql,
+};
 use crate::prelude::*;
 use biome_formatter::{CstFormatContext, FormatOptions, VecBuffer, format_args, write};
 use biome_rowan::{AstNode, SyntaxNodeOptionExt, SyntaxResult, declare_node_union};
@@ -587,13 +589,22 @@ fn get_last_non_unary_argument(unary_expression: &MUnaryExpression) -> Option<An
     Some(argument)
 }
 
-/// Whether a string literal's `value_token` will print as more than one
-/// line -- either because it's reformatted as multi-line embedded SQL (only
-/// reachable for a bare assignment RHS via an explicit
-/// `textDocument/rangeFormatting` selection targeting this exact string,
-/// see `string_expression.rs`'s `is_explicitly_selected`), or because it
-/// already contains a literal embedded newline (mlang string literals may
-/// embed raw newlines regardless of delimiter, see `string_utils.rs`).
+/// Whether a string literal's `value_token` is *guaranteed* to print as
+/// more than one line -- either because it's reformatted as embedded SQL
+/// that doesn't fit on one line at any width (only reachable for a bare
+/// assignment RHS via an explicit `textDocument/rangeFormatting` selection
+/// targeting this exact string, see `string_expression.rs`'s
+/// `is_explicitly_selected`), or because it already contains a literal
+/// embedded newline (mlang string literals may embed raw newlines
+/// regardless of delimiter, see `string_utils.rs`).
+///
+/// A [EmbeddedSql::Fits] result -- one that *might* end up single-line,
+/// depending on room not knowable this early -- reports `false` here, same
+/// as a plain [EmbeddedSql::Flat] one: its IR carries no unconditional hard
+/// break (`will_break` inspects only its flat variant), so stacking
+/// `BreakAfterOperator`'s own soft-break group on top is safe and correctly
+/// fits-checked at print time -- only a value that *definitely* hard-breaks
+/// needs the special one-shot treatment this function's caller applies.
 fn string_prints_multiline(
     value_token: &MSyntaxToken,
     f: &Formatter<MFormatContext>,
@@ -602,9 +613,9 @@ fn string_prints_multiline(
         && value_token
             .text_trimmed_range()
             .contains_range(selected_range)
-        && let Some(formatted) = try_format_embedded_sql(value_token, f)
+        && let Some(embedded) = try_format_embedded_sql(value_token, f)
     {
-        return Ok(formatted.lines().count() > 1);
+        return Ok(matches!(embedded, EmbeddedSql::Wrapped(_)));
     }
 
     Ok(value_token.text_trimmed().contains('\n'))
