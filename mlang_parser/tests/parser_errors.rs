@@ -57,6 +57,35 @@ fn test_parse_report_with_bogus() {
     assert!(res.has_errors());
 }
 
+/// Regression test: a report whose top-level list recovery lands on a
+/// token like `{` (a stray/unparseable leading block, e.g. the malformed
+/// legacy headers real `.rpt` files sometimes have) must not abandon the
+/// rest of the file. `parse_reports`' own recovery previously reused the
+/// same recovery token set as the *inner* section/assignment recovery
+/// (which legitimately treats `ff`/`{` as safe stopping points, since it
+/// can resume from them) -- but `parse_report` can only ever resume at
+/// `ff2`, so landing on a bare `{` made `or_recover_with_token_set` report
+/// `AlreadyRecovered` (zero tokens consumed) and `break`, silently
+/// dropping every well-formed report after the malformed part, including
+/// this one's `print` section and the call inside it.
+#[test]
+fn test_err_leading_bogus_block_does_not_swallow_the_rest_of_the_file() {
+    let res = parse(
+        "{\n}\n\u{c}\u{c}CommonReport\n{\n}\n\u{c}print\n{\n    targetFunc(1, 2);\n}\n",
+        MFileSource::report(),
+    );
+    assert!(res.has_errors());
+
+    let has_the_call = res.syntax().descendants().any(|node| {
+        node.kind() == mlang_syntax::MSyntaxKind::M_CALL_EXPRESSION
+            && node.text_trimmed().to_string().starts_with("targetFunc")
+    });
+    assert!(
+        has_the_call,
+        "the well-formed report and its call after the leading bogus block should still parse, not be dropped as unparsed trailing trivia"
+    );
+}
+
 #[test]
 fn test_err_computed_class_member_name() {
     let res = parse(

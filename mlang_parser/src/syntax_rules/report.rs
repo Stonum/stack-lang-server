@@ -20,6 +20,19 @@ const REPORT_TOKEN_SET: TokenSet<MSyntaxKind> = token_set!(T![ff2], T![ff], T!['
 
 const REPORT_RECOVERY_SET: TokenSet<MSyntaxKind> = STMT_RECOVERY_SET.union(REPORT_TOKEN_SET);
 
+// Only `ff2` actually lets `parse_report` resume -- `ff`/`{` (and every
+// `STMT_RECOVERY_SET` keyword, which includes `{` via `L_CURLY` too) are
+// safe stopping points for the *inner* section/assignment/statement
+// recovery that genuinely continues from there, but `parse_report` can't
+// do anything with them. Reusing `REPORT_RECOVERY_SET` here made the outer
+// loop's `or_recover_with_token_set` report `RecoveryError::AlreadyRecovered`
+// (the parser was already sitting on one of those tokens without consuming
+// anything) whenever inner recovery bailed out mid-section, which made
+// `parse_reports` `break` and silently drop the rest of the file --
+// including any well-formed report content after the malformed part --
+// instead of skipping forward to the next `ff2`.
+const REPORT_LIST_RECOVERY_SET: TokenSet<MSyntaxKind> = token_set!(T![ff2], T![EOF]);
+
 pub fn parse_reports(p: &mut MParser, list_marker: Marker) {
     let mut progress = ParserProgress::default();
 
@@ -30,7 +43,7 @@ pub fn parse_reports(p: &mut MParser, list_marker: Marker) {
 
         let recovered = report.or_recover_with_token_set(
             p,
-            &ParseRecoveryTokenSet::new(M_BOGUS_STATEMENT, REPORT_RECOVERY_SET),
+            &ParseRecoveryTokenSet::new(M_BOGUS_STATEMENT, REPORT_LIST_RECOVERY_SET),
             expected_statement,
         );
 
