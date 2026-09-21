@@ -29,6 +29,7 @@ pub fn check(root: &MSyntaxNode) -> Vec<Diagnostic> {
                           the 'else' branch, and any following statement runs unconditionally."
                     .to_string(),
                 range: paren.range(),
+                tags: vec![],
             })
         })
         .collect()

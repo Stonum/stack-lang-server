@@ -1,4 +1,5 @@
 pub mod call_arity_mismatch;
+pub mod deprecated_usage;
 pub mod else_stray_condition;
 pub mod if_stray_semicolon;
 

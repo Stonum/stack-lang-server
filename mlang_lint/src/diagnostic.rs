@@ -6,10 +6,16 @@ pub enum Severity {
     Warning,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DiagnosticTag {
+    Deprecated,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Diagnostic {
     pub severity: Severity,
     pub code: &'static str,
     pub message: String,
     pub range: TextRange,
+    pub tags: Vec<DiagnosticTag>,
 }

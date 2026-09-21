@@ -1,7 +1,7 @@
 mod diagnostic;
 mod rules;
 
-pub use diagnostic::{Diagnostic, Severity};
+pub use diagnostic::{Diagnostic, DiagnosticTag, Severity};
 
 use mlang_core::AnyMCoreDefinition;
 use mlang_semantic::AnyMDefinition;
@@ -22,5 +22,14 @@ pub fn semantic_diagnostics<'a>(
     core: &'a [AnyMCoreDefinition],
     definitions: impl Iterator<Item = &'a AnyMDefinition>,
 ) -> Vec<Diagnostic> {
-    rules::call_arity_mismatch::check(root, core, definitions)
+    let definitions = definitions.collect::<Vec<_>>();
+
+    let mut diagnostics =
+        rules::call_arity_mismatch::check(root, core, definitions.iter().copied());
+
+    diagnostics.extend(rules::deprecated_usage::check(
+        root,
+        definitions.into_iter(),
+    ));
+    diagnostics
 }

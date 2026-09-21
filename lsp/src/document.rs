@@ -15,8 +15,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use tower_lsp::lsp_types::{
-    Diagnostic, DiagnosticSeverity, DocumentSymbol, NumberOrString, Position, Range, SymbolKind,
-    Url,
+    Diagnostic, DiagnosticSeverity, DiagnosticTag, DocumentSymbol, NumberOrString, Position, Range,
+    SymbolKind, Url,
 };
 
 /// What kind of Stack document this is, derived from the file extension.
@@ -321,6 +321,13 @@ impl CurrentDocument {
                 mlang_lint::Severity::Error => DiagnosticSeverity::ERROR,
                 mlang_lint::Severity::Warning => DiagnosticSeverity::WARNING,
             };
+            let tags = diagnostic
+                .tags
+                .iter()
+                .map(|tag| match tag {
+                    mlang_lint::DiagnosticTag::Deprecated => DiagnosticTag::DEPRECATED,
+                })
+                .collect::<Vec<_>>();
             Some(Diagnostic::new(
                 range,
                 Some(severity),
@@ -328,7 +335,7 @@ impl CurrentDocument {
                 Some(format!("{source}-lint")),
                 diagnostic.message.clone(),
                 None,
-                None,
+                (!tags.is_empty()).then_some(tags),
             ))
         });
 

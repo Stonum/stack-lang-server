@@ -27,6 +27,18 @@ pub enum AnyMDefinition {
     MHandlerEventDefinition(MHandlerEventDefinition),
 }
 
+impl AnyMDefinition {
+    /// `Some(reason)` if the definition is marked with `@deprecated`; the reason may be empty.
+    pub fn deprecated(&self) -> Option<&str> {
+        match self {
+            AnyMDefinition::MFunctionDefinition(f) => f.deprecated.as_deref(),
+            AnyMDefinition::MClassDefinition(c) => c.deprecated.as_deref(),
+            AnyMDefinition::MClassMemberDefinition(m) => m.deprecated.as_deref(),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct DefinitionId {
     name: String,
@@ -481,6 +493,7 @@ pub struct MFunctionDefinition {
     id: DefinitionId,
     params: MParameters,
     description: Option<String>,
+    deprecated: Option<String>,
     range: LineColRange,
 }
 
@@ -490,6 +503,7 @@ pub struct MClassDefinition {
     id: DefinitionId,
     methods: Vec<Arc<MClassMemberDefinition>>,
     description: Option<String>,
+    deprecated: Option<String>,
     range: LineColRange,
     extends: Option<String>,
 }
@@ -501,6 +515,7 @@ pub struct MClassMemberDefinition {
     class: Weak<MClassDefinition>,
     params: MParameters,
     description: Option<String>,
+    deprecated: Option<String>,
     range: LineColRange,
     m_type: MClassMethodType,
 }
@@ -520,6 +535,7 @@ impl PartialEq for MClassMemberDefinition {
         self.id == other.id
             && self.params == other.params
             && self.description == other.description
+            && self.deprecated == other.deprecated
             && self.range == other.range
             && self.m_type == other.m_type
     }
@@ -648,6 +664,7 @@ fn function_definition(
             range: func_id_range,
         },
         params,
+        deprecated: parse_deprecated(description.as_deref()),
         description,
         range: func_range,
     };
@@ -744,6 +761,11 @@ fn class_definition(
     let class_id_range = index.line_col_range(class_id.range())?;
     let class_range = index.line_col_range(class.range())?;
 
+    let description = format_description(
+        class.syntax().first_leading_trivia(),
+        class.doc_string().map(|s| s.text()),
+    );
+
     let class_def = Arc::new(MClassDefinition {
         keyword: class_token.text_trimmed().to_string(),
         id: DefinitionId {
@@ -751,10 +773,8 @@ fn class_definition(
             range: class_id_range,
         },
         methods: vec![],
-        description: format_description(
-            class.syntax().first_leading_trivia(),
-            class.doc_string().map(|s| s.text()),
-        ),
+        deprecated: parse_deprecated(description.as_deref()),
+        description,
         range: class_range,
         extends: class
             .extends_clause()
@@ -781,6 +801,10 @@ fn class_member_definition(
     let member_id = member.name().ok()??;
     let member_id_range = index.line_col_range(member_id.range())?;
     let member_range = index.line_col_range(member.range())?;
+    let description = format_description(
+        member.leading_trivia(),
+        member.doc_string().map(|s| s.text()),
+    );
 
     Some(MClassMemberDefinition {
         keyword: member_token.map(|s| s.text_trimmed().to_string()),
@@ -794,10 +818,8 @@ fn class_member_definition(
             .map(|params| params.map(Into::into))
             .unwrap_or_default()
             .unwrap_or_default(),
-        description: format_description(
-            member.leading_trivia(),
-            member.doc_string().map(|s| s.text()),
-        ),
+        deprecated: parse_deprecated(description.as_deref()),
+        description,
         range: member_range,
         m_type: match member {
             AnyMClassMember::MConstructorClassMember(_) => MClassMethodType::Constructor,
@@ -882,6 +904,7 @@ fn class_property_definition(
             offsets: vec![],
         },
         description: None,
+        deprecated: None,
         range: member_range,
         m_type: MClassMethodType::Property,
     })
@@ -977,6 +1000,21 @@ fn format_description(
     description
 }
 
+const DEPRECATED_TAG: &str = "@deprecated";
+
+/// Reason from the first `@deprecated [reason]` line of a description (empty if no reason given).
+fn parse_deprecated(description: Option<&str>) -> Option<String> {
+    description?.lines().find_map(|line| {
+        let line = line.trim_start().trim_start_matches('#').trim_start();
+        let tag = line.get(..DEPRECATED_TAG.len())?;
+        let rest = &line[DEPRECATED_TAG.len()..];
+
+        let is_tag = tag.eq_ignore_ascii_case(DEPRECATED_TAG)
+            && rest.chars().next().is_none_or(char::is_whitespace);
+        is_tag.then(|| rest.trim().to_string())
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use line_index::LineCol;
@@ -1058,6 +1096,7 @@ mod tests {
                     offsets: vec![[0, 1], [3, 4], [6, 11], [13, 16]],
                 },
                 description: Some(String::from("\n# something else\n# about function a")),
+                deprecated: None,
                 range: line_col_range(5, 4, 7, 5),
             })
         );
@@ -1079,6 +1118,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: Some(String::from("\n# about function b")),
+                deprecated: None,
                 range: line_col_range(10, 4, 12, 5)
             })
         );
@@ -1093,6 +1133,8 @@ mod tests {
                 },
 
                 description: None,
+
+                deprecated: None,
                 range: line_col_range(14, 4, 24, 5),
                 extends: Some("z".into()),
                 methods: vec![]
@@ -1116,6 +1158,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: None,
+                deprecated: None,
                 range: line_col_range(15, 8, 15, 24),
                 m_type: MClassMethodType::Constructor
             }),
@@ -1138,6 +1181,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: Some(String::from("\n# getter description")),
+                deprecated: None,
                 range: line_col_range(18, 8, 20, 9),
                 m_type: MClassMethodType::Getter
             }),
@@ -1160,6 +1204,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: None,
+                deprecated: None,
                 range: line_col_range(21, 8, 23, 9),
                 m_type: MClassMethodType::Method
             })
@@ -1202,6 +1247,8 @@ mod tests {
                 },
 
                 description: None,
+
+                deprecated: None,
                 range: line_col_range(1, 4, 14, 5),
                 extends: None,
                 methods: vec![]
@@ -1225,6 +1272,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: None,
+                deprecated: None,
                 range: line_col_range(2, 8, 5, 9),
                 m_type: MClassMethodType::Constructor
             }),
@@ -1247,6 +1295,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: None,
+                deprecated: None,
                 range: line_col_range(7, 8, 9, 9),
                 m_type: MClassMethodType::Getter
             }),
@@ -1269,6 +1318,7 @@ mod tests {
                     offsets: vec![[0, 3]],
                 },
                 description: None,
+                deprecated: None,
                 range: line_col_range(11, 8, 13, 9),
                 m_type: MClassMethodType::Setter
             }),
@@ -1291,6 +1341,7 @@ mod tests {
                     offsets: vec![],
                 },
                 description: None,
+                deprecated: None,
                 range: line_col_range(3, 17, 3, 19),
                 m_type: MClassMethodType::Property
             })
@@ -1361,6 +1412,68 @@ mod tests {
                 report: Weak::new(),
                 range: line_col_range(15, 0, 18, 1),
             }),
+        );
+    }
+
+    #[test]
+    fn test_parse_deprecated() {
+        #[rustfmt::skip]
+        let inputs = [
+            ("\n# @deprecated use b()", Some("use b()")),
+            ("\n# about\n#   @Deprecated  ", Some("")),
+            ("\n## @deprecated old\n# @deprecated new", Some("old")),
+            ("\n# about\n  @deprecated from doc string", Some("from doc string")),
+            ("\n# @deprecatedness", None),
+            ("\n# not @deprecated", None),
+            ("\n# about", None),
+        ];
+
+        for (description, expected) in inputs {
+            assert_eq!(
+                parse_deprecated(Some(description)).as_deref(),
+                expected,
+                "{description:?}"
+            );
+        }
+        assert_eq!(parse_deprecated(None), None);
+    }
+
+    #[test]
+    fn test_deprecated_definitions() {
+        let text = r#"
+    # @deprecated use g()
+    func f() {}
+
+    func g() "
+        about g
+        @deprecated
+    " {}
+
+    func h() {}
+
+    # @deprecated old class
+    class A {
+        m() "@deprecated old method" {}
+    }
+    "#;
+        let file_source = MFileSource::module();
+        let parsed = parse(text, file_source);
+        let model = semantics(text, parsed.syntax(), file_source);
+
+        let deprecated = model
+            .definitions()
+            .map(|d| (d.id().to_string(), d.deprecated().map(str::to_string)))
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            deprecated,
+            vec![
+                ("f".into(), Some("use g()".into())),
+                ("g".into(), Some("".into())),
+                ("h".into(), None),
+                ("A".into(), Some("old class".into())),
+                ("m".into(), Some("old method".into())),
+            ]
         );
     }
 

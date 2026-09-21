@@ -82,6 +82,7 @@ fn check_call(
         code: CODE,
         message: format!("'{name}' cannot be called with {count} argument(s)."),
         range: call.range(),
+        tags: vec![],
     })
 }
 

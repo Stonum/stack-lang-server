@@ -20,6 +20,7 @@ pub fn check(root: &MSyntaxNode) -> Vec<Diagnostic> {
                           — the intended statement is never executed."
                     .to_string(),
                 range: if_stmt.range(),
+                tags: vec![],
             })
         })
         .collect()
