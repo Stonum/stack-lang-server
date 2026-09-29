@@ -8,11 +8,11 @@ use serde_json::Value;
 use thiserror::Error;
 use walkdir::WalkDir;
 
-use mlang_core::{AnyMCoreDefinition, load_core_api};
-use mlang_lsp_definition::{
+use lsp_definition::{
     CodeSymbolDefinition as _, SemanticInfo, StringLowerCase, get_completion, get_declaration,
     get_hover, get_lens, get_reference, get_signatures, get_symbols,
 };
+use mlang_core::{AnyMCoreDefinition, load_core_api};
 use mlang_parser::parse;
 use mlang_semantic::{
     AnyMDefinition, SemanticModel, identifier_for_completion, identifier_for_offset,

@@ -2,7 +2,7 @@ use biome_rowan::{AstNode, AstSeparatedList};
 
 use line_index::{LineColRange, LineIndex};
 
-use mlang_lsp_definition::{LocationDefinition, SemanticInfo};
+use lsp_definition::{LocationDefinition, SemanticInfo, Symbol, Usage};
 use mlang_syntax::{
     AnyMExpression, MCallExpression, MClassDeclaration, MNewExpression, MSyntaxKind, MSyntaxNode,
 };
@@ -49,7 +49,13 @@ pub(crate) fn get_reference(
                 }
             };
             return Some((
-                SemanticInfo::MethodCall(name, args_count, class_id),
+                SemanticInfo::new(
+                    Symbol::Member {
+                        name,
+                        class: class_id,
+                    },
+                    Usage::Call(args_count),
+                ),
                 MReferenceLocation(range),
             ));
         }
@@ -58,7 +64,7 @@ pub(crate) fn get_reference(
             let name = ident.name().ok()?.text();
             let range = index.line_col_range(ident.range())?;
             return Some((
-                SemanticInfo::FunctionCall(name, args_count),
+                SemanticInfo::new(Symbol::Function(name), Usage::Call(args_count)),
                 MReferenceLocation(range),
             ));
         }
@@ -75,7 +81,7 @@ pub(crate) fn get_reference(
             let name = ident.name().ok()?.text();
             let range = index.line_col_range(ident.range())?;
             return Some((
-                SemanticInfo::NewExpression(Some(name), args_count),
+                SemanticInfo::new(Symbol::Class(name), Usage::New(args_count)),
                 MReferenceLocation(range),
             ));
         }
@@ -111,6 +117,20 @@ mod tests {
         }
     }
 
+    fn function_call(name: &str, args: usize) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Function(name.into()), Usage::Call(args))
+    }
+
+    fn method_call(name: &str, args: usize, class: Option<&str>) -> SemanticInfo {
+        SemanticInfo::new(
+            Symbol::Member {
+                name: name.into(),
+                class: class.map(Into::into),
+            },
+            Usage::Call(args),
+        )
+    }
+
     fn parse_refs(text: &str) -> SemanticModel {
         let file_source = MFileSource::module();
         let parsed = parse(text, file_source);
@@ -124,9 +144,7 @@ mod tests {
         let reference = model.references();
         assert_eq!(reference.len(), 1);
 
-        let fcall = reference
-            .get(&SemanticInfo::FunctionCall("fcall".to_string(), 1))
-            .unwrap();
+        let fcall = reference.get(&function_call("fcall", 1)).unwrap();
         assert_eq!(fcall[0].0, line_col_range(0, 8, 0, 13));
         assert_eq!(fcall[1].0, line_col_range(0, 14, 0, 19));
     }
@@ -137,14 +155,10 @@ mod tests {
         let reference = model.references();
         assert_eq!(reference.len(), 2);
 
-        let fcall = reference
-            .get(&SemanticInfo::FunctionCall("fcall".to_string(), 1))
-            .unwrap();
+        let fcall = reference.get(&function_call("fcall", 1)).unwrap();
         assert_eq!(fcall[0].0, line_col_range(0, 8, 0, 13));
 
-        let fcall = reference
-            .get(&SemanticInfo::FunctionCall("fcall".to_string(), 2))
-            .unwrap();
+        let fcall = reference.get(&function_call("fcall", 2)).unwrap();
         assert_eq!(fcall[0].0, line_col_range(0, 26, 0, 31));
     }
 
@@ -154,9 +168,7 @@ mod tests {
         let reference = model.references();
         assert_eq!(reference.len(), 1);
 
-        let fcall = reference
-            .get(&SemanticInfo::MethodCall("fcall".to_string(), 1, None))
-            .unwrap();
+        let fcall = reference.get(&method_call("fcall", 1, None)).unwrap();
         assert_eq!(fcall[0].0, line_col_range(0, 10, 0, 15));
         assert_eq!(fcall[1].0, line_col_range(0, 18, 0, 23));
     }
@@ -167,13 +179,7 @@ mod tests {
         let reference = model.references();
         assert_eq!(reference.len(), 1);
 
-        let fcall = reference
-            .get(&SemanticInfo::MethodCall(
-                "fcall".to_string(),
-                1,
-                Some("x".to_string()),
-            ))
-            .unwrap();
+        let fcall = reference.get(&method_call("fcall", 1, Some("x"))).unwrap();
         assert_eq!(fcall[0].0, line_col_range(0, 33, 0, 38));
         assert_eq!(fcall[1].0, line_col_range(0, 44, 0, 49));
     }
@@ -185,7 +191,7 @@ mod tests {
         assert_eq!(reference.len(), 1);
 
         let x = reference
-            .get(&SemanticInfo::NewExpression(Some("x".to_string()), 0))
+            .get(&SemanticInfo::new(Symbol::Class("x".into()), Usage::New(0)))
             .unwrap();
         assert_eq!(x[0].0, line_col_range(0, 12, 0, 13));
     }

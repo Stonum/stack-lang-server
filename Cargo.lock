@@ -958,6 +958,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lsp_definition"
+version = "0.1.0"
+dependencies = [
+ "itertools",
+ "line_index",
+ "tower-lsp",
+ "unicase",
+]
+
+[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -976,7 +986,7 @@ dependencies = [
 name = "mlang_core"
 version = "0.1.0"
 dependencies = [
- "mlang_lsp_definition",
+ "lsp_definition",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -1012,21 +1022,11 @@ name = "mlang_lint"
 version = "0.1.0"
 dependencies = [
  "biome_rowan",
+ "lsp_definition",
  "mlang_core",
- "mlang_lsp_definition",
  "mlang_parser",
  "mlang_semantic",
  "mlang_syntax",
- "unicase",
-]
-
-[[package]]
-name = "mlang_lsp_definition"
-version = "0.1.0"
-dependencies = [
- "itertools",
- "line_index",
- "tower-lsp",
  "unicase",
 ]
 
@@ -1051,10 +1051,11 @@ version = "0.0.1"
 dependencies = [
  "biome_rowan",
  "line_index",
- "mlang_lsp_definition",
+ "lsp_definition",
  "mlang_parser",
  "mlang_syntax",
  "rustc-hash 2.1.3",
+ "tower-lsp",
  "unicase",
 ]
 
@@ -1562,10 +1563,10 @@ dependencies = [
  "env_logger",
  "line_index",
  "log",
+ "lsp_definition",
  "mlang_core",
  "mlang_formatter",
  "mlang_lint",
- "mlang_lsp_definition",
  "mlang_parser",
  "mlang_semantic",
  "mlang_syntax",

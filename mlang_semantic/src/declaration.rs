@@ -4,9 +4,9 @@ use std::sync::{Arc, Weak};
 
 use line_index::{LineColRange, LineIndex};
 
-use mlang_lsp_definition::{
-    Arity, CodeSymbolDefinition, CodeSymbolInformation, LocationDefinition, MarkupDefinition,
-    SignatureParameters, SymbolKind,
+use lsp_definition::{
+    Arity, CodeSymbolDefinition, CodeSymbolInformation, DefinitionKind, LocationDefinition,
+    MarkupDefinition, SignatureParameters, SymbolKind,
 };
 use mlang_syntax::{
     AnyMClassMember, AnyMFunction, AnyMLiteralExpression, AnyMParameterList, AnyMSwitchClause,
@@ -46,56 +46,21 @@ pub struct DefinitionId {
 }
 
 impl CodeSymbolDefinition for AnyMDefinition {
-    fn is_function(&self) -> bool {
-        matches!(self, AnyMDefinition::MFunctionDefinition(_))
-    }
-
-    fn is_class(&self) -> bool {
-        matches!(self, AnyMDefinition::MClassDefinition(_))
-    }
-
-    fn is_constructor(&self) -> bool {
+    fn kind(&self) -> DefinitionKind {
         match self {
-            AnyMDefinition::MClassMemberDefinition(member) => {
-                member.m_type == MClassMethodType::Constructor
-            }
-            _ => false,
-        }
-    }
-
-    fn is_method(&self) -> bool {
-        match self {
-            AnyMDefinition::MClassMemberDefinition(member) => {
-                member.m_type == MClassMethodType::Method
-            }
-            _ => false,
-        }
-    }
-
-    fn is_getter(&self) -> bool {
-        match self {
-            AnyMDefinition::MClassMemberDefinition(member) => {
-                member.m_type == MClassMethodType::Getter
-            }
-            _ => false,
-        }
-    }
-
-    fn is_setter(&self) -> bool {
-        match self {
-            AnyMDefinition::MClassMemberDefinition(member) => {
-                member.m_type == MClassMethodType::Setter
-            }
-            _ => false,
-        }
-    }
-
-    fn is_property(&self) -> bool {
-        match self {
-            AnyMDefinition::MClassMemberDefinition(member) => {
-                member.m_type == MClassMethodType::Property
-            }
-            _ => false,
+            AnyMDefinition::MFunctionDefinition(_) => DefinitionKind::Function,
+            AnyMDefinition::MClassDefinition(_) => DefinitionKind::Class,
+            AnyMDefinition::MClassMemberDefinition(member) => match member.m_type {
+                MClassMethodType::Constructor => DefinitionKind::Constructor,
+                MClassMethodType::Method => DefinitionKind::Method,
+                MClassMethodType::Getter => DefinitionKind::Getter,
+                MClassMethodType::Setter => DefinitionKind::Setter,
+                MClassMethodType::Property => DefinitionKind::Property,
+            },
+            AnyMDefinition::MReportDefinition(_) => DefinitionKind::Report,
+            AnyMDefinition::MReportSectionDefinition(_) => DefinitionKind::ReportSection,
+            AnyMDefinition::MHandlerDefinition(_) => DefinitionKind::Handler,
+            AnyMDefinition::MHandlerEventDefinition(_) => DefinitionKind::HandlerEvent,
         }
     }
 
