@@ -1,5 +1,5 @@
 use biome_rowan::AstSeparatedList;
-use mlang_lsp_definition::CodeSymbolDefinition;
+use lsp_definition::{CodeSymbolDefinition, DefinitionKind};
 use mlang_semantic::AnyMDefinition;
 use mlang_syntax::{
     AnyMExpression, AstNode, MCallExpression, MClassDeclaration, MNewExpression, MSyntaxNode,
@@ -32,18 +32,20 @@ impl<'a> Index<'a> {
             let key = || UniCase::new(d.id().to_string());
             let class_key = || d.container().map(|c| UniCase::new(c.id().to_string()));
 
-            if d.is_function() {
-                index.functions.entry(key()).or_default().push(d);
-            } else if d.is_class() {
-                index.classes.entry(key()).or_default().push(d);
-            } else if d.is_constructor()
-                && let Some(class) = class_key()
-            {
-                index.constructors.entry(class).or_default().push(d);
-            } else if d.is_method()
-                && let Some(class) = class_key()
-            {
-                index.methods.entry((class, key())).or_default().push(d);
+            match d.kind() {
+                DefinitionKind::Function => index.functions.entry(key()).or_default().push(d),
+                DefinitionKind::Class => index.classes.entry(key()).or_default().push(d),
+                DefinitionKind::Constructor => {
+                    if let Some(class) = class_key() {
+                        index.constructors.entry(class).or_default().push(d);
+                    }
+                }
+                DefinitionKind::Method => {
+                    if let Some(class) = class_key() {
+                        index.methods.entry((class, key())).or_default().push(d);
+                    }
+                }
+                _ => {}
             }
         }
         index

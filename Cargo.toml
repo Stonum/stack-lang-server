@@ -3,6 +3,7 @@ resolver = "2"
 
 members = [
    "lsp",
+   "lsp_definition",
    "line_index",
    "mlang_syntax",
    "mlang_factory",
@@ -10,7 +11,6 @@ members = [
    "mlang_semantic",
    "mlang_formatter",
    "mlang_core",
-   "mlang_lsp_definition",
    "mlang_lint",
    "sql_syntax",
    "sql_factory",
@@ -33,6 +33,7 @@ debug = "line-tables-only"
 
 [workspace.dependencies]
 lsp = { path = 'lsp' }
+lsp_definition = { path = 'lsp_definition' }
 line_index = { path = 'line_index' }
 mlang_syntax = { path = 'mlang_syntax' }
 mlang_factory = { path = 'mlang_factory' }
@@ -40,7 +41,6 @@ mlang_parser = { path = "mlang_parser" }
 mlang_semantic = { path = "mlang_semantic" }
 mlang_formatter = { path = "mlang_formatter" }
 mlang_core = { path = "mlang_core" }
-mlang_lsp_definition = { path = 'mlang_lsp_definition' }
 mlang_lint = { path = 'mlang_lint' }
 
 sql_syntax = { path = 'sql_syntax' }

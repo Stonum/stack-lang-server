@@ -8,12 +8,12 @@ edition = "2024"
 
 [dependencies]
 line_index = { workspace = true }
+lsp_definition = { workspace =  true }
 mlang_syntax = { workspace = true }
 mlang_parser = { workspace = true }
 mlang_formatter = { workspace = true }
 mlang_semantic = { workspace = true }
 mlang_core = { workspace = true }
-mlang_lsp_definition = { workspace =  true }
 mlang_lint = { workspace = true }
 
 sql_syntax = { workspace = true }

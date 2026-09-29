@@ -1,7 +1,7 @@
 use biome_rowan::{
     AstNode, AstSeparatedList, NodeOrToken, SyntaxNode, SyntaxToken, TextRange, TextSize,
 };
-use mlang_lsp_definition::SemanticInfo;
+use lsp_definition::{Class, SemanticInfo, Symbol, Usage};
 
 use mlang_syntax::{
     AnyMAssignment, AnyMBinding, AnyMExpression, MAssignmentExpression, MCallExpression,
@@ -109,10 +109,13 @@ fn declaration_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
     for n in token.ancestors().take(3) {
         match n.kind() {
             MSyntaxKind::M_FUNCTION_DECLARATION => {
-                return Some(SemanticInfo::FunctionDeclaration(ident));
+                return Some(SemanticInfo::new(
+                    Symbol::Function(ident),
+                    Usage::Declaration,
+                ));
             }
             MSyntaxKind::M_CLASS_DECLARATION => {
-                return Some(SemanticInfo::ClassDeclaration(ident));
+                return Some(SemanticInfo::new(Symbol::Class(ident), Usage::Declaration));
             }
             MSyntaxKind::M_METHOD_CLASS_MEMBER => {
                 let class_member_list_node = n.parent()?;
@@ -121,10 +124,16 @@ fn declaration_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
                 let class = MClassDeclaration::cast(class_node)?;
                 let class_id = class.id().ok()?.text();
 
-                return Some(SemanticInfo::MethodDeclaration(ident, class_id));
+                return Some(SemanticInfo::new(
+                    Symbol::Member {
+                        name: ident,
+                        class: Some(class_id),
+                    },
+                    Usage::Declaration,
+                ));
             }
             MSyntaxKind::M_EXTENDS_CLAUSE => {
-                return Some(SemanticInfo::ClassExtends(ident));
+                return Some(SemanticInfo::new(Symbol::Class(ident), Usage::Extends));
             }
             _ => continue,
         }
@@ -140,9 +149,9 @@ fn iterator_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
 
     let node = token.ancestors().nth(2)?;
     if node.kind() == MSyntaxKind::M_FOR_ITERATOR_FACTORY {
-        return Some(SemanticInfo::FunctionCall(
-            token.text_trimmed().trim().to_string(),
-            2,
+        return Some(SemanticInfo::new(
+            Symbol::Function(token.text_trimmed().trim().to_string()),
+            Usage::Call(2),
         ));
     }
 
@@ -156,7 +165,7 @@ fn new_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo
 
     if token.kind() == MSyntaxKind::NEW_KW {
         // zero args for new expression without class name
-        return Some(SemanticInfo::NewExpression(None, 0));
+        return Some(SemanticInfo::new(Symbol::AnyClass, Usage::New(0)));
     }
 
     let node = token.ancestors().nth(2)?;
@@ -167,9 +176,9 @@ fn new_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo
     }
     .unwrap_or_default();
 
-    Some(SemanticInfo::NewExpression(
-        Some(token.text_trimmed().trim().to_string()),
-        args_count,
+    Some(SemanticInfo::new(
+        Symbol::Class(token.text_trimmed().trim().to_string()),
+        Usage::New(args_count),
     ))
 }
 
@@ -193,14 +202,13 @@ fn super_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticIn
         }
         .unwrap_or_default();
 
-        return Some(SemanticInfo::SuperCall(
-            token.text_trimmed().trim().to_string(),
-            args_count,
-            class_id,
+        return Some(SemanticInfo::new(
+            Symbol::Class(class_id),
+            Usage::Super(args_count),
         ));
     }
 
-    Some(SemanticInfo::RefClass(class_id))
+    Some(SemanticInfo::new(Symbol::Class(class_id), Usage::Instance))
 }
 
 fn this_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
@@ -214,7 +222,7 @@ fn this_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInf
         Some(id)
     }?; // return None if class is not founded
 
-    Some(SemanticInfo::RefClass(class_id))
+    Some(SemanticInfo::new(Symbol::Class(class_id), Usage::Instance))
 }
 
 fn call_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
@@ -236,16 +244,8 @@ fn call_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
         // get class id for his object
         if let AnyMExpression::MStaticMemberExpression(expr) = callee {
             let object = expr.object().ok()?;
-            let object = get_nearest_variable_declaration(&object);
-
-            if let Some(SemanticInfo::RefClass(class_id)) = object {
-                return Some(SemanticInfo::MethodCall(
-                    identifier,
-                    args_count,
-                    Some(class_id),
-                ));
-            }
-            return Some(SemanticInfo::MethodCall(identifier, args_count, None));
+            let class = instance_class(get_nearest_variable_declaration(&object));
+            return Some(method_call(identifier, args_count, class));
         }
 
         // get super class id for super expressions
@@ -256,11 +256,14 @@ fn call_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
                 let id = class.extends_clause()?.super_class().ok()?.text();
                 Some(id)
             };
-            return Some(SemanticInfo::MethodCall(identifier, args_count, class_id));
+            return Some(method_call(identifier, args_count, class_id));
         };
     }
 
-    Some(SemanticInfo::FunctionCall(identifier, args_count))
+    Some(SemanticInfo::new(
+        Symbol::Function(identifier),
+        Usage::Call(args_count),
+    ))
 }
 
 fn property_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
@@ -279,12 +282,15 @@ fn property_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
         _ => return None,
     };
 
-    let object = get_nearest_variable_declaration(&object)?;
-    if let SemanticInfo::RefClass(class_id) = object {
-        let identifier = token.text_trimmed().trim().to_string();
-        return Some(SemanticInfo::Property(identifier, class_id));
-    }
-    None
+    let class = instance_class(get_nearest_variable_declaration(&object))?;
+    let identifier = token.text_trimmed().trim().to_string();
+    Some(SemanticInfo::new(
+        Symbol::Member {
+            name: identifier,
+            class: Some(class),
+        },
+        Usage::Access,
+    ))
 }
 
 fn reference_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
@@ -298,6 +304,20 @@ fn reference_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
 }
 
 // UTILITY FUNCTIONS
+
+fn method_call(name: String, args_count: usize, class: Option<Class>) -> SemanticInfo {
+    SemanticInfo::new(Symbol::Member { name, class }, Usage::Call(args_count))
+}
+
+fn instance_class(info: Option<SemanticInfo>) -> Option<Class> {
+    match info? {
+        SemanticInfo {
+            symbol: Symbol::Class(class),
+            usage: Usage::Instance,
+        } => Some(class),
+        _ => None,
+    }
+}
 
 fn get_nearest_class_declaration(token: &SyntaxToken<MLanguage>) -> Option<MClassDeclaration> {
     token
@@ -464,16 +484,12 @@ fn find_identifier_from_right_side(node: SyntaxNode<MLanguage>) -> Option<Semant
     let info_token = info_token?;
     let info = identifier_for_token(&info_token)?;
 
-    match info {
-        SemanticInfo::FunctionCall(ident, params) => {
-            Some(SemanticInfo::RefFunctionResult(ident, params))
-        }
-        SemanticInfo::NewExpression(Some(ident), _params) => Some(SemanticInfo::RefClass(ident)),
-        SemanticInfo::MethodCall(ident, params, class) => {
-            Some(SemanticInfo::RefMethodResult(ident, params, class))
-        }
-        _ => None,
-    }
+    let usage = match (&info.symbol, info.usage) {
+        (_, Usage::Call(n)) => Usage::CallResult(n),
+        (Symbol::Class(_), Usage::New(_)) => Usage::Instance,
+        _ => return None,
+    };
+    Some(SemanticInfo::new(info.symbol, usage))
 }
 
 fn find_info_token(node: SyntaxNode<MLanguage>) -> Option<SyntaxToken<MLanguage>> {
@@ -567,38 +583,84 @@ mod tests {
 
     use super::*;
 
+    fn func_decl(name: &str) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Function(name.into()), Usage::Declaration)
+    }
+    fn class_decl(name: &str) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Class(name.into()), Usage::Declaration)
+    }
+    fn extends(name: &str) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Class(name.into()), Usage::Extends)
+    }
+    fn instance(class: &str) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Class(class.into()), Usage::Instance)
+    }
+    fn new(class: &str, args: usize) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Class(class.into()), Usage::New(args))
+    }
+    fn new_any() -> SemanticInfo {
+        SemanticInfo::new(Symbol::AnyClass, Usage::New(0))
+    }
+    fn super_call(args: usize, class: &str) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Class(class.into()), Usage::Super(args))
+    }
+    fn call(name: &str, args: usize) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Function(name.into()), Usage::Call(args))
+    }
+    fn call_result(name: &str, args: usize) -> SemanticInfo {
+        SemanticInfo::new(Symbol::Function(name.into()), Usage::CallResult(args))
+    }
+    fn member(name: &str, class: Option<&str>) -> Symbol {
+        Symbol::Member {
+            name: name.into(),
+            class: class.map(Into::into),
+        }
+    }
+    fn method_decl(name: &str, class: &str) -> SemanticInfo {
+        SemanticInfo::new(member(name, Some(class)), Usage::Declaration)
+    }
+    fn method(name: &str, args: usize, class: Option<&str>) -> SemanticInfo {
+        SemanticInfo::new(member(name, class), Usage::Call(args))
+    }
+    fn method_result(name: &str, args: usize, class: Option<&str>) -> SemanticInfo {
+        SemanticInfo::new(member(name, class), Usage::CallResult(args))
+    }
+    fn prop(name: &str, class: &str) -> SemanticInfo {
+        SemanticInfo::new(member(name, Some(class)), Usage::Access)
+    }
+
     #[test]
     fn test_identifier_for_offset() {
         #[rustfmt::skip]
         let inputs = [
-            ("func x() {}", 6, SemanticInfo::FunctionDeclaration("x".to_owned())),
-            ("class A {}", 7, SemanticInfo::ClassDeclaration("A".to_owned())),
-            ("class B extends A {}", 17, SemanticInfo::ClassExtends("A".to_owned())),
-            ("class A { x() {} }", 11, SemanticInfo::MethodDeclaration("x".to_owned(), "A".to_owned())),
+            ("func x() {}", 6, func_decl("x")),
+            ("class A {}", 7, class_decl("A")),
+            ("class B extends A {}", 17, extends("A")),
+            ("class A { x() {} }", 11, method_decl("x", "A")),
 
-            ("forall( iterator(arr, ind)) {}", 15, SemanticInfo::FunctionCall("iterator".to_owned(), 2)),
+            ("forall( iterator(arr, ind)) {}", 15, call("iterator", 2)),
 
-            ("new ", 2, SemanticInfo::NewExpression(None, 0)),
-            ("var x = new TodoClass()",15, SemanticInfo::NewExpression(Some("TodoClass".to_owned()), 0)),
-            ("var x = new TodoClass(1, 2, 3)",15, SemanticInfo::NewExpression(Some("TodoClass".to_owned()), 3)),
+            ("new ", 2, new_any()),
+            ("var x = new TodoClass()",15, new("TodoClass", 0)),
+            ("var x = new TodoClass(1, 2, 3)",15, new("TodoClass", 3)),
 
-            ("var x = callFunction()", 15, SemanticInfo::FunctionCall("callFunction".to_owned(), 0)),
-            ("var x = callFunction(1, 2, 3, 4)", 15, SemanticInfo::FunctionCall("callFunction".to_owned(), 4)),
+            ("var x = callFunction()", 15, call("callFunction", 0)),
+            ("var x = callFunction(1, 2, 3, 4)", 15, call("callFunction", 4)),
 
-            ("class B extends A { constructor() { super() } }", 40, SemanticInfo::SuperCall("super".to_owned(), 0, "A".to_owned())),
+            ("class B extends A { constructor() { super() } }", 40, super_call(0, "A")),
 
-            ("var x = z.callMethod(1, 2)", 15, SemanticInfo::MethodCall("callMethod".to_owned(), 2, None)),
+            ("var x = z.callMethod(1, 2)", 15, method("callMethod", 2, None)),
 
-            ("var z = new TodoClass(); z.callMethod();",30, SemanticInfo::MethodCall("callMethod".to_owned(), 0, Some("TodoClass".to_owned()))),
+            ("var z = new TodoClass(); z.callMethod();",30, method("callMethod", 0, Some("TodoClass"))),
 
-            ("var x = callFunction( z.callMethod() )", 30, SemanticInfo::MethodCall("callMethod".to_owned(), 0, None)),
-            ("var x = z.callMethod( callFunction() )", 30, SemanticInfo::FunctionCall("callFunction".to_owned(), 0)),
-            ("var x = z.callMethod( new TodoClass() )",30, SemanticInfo::NewExpression(Some("TodoClass".to_owned()), 0)),
+            ("var x = callFunction( z.callMethod() )", 30, method("callMethod", 0, None)),
+            ("var x = z.callMethod( callFunction() )", 30, call("callFunction", 0)),
+            ("var x = z.callMethod( new TodoClass() )",30, new("TodoClass", 0)),
 
             ("#comment line
-              callaFterComment()",30, SemanticInfo::FunctionCall("callaFterComment".to_owned(), 0)),
+              callaFterComment()",30, call("callaFterComment", 0)),
 
-            ("var xyz = xyz()", 12, SemanticInfo::FunctionCall("xyz".to_owned(), 0))
+            ("var xyz = xyz()", 12, call("xyz", 0))
         ];
 
         for (input, offset, info) in inputs {
@@ -628,11 +690,11 @@ mod tests {
 
         #[rustfmt::skip]
         let offsets = [
-            (65, SemanticInfo::MethodCall("m2".to_owned(), 0, Some("Test".into()))),
-            (125, SemanticInfo::MethodCall("m1".to_owned(), 0, Some("Test".into()))),
-            (62, SemanticInfo::RefClass("Test".into())),
-            (240, SemanticInfo::Property("yyy".into(), "Test".into())),
-            (280, SemanticInfo::Property("xxx".into(), "Test".into())),
+            (65, method("m2", 0, Some("Test"))),
+            (125, method("m1", 0, Some("Test"))),
+            (62, instance("Test")),
+            (240, prop("yyy", "Test")),
+            (280, prop("xxx", "Test")),
         ];
 
         for (offset, info) in offsets {
@@ -646,20 +708,20 @@ mod tests {
     fn test_identifier_by_reference() {
         #[rustfmt::skip]
         let inputs = [
-            ("var x = callFunction(); X ", 25, SemanticInfo::RefFunctionResult("callFunction".to_owned(), 0)),
-            ("var x = z.callMethod(); x ", 25, SemanticInfo::RefMethodResult("callMethod".to_owned(), 0, None)),
-            ("var x = z.callMethod(1,2,3); x ", 30, SemanticInfo::RefMethodResult("callMethod".to_owned(), 3, None)),
-            ("var x = callFunction(); y = x + 3 ", 29, SemanticInfo::RefFunctionResult("callFunction".to_owned(), 0)),
-            ("var x = callFunction(1,2); y = x + 3 ", 32, SemanticInfo::RefFunctionResult("callFunction".to_owned(), 2)),
-            ("var x = new Tst(); x.callMethod() ", 20, SemanticInfo::RefClass("Tst".to_owned())),
-            ("var x = new Tst(); if (true) x.callMethod() ", 30, SemanticInfo::RefClass("Tst".to_owned())),
-            ("var a = 3, x = new Tst(); x ", 27, SemanticInfo::RefClass("Tst".to_owned())),
-            ("var x = 3; x = new Tst(); x ", 27, SemanticInfo::RefClass("Tst".to_owned())),
-            ("var x = new Tst(); x.a = 3; x ", 29, SemanticInfo::RefClass("Tst".to_owned())),
-            ("a = 3, x = new Tst(); x ", 23, SemanticInfo::RefClass("Tst".to_owned())),
-            ("x = new Tst(), a = 3; x ", 23, SemanticInfo::RefClass("Tst".to_owned())),
-            ("x = callFunction(); x ", 21, SemanticInfo::RefFunctionResult("callFunction".to_owned(), 0)),
-            ("var y = z = x = new Tst(); x ", 28, SemanticInfo::RefClass("Tst".to_owned()))
+            ("var x = callFunction(); X ", 25, call_result("callFunction", 0)),
+            ("var x = z.callMethod(); x ", 25, method_result("callMethod", 0, None)),
+            ("var x = z.callMethod(1,2,3); x ", 30, method_result("callMethod", 3, None)),
+            ("var x = callFunction(); y = x + 3 ", 29, call_result("callFunction", 0)),
+            ("var x = callFunction(1,2); y = x + 3 ", 32, call_result("callFunction", 2)),
+            ("var x = new Tst(); x.callMethod() ", 20, instance("Tst")),
+            ("var x = new Tst(); if (true) x.callMethod() ", 30, instance("Tst")),
+            ("var a = 3, x = new Tst(); x ", 27, instance("Tst")),
+            ("var x = 3; x = new Tst(); x ", 27, instance("Tst")),
+            ("var x = new Tst(); x.a = 3; x ", 29, instance("Tst")),
+            ("a = 3, x = new Tst(); x ", 23, instance("Tst")),
+            ("x = new Tst(), a = 3; x ", 23, instance("Tst")),
+            ("x = callFunction(); x ", 21, call_result("callFunction", 0)),
+            ("var y = z = x = new Tst(); x ", 28, instance("Tst"))
         ];
 
         for (input, offset, info) in inputs {
@@ -674,9 +736,9 @@ mod tests {
     fn test_identifier_from_r_paren() {
         #[rustfmt::skip]
         let inputs = [
-            ("new Tst() ", 9, SemanticInfo::NewExpression(Some("Tst".to_owned()), 0)),
-            ("functionName() ", 14, SemanticInfo::FunctionCall("functionName".to_owned(), 0)),
-            ("cl.m1() ", 7, SemanticInfo::MethodCall("m1".to_owned(), 0, None)),
+            ("new Tst() ", 9, new("Tst", 0)),
+            ("functionName() ", 14, call("functionName", 0)),
+            ("cl.m1() ", 7, method("m1", 0, None)),
         ];
 
         for (input, offset, info) in inputs {
@@ -691,10 +753,10 @@ mod tests {
     fn test_identifier_from_signature_help() {
         #[rustfmt::skip]
         let inputs = [
-            ("funcName(a, b) ", 11, Some((SemanticInfo::FunctionCall("funcName".to_owned(), 2), 1))),
-            ("new Test(a, b) ", 11, Some((SemanticInfo::NewExpression(Some("Test".to_owned()), 2), 1))),
-            ("x.m1(a, b) ", 8, Some((SemanticInfo::MethodCall("m1".to_owned(), 2, None), 1))),
-            ("class Tst extends Par{ constructor(a, b) { super(a, b); } }", 51, Some((SemanticInfo::SuperCall("super".to_owned(), 2, "Par".to_owned()), 1))),
+            ("funcName(a, b) ", 11, Some((call("funcName", 2), 1))),
+            ("new Test(a, b) ", 11, Some((new("Test", 2), 1))),
+            ("x.m1(a, b) ", 8, Some((method("m1", 2, None), 1))),
+            ("class Tst extends Par{ constructor(a, b) { super(a, b); } }", 51, Some((super_call(2, "Par"), 1))),
             ("funcName(a, b) ", 1, None),
         ];
 

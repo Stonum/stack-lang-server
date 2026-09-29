@@ -4,10 +4,10 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
+lsp_definition = { workspace = true }
 mlang_syntax = { workspace = true }
 mlang_semantic = { workspace = true }
 mlang_core = { workspace = true }
-mlang_lsp_definition = { workspace = true }
 biome_rowan = { workspace = true }
 unicase = { workspace = true }
 

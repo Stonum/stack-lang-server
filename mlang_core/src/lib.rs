@@ -3,7 +3,7 @@ mod yaml;
 
 use std::sync::{Arc, Weak};
 
-use mlang_lsp_definition::{Arity, CodeSymbolDefinition, MarkupDefinition};
+use lsp_definition::{Arity, CodeSymbolDefinition, DefinitionKind, MarkupDefinition};
 
 pub fn load_core_api() -> Vec<AnyMCoreDefinition> {
     let mut json_entities: Vec<AnyMCoreDefinition> = json::load().into();
@@ -21,16 +21,12 @@ pub enum AnyMCoreDefinition {
 }
 
 impl CodeSymbolDefinition for AnyMCoreDefinition {
-    fn is_class(&self) -> bool {
-        matches!(self, AnyMCoreDefinition::MCoreEntityDefinition(_))
-    }
-
-    fn is_function(&self) -> bool {
-        matches!(self, AnyMCoreDefinition::MCoreFunctionDefinition(_))
-    }
-
-    fn is_method(&self) -> bool {
-        matches!(self, AnyMCoreDefinition::MCoreEntityMemberDefinition(_))
+    fn kind(&self) -> DefinitionKind {
+        match self {
+            AnyMCoreDefinition::MCoreFunctionDefinition(_) => DefinitionKind::Function,
+            AnyMCoreDefinition::MCoreEntityDefinition(_) => DefinitionKind::Class,
+            AnyMCoreDefinition::MCoreEntityMemberDefinition(_) => DefinitionKind::Method,
+        }
     }
 
     fn container(&self) -> Option<AnyMCoreDefinition> {

@@ -3,7 +3,7 @@ mod info;
 mod reference;
 
 use biome_rowan::{SyntaxNode, WalkEvent};
-use mlang_lsp_definition::SemanticInfo;
+use lsp_definition::SemanticInfo;
 use rustc_hash::FxHashMap;
 
 use line_index::LineIndex;

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use mlang_lsp_definition::Arity;
+use lsp_definition::Arity;
 
 use crate::{AnyMCoreDefinition, MCoreFunctionDefinition};
 

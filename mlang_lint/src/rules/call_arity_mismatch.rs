@@ -1,6 +1,6 @@
 use biome_rowan::AstSeparatedList;
+use lsp_definition::{CodeSymbolDefinition, DefinitionKind};
 use mlang_core::AnyMCoreDefinition;
-use mlang_lsp_definition::CodeSymbolDefinition;
 use mlang_semantic::AnyMDefinition;
 use mlang_syntax::{AnyMExpression, AstNode, MCallExpression, MSyntaxNode};
 use std::collections::HashMap;
@@ -33,7 +33,7 @@ fn build_index<'a, T: CodeSymbolDefinition>(
     items: impl Iterator<Item = &'a T>,
 ) -> HashMap<UniCase<String>, Vec<&'a T>> {
     let mut index: HashMap<UniCase<String>, Vec<&T>> = HashMap::new();
-    for item in items.filter(|d| d.is_function()) {
+    for item in items.filter(|d| d.kind() == DefinitionKind::Function) {
         index
             .entry(UniCase::new(item.id().to_string()))
             .or_default()

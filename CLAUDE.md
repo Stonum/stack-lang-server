@@ -37,9 +37,9 @@ An LSP server for the Stack platform's languages, built on biome's infrastructur
 | `*_factory` — node constructors (generated) | `mlang_factory` | `sql_factory` | `xml_factory` |
 | `*_parser` — hand-written lexer + recursive-descent `syntax_rules` | `mlang_parser` | `sql_parser` | `xml_parser` |
 | `*_formatter` — one `FormatNodeRule` per node under `rules/`/per-language dirs, glued by `generated.rs` | `mlang_formatter` | `sql_formatter` | `xml_formatter` |
-| semantic / lint | `mlang_semantic`, `mlang_lint`, `mlang_lsp_definition` | — | `xml_semantic`, `xml_lint` |
+| semantic / lint | `mlang_semantic`, `mlang_lint` | — | `xml_semantic`, `xml_lint` |
 
-Other crates: `mlang_core` (JSON/YAML data for the built-in mlang API), `line_index` (offset ↔ LSP position), `lsp` (tower-lsp server: `main.rs` = `Backend`/handlers, `workspace.rs` = indexed files and symbols, `document.rs` = `DocumentKind` dispatch by file extension, `format.rs`, `tokens.rs` = semantic tokens).
+Other crates: `lsp_definition` (language-neutral LSP definitions: `SemanticInfo` = `Symbol` + `Usage`, one resolver for goto/hover/signatures/completion), `mlang_core` (JSON/YAML data for the built-in mlang API), `line_index` (offset ↔ LSP position), `lsp` (tower-lsp server: `main.rs` = `Backend`/handlers, `workspace.rs` = indexed files and symbols, `document.rs` = `DocumentKind` dispatch by file extension, `format.rs`, `tokens.rs` = semantic tokens).
 
 Key cross-cutting points:
 

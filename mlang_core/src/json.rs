@@ -5,7 +5,7 @@ use std::{
 
 use serde::Deserialize;
 
-use mlang_lsp_definition::Arity;
+use lsp_definition::Arity;
 
 use crate::{
     AnyMCoreDefinition, MCoreEntityDefinition, MCoreEntityMemberDefinition, MCoreFunctionDefinition,
