@@ -6,34 +6,12 @@
 
 mod common;
 
-use std::fs;
 use std::sync::Arc;
 use std::time::Duration;
 
-use common::{temp_uri, text_document};
+use common::{TempDir, temp_uri, text_document};
 use stack_lang_server::workspace::Workspace;
 use tower_lsp::lsp_types::{DocumentSymbolResponse, Url, WorkspaceFolder};
-
-struct TempDir(std::path::PathBuf);
-
-impl TempDir {
-    fn new(tag: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!("sls_warmup_{}_{}", std::process::id(), tag));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).expect("create temp workspace dir");
-        TempDir(dir)
-    }
-
-    fn write(&self, name: &str, contents: &str) {
-        fs::write(self.0.join(name), contents).expect("write temp workspace file");
-    }
-}
-
-impl Drop for TempDir {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.0);
-    }
-}
 
 #[tokio::test]
 async fn init_from_settings_file_discovers_prg_files() {

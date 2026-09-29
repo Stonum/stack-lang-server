@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use itertools::Itertools;
 use tower_lsp::lsp_types::{
     Documentation, Location, MarkedString, ParameterInformation, ParameterLabel,
@@ -5,6 +7,7 @@ use tower_lsp::lsp_types::{
 };
 
 use crate::members::class_members;
+use crate::resource::resolve_linked;
 use crate::{
     CodeSymbolDefinition, DefinitionKind, LocationDefinition, MarkupDefinition, SemanticInfo,
     SignatureParameters, Symbol, Usage,
@@ -38,6 +41,71 @@ where
         .into_iter()
         .map(|(_, d)| MarkedString::String(d.full_markdown()))
         .collect()
+}
+
+/// [get_hover] for definitions from project files; for symbols linked across files
+/// each one also links to where it is declared, shown relative to the deepest of `roots`.
+pub fn get_project_hover<'a, I, D>(
+    info: &SemanticInfo,
+    definitions: I,
+    roots: &[PathBuf],
+) -> Vec<MarkedString>
+where
+    I: IntoIterator<Item = (Url, &'a D)>,
+    D: CodeSymbolDefinition + MarkupDefinition + LocationDefinition + 'a,
+{
+    let located = info.symbol.is_linked();
+    resolve(info, definitions, Mode::Hover)
+        .into_iter()
+        .map(|(uri, d)| {
+            let mut markdown = d.full_markdown();
+            if located {
+                markdown.push_str("  \n");
+                markdown.push_str(&location_link(&uri, d.id_range().start.line, roots));
+            }
+            MarkedString::String(markdown)
+        })
+        .collect()
+}
+
+/// `[dir/file.rx:12](file:///…/dir/file.rx#L12)`: the path relative to `root`, or just
+/// the file name outside of it; `line` is zero-based.
+fn location_link(uri: &Url, line: u32, roots: &[PathBuf]) -> String {
+    let line = line + 1;
+    let name = uri
+        .to_file_path()
+        .ok()
+        .and_then(|path| {
+            let relative = roots
+                .iter()
+                .filter_map(|root| relative_path(&path, root))
+                .min_by_key(|relative| relative.len());
+            match relative {
+                Some(relative) => Some(relative.join("/")),
+                None => Some(path.file_name()?.to_string_lossy().into_owned()),
+            }
+        })
+        .unwrap_or_else(|| uri.path().to_string());
+    format!("[{name}:{line}]({uri}#L{line})")
+}
+
+/// Components of `path` below `root`, compared ignoring case as Windows paths are.
+fn relative_path(path: &Path, root: &Path) -> Option<Vec<String>> {
+    let mut components = path.components();
+    for root in root.components() {
+        let component = components.next()?;
+        let same = unicase::eq(
+            component.as_os_str().to_string_lossy().as_ref(),
+            root.as_os_str().to_string_lossy().as_ref(),
+        );
+        if !same {
+            return None;
+        }
+    }
+    let relative: Vec<String> = components
+        .map(|c| c.as_os_str().to_string_lossy().into_owned())
+        .collect();
+    (!relative.is_empty()).then_some(relative)
 }
 
 pub fn get_signatures<'a, I, D>(
@@ -110,10 +178,18 @@ where
         return vec![];
     };
 
-    if let Symbol::Class(_) = symbol
-        && matches!(usage, Usage::Declaration | Usage::New(_) | Usage::Super(_))
-    {
-        return class_with_constructors(name, arguments, definitions, mode);
+    match symbol {
+        Symbol::Select(_)
+        | Symbol::ApiBrowser(_)
+        | Symbol::Handler(_)
+        | Symbol::ExtraHandler(_)
+        | Symbol::HandlerEvent { .. } => return resolve_linked(symbol, definitions),
+        Symbol::Class(_)
+            if matches!(usage, Usage::Declaration | Usage::New(_) | Usage::Super(_)) =>
+        {
+            return class_with_constructors(name, arguments, definitions, mode);
+        }
+        _ => {}
     }
 
     let pool = match symbol {
@@ -138,6 +214,12 @@ fn accepts(symbol: &Symbol, usage: Usage, kind: DefinitionKind) -> bool {
         Symbol::AnyClass => false,
         Symbol::Member { .. } if usage == Usage::Access => kind.is_accessor(),
         Symbol::Member { .. } => kind == DefinitionKind::Method,
+        // resolved by name links in `resolve_linked`
+        Symbol::Select(_)
+        | Symbol::ApiBrowser(_)
+        | Symbol::Handler(_)
+        | Symbol::ExtraHandler(_)
+        | Symbol::HandlerEvent { .. } => false,
     }
 }
 
@@ -197,4 +279,41 @@ where
     }
 
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn location_link_shows_file_name_and_one_based_line() {
+        let uri = Url::from_file_path(std::env::temp_dir().join("Модуль.rx")).unwrap();
+        let link = location_link(&uri, 4, &[]);
+        assert!(link.starts_with("[Модуль.rx:5]("), "{link}");
+        assert!(link.ends_with(&format!("{uri}#L5)")), "{link}");
+    }
+
+    #[test]
+    fn location_link_shows_path_relative_to_the_deepest_root() {
+        let temp = std::env::temp_dir();
+        let project = temp.join("project");
+        let uri = Url::from_file_path(project.join("one").join("RX").join("stack.rx")).unwrap();
+
+        let link = location_link(&uri, 0, &[temp.clone(), project.clone()]);
+        assert!(link.starts_with("[one/RX/stack.rx:1]("), "{link}");
+
+        let link = location_link(&uri, 0, &[temp.join("other")]);
+        assert!(link.starts_with("[stack.rx:1]("), "{link}");
+    }
+
+    #[test]
+    fn relative_path_ignores_case() {
+        let root = std::env::temp_dir().join("Project");
+        let path = std::env::temp_dir().join("PROJECT").join("rx").join("a.rx");
+        assert_eq!(
+            relative_path(&path, &root),
+            Some(vec!["rx".into(), "a.rx".into()])
+        );
+        assert_eq!(relative_path(&root, &root), None);
+    }
 }

@@ -75,16 +75,24 @@ fn texts(locations: &[Location]) -> Vec<String> {
 
 fn goto(pattern: &str) -> Vec<String> {
     let model = model();
-    let info = identifier_for_offset(parse(SRC, MFileSource::module()).syntax(), cursor(pattern))
-        .unwrap_or_else(|| panic!("no info at `{pattern}`"));
+    let info = identifier_for_offset(
+        parse(SRC, MFileSource::module()).syntax(),
+        cursor(pattern),
+        MFileSource::module(),
+    )
+    .unwrap_or_else(|| panic!("no info at `{pattern}`"));
     let locations = get_declaration(&info, model.definitions().map(|d| (uri(), d)));
     texts(&locations)
 }
 
 fn hover(pattern: &str) -> Vec<String> {
     let model = model();
-    let info = identifier_for_offset(parse(SRC, MFileSource::module()).syntax(), cursor(pattern))
-        .unwrap_or_else(|| panic!("no info at `{pattern}`"));
+    let info = identifier_for_offset(
+        parse(SRC, MFileSource::module()).syntax(),
+        cursor(pattern),
+        MFileSource::module(),
+    )
+    .unwrap_or_else(|| panic!("no info at `{pattern}`"));
     get_hover(&info, model.definitions().map(|d| (uri(), d)))
         .into_iter()
         .map(|m| match m {
@@ -96,8 +104,12 @@ fn hover(pattern: &str) -> Vec<String> {
 
 fn references(pattern: &str) -> Vec<String> {
     let model = model();
-    let info = identifier_for_offset(parse(SRC, MFileSource::module()).syntax(), cursor(pattern))
-        .unwrap_or_else(|| panic!("no info at `{pattern}`"));
+    let info = identifier_for_offset(
+        parse(SRC, MFileSource::module()).syntax(),
+        cursor(pattern),
+        MFileSource::module(),
+    )
+    .unwrap_or_else(|| panic!("no info at `{pattern}`"));
     // references are grouped by a hash map key, so their order is unspecified
     let mut locations = get_reference(&info, &uri(), model.references());
     locations.sort_by_key(|l| (l.range.start.line, l.range.start.character));

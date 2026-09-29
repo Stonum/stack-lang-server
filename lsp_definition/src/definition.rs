@@ -21,6 +21,8 @@ pub enum DefinitionKind {
     Property,
     Report,
     ReportSection,
+    Select,
+    ApiBrowser,
 }
 
 impl DefinitionKind {

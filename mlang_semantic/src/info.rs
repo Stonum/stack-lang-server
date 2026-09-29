@@ -5,13 +5,15 @@ use lsp_definition::{Class, SemanticInfo, Symbol, Usage};
 
 use mlang_syntax::{
     AnyMAssignment, AnyMBinding, AnyMExpression, MAssignmentExpression, MCallExpression,
-    MClassDeclaration, MExpressionStatement, MLanguage, MNewExpression, MSequenceExpression,
-    MStaticMemberAssignment, MStaticMemberExpression, MSyntaxKind, MVariableStatement,
+    MCaseClause, MClassDeclaration, MExpressionStatement, MFileSource, MFunctionDeclaration,
+    MLanguage, MNewExpression, MSequenceExpression, MStaticMemberAssignment,
+    MStaticMemberExpression, MSwitchStatement, MSyntaxKind, MVariableStatement,
 };
 
 pub fn identifier_for_offset(
     root: SyntaxNode<MLanguage>,
     offset: TextSize,
+    source_type: MFileSource,
 ) -> Option<SemanticInfo> {
     // checking the boundaries if cursor is at the start or end token
     let offsets = [
@@ -29,7 +31,11 @@ pub fn identifier_for_offset(
         let token = node.as_token();
         token?;
         let token = token.unwrap();
-        if let Some(info) = identifier_for_token(token) {
+        let handler_info = source_type
+            .is_handler()
+            .then(|| handler_declaration(token))
+            .flatten();
+        if let Some(info) = handler_info.or_else(|| identifier_for_token(token)) {
             return Some(info);
         }
     }
@@ -76,6 +82,42 @@ fn identifier_for_token(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> 
 }
 
 // HANDLERS
+
+/// In a `.hdl` file: the handler function name or a `Выбор "event":` label of its top-level switch.
+fn handler_declaration(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
+    let function = token.ancestors().find_map(MFunctionDeclaration::cast)?;
+    let id = function.id().ok()?;
+    let handler = id.text();
+
+    if id.range().contains_range(token.text_trimmed_range()) {
+        return Some(SemanticInfo::new(
+            Symbol::Handler(handler),
+            Usage::Declaration,
+        ));
+    }
+
+    let literal = token.parent()?;
+    let case = MCaseClause::cast(literal.parent()?)?;
+    let is_label = case.test().ok()?.syntax() == &literal;
+    let in_body = case
+        .syntax()
+        .ancestors()
+        .find_map(MSwitchStatement::cast)?
+        .syntax()
+        .grand_parent()
+        .is_some_and(|body| body.kind() == MSyntaxKind::M_FUNCTION_BODY);
+    if !is_label || !in_body {
+        return None;
+    }
+
+    Some(SemanticInfo::new(
+        Symbol::HandlerEvent {
+            handler,
+            event: token.text_trimmed().to_string(),
+        },
+        Usage::Declaration,
+    ))
+}
 
 fn rparen_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
     if !matches!(token.kind(), MSyntaxKind::R_PAREN) {
@@ -665,8 +707,12 @@ mod tests {
 
         for (input, offset, info) in inputs {
             let parsed = parse(input, MFileSource::script());
-            let semantic_info = identifier_for_offset(parsed.syntax(), TextSize::from(offset))
-                .unwrap_or_else(|| panic!("failed for `{input}`"));
+            let semantic_info = identifier_for_offset(
+                parsed.syntax(),
+                TextSize::from(offset),
+                MFileSource::script(),
+            )
+            .unwrap_or_else(|| panic!("failed for `{input}`"));
             assert_eq!(info, semantic_info, "{input}");
         }
     }
@@ -698,10 +744,60 @@ mod tests {
         ];
 
         for (offset, info) in offsets {
-            let semantic_info = identifier_for_offset(parsed.syntax(), TextSize::from(offset))
-                .unwrap_or_else(|| panic!("failed for offset: {offset}"));
+            let semantic_info = identifier_for_offset(
+                parsed.syntax(),
+                TextSize::from(offset),
+                MFileSource::script(),
+            )
+            .unwrap_or_else(|| panic!("failed for offset: {offset}"));
             assert_eq!(info, semantic_info, "offset: {offset}");
         }
+    }
+
+    #[test]
+    fn test_identifier_for_offset_in_handler() {
+        let input = r#"Функция 'Модуль.Записи_АПИ'( Событие )
+{
+   ВыборПо( Событие )
+   {
+      Выбор "ДействиеА":
+         ВыборПо( Режим ) { Выбор "Вложенный": Вернуть 1; }
+         Вернуть Вычислить();
+   }
+}"#;
+        let at = |needle: &str, source: MFileSource| {
+            let offset = input.find(needle).unwrap() + 1;
+            let parsed = parse(input, source);
+            identifier_for_offset(parsed.syntax(), TextSize::from(offset as u32), source)
+        };
+        let handler = "'Модуль.Записи_АПИ'".to_string();
+
+        assert_eq!(
+            at("Модуль", MFileSource::handler()),
+            Some(SemanticInfo::new(
+                Symbol::Handler(handler.clone()),
+                Usage::Declaration
+            ))
+        );
+        assert_eq!(
+            at("ДействиеА", MFileSource::handler()),
+            Some(SemanticInfo::new(
+                Symbol::HandlerEvent {
+                    handler,
+                    event: "\"ДействиеА\"".into()
+                },
+                Usage::Declaration
+            ))
+        );
+        assert_eq!(at("Вложенный", MFileSource::handler()), None);
+        assert_eq!(
+            at("Вычислить", MFileSource::handler()),
+            Some(call("Вычислить", 0))
+        );
+        assert_ne!(
+            at("Модуль", MFileSource::module()).map(|info| info.symbol),
+            Some(Symbol::Handler("'Модуль.Записи_АПИ'".into()))
+        );
     }
 
     #[test]

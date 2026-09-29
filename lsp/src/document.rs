@@ -8,6 +8,7 @@ use mlang_syntax::{
 };
 
 use sql_syntax::{SqlDialect, SqlFileSource, SqlLanguage, SqlSyntaxNode};
+use xml_semantic::{RxSemanticModel, rx_semantics};
 use xml_syntax::{XmlFileSource, XmlLanguage, XmlSyntaxNode, XmlVariant};
 
 use std::{
@@ -124,12 +125,18 @@ impl DocumentKind {
     }
 }
 
+/// Semantic model of a document, depending on its language.
+pub enum Semantics {
+    Mlang(SemanticModel),
+    Resource(RxSemanticModel),
+}
+
 pub struct CurrentDocument {
     uri: Url,
     root: SendNode,
     kind: DocumentKind,
     line_index: LineIndex,
-    semantics: Option<SemanticModel>,
+    semantics: Option<Semantics>,
     parse_diagnostics: Vec<ParseDiagnostic>,
 }
 
@@ -164,7 +171,7 @@ impl CurrentDocument {
         root: MSyntaxNode,
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
-        let semantics = Some(semantics(text, root.clone(), file_source));
+        let semantics = Some(Semantics::Mlang(semantics(text, root.clone(), file_source)));
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
@@ -230,6 +237,9 @@ impl CurrentDocument {
         root: XmlSyntaxNode,
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
+        let kind = DocumentKind::from_xml(file_source);
+        let semantics = (kind == DocumentKind::Resource)
+            .then(|| Semantics::Resource(rx_semantics(text, &root)));
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
@@ -242,8 +252,8 @@ impl CurrentDocument {
         CurrentDocument {
             uri,
             root,
-            kind: DocumentKind::from_xml(file_source),
-            semantics: None,
+            kind,
+            semantics,
             line_index,
             parse_diagnostics,
         }
@@ -285,11 +295,20 @@ impl CurrentDocument {
         Some(to_lsp_symbols(&self.line_index, &symbols))
     }
 
+    /// Selects and API browsers of a `.rx` document.
+    pub fn rx_semantics(&self) -> Option<&RxSemanticModel> {
+        match &self.semantics {
+            Some(Semantics::Resource(model)) => Some(model),
+            _ => None,
+        }
+    }
+
     pub fn definitions(&self) -> core::slice::Iter<'_, AnyMDefinition> {
         static EMPTY: &[AnyMDefinition] = &[];
-        self.semantics
-            .as_ref()
-            .map_or_else(|| EMPTY.iter(), |semantics| semantics.definitions())
+        match &self.semantics {
+            Some(Semantics::Mlang(model)) => model.definitions(),
+            _ => EMPTY.iter(),
+        }
     }
 
     pub fn line_index(&self) -> &LineIndex {
