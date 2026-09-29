@@ -51,7 +51,7 @@ impl From<FreeFunction> for AnyMCoreDefinition {
         AnyMCoreDefinition::MCoreFunctionDefinition(MCoreFunctionDefinition {
             id: val.name,
             description: format!(
-                "```\n{}\n```  \n{}",
+                "```stack\n{}\n```  \n{}",
                 val.brief_description, val.detailed_description.text,
             ),
             arity,
@@ -124,7 +124,7 @@ fn convert_entity_method(
     }
 
     let descr = format!(
-        "```\n{}\n```   \n{}",
+        "```stack\n{}\n```   \n{}",
         inner[0].brief_description, inner[0].detailed_description.text,
     );
 

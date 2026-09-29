@@ -13,7 +13,7 @@ use walkdir::WalkDir;
 
 use lsp_definition::{
     CodeSymbolDefinition as _, DefinitionKind, LinkIndex, LocationDefinition as _, SemanticInfo,
-    StringLowerCase, Symbol, get_completion, get_declaration, get_hover, get_lens,
+    StringLowerCase, Symbol, Usage, get_completion, get_declaration, get_hover, get_lens,
     get_project_hover, get_reference, get_signatures, get_symbols, handler_resource,
 };
 use mlang_core::{AnyMCoreDefinition, load_core_api};
@@ -24,9 +24,10 @@ use mlang_semantic::{
 };
 use mlang_syntax::MFileSource;
 use xml_semantic::{
-    RxDefinition, RxLink, RxLinkKind, RxSemanticModel, rx_identifier_for_offset, rx_semantics,
+    RxDefinition, RxLink, RxLinkKind, RxSemanticModel, rx_expression_at, rx_identifier_for_offset,
+    rx_semantics,
 };
-use xml_syntax::XmlFileSource;
+use xml_syntax::{TextSize, XmlFileSource, XmlSyntaxNode};
 
 use tokio::runtime::Handle;
 use tokio::sync::{OwnedRwLockReadGuard, RwLock, Semaphore};
@@ -337,16 +338,10 @@ impl Workspace {
             return Ok(None);
         };
 
-        let core_markups = get_hover(&semantic_info, self.core.iter().map(|d| (uri.clone(), d)));
-        if !core_markups.is_empty() {
-            return Ok(Some(Hover {
-                contents: HoverContents::Array(core_markups),
-                range: None,
-            }));
+        let mut markups = get_hover(&semantic_info, self.core.iter().map(|d| (uri.clone(), d)));
+        if markups.is_empty() {
+            markups = self.project().hover(&semantic_info);
         }
-
-        let project = self.project();
-        let markups = project.hover(&semantic_info);
 
         Ok(Some(Hover {
             contents: HoverContents::Array(markups),
@@ -792,9 +787,10 @@ impl Workspace {
                 .mlang_syntax()
                 .and_then(|syntax| identifier_for_offset(syntax, offset, file_source))
         } else if kind == DocumentKind::Resource {
-            document
-                .xml_syntax()
-                .and_then(|syntax| rx_identifier_for_offset(&syntax, offset))
+            document.xml_syntax().and_then(|syntax| {
+                rx_identifier_for_offset(&syntax, offset)
+                    .or_else(|| expression_identifier(&syntax, offset))
+            })
         } else {
             None
         };
@@ -814,6 +810,19 @@ fn common_ancestor(paths: &[PathBuf]) -> Option<PathBuf> {
         }
     }
     Some(ancestor)
+}
+
+/// What the cursor points at inside an API browser's `Выражение`: the value is mlang code,
+/// a bare name there is a function.
+fn expression_identifier(root: &XmlSyntaxNode, offset: TextSize) -> Option<SemanticInfo> {
+    let expression = rx_expression_at(root, offset)?;
+    let source = MFileSource::script();
+    let parsed = parse(&expression.code, source);
+    identifier_for_offset(parsed.syntax(), expression.offset, source).or_else(|| {
+        let name = expression.code.trim().trim_end_matches(';').trim_end();
+        let is_name = !name.is_empty() && name.chars().all(|c| c.is_alphanumeric() || c == '_');
+        is_name.then(|| SemanticInfo::new(Symbol::Function(name.to_string()), Usage::Reference))
+    })
 }
 
 fn is_resource(path: &Path) -> bool {

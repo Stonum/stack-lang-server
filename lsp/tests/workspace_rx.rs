@@ -49,6 +49,29 @@ const MULTILINE_RX: &str = r#"<?xml version="1.1"?>
 </Resources>
 "#;
 
+const EXPR_RX: &str = r#"<?xml version="1.1"?>
+<Resources>
+   <APIBrowser Имя="Модуль.Вызов" Выражение="Вычислить(&apos;x&apos;, Другая())"/>
+   <APIBrowser Имя="Модуль.Имя" Выражение="Состояние"/>
+   <APIBrowser Имя="Модуль.Объект" Выражение="@{ поле: Третья() }"/>
+   <Поле Имя="Поле" Выражение="Четвертая()"/>
+</Resources>
+"#;
+
+const EXPR_PRG: &str = r#"func Вычислить(a) {
+}
+func Вычислить(a, b) {
+}
+func Другая() {
+}
+func Третья() {
+}
+func Состояние() {
+}
+func Четвертая() {
+}
+"#;
+
 const HDL: &str = r#"Функция 'Записи'( Событие )
 {
    Вернуть 1;
@@ -231,6 +254,8 @@ fn source(file: &str) -> &'static str {
         "prg/more.hdl" => MORE_HDL,
         "rx/card.rx" => CARD_RX,
         "rx/multiline.rx" => MULTILINE_RX,
+        "rx/expr.rx" => EXPR_RX,
+        "prg/expr.prg" => EXPR_PRG,
         "prg/card.prg" => CARD_PRG,
         _ => panic!("unknown file {file}"),
     }
@@ -498,4 +523,82 @@ async fn hover_paths_are_relative_to_the_editor_workspace_folder() {
         ["rx/app.rx:5"]
     );
     drop(outside);
+}
+
+#[tokio::test]
+async fn browser_expression_goes_to_mlang_functions() {
+    let f = Fixture::with(
+        "expression",
+        &[("rx/expr.rx", EXPR_RX), ("prg/expr.prg", EXPR_PRG)],
+    )
+    .await;
+    // the overload taking two arguments
+    let calls = f.goto("rx/expr.rx", "Выч$ислить(").await;
+    assert_eq!(calls, ["prg/expr.prg:Вычислить"]);
+    // after the decoded `&apos;` entities
+    assert_eq!(
+        f.goto("rx/expr.rx", "Др$угая").await,
+        ["prg/expr.prg:Другая"]
+    );
+    // a bare name is a function
+    assert_eq!(
+        f.goto("rx/expr.rx", "Сост$ояние").await,
+        ["prg/expr.prg:Состояние"]
+    );
+    // inside an object literal
+    assert_eq!(
+        f.goto("rx/expr.rx", "Тре$тья").await,
+        ["prg/expr.prg:Третья"]
+    );
+}
+
+#[tokio::test]
+async fn field_expression_is_sql_and_is_not_resolved() {
+    let f = Fixture::with(
+        "field_expression",
+        &[("rx/expr.rx", EXPR_RX), ("prg/expr.prg", EXPR_PRG)],
+    )
+    .await;
+    let position = Fixture::position("rx/expr.rx", "Четв$ертая");
+    let response = f
+        .workspace
+        .goto_definition(&f.uri("rx/expr.rx"), position)
+        .await
+        .expect("goto");
+    assert!(response.is_none(), "{response:?}");
+}
+
+#[tokio::test]
+async fn expression_hover_is_the_same_as_in_programs() {
+    const CALLER: &str = "func Вызывающая() {\n   Вычислить(1, 2);\n}\n";
+    let f = Fixture::with(
+        "expression_hover",
+        &[
+            ("rx/expr.rx", EXPR_RX),
+            ("prg/expr.prg", EXPR_PRG),
+            ("prg/caller.prg", CALLER),
+        ],
+    )
+    .await;
+    let in_program = f
+        .workspace
+        .hover(&f.uri("prg/caller.prg"), Position::new(1, 5))
+        .await
+        .expect("hover")
+        .expect("Some");
+    let in_resource = f.hover("rx/expr.rx", "Выч$ислить(").await;
+
+    let HoverContents::Array(in_program) = in_program.contents else {
+        panic!("expected an array of markups");
+    };
+    let in_program: Vec<_> = in_program
+        .into_iter()
+        .map(|m| match m {
+            MarkedString::String(s) => s,
+            MarkedString::LanguageString(s) => s.value,
+        })
+        .collect();
+    assert_eq!(in_resource, in_program);
+    // highlighted as mlang in any document
+    assert!(in_resource[0].starts_with("```stack\n"), "{in_resource:?}");
 }

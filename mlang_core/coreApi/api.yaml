@@ -3,7 +3,7 @@ functions:
      aliases: [exists]
      argsCount: 1
      description: |
-        ```
+        ```stack
         Макрос Есть(выражение)
         ```
 
@@ -14,7 +14,7 @@ functions:
 
         Примеры:
 
-        ```
+        ```stack
         var x
         var y = 1
         var z = @{ k: 1 }
@@ -37,7 +37,7 @@ functions:
      argsCount: 3
      hasRest: true
      description: |
-        ```
+        ```stack
         Макрос Извлечь(выражение, значениеПоУмолчанию, ...)
         ```
 
@@ -51,7 +51,7 @@ functions:
 
         Примеры:
 
-        ```
+        ```stack
         var x
         var y = 1
         var z = @{ k: 1 }
@@ -73,7 +73,7 @@ functions:
      aliases: []
      argsCount: 2
      description: |
-        ```
+        ```stack
         Итератор Элементов(объект, переменная)
         ```
 
@@ -82,7 +82,7 @@ functions:
 
         Пример:
 
-        ```
+        ```stack
         перем об = @{ x: 1, y: 2 }
         перем ключи = @[]
         перем значения = @[]
@@ -101,7 +101,7 @@ functions:
      aliases: []
      argsCount: 2
      description: |
-        ```
+        ```stack
         Итератор Полей(объект, переменная)
         ```
 
@@ -110,7 +110,7 @@ functions:
 
         Пример:
 
-        ```
+        ```stack
         перем именаПолей = @[]
         перем значенияПолей = @[]
 
@@ -128,7 +128,7 @@ functions:
      aliases: []
      argsCount: 2
      description: |
-        ```
+        ```stack
         Итератор ПодОбъектов(объект, переменная)
         ```
 
@@ -138,7 +138,7 @@ functions:
 
         Пример:
 
-        ```
+        ```stack
         перем об = @{ x: 1, y: @{}, z: 2 }
         перем ключи = @[]
 

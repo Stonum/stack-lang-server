@@ -20,6 +20,7 @@ const NAME_ATTR: &str = "Имя";
 const SELECT_ATTR: &str = "Имя_выборки";
 const HANDLER_ATTR: &str = "Обработчик";
 const METHODS_ATTR: &str = "ДопМетоды";
+const EXPRESSION_ATTR: &str = "Выражение";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RxName {
@@ -218,6 +219,75 @@ pub fn rx_identifier_for_offset(root: &XmlSyntaxNode, offset: TextSize) -> Optio
     };
 
     Some(SemanticInfo::new(symbol, usage))
+}
+
+/// mlang code of an `Выражение` attribute, with the cursor offset inside it.
+#[derive(Debug, PartialEq, Eq)]
+pub struct RxExpression {
+    pub code: String,
+    pub offset: TextSize,
+}
+
+/// The `Выражение` of an API browser under the cursor.
+pub fn rx_expression_at(root: &XmlSyntaxNode, offset: TextSize) -> Option<RxExpression> {
+    let token = root
+        .token_at_offset(offset)
+        .find(|t| t.kind() == XmlSyntaxKind::XML_STRING_LITERAL)?;
+    let attribute = token.ancestors().find_map(XmlAttribute::cast)?;
+    if name_text(&attribute.name().ok()?) != EXPRESSION_ATTR {
+        return None;
+    }
+    let (tag, _) = attribute
+        .syntax()
+        .ancestors()
+        .find_map(|n| tag_and_attributes(&n))?;
+    if tag != API_BROWSER_TAG {
+        return None;
+    }
+
+    let (value, range) = string_value(&token);
+    if !range.contains_inclusive(offset) {
+        return None;
+    }
+    let (code, cursor) = decode_entities(value, usize::from(offset - range.start()));
+    Some(RxExpression {
+        code,
+        offset: TextSize::from(cursor as u32),
+    })
+}
+
+/// Decodes the predefined XML entities, moving the `cursor` byte offset along.
+fn decode_entities(text: &str, cursor: usize) -> (String, usize) {
+    const ENTITIES: [(&str, char); 5] = [
+        ("&quot;", '"'),
+        ("&apos;", '\''),
+        ("&amp;", '&'),
+        ("&lt;", '<'),
+        ("&gt;", '>'),
+    ];
+
+    let mut decoded = String::with_capacity(text.len());
+    let mut decoded_cursor = None;
+    let mut i = 0;
+    while i < text.len() {
+        if decoded_cursor.is_none() && i >= cursor {
+            decoded_cursor = Some(decoded.len());
+        }
+        let rest = &text[i..];
+        match ENTITIES.iter().find(|(entity, _)| rest.starts_with(entity)) {
+            Some((entity, c)) => {
+                decoded.push(*c);
+                i += entity.len();
+            }
+            None => {
+                let c = rest.chars().next().unwrap_or_default();
+                decoded.push(c);
+                i += c.len_utf8();
+            }
+        }
+    }
+    let cursor = decoded_cursor.unwrap_or(decoded.len());
+    (decoded, cursor)
 }
 
 fn tag_and_attributes(node: &XmlSyntaxNode) -> Option<(String, XmlAttributeList)> {
@@ -499,5 +569,52 @@ mod tests {
         assert_eq!(at(r#"<Поле Имя="Ко$д"/>"#), None);
         assert_eq!(at(r#"<Other Имя="Про$чее"/>"#), None);
         assert_eq!(at("<Sel$ect"), None);
+    }
+
+    /// Expression at `$` inside `pattern`, which must occur once in `src`.
+    fn expression_at(src: &str, pattern: &str) -> Option<RxExpression> {
+        let pos = pattern.find('$').expect("pattern needs a `$` cursor");
+        let needle = pattern.replace('$', "");
+        assert_eq!(
+            src.matches(&needle).count(),
+            1,
+            "`{needle}` must occur once"
+        );
+        let offset = src.find(&needle).unwrap() + pos;
+        rx_expression_at(&parse(src).syntax(), TextSize::from(offset as u32))
+    }
+
+    const EXPRESSIONS: &str = r#"<Resources>
+   <APIBrowser Имя="Б" Выражение="Вычислить(&apos;x&apos;, Другая())"/>
+   <Поле Имя="П" Выражение="Третья()"/>
+</Resources>"#;
+
+    #[test]
+    fn browser_expression_is_decoded_with_the_cursor_moved_along() {
+        let expression = expression_at(EXPRESSIONS, "Др$угая").unwrap();
+        assert_eq!(expression.code, "Вычислить('x', Другая())");
+        let cursor = usize::from(expression.offset);
+        assert!(
+            expression.code[cursor..].starts_with("угая"),
+            "{expression:?}"
+        );
+    }
+
+    #[test]
+    fn expressions_of_other_tags_and_other_attributes_are_ignored() {
+        assert_eq!(expression_at(EXPRESSIONS, "Тре$тья"), None);
+        assert_eq!(expression_at(EXPRESSIONS, r#"Имя="$Б""#), None);
+    }
+
+    #[test]
+    fn decode_entities_moves_cursor_past_entities() {
+        let text = "&quot;a&quot; &amp; b";
+        // cursor on `b`
+        let (decoded, cursor) = decode_entities(text, text.find('b').unwrap());
+        assert_eq!(decoded, r#""a" & b"#);
+        assert_eq!(&decoded[cursor..], "b");
+        // cursor inside an entity lands right after the decoded char
+        let (_, cursor) = decode_entities(text, 2);
+        assert_eq!(cursor, 1);
     }
 }

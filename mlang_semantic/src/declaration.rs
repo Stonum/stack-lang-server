@@ -235,18 +235,18 @@ impl MarkupDefinition for AnyMDefinition {
     fn markdown(&self) -> String {
         match self {
             AnyMDefinition::MFunctionDefinition(function) => format!(
-                "```\n{} {}{}\n```",
+                "```stack\n{} {}{}\n```",
                 function.keyword, function.id.name, function.params.text,
             ),
             AnyMDefinition::MClassDefinition(class) => {
-                format!("```\n{} {}\n```", class.keyword, class.id.name,)
+                format!("```stack\n{} {}\n```", class.keyword, class.id.name,)
             }
             AnyMDefinition::MClassMemberDefinition(member) => match member.m_type {
                 MClassMethodType::Method if member.class.upgrade().is_some() => {
                     let class = member.class.upgrade().unwrap();
 
                     format!(
-                        "```\n{} {}\n\t{}{}\n```",
+                        "```stack\n{} {}\n\t{}{}\n```",
                         class.keyword, class.id.name, member.id.name, member.params.text,
                     )
                 }
@@ -257,7 +257,7 @@ impl MarkupDefinition for AnyMDefinition {
                     let class = member.class.upgrade().unwrap();
 
                     format!(
-                        "```\n{} {}\n\t{} {}{}\n```",
+                        "```stack\n{} {}\n\t{} {}{}\n```",
                         class.keyword,
                         class.id.name,
                         member.keyword.as_deref().unwrap_or_default(),
@@ -270,17 +270,17 @@ impl MarkupDefinition for AnyMDefinition {
                     let class = member.class.upgrade().unwrap();
 
                     format!(
-                        "```\n{} {}\n\t(prop) {}",
+                        "```stack\n{} {}\n\t(prop) {}",
                         class.keyword, class.id.name, member.id.name
                     )
                 }
 
-                _ => format!("```\n{}{}\n```", member.id.name, member.params.text,),
+                _ => format!("```stack\n{}{}\n```", member.id.name, member.params.text,),
             },
             AnyMDefinition::MReportDefinition(report) => report.id.name.to_string(),
             AnyMDefinition::MReportSectionDefinition(section) => section.id.name.to_string(),
             AnyMDefinition::MHandlerDefinition(handler) => {
-                format!("```\n{} {}\n```", handler.keyword, handler.id.name)
+                format!("```stack\n{} {}\n```", handler.keyword, handler.id.name)
             }
             AnyMDefinition::MHandlerEventDefinition(event) => event.id.name.to_string(),
         }
