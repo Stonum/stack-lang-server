@@ -12,8 +12,8 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 use lsp_definition::{
-    CodeSymbolDefinition as _, DefinitionKind, LocationDefinition as _, SemanticInfo,
-    StringLowerCase, Symbol, Usage, get_completion, get_declaration, get_hover, get_lens,
+    CodeSymbolDefinition as _, DefinitionKind, LinkIndex, LocationDefinition as _, SemanticInfo,
+    StringLowerCase, Symbol, get_completion, get_declaration, get_hover, get_lens,
     get_project_hover, get_reference, get_signatures, get_symbols, handler_resource,
 };
 use mlang_core::{AnyMCoreDefinition, load_core_api};
@@ -442,39 +442,55 @@ impl Workspace {
             Some(Command::new(title, command.clone(), Some(args)))
         };
 
+        // the project lookup runs without holding the document lock
         if let Some(model) = document.rx_semantics() {
-            let project = self.project();
-            let lenses = model
+            // above the opening tag, even when attributes are on their own lines
+            let resources: Vec<_> = model
                 .definitions()
-                .flat_map(|definition| {
-                    project.lens_links(definition).into_iter().map(|link| {
-                        let label = match link.kind {
-                            RxLinkKind::Select => "Select",
-                            RxLinkKind::SelectHandler => "Select handler",
-                            RxLinkKind::Handler => "Handler",
-                        };
-                        // above the opening tag, even when attributes are on their own lines
-                        let range = definition.lsp_range();
-                        project.lens(uri, range, label, link.symbol)
-                    })
-                })
+                .map(|d| (d.lsp_range(), d.links()))
                 .collect();
+            drop(document);
+
+            let project = self.project();
+            let uri = uri.clone();
+            let lenses = tokio::task::spawn_blocking(move || {
+                let links = project.links();
+                resources
+                    .into_iter()
+                    .flat_map(|(range, own)| links.resource_lenses(&uri, range, own))
+                    .collect()
+            })
+            .await?;
             return Ok(Some(lenses));
         }
 
-        let definitions = document.definitions();
-        let mut response = get_lens(command_builder, definitions);
+        let mut response = get_lens(command_builder, document.definitions());
 
         if document.kind() == DocumentKind::Handler {
-            let project = self.project();
-            let handlers = document
+            let handlers: Vec<_> = document
                 .definitions()
-                .filter(|d| d.kind() == DefinitionKind::Handler);
-            for handler in handlers {
-                for (label, resource) in project.handler_links(handler.id()) {
-                    response.push(project.lens(uri, handler.lsp_range(), label, resource));
-                }
-            }
+                .filter(|d| d.kind() == DefinitionKind::Handler)
+                .map(|d| (d.lsp_range(), d.id().to_string()))
+                .collect();
+            drop(document);
+
+            let project = self.project();
+            let uri = uri.clone();
+            let lenses = tokio::task::spawn_blocking(move || {
+                let links = project.links();
+                handlers
+                    .into_iter()
+                    .flat_map(|(range, handler)| {
+                        links
+                            .handler_links(&handler)
+                            .into_iter()
+                            .map(|(label, resource)| links.lens(&uri, range, label, resource))
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .await?;
+            response.extend(lenses);
         }
 
         Ok(Some(response))
@@ -821,11 +837,58 @@ impl Project {
         locations
     }
 
-    /// Handlers a resource leads to: its own first, then, for a browser, the handlers
-    /// of its select instead of the select itself.
-    fn lens_links(&self, definition: &RxDefinition) -> Vec<RxLink> {
-        let (selects, mut links): (Vec<_>, Vec<_>) = definition
-            .links()
+    fn links(&self) -> Links<'_> {
+        Links {
+            mlang: LinkIndex::new(
+                self.mlang
+                    .iter()
+                    .flat_map(|(uri, m)| m.definitions().map(move |d| (uri, d))),
+            ),
+            rx: LinkIndex::new(
+                self.rx
+                    .iter()
+                    .flat_map(|(uri, m)| m.definitions().map(move |d| (uri, d))),
+            ),
+        }
+    }
+
+    fn hover(&self, info: &SemanticInfo) -> Vec<MarkedString> {
+        let roots = &self.roots;
+        let mut markups =
+            get_project_hover(info, definitions(&self.mlang, |m| m.definitions()), roots);
+        markups.extend(get_project_hover(
+            info,
+            definitions(&self.rx, |m| m.definitions()),
+            roots,
+        ));
+        markups
+    }
+}
+
+/// Resources and handlers of the project indexed by name, for lenses.
+struct Links<'a> {
+    mlang: LinkIndex<'a, &'a Url, AnyMDefinition>,
+    rx: LinkIndex<'a, &'a Url, RxDefinition>,
+}
+
+impl Links<'_> {
+    fn declarations(&self, symbol: &Symbol) -> Vec<Location> {
+        let mlang = self.mlang.resolve(symbol).unwrap_or_default();
+        let mlang = mlang.into_iter().map(|(uri, d)| d.id_location(uri.clone()));
+        let rx = self.rx.resolve(symbol).unwrap_or_default();
+        let rx = rx.into_iter().map(|(uri, d)| d.id_location(uri.clone()));
+        mlang.chain(rx).collect()
+    }
+
+    fn lens(&self, uri: &Url, range: Range, label: &str, target: Symbol) -> CodeLens {
+        let locations = self.declarations(&target);
+        link_lens(uri, range, label, &target, locations)
+    }
+
+    /// Lenses of a resource with `own` links: its handlers first, then, for a browser,
+    /// the handlers of its select instead of the select itself.
+    fn resource_lenses(&self, uri: &Url, range: Range, own: Vec<RxLink>) -> Vec<CodeLens> {
+        let (selects, mut links): (Vec<_>, Vec<_>) = own
             .into_iter()
             .partition(|link| link.kind == RxLinkKind::Select);
 
@@ -838,12 +901,18 @@ impl Project {
                 }));
             }
         }
-        links
-    }
 
-    fn lens(&self, uri: &Url, range: Range, label: &str, target: Symbol) -> CodeLens {
-        let info = SemanticInfo::new(target, Usage::Reference);
-        link_lens(uri, range, label, &info.symbol, self.declarations(&info))
+        links
+            .into_iter()
+            .map(|link| {
+                let label = match link.kind {
+                    RxLinkKind::Select => "Select",
+                    RxLinkKind::SelectHandler => "Select handler",
+                    RxLinkKind::Handler => "Handler",
+                };
+                self.lens(uri, range, label, link.symbol)
+            })
+            .collect()
     }
 
     /// Resources a handler serves: a select handler its select, an API handler its browser
@@ -855,14 +924,7 @@ impl Project {
         };
 
         let mut links = vec![];
-        let browsers = self
-            .rx
-            .iter()
-            .flat_map(|(_, model)| model.definitions())
-            .filter(|d| {
-                d.kind == DefinitionKind::ApiBrowser
-                    && unicase::eq(d.id.text.as_str(), browser.as_str())
-            });
+        let browsers = self.rx.named(DefinitionKind::ApiBrowser, &browser);
         for select in browsers.filter_map(|d| d.select.as_ref()) {
             let select = ("Select", Symbol::Select(select.text.clone()));
             if !links.contains(&select) {
@@ -876,13 +938,7 @@ impl Project {
     /// The handler named after the select and the `Обработчик` of each select with this name.
     fn select_handlers(&self, select: &str) -> Vec<Symbol> {
         let mut handlers = vec![Symbol::Handler(select.to_string())];
-        let selects = self
-            .rx
-            .iter()
-            .flat_map(|(_, model)| model.definitions())
-            .filter(|d| {
-                d.kind == DefinitionKind::Select && unicase::eq(d.id.text.as_str(), select)
-            });
+        let selects = self.rx.named(DefinitionKind::Select, select);
         for handler in selects.filter_map(|d| d.handler.as_ref()) {
             let handler = Symbol::ExtraHandler(handler.text.clone());
             if !handlers.contains(&handler) {
@@ -890,18 +946,6 @@ impl Project {
             }
         }
         handlers
-    }
-
-    fn hover(&self, info: &SemanticInfo) -> Vec<MarkedString> {
-        let roots = &self.roots;
-        let mut markups =
-            get_project_hover(info, definitions(&self.mlang, |m| m.definitions()), roots);
-        markups.extend(get_project_hover(
-            info,
-            definitions(&self.rx, |m| m.definitions()),
-            roots,
-        ));
-        markups
     }
 }
 

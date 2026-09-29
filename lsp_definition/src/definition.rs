@@ -8,7 +8,7 @@ impl StringLowerCase {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DefinitionKind {
     Function,
     Handler,

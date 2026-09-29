@@ -1,6 +1,10 @@
 //! Name-based links between rx resources and `.hdl` handlers.
 
+use std::collections::HashMap;
+use std::hash::{BuildHasher, RandomState};
+
 use tower_lsp::lsp_types::Url;
+use unicase::UniCase;
 
 use crate::{CodeSymbolDefinition, DefinitionKind, Symbol};
 
@@ -36,17 +40,113 @@ pub(crate) fn same_name(a: &str, b: &str) -> bool {
 /// `Обработчик="X"` names the function `X` itself or `X_new`.
 pub(crate) fn is_extra_handler(function: &str, attribute: &str) -> bool {
     let function = unquote(function);
-    if same_name(function, attribute) {
-        return true;
+    same_name(function, attribute)
+        || without_extra_suffix(function).is_some_and(|name| same_name(name, attribute))
+}
+
+fn without_extra_suffix(function: &str) -> Option<&str> {
+    let split = function.len().checked_sub(EXTRA_HANDLER_SUFFIX.len())?;
+    let (name, suffix) = function.split_at_checked(split)?;
+    unicase::eq(suffix, EXTRA_HANDLER_SUFFIX).then_some(name)
+}
+
+fn name_key(name: &str) -> UniCase<&str> {
+    UniCase::new(unquote(name))
+}
+
+/// Hashes of names as compared by [same_name]; collisions are told apart on lookup.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Key {
+    Named(DefinitionKind, u64),
+    /// Handlers and functions by the `X` of `Обработчик="X"` they answer to.
+    Extra(u64),
+}
+
+/// Definitions indexed by name, to resolve many linked symbols without scanning them all
+/// for each one; finds the same as [resolve_linked].
+pub struct LinkIndex<'a, U, D> {
+    state: RandomState,
+    entries: HashMap<Key, Vec<(U, &'a D)>>,
+}
+
+impl<'a, U: Clone, D: CodeSymbolDefinition> LinkIndex<'a, U, D> {
+    pub fn new(definitions: impl IntoIterator<Item = (U, &'a D)>) -> Self {
+        let state = RandomState::new();
+        let hash = |name: &str| state.hash_one(name_key(name));
+        let mut entries: HashMap<Key, Vec<(U, &'a D)>> = HashMap::new();
+        for (uri, d) in definitions {
+            let kind = d.kind();
+            let id = d.id();
+            if matches!(
+                kind,
+                DefinitionKind::Select
+                    | DefinitionKind::ApiBrowser
+                    | DefinitionKind::Handler
+                    | DefinitionKind::HandlerEvent
+            ) {
+                let key = Key::Named(kind, hash(id));
+                entries.entry(key).or_default().push((uri.clone(), d));
+            }
+            if matches!(kind, DefinitionKind::Handler | DefinitionKind::Function) {
+                let id = unquote(id);
+                let exact = hash(id);
+                entries
+                    .entry(Key::Extra(exact))
+                    .or_default()
+                    .push((uri.clone(), d));
+                let stripped = without_extra_suffix(id).map(hash);
+                if let Some(stripped) = stripped.filter(|&h| h != exact) {
+                    entries
+                        .entry(Key::Extra(stripped))
+                        .or_default()
+                        .push((uri, d));
+                }
+            }
+        }
+        Self { state, entries }
     }
-    let Some(split) = function.len().checked_sub(EXTRA_HANDLER_SUFFIX.len()) else {
-        return false;
-    };
-    function
-        .split_at_checked(split)
-        .is_some_and(|(name, suffix)| {
-            unicase::eq(suffix, EXTRA_HANDLER_SUFFIX) && same_name(name, attribute)
-        })
+
+    fn get(&self, key: Key) -> impl Iterator<Item = &(U, &'a D)> {
+        self.entries.get(&key).into_iter().flatten()
+    }
+
+    fn hash(&self, name: &str) -> u64 {
+        self.state.hash_one(name_key(name))
+    }
+
+    /// Definitions of `kind` named `name`.
+    pub fn named(&self, kind: DefinitionKind, name: &str) -> impl Iterator<Item = &'a D> {
+        self.get(Key::Named(kind, self.hash(name)))
+            .filter(move |(_, d)| same_name(d.id(), name))
+            .map(|(_, d)| *d)
+    }
+
+    /// `None` for symbols that are not linked by name.
+    pub fn resolve(&self, symbol: &Symbol) -> Option<Vec<(U, &'a D)>> {
+        let named = |kind, name: &str| -> Vec<_> {
+            self.get(Key::Named(kind, self.hash(name)))
+                .filter(|(_, d)| same_name(d.id(), name))
+                .cloned()
+                .collect()
+        };
+        let found = match symbol {
+            Symbol::Select(name) => named(DefinitionKind::Select, name),
+            Symbol::ApiBrowser(name) => named(DefinitionKind::ApiBrowser, name),
+            Symbol::Handler(name) => named(DefinitionKind::Handler, name),
+            Symbol::ExtraHandler(name) => self
+                .get(Key::Extra(self.hash(name)))
+                .filter(|(_, d)| is_extra_handler(d.id(), name))
+                .cloned()
+                .collect(),
+            Symbol::HandlerEvent { handler, event } => {
+                let mut events = named(DefinitionKind::HandlerEvent, event);
+                events.retain(|(_, d)| d.container().is_some_and(|h| same_name(h.id(), handler)));
+                events
+            }
+            _ => return None,
+        };
+        Some(found)
+    }
 }
 
 /// The resource a handler serves: the API browser `X` for `'X_АПИ'`, otherwise the select
@@ -153,13 +253,58 @@ mod tests {
         ]
     }
 
+    /// Resolved both by scanning and by [LinkIndex], which must agree.
     fn resolve(symbol: Symbol) -> Vec<(DefinitionKind, &'static str)> {
         let uri = Url::parse("file:///a.rx").unwrap();
         let defs = workspace();
-        resolve_linked(&symbol, defs.iter().map(|d| (uri.clone(), d)))
-            .into_iter()
-            .map(|(_, d)| (d.kind, d.id))
-            .collect()
+        let found = |found: Vec<(Url, &Def)>| -> Vec<_> {
+            found.into_iter().map(|(_, d)| (d.kind, d.id)).collect()
+        };
+        let scanned = found(resolve_linked(
+            &symbol,
+            defs.iter().map(|d| (uri.clone(), d)),
+        ));
+        let index = LinkIndex::new(defs.iter().map(|d| (uri.clone(), d)));
+        assert_eq!(
+            found(index.resolve(&symbol).unwrap()),
+            scanned,
+            "{symbol:?}"
+        );
+        scanned
+    }
+
+    #[test]
+    fn link_index_keeps_definitions_order_and_skips_other_symbols() {
+        use DefinitionKind::*;
+        let a = Url::parse("file:///a.hdl").unwrap();
+        let b = Url::parse("file:///b.hdl").unwrap();
+        let defs = [
+            def(Handler, "'Записи'"),
+            def(Function, "Записи_NEW"),
+            def(Handler, "'ЗАПИСИ'"),
+        ];
+        let index = LinkIndex::new([(&a, &defs[0]), (&a, &defs[1]), (&b, &defs[2])]);
+        let found = |symbol| -> Vec<_> {
+            index
+                .resolve(&symbol)
+                .unwrap()
+                .into_iter()
+                .map(|(uri, d)| (uri.path(), d.id))
+                .collect()
+        };
+        assert_eq!(
+            found(Symbol::Handler("записи".into())),
+            [("/a.hdl", "'Записи'"), ("/b.hdl", "'ЗАПИСИ'")]
+        );
+        assert_eq!(
+            found(Symbol::ExtraHandler("'записи'".into())),
+            [
+                ("/a.hdl", "'Записи'"),
+                ("/a.hdl", "Записи_NEW"),
+                ("/b.hdl", "'ЗАПИСИ'")
+            ]
+        );
+        assert!(index.resolve(&Symbol::Function("Записи".into())).is_none());
     }
 
     #[test]
