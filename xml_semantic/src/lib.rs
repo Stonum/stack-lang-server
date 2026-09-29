@@ -1,7 +1,9 @@
-//! Semantic model for Stack XML resources / dictionaries.
-//!
-//! For now this is just a document outline (`document_symbols`); hover,
-//! go-to-definition and lint build on the same tree walk later.
+//! Semantic model for Stack XML resources / dictionaries: a document outline
+//! (`document_symbols`) and the `.rx` resource model (`rx_semantics`).
+
+mod rx;
+
+pub use rx::*;
 
 use biome_rowan::{AstNode, AstNodeList, TextRange};
 use xml_syntax::{

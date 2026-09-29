@@ -2247,6 +2247,8 @@ name = "xml_semantic"
 version = "0.0.1"
 dependencies = [
  "biome_rowan",
+ "line_index",
+ "lsp_definition",
  "xml_parser",
  "xml_syntax",
 ]

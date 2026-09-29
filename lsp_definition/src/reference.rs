@@ -1,5 +1,6 @@
 use tower_lsp::lsp_types::{Location, Url};
 
+use crate::resource::{is_extra_handler, same_name};
 use crate::{LocationDefinition, SemanticInfo, Symbol, Usage};
 
 /// Usages of the symbol declared under the cursor; empty for any other usage.
@@ -40,6 +41,21 @@ fn refers_to(declared: &Symbol, reference: &SemanticInfo) -> bool {
             };
             unicase::eq(a, b) && same_class
         }
+        (Symbol::Select(a), Symbol::Select(b), Usage::Reference) => same_name(a, b),
+        (Symbol::Handler(a) | Symbol::Function(a), Symbol::ExtraHandler(b), Usage::Reference) => {
+            is_extra_handler(a, b)
+        }
+        (
+            Symbol::HandlerEvent {
+                handler: a_handler,
+                event: a,
+            },
+            Symbol::HandlerEvent {
+                handler: b_handler,
+                event: b,
+            },
+            Usage::Reference,
+        ) => same_name(a_handler, b_handler) && same_name(a, b),
         _ => false,
     }
 }
@@ -86,6 +102,40 @@ mod tests {
         assert!(!refers_to(
             &declared,
             &SemanticInfo::new(Symbol::Class("A".into()), Usage::Instance)
+        ));
+    }
+
+    #[test]
+    fn handler_is_referenced_by_resource_attribute_ignoring_quotes() {
+        let declared = Symbol::Handler("'Внешний'".into());
+        let reference = SemanticInfo::new(Symbol::ExtraHandler("внешний".into()), Usage::Reference);
+
+        assert!(refers_to(&declared, &reference));
+    }
+
+    #[test]
+    fn new_suffixed_function_is_referenced_by_resource_attribute() {
+        let reference = SemanticInfo::new(Symbol::ExtraHandler("Foo".into()), Usage::Reference);
+
+        assert!(refers_to(&Symbol::Function("Foo_new".into()), &reference));
+        assert!(!refers_to(&Symbol::Function("Foo_old".into()), &reference));
+    }
+
+    #[test]
+    fn handler_event_is_referenced_within_its_handler_only() {
+        let event = |handler: &str, event: &str| Symbol::HandlerEvent {
+            handler: handler.into(),
+            event: event.into(),
+        };
+        let declared = event("'Модуль_АПИ'", "\"ДействиеА\"");
+
+        assert!(refers_to(
+            &declared,
+            &SemanticInfo::new(event("Модуль_АПИ", "ДействиеА"), Usage::Reference)
+        ));
+        assert!(!refers_to(
+            &declared,
+            &SemanticInfo::new(event("Модуль.Нет_АПИ", "ДействиеА"), Usage::Reference)
         ));
     }
 }

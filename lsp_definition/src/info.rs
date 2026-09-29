@@ -26,16 +26,46 @@ pub enum Symbol {
         name: Identifier,
         class: Option<Class>,
     },
+    /// rx `<Select Имя="…">`
+    Select(Identifier),
+    /// rx `<APIBrowser Имя="…">`
+    ApiBrowser(Identifier),
+    /// Event handler function of a `.hdl` file.
+    Handler(Identifier),
+    /// `Обработчик="X"` of a resource: a handler or function `X` or `X_new`.
+    ExtraHandler(Identifier),
+    /// `Выбор "event":` branch of a handler.
+    HandlerEvent {
+        handler: Identifier,
+        event: Identifier,
+    },
 }
 
 impl Symbol {
     pub fn name(&self) -> Option<&str> {
         match self {
-            Symbol::Function(name) | Symbol::Class(name) | Symbol::Member { name, .. } => {
-                Some(name)
-            }
+            Symbol::Function(name)
+            | Symbol::Class(name)
+            | Symbol::Member { name, .. }
+            | Symbol::Select(name)
+            | Symbol::ApiBrowser(name)
+            | Symbol::Handler(name)
+            | Symbol::ExtraHandler(name)
+            | Symbol::HandlerEvent { event: name, .. } => Some(name),
             Symbol::AnyClass => None,
         }
+    }
+
+    /// Resources and handlers linked by name across files.
+    pub fn is_linked(&self) -> bool {
+        matches!(
+            self,
+            Symbol::Select(_)
+                | Symbol::ApiBrowser(_)
+                | Symbol::Handler(_)
+                | Symbol::ExtraHandler(_)
+                | Symbol::HandlerEvent { .. }
+        )
     }
 }
 
@@ -56,13 +86,19 @@ pub enum Usage {
     Instance,
     /// `obj.prop` read or write.
     Access,
+    /// A name in a resource attribute: `Имя_выборки="…"`, `Обработчик="…"`, `ДопМетоды="…"`.
+    Reference,
 }
 
 impl Usage {
     pub fn arguments(self) -> Option<ParametersCount> {
         match self {
             Usage::Call(n) | Usage::CallResult(n) | Usage::New(n) | Usage::Super(n) => Some(n),
-            Usage::Declaration | Usage::Extends | Usage::Instance | Usage::Access => None,
+            Usage::Declaration
+            | Usage::Extends
+            | Usage::Instance
+            | Usage::Access
+            | Usage::Reference => None,
         }
     }
 }

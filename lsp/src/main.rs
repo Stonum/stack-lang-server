@@ -361,12 +361,11 @@ async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
     }
     .await;
 
-    let get_folders = || async {
-        client.workspace_folders().await.unwrap_or_else(|e| {
-            error!("Error receiving workspace folders: {e}");
-            None
-        })
-    };
+    let folders = client.workspace_folders().await.unwrap_or_else(|e| {
+        error!("Error receiving workspace folders: {e}");
+        None
+    });
+    workspace.set_workspace_folders(folders.as_deref());
 
     send_status_bar_notofication(&client, "Workspace initialization - getting files").await;
 
@@ -377,7 +376,6 @@ async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
 
                 // try init from workspace folders
                 info!("Trying initialization from workspace folders");
-                let folders = get_folders().await;
                 if let Err(error) = workspace.init_with_workspace_folders(folders).await {
                     error!("Initialization error: {error}");
                     return;
@@ -385,7 +383,6 @@ async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
             }
         }
         _ => {
-            let folders = get_folders().await;
             if let Err(error) = workspace.init_with_workspace_folders(folders).await {
                 error!("{error}");
                 return;

@@ -8,7 +8,34 @@
 //! would otherwise warn there -- hence the blanket allow.
 #![allow(dead_code)]
 
+use std::fs;
+
 use tower_lsp::lsp_types::{FormattingOptions, Position, Range, TextDocumentItem, Url};
+
+/// A real on-disk workspace dir, removed on drop.
+pub struct TempDir(pub std::path::PathBuf);
+
+impl TempDir {
+    pub fn new(tag: &str) -> Self {
+        let dir = std::env::temp_dir().join(format!("sls_{}_{}", std::process::id(), tag));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).expect("create temp workspace dir");
+        TempDir(dir)
+    }
+
+    /// `name` may contain subdirectories.
+    pub fn write(&self, name: &str, contents: &str) {
+        let path = self.0.join(name);
+        fs::create_dir_all(path.parent().unwrap()).expect("create temp workspace subdir");
+        fs::write(path, contents).expect("write temp workspace file");
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.0);
+    }
+}
 
 /// A `file://` URI under the OS temp dir with the given file name --
 /// doesn't need to exist on disk, since `Workspace`'s document-open path
