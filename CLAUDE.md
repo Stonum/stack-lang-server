@@ -39,7 +39,7 @@ An LSP server for the Stack platform's languages, built on biome's infrastructur
 | `*_formatter` — one `FormatNodeRule` per node under `rules/`/per-language dirs, glued by `generated.rs` | `mlang_formatter` | `sql_formatter` | `xml_formatter` |
 | semantic / lint | `mlang_semantic`, `mlang_lint` | — | `xml_semantic` (outline, `.rx` resource model), `xml_lint` |
 
-Other crates: `lsp_definition` (language-neutral LSP definitions: `SemanticInfo` = `Symbol` + `Usage`, one resolver for goto/hover/signatures/completion, name links between `.rx` resources and `.hdl` handlers), `mlang_core` (JSON/YAML data for the built-in mlang API), `line_index` (offset ↔ LSP position), `lsp` (tower-lsp server: `main.rs` = `Backend`/handlers, `workspace.rs` = indexed files and symbols, `document.rs` = `DocumentKind` dispatch by file extension, `format.rs`, `tokens.rs` = semantic tokens).
+Other crates: `lsp_definition` (language-neutral LSP definitions: `SemanticInfo` = `Symbol` + `Usage`, one resolver for goto/hover/signatures/completion, name links between `.rx` resources and `.hdl` handlers), `mlang_core` (JSON/YAML data for the built-in mlang API), `line_index` (offset ↔ LSP position), `lsp` (tower-lsp server: `server.rs` = `Backend`/handlers and the workspace warm-up, `main.rs` = stdio entry point, `workspace.rs` = indexed files and symbols, `document.rs` = `DocumentKind` dispatch by file extension, `format.rs`, `tokens.rs` = semantic tokens).
 
 Key cross-cutting points:
 

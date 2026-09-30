@@ -1,0 +1,430 @@
+#![allow(deprecated)]
+use std::sync::Arc;
+
+use log::{error, info, trace};
+
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+use crate::workspace::{Workspace, WorkspaceError};
+
+use tower_lsp::jsonrpc::{Error, Result};
+use tower_lsp::lsp_types::notification::Notification;
+use tower_lsp::lsp_types::*;
+use tower_lsp::{Client, LanguageServer};
+
+use std::time::Instant;
+
+pub struct Backend {
+    client: Client,
+    workspace: Arc<Workspace>,
+}
+
+impl Backend {
+    pub fn new(client: Client) -> Self {
+        Backend {
+            client,
+            workspace: Arc::new(Workspace::new()),
+        }
+    }
+}
+
+#[tower_lsp::async_trait]
+impl LanguageServer for Backend {
+    async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
+        let mut settings = ServerSettings::default();
+
+        // Get initial settings from initialization_options if available
+        if let Some(opts) = params.initialization_options
+            && let Ok(new_settings) = serde_json::from_value(opts)
+        {
+            settings = new_settings;
+        }
+
+        let mut capabilities = ServerCapabilities {
+            text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
+            execute_command_provider: Some(ExecuteCommandOptions {
+                commands: vec!["dummy.do_something".to_string()],
+                work_done_progress_options: Default::default(),
+            }),
+            workspace: Some(WorkspaceServerCapabilities {
+                workspace_folders: Some(WorkspaceFoldersServerCapabilities {
+                    supported: Some(true),
+                    change_notifications: Some(OneOf::Left(true)),
+                }),
+                file_operations: None,
+            }),
+            definition_provider: Some(OneOf::Left(true)),
+            document_symbol_provider: Some(OneOf::Left(true)),
+            workspace_symbol_provider: Some(OneOf::Left(true)),
+            references_provider: Some(OneOf::Left(true)),
+            hover_provider: Some(HoverProviderCapability::Simple(true)),
+            document_range_formatting_provider: Some(OneOf::Left(true)),
+            completion_provider: Some(CompletionOptions {
+                trigger_characters: Some(vec![".".to_string(), " ".to_string()]),
+                ..Default::default()
+            }),
+            signature_help_provider: Some(SignatureHelpOptions {
+                trigger_characters: Some(vec!["(".to_string(), ",".to_string(), " ".to_string()]),
+                ..Default::default()
+            }),
+            ..ServerCapabilities::default()
+        };
+
+        if settings.lens_enabled {
+            capabilities.code_lens_provider = Some(CodeLensOptions {
+                resolve_provider: Some(false),
+            })
+        }
+
+        capabilities.semantic_tokens_provider = Some(
+            SemanticTokensServerCapabilities::SemanticTokensOptions(SemanticTokensOptions {
+                legend: SemanticTokensLegend {
+                    token_types: Vec::from(crate::tokens::SEMANTIC_TOKEN_MAP),
+                    token_modifiers: Vec::from(crate::tokens::SEMANTIC_TOKEN_MODIFIERS),
+                },
+                range: Some(true),
+                full: Some(SemanticTokensFullOptions::Delta { delta: Some(true) }),
+                ..Default::default()
+            }),
+        );
+
+        Ok(InitializeResult {
+            server_info: None,
+            offset_encoding: None,
+            capabilities,
+        })
+    }
+
+    async fn shutdown(&self) -> Result<()> {
+        Ok(())
+    }
+
+    async fn initialized(&self, _: InitializedParams) {
+        info!("Stack lang server initialized!");
+
+        let client = self.client.clone();
+        let workspace = Arc::clone(&self.workspace);
+        tokio::spawn(async move { warm_up_workspace(client, workspace).await });
+    }
+
+    async fn did_open(&self, params: DidOpenTextDocumentParams) {
+        let text_document = params.text_document;
+        let file_uri = text_document.uri.clone();
+        trace!("did_open {}", &file_uri);
+
+        match self.workspace.open_document(text_document).await {
+            Ok(diagnostics) => self.publish_diagnostics(file_uri, diagnostics).await,
+            Err(e) if e.is_unsupported_document() => trace!("Open workspace document: {e}"),
+            Err(e) => error!("Open workspace document: {e}"),
+        }
+    }
+
+    async fn did_close(&self, params: DidCloseTextDocumentParams) {
+        let file_uri = params.text_document.uri;
+        trace!("did_close {}", &file_uri);
+
+        self.workspace.close_document(&file_uri).await;
+        self.publish_diagnostics(file_uri, vec![]).await;
+    }
+
+    async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
+        let text_document = TextDocumentItem {
+            uri: params.text_document.uri,
+            language_id: String::from(""),
+            text: std::mem::take(&mut params.content_changes[0].text),
+            version: params.text_document.version,
+        };
+        let file_uri = text_document.uri.clone();
+        trace!("did_change {}", &file_uri);
+
+        match self.workspace.change_document(text_document).await {
+            Ok(diagnostics) => self.publish_diagnostics(file_uri, diagnostics).await,
+            Err(e) if e.is_unsupported_document() => trace!("Change workspace document: {e}"),
+            Err(e) => error!("Change workspace document: {e}"),
+        }
+    }
+
+    async fn did_change_watched_files(&self, params: DidChangeWatchedFilesParams) {
+        for change in params.changes {
+            trace!(
+                "did_change_watched_files {} - {:?}",
+                &change.uri, change.typ
+            );
+
+            match change.typ {
+                FileChangeType::CREATED | FileChangeType::CHANGED => {
+                    let text_document: Option<TextDocumentItem> = async {
+                        let file = change.uri.to_file_path().ok()?;
+                        let text = tokio::fs::read_to_string(&file).await.ok()?;
+                        Some(TextDocumentItem {
+                            uri: change.uri,
+                            language_id: String::from(""),
+                            text,
+                            version: 0,
+                        })
+                    }
+                    .await;
+
+                    if let Some(text_document) = text_document {
+                        let file_uri = text_document.uri.clone();
+
+                        match self.workspace.change_document(text_document).await {
+                            Ok(diagnostics) => {
+                                self.publish_diagnostics(file_uri, diagnostics).await
+                            }
+                            Err(e) if e.is_unsupported_document() => {
+                                trace!("Change workspace document: {e}")
+                            }
+                            Err(e) => error!("Change workspace document: {e}"),
+                        }
+                    }
+                }
+                FileChangeType::DELETED => {
+                    self.workspace.delete_document(&change.uri).await;
+                    self.publish_diagnostics(change.uri, vec![]).await;
+                }
+                _ => {}
+            }
+        }
+    }
+
+    async fn document_symbol(
+        &self,
+        params: DocumentSymbolParams,
+    ) -> Result<Option<DocumentSymbolResponse>> {
+        let file_uri = params.text_document.uri;
+        trace!("document_symbol {}", &file_uri);
+
+        handle_document_result(self.workspace.document_symbol_response(&file_uri).await)
+    }
+
+    async fn symbol(
+        &self,
+        params: WorkspaceSymbolParams,
+    ) -> Result<Option<Vec<SymbolInformation>>> {
+        let query = params.query;
+        trace!(
+            "workspace_symbol {} {:?} {:?}",
+            query, params.partial_result_params, params.work_done_progress_params
+        );
+
+        let document_symbol = self.workspace.symbol_information(&query).await;
+        Ok(document_symbol)
+    }
+
+    async fn goto_definition(
+        &self,
+        params: GotoDefinitionParams,
+    ) -> Result<Option<GotoDefinitionResponse>> {
+        let file_uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        trace!("goto_definition {} {:?}", &file_uri, &pos);
+
+        handle_document_result(self.workspace.goto_definition(&file_uri, pos).await)
+    }
+
+    async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
+        let file_uri = params.text_document_position.text_document.uri;
+        let pos = params.text_document_position.position;
+        trace!("references {} {:?}", &file_uri, &pos);
+
+        handle_document_result(self.workspace.references(&file_uri, pos).await)
+    }
+
+    async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
+        let file_uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        trace!("hover {} {:?}", &file_uri, &pos);
+
+        handle_document_result(self.workspace.hover(&file_uri, pos).await)
+    }
+
+    async fn range_formatting(
+        &self,
+        params: DocumentRangeFormattingParams,
+    ) -> Result<Option<Vec<TextEdit>>> {
+        let file_uri = params.text_document.uri;
+        let range = params.range;
+        let options = params.options;
+        trace!("range_formatting {} {:?}", &file_uri, &range);
+
+        handle_document_result(self.workspace.format(&file_uri, range, options).await)
+    }
+
+    async fn code_lens(&self, params: CodeLensParams) -> Result<Option<Vec<CodeLens>>> {
+        let file_uri = params.text_document.uri;
+        trace!("code_lens {}", &file_uri);
+
+        handle_document_result(self.workspace.code_lens(&file_uri).await)
+    }
+
+    async fn semantic_tokens_full(
+        &self,
+        params: SemanticTokensParams,
+    ) -> Result<Option<SemanticTokensResult>> {
+        let file_uri = params.text_document.uri;
+        trace!("semantic_tokens_full {}", &file_uri);
+
+        handle_document_result(
+            self.workspace
+                .semantic_tokens(&file_uri, None)
+                .await
+                .map(|tokens| tokens.map(SemanticTokensResult::Tokens)),
+        )
+    }
+
+    async fn semantic_tokens_range(
+        &self,
+        params: SemanticTokensRangeParams,
+    ) -> Result<Option<SemanticTokensRangeResult>> {
+        let file_uri = params.text_document.uri;
+        trace!("semantic_tokens_range {} {:?}", &file_uri, params.range);
+
+        handle_document_result(
+            self.workspace
+                .semantic_tokens(&file_uri, Some(params.range))
+                .await
+                .map(|tokens| tokens.map(SemanticTokensRangeResult::Tokens)),
+        )
+    }
+
+    async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
+        let file_uri = params.text_document_position.text_document.uri;
+        let pos = params.text_document_position.position;
+        let context = params.context;
+        trace!("completion {} {:?} {:?}", &file_uri, &pos, &context);
+
+        handle_document_result(self.workspace.completion(&file_uri, pos).await)
+    }
+
+    async fn signature_help(&self, params: SignatureHelpParams) -> Result<Option<SignatureHelp>> {
+        let file_uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        let context = params.context;
+        trace!("signature_help {} {:?} {:?}", &file_uri, &pos, &context);
+
+        handle_document_result(self.workspace.signature_help(&file_uri, pos).await)
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct StatusBarParams {
+    text: String,
+}
+
+struct StatusBarNotification;
+impl StatusBarNotification {
+    fn create(text: &str) -> StatusBarParams {
+        StatusBarParams {
+            text: text.to_string(),
+        }
+    }
+}
+
+impl Notification for StatusBarNotification {
+    type Params = StatusBarParams;
+    const METHOD: &'static str = "custom/statusBar";
+}
+
+#[derive(Default, Debug, Serialize, Deserialize)]
+struct ServerSettings {
+    lens_enabled: bool,
+}
+
+impl Backend {
+    async fn publish_diagnostics(&self, uri: Url, diagnostics: Vec<Diagnostic>) {
+        self.client
+            .publish_diagnostics(uri, diagnostics, None)
+            .await;
+    }
+}
+
+async fn send_status_bar_notofication(client: &Client, msg: &str) {
+    client
+        .send_notification::<StatusBarNotification>(StatusBarNotification::create(msg))
+        .await;
+}
+
+/// Discovers the workspace files and builds the semantic cache
+async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
+    let start = Instant::now();
+    info!("Start workspace initialization");
+    send_status_bar_notofication(&client, "Workspace initialization - loading settings").await;
+
+    let settings_path = async {
+        let params = vec![ConfigurationItem {
+            scope_uri: None,
+            section: Some("stack.iniPath".to_owned()),
+        }];
+        let cfg = client.configuration(params).await.ok()?;
+        match cfg.first().map(|s| s.to_owned()) {
+            Some(Value::String(s)) => Some(s),
+            _ => None,
+        }
+    }
+    .await;
+
+    let folders = client.workspace_folders().await.unwrap_or_else(|e| {
+        error!("Error receiving workspace folders: {e}");
+        None
+    });
+    workspace.set_workspace_folders(folders.as_deref());
+
+    send_status_bar_notofication(&client, "Workspace initialization - getting files").await;
+
+    match settings_path {
+        Some(path) if !path.is_empty() => {
+            if let Err(error) = workspace.init_with_settings_file(&path).await {
+                error!("Initialization error: {error}");
+
+                // try init from workspace folders
+                info!("Trying initialization from workspace folders");
+                if let Err(error) = workspace.init_with_workspace_folders(folders).await {
+                    error!("Initialization error: {error}");
+                    return;
+                }
+            }
+        }
+        _ => {
+            if let Err(error) = workspace.init_with_workspace_folders(folders).await {
+                error!("{error}");
+                return;
+            }
+        }
+    }
+
+    send_status_bar_notofication(
+        &client,
+        "Workspace initialization - updating semantic information",
+    )
+    .await;
+
+    workspace.update_semantic_information().await;
+
+    info!(
+        "Workspace initialization completed for {:?}",
+        start.elapsed()
+    );
+    send_status_bar_notofication(&client, "").await;
+}
+
+fn log_internal_error(err: WorkspaceError) -> Error {
+    error!("{err}");
+    Error::internal_error()
+}
+
+/// Turns a `WorkspaceError` into an LSP-level result, treating "this
+/// document's language can't be determined" as an empty/`None` response
+/// instead of an error -- e.g. the editor assigned the `stack` language to
+/// a random file that has no recognizable extension. Genuine failures are
+/// still logged and surfaced as an internal error.
+fn handle_document_result<T: Default>(result: std::result::Result<T, WorkspaceError>) -> Result<T> {
+    result.or_else(|err| {
+        if err.is_unsupported_document() {
+            Ok(T::default())
+        } else {
+            Err(log_internal_error(err))
+        }
+    })
+}
