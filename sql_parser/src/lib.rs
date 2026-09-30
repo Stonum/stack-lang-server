@@ -237,12 +237,14 @@ pub fn parse(text: &str, source_type: SqlFileSource) -> Parse<SqlRoot> {
 /// (after substituting any placeholder holes) to decide whether a string
 /// literal/concatenation chain qualifies as embedded SQL; `mlang_formatter`
 /// does the actual reformatting separately once a node is already known to
-/// qualify.
+/// qualify. Skips building the tree: its only diagnostics are the parser's
+/// own, which the tree sink passes through unchanged.
 pub fn parses_as_embedded_sql(text: &str) -> bool {
     let source_type = SqlFileSource::query()
         .with_dialect(sql_syntax::SqlDialect::Postgres)
         .with_mlang_extension(true);
-    !parse(text, source_type).has_errors()
+    let (_, errors, _) = parse_common(text, source_type);
+    !errors.iter().any(|diagnostic| diagnostic.is_error())
 }
 
 fn parse_with_cache(

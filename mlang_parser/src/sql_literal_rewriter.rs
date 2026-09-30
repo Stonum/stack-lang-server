@@ -6,7 +6,8 @@
 
 use std::iter;
 
-use biome_rowan::{AstNode, SyntaxRewriter, VisitNodeSignal};
+use biome_parser::event::Event;
+use biome_rowan::{AstNode, SyntaxRewriter, TextRange, TextSize, VisitNodeSignal};
 use mlang_syntax::concatenation::{
     build_placeholder_source, flatten_concatenation_chain, substitute_format_placeholders,
 };
@@ -103,12 +104,62 @@ fn is_plus_binary_expression(node: &MSyntaxNode) -> Option<MBinaryExpression> {
     (operator.kind() == MSyntaxKind::PLUS).then_some(binary)
 }
 
-struct SqlLiteralRewriter;
+/// Whether `text` contains a [SQL_KEYWORDS] entry anywhere, ignoring case.
+fn contains_sql_keyword(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    (0..bytes.len()).any(|start| {
+        SQL_KEYWORDS.iter().any(|keyword| {
+            bytes
+                .get(start..start + keyword.len())
+                .is_some_and(|word| word.eq_ignore_ascii_case(keyword.as_bytes()))
+        })
+    })
+}
 
-impl SyntaxRewriter for SqlLiteralRewriter {
+/// Offsets of the string-literal tokens that contain a SQL keyword, read off
+/// the parser events. Whatever passes [looks_like_sql] -- a literal or a
+/// joined chain -- has its keyword inside one of these tokens, so the
+/// rewriter skips every subtree without one instead of walking the whole tree.
+pub(crate) fn collect_sql_hints(text: &str, events: &[Event<MSyntaxKind>]) -> Vec<TextSize> {
+    let mut hints = Vec::new();
+    let mut start = 0;
+    for event in events {
+        if let Event::Token { kind, end } = event {
+            let end = usize::from(*end);
+            if matches!(
+                kind,
+                MSyntaxKind::M_STRING_LITERAL | MSyntaxKind::M_LONG_STRING_LITERAL
+            ) && contains_sql_keyword(&text[start..end])
+            {
+                hints.push(TextSize::from((end - 1) as u32));
+            }
+            start = end;
+        }
+    }
+    hints
+}
+
+struct SqlLiteralRewriter<'a> {
+    hints: &'a [TextSize],
+}
+
+impl SqlLiteralRewriter<'_> {
+    fn has_hint(&self, range: TextRange) -> bool {
+        let first = self.hints.partition_point(|&hint| hint < range.start());
+        self.hints
+            .get(first)
+            .is_some_and(|&hint| hint < range.end())
+    }
+}
+
+impl SyntaxRewriter for SqlLiteralRewriter<'_> {
     type Language = MLanguage;
 
     fn visit_node(&mut self, node: MSyntaxNode) -> VisitNodeSignal<MLanguage> {
+        if !self.has_hint(node.text_range()) {
+            // Replacing a node with itself stops the descent without a splice.
+            return VisitNodeSignal::Replace(node);
+        }
         match node.kind() {
             MSyntaxKind::M_STRING_LITERAL_EXPRESSION => {
                 self.visit_string_literal(node, MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
@@ -122,7 +173,7 @@ impl SyntaxRewriter for SqlLiteralRewriter {
     }
 }
 
-impl SqlLiteralRewriter {
+impl SqlLiteralRewriter<'_> {
     fn visit_string_literal(
         &mut self,
         node: MSyntaxNode,
@@ -179,8 +230,8 @@ impl SqlLiteralRewriter {
 }
 
 /// Runs the SQL-literal-reclassification pass over an already-parsed tree.
-pub(crate) fn rewrite_sql_literals(root: MSyntaxNode) -> MSyntaxNode {
-    SqlLiteralRewriter.transform(root)
+pub(crate) fn rewrite_sql_literals(root: MSyntaxNode, hints: &[TextSize]) -> MSyntaxNode {
+    SqlLiteralRewriter { hints }.transform(root)
 }
 
 #[cfg(test)]
@@ -231,6 +282,37 @@ mod tests {
     #[test]
     fn does_not_skip_past_an_unterminated_block_comment() {
         assert!(!looks_like_sql("/* comment select a from t"));
+    }
+
+    #[test]
+    fn finds_a_keyword_anywhere_ignoring_case() {
+        assert!(contains_sql_keyword("\"a */ SELECT b\""));
+        assert!(contains_sql_keyword("`x`update"));
+        assert!(!contains_sql_keyword("\"just a plain string\""));
+        assert!(!contains_sql_keyword("\"sel\""));
+    }
+
+    #[test]
+    fn hints_only_string_tokens_with_a_keyword() {
+        let text = "select + \"a\" + \"x select\" + `drop`";
+        let token = |end: u32, kind| Event::Token {
+            kind,
+            end: TextSize::from(end),
+        };
+        let events = [
+            token(6, MSyntaxKind::IDENT),
+            token(8, MSyntaxKind::PLUS),
+            token(12, MSyntaxKind::M_STRING_LITERAL),
+            token(14, MSyntaxKind::PLUS),
+            token(25, MSyntaxKind::M_STRING_LITERAL),
+            token(27, MSyntaxKind::PLUS),
+            token(34, MSyntaxKind::M_LONG_STRING_LITERAL),
+        ];
+
+        assert_eq!(
+            collect_sql_hints(text, &events),
+            [TextSize::from(24), TextSize::from(33)]
+        );
     }
 
     #[test]
@@ -343,6 +425,22 @@ mod tests {
             !root
                 .descendants()
                 .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
+        );
+    }
+
+    /// The keyword sits only in the last literal of the chain, not the
+    /// first -- the chain root must still be visited.
+    #[test]
+    fn rewrites_a_chain_whose_keyword_is_in_a_later_literal() {
+        let tree = crate::parse(
+            "#\nfunc f(x) {\n  var a = 1;\n  var q = \"/* \" + x + \" */ select a from t\";\n}",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            root.descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_CONCATENATION_EXPRESSION)
         );
     }
 
