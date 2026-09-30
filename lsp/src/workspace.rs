@@ -98,7 +98,8 @@ pub struct Workspace {
 fn index_semantics(path: &Path, text: &str) -> Option<Semantics> {
     if is_resource(path) {
         let parsed = xml_parser::parse(text);
-        return Some(Semantics::Resource(rx_semantics(text, &parsed.syntax())));
+        let model = rx_semantics(text, &parsed.syntax());
+        return Some(Semantics::Resource(Arc::new(model)));
     }
 
     let file_source = MFileSource::try_from(path).ok()?;
@@ -106,11 +107,8 @@ fn index_semantics(path: &Path, text: &str) -> Option<Semantics> {
         return None;
     }
     let parsed = parse(text, file_source);
-    Some(Semantics::Mlang(semantics(
-        text,
-        parsed.syntax(),
-        file_source,
-    )))
+    let model = semantics(text, parsed.syntax(), file_source);
+    Some(Semantics::Mlang(Arc::new(model)))
 }
 
 impl Workspace {
@@ -180,10 +178,10 @@ impl Workspace {
     fn insert_model(&self, path: PathBuf, model: Semantics) {
         match model {
             Semantics::Mlang(model) => {
-                self.mlang_semantics.insert(path, Some(Arc::new(model)));
+                self.mlang_semantics.insert(path, Some(model));
             }
             Semantics::Resource(model) => {
-                self.rx_semantics.insert(path, Some(Arc::new(model)));
+                self.rx_semantics.insert(path, Some(model));
             }
         }
     }
@@ -718,20 +716,13 @@ impl Workspace {
 
         let document_uri = uri.clone();
         let path_for_blocking = path.clone();
-        let handle = tokio::task::spawn_blocking(move || {
-            // only programs, handlers and resources take part in the
-            // cross-file index -- e.g. a `.sql` file has no model at all
-            let model = index_semantics(&path_for_blocking, &document.text);
+        let document = tokio::task::spawn_blocking(move || {
+            CurrentDocument::new(document_uri, &path_for_blocking, &document.text)
+        })
+        .await??;
 
-            let current_document =
-                CurrentDocument::new(document_uri, &path_for_blocking, &document.text)?;
-
-            Ok::<_, mlang_syntax::FileSourceError>((current_document, model))
-        });
-
-        let (document, model) = handle.await??;
-
-        if let Some(model) = model {
+        // the index shares the document's model instead of analysing it again
+        if let Some(model) = document.index_model() {
             self.insert_model(path, model);
         }
 

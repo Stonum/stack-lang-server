@@ -14,6 +14,7 @@ use xml_syntax::{XmlFileSource, XmlLanguage, XmlSyntaxNode, XmlVariant};
 use std::{
     any::type_name,
     path::{Path, PathBuf},
+    sync::Arc,
 };
 use tower_lsp::lsp_types::{
     Diagnostic, DiagnosticSeverity, DiagnosticTag, DocumentSymbol, NumberOrString, Position, Range,
@@ -125,10 +126,12 @@ impl DocumentKind {
     }
 }
 
-/// Semantic model of a document, depending on its language.
+/// Semantic model of a document, depending on its language. Shared with the
+/// cross-file index, so a document is analysed once per change.
+#[derive(Clone)]
 pub enum Semantics {
-    Mlang(SemanticModel),
-    Resource(RxSemanticModel),
+    Mlang(Arc<SemanticModel>),
+    Resource(Arc<RxSemanticModel>),
 }
 
 pub struct CurrentDocument {
@@ -171,7 +174,11 @@ impl CurrentDocument {
         root: MSyntaxNode,
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
-        let semantics = Some(Semantics::Mlang(semantics(text, root.clone(), file_source)));
+        let semantics = Some(Semantics::Mlang(Arc::new(semantics(
+            text,
+            root.clone(),
+            file_source,
+        ))));
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
@@ -239,7 +246,7 @@ impl CurrentDocument {
     ) -> CurrentDocument {
         let kind = DocumentKind::from_xml(file_source);
         let semantics = (kind == DocumentKind::Resource)
-            .then(|| Semantics::Resource(rx_semantics(text, &root)));
+            .then(|| Semantics::Resource(Arc::new(rx_semantics(text, &root))));
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
@@ -299,6 +306,17 @@ impl CurrentDocument {
     pub fn rx_semantics(&self) -> Option<&RxSemanticModel> {
         match &self.semantics {
             Some(Semantics::Resource(model)) => Some(model),
+            _ => None,
+        }
+    }
+
+    /// The model this document contributes to the cross-file index: only
+    /// modules, handlers and resources take part in it.
+    pub fn index_model(&self) -> Option<Semantics> {
+        match self.kind {
+            DocumentKind::Module | DocumentKind::Handler | DocumentKind::Resource => {
+                self.semantics.clone()
+            }
             _ => None,
         }
     }
