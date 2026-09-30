@@ -14,7 +14,7 @@ pub use info::*;
 pub use reference::*;
 
 pub fn semantics(
-    text: &str,
+    line_index: &LineIndex,
     root: SyntaxNode<MLanguage>,
     source_type: MFileSource,
 ) -> SemanticModel {
@@ -23,13 +23,11 @@ pub fn semantics(
         references: FxHashMap::default(),
     };
 
-    let line_index = LineIndex::new(text);
-
     for event in root.preorder() {
         if let WalkEvent::Enter(node) = event {
-            prepare_definitions(&mut collector, source_type, &line_index, &node);
+            prepare_definitions(&mut collector, source_type, line_index, &node);
 
-            if let Some((rref, range)) = get_reference(&line_index, &node) {
+            if let Some((rref, range)) = get_reference(line_index, &node) {
                 collector.references.entry(rref).or_default().push(range);
             }
         }

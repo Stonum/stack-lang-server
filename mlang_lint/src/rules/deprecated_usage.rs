@@ -2,8 +2,7 @@ use biome_rowan::AstSeparatedList;
 use lsp_definition::{CodeSymbolDefinition, DefinitionKind};
 use mlang_semantic::AnyMDefinition;
 use mlang_syntax::{
-    AnyMExpression, AstNode, MCallExpression, MClassDeclaration, MNewExpression, MSyntaxNode,
-    TextRange,
+    AnyMExpression, AstNode, MCallExpression, MClassDeclaration, MNewExpression, TextRange,
 };
 use std::collections::HashMap;
 use unicase::UniCase;
@@ -18,7 +17,7 @@ const MAX_INHERITANCE_DEPTH: usize = 16;
 type Key = UniCase<String>;
 
 #[derive(Default)]
-struct Index<'a> {
+pub struct Index<'a> {
     functions: HashMap<Key, Vec<&'a AnyMDefinition>>,
     classes: HashMap<Key, Vec<&'a AnyMDefinition>>,
     constructors: HashMap<Key, Vec<&'a AnyMDefinition>>,
@@ -26,7 +25,13 @@ struct Index<'a> {
 }
 
 impl<'a> Index<'a> {
-    fn new(definitions: impl Iterator<Item = &'a AnyMDefinition>) -> Self {
+    /// `None` when none of `definitions` is deprecated.
+    pub fn new(definitions: impl Iterator<Item = &'a AnyMDefinition>) -> Option<Self> {
+        let definitions = definitions.collect::<Vec<_>>();
+        if !definitions.iter().any(|d| d.deprecated().is_some()) {
+            return None;
+        }
+
         let mut index = Index::default();
         for d in definitions {
             let key = || UniCase::new(d.id().to_string());
@@ -48,7 +53,7 @@ impl<'a> Index<'a> {
                 _ => {}
             }
         }
-        index
+        Some(index)
     }
 
     fn method(&self, class: &str, name: &str, count: usize) -> Option<Deprecation<'a>> {
@@ -94,31 +99,7 @@ fn deprecation<'a>(
     Some(Deprecation(reason))
 }
 
-pub fn check<'a>(
-    root: &MSyntaxNode,
-    definitions: impl Iterator<Item = &'a AnyMDefinition>,
-) -> Vec<Diagnostic> {
-    let definitions = definitions.collect::<Vec<_>>();
-    if !definitions.iter().any(|d| d.deprecated().is_some()) {
-        return vec![];
-    }
-
-    let index = Index::new(definitions.into_iter());
-
-    root.descendants()
-        .filter_map(|node| {
-            if let Some(call) = MCallExpression::cast_ref(&node) {
-                check_call(&call, &index)
-            } else if let Some(new) = MNewExpression::cast_ref(&node) {
-                check_new(&new, &index)
-            } else {
-                None
-            }
-        })
-        .collect()
-}
-
-fn check_call(call: &MCallExpression, index: &Index) -> Option<Diagnostic> {
+pub fn check_call(call: &MCallExpression, index: &Index) -> Option<Diagnostic> {
     let count = call.arguments().ok()?.args().len();
 
     match call.callee().ok()? {
@@ -147,7 +128,7 @@ fn check_call(call: &MCallExpression, index: &Index) -> Option<Diagnostic> {
     }
 }
 
-fn check_new(new: &MNewExpression, index: &Index) -> Option<Diagnostic> {
+pub fn check_new(new: &MNewExpression, index: &Index) -> Option<Diagnostic> {
     let AnyMExpression::MIdentifierExpression(ident) = new.callee().ok()? else {
         return None;
     };
@@ -184,6 +165,7 @@ fn diagnostic(name: &str, Deprecation(reason): Deprecation, range: TextRange) ->
 
 #[cfg(test)]
 mod tests {
+    use line_index::LineIndex;
     use mlang_parser::parse;
     use mlang_semantic::semantics;
     use mlang_syntax::MFileSource;
@@ -193,9 +175,10 @@ mod tests {
     fn lint(text: &str) -> Vec<(String, String)> {
         let parsed = parse(text, MFileSource::module());
         let root = parsed.syntax();
-        let model = semantics(text, root.clone(), MFileSource::module());
-        check(&root, model.definitions())
+        let model = semantics(&LineIndex::new(text), root.clone(), MFileSource::module());
+        crate::diagnostics(&root, &[], model.definitions())
             .into_iter()
+            .filter(|d| d.code == CODE)
             .map(|d| (text[d.range].to_string(), d.message))
             .collect()
     }

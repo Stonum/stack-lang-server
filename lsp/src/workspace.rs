@@ -83,8 +83,8 @@ impl WorkspaceError {
 
 pub struct Workspace {
     opened_files: DashMap<Url, Arc<RwLock<CurrentDocument>>>,
-    mlang_semantics: DashMap<PathBuf, Option<Arc<SemanticModel>>>,
-    rx_semantics: DashMap<PathBuf, Option<Arc<RxSemanticModel>>>,
+    mlang_semantics: FileIndex<SemanticModel>,
+    rx_semantics: FileIndex<RxSemanticModel>,
     /// Where paths are shown relative to: the editor's workspace folders and the
     /// common ancestor of the indexed folders, for files outside of them.
     workspace_folders: std::sync::RwLock<Vec<PathBuf>>,
@@ -93,12 +93,20 @@ pub struct Workspace {
     core: Arc<[AnyMCoreDefinition]>,
 }
 
+/// A file of the cross-file index: its url, converted once, and its model once analysed.
+struct Indexed<T> {
+    uri: Arc<Url>,
+    model: Option<Arc<T>>,
+}
+
+type FileIndex<T> = DashMap<PathBuf, Indexed<T>>;
+
 /// Semantic model of a file for the cross-file index; `None` for files that don't take
 /// part in cross-file navigation.
 fn index_semantics(path: &Path, text: &str) -> Option<Semantics> {
     if is_resource(path) {
         let parsed = xml_parser::parse(text);
-        let model = rx_semantics(text, &parsed.syntax());
+        let model = rx_semantics(&LineIndex::new(text), &parsed.syntax());
         return Some(Semantics::Resource(Arc::new(model)));
     }
 
@@ -107,7 +115,7 @@ fn index_semantics(path: &Path, text: &str) -> Option<Semantics> {
         return None;
     }
     let parsed = parse(text, file_source);
-    let model = semantics(text, parsed.syntax(), file_source);
+    let model = semantics(&LineIndex::new(text), parsed.syntax(), file_source);
     Some(Semantics::Mlang(Arc::new(model)))
 }
 
@@ -131,10 +139,15 @@ impl Workspace {
         self.mlang_semantics.clear();
         self.rx_semantics.clear();
         for path in files {
+            let Ok(uri) = Url::from_file_path(&path) else {
+                continue;
+            };
+            let uri = Arc::new(uri);
             if is_resource(&path) {
-                self.rx_semantics.insert(path, None);
+                self.rx_semantics.insert(path, Indexed { uri, model: None });
             } else {
-                self.mlang_semantics.insert(path, None);
+                self.mlang_semantics
+                    .insert(path, Indexed { uri, model: None });
             }
         }
 
@@ -177,12 +190,8 @@ impl Workspace {
 
     fn insert_model(&self, path: PathBuf, model: Semantics) {
         match model {
-            Semantics::Mlang(model) => {
-                self.mlang_semantics.insert(path, Some(model));
-            }
-            Semantics::Resource(model) => {
-                self.rx_semantics.insert(path, Some(model));
-            }
+            Semantics::Mlang(model) => index_model(&self.mlang_semantics, path, model),
+            Semantics::Resource(model) => index_model(&self.rx_semantics, path, model),
         }
     }
 
@@ -336,7 +345,7 @@ impl Workspace {
             return Ok(None);
         };
 
-        let mut markups = get_hover(&semantic_info, self.core.iter().map(|d| (uri.clone(), d)));
+        let mut markups = get_hover(&semantic_info, self.core.iter().map(|d| (uri, d)));
         if markups.is_empty() {
             markups = self.project().hover(&semantic_info);
         }
@@ -399,15 +408,8 @@ impl Workspace {
     }
 
     pub async fn symbol_information(&self, query: &str) -> Option<Vec<SymbolInformation>> {
-        let semantics = self.mlang_semantics.iter().filter_map(|r| match r.pair() {
-            (path, Some(definitions)) => {
-                let uri = Url::from_file_path(path).ok()?;
-                Some((uri, Arc::clone(definitions)))
-            }
-            _ => None,
-        });
-
-        let information = semantics
+        let information = models(&self.mlang_semantics)
+            .into_iter()
             .flat_map(|(uri, semantics)| {
                 if !query.is_empty() {
                     let query = StringLowerCase::new(query);
@@ -519,40 +521,21 @@ impl Workspace {
         let position = Position::new(line, char);
 
         let document = self.get_opened_document(uri).await?;
-        let semantic_info = async {
-            let syntax = document.mlang_syntax()?;
-            let text = syntax.text().to_string();
-
-            let line_index = LineIndex::new(&text);
-            let offset = line_index.offset(LineCol {
+        let semantic_info = document.mlang_syntax().and_then(|syntax| {
+            let offset = document.line_index().offset(LineCol {
                 line: position.line,
                 col: position.character,
             })?;
-
             identifier_for_completion(syntax, offset)
-        }
-        .await;
+        });
+        drop(document);
 
         let Some(semantic_info) = semantic_info else {
             return Ok(None);
         };
 
-        let semantics = self
-            .mlang_semantics
-            .iter()
-            .filter_map(|r| match r.pair() {
-                (path, Some(semantics)) => {
-                    let uri = Url::from_file_path(path).ok()?;
-                    let semantics = Arc::clone(semantics);
-                    Some((uri, semantics))
-                }
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-
-        let definitions = semantics
-            .iter()
-            .flat_map(|(uri, arc)| arc.definitions().map(|d| (uri.clone(), d)));
+        let semantics = models(&self.mlang_semantics);
+        let definitions = definitions(&semantics, |m| m.definitions());
 
         let completions: Vec<CompletionItem> = get_completion(&semantic_info, definitions);
         Ok(Some(CompletionResponse::Array(completions)))
@@ -566,40 +549,21 @@ impl Workspace {
         let position = Position::new(position.line, position.character);
 
         let document = self.get_opened_document(uri).await?;
-        let semantic_data = async {
-            let syntax = document.mlang_syntax()?;
-            let text = syntax.text().to_string();
-
-            let line_index = LineIndex::new(&text);
-            let offset = line_index.offset(LineCol {
+        let semantic_data = document.mlang_syntax().and_then(|syntax| {
+            let offset = document.line_index().offset(LineCol {
                 line: position.line,
                 col: position.character,
             })?;
-
             identifier_for_signature_help(syntax, offset)
-        }
-        .await;
+        });
+        drop(document);
 
         let Some(semantic_data) = semantic_data else {
             return Ok(None);
         };
 
-        let semantics = self
-            .mlang_semantics
-            .iter()
-            .filter_map(|r| match r.pair() {
-                (path, Some(semantics)) => {
-                    let uri = Url::from_file_path(path).ok()?;
-                    let semantics = Arc::clone(semantics);
-                    Some((uri, semantics))
-                }
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-
-        let definitions = semantics
-            .iter()
-            .flat_map(|(uri, arc)| arc.definitions().map(|d| (uri.clone(), d)));
+        let semantics = models(&self.mlang_semantics);
+        let definitions = definitions(&semantics, |m| m.definitions());
 
         let (semantic_info, current_argument) = semantic_data;
 
@@ -641,15 +605,7 @@ fn semantic_lint(
         .chain(workspace_semantics.iter().flat_map(|s| s.definitions()))
         .collect();
 
-    let mut diagnostics = mlang_lint::syntax_diagnostics(&root);
-
-    diagnostics.extend(mlang_lint::semantic_diagnostics(
-        &root,
-        core,
-        definitions.into_iter(),
-    ));
-
-    diagnostics
+    mlang_lint::diagnostics(&root, core, definitions.into_iter())
 }
 
 impl Workspace {
@@ -659,7 +615,7 @@ impl Workspace {
     fn workspace_semantics_snapshot(&self) -> Vec<Arc<SemanticModel>> {
         self.mlang_semantics
             .iter()
-            .filter_map(|r| r.value().clone())
+            .filter_map(|r| r.value().model.clone())
             .collect()
     }
 
@@ -822,8 +778,8 @@ fn is_resource(path: &Path) -> bool {
 
 /// Snapshot of the cross-file index.
 struct Project {
-    mlang: Vec<(Url, Arc<SemanticModel>)>,
-    rx: Vec<(Url, Arc<RxSemanticModel>)>,
+    mlang: Vec<(Arc<Url>, Arc<SemanticModel>)>,
+    rx: Vec<(Arc<Url>, Arc<RxSemanticModel>)>,
     roots: Vec<PathBuf>,
 }
 
@@ -842,12 +798,12 @@ impl Project {
             mlang: LinkIndex::new(
                 self.mlang
                     .iter()
-                    .flat_map(|(uri, m)| m.definitions().map(move |d| (uri, d))),
+                    .flat_map(|(uri, m)| m.definitions().map(move |d| (&**uri, d))),
             ),
             rx: LinkIndex::new(
                 self.rx
                     .iter()
-                    .flat_map(|(uri, m)| m.definitions().map(move |d| (uri, d))),
+                    .flat_map(|(uri, m)| m.definitions().map(move |d| (&**uri, d))),
             ),
         }
     }
@@ -983,26 +939,42 @@ fn link_lens(
     }
 }
 
+fn index_model<T>(index: &FileIndex<T>, path: PathBuf, model: Arc<T>) {
+    if let Some(mut entry) = index.get_mut(&path) {
+        entry.model = Some(model);
+    } else if let Ok(uri) = Url::from_file_path(&path) {
+        let model = Some(model);
+        index.insert(
+            path,
+            Indexed {
+                uri: Arc::new(uri),
+                model,
+            },
+        );
+    }
+}
+
 /// Loaded models with their file urls; cheap `Arc` clones, no map guards held.
-fn models<T>(map: &DashMap<PathBuf, Option<Arc<T>>>) -> Vec<(Url, Arc<T>)> {
-    map.iter()
-        .filter_map(|r| match r.pair() {
-            (path, Some(model)) => Some((Url::from_file_path(path).ok()?, Arc::clone(model))),
-            _ => None,
+fn models<T>(index: &FileIndex<T>) -> Vec<(Arc<Url>, Arc<T>)> {
+    index
+        .iter()
+        .filter_map(|r| {
+            let model = r.model.as_ref()?;
+            Some((Arc::clone(&r.uri), Arc::clone(model)))
         })
         .collect()
 }
 
 fn definitions<'a, T, D: 'a, I>(
-    models: &'a [(Url, Arc<T>)],
+    models: &'a [(Arc<Url>, Arc<T>)],
     of: impl Fn(&'a T) -> I + 'a,
-) -> impl Iterator<Item = (Url, &'a D)>
+) -> impl Iterator<Item = (&'a Url, &'a D)>
 where
     I: Iterator<Item = &'a D> + 'a,
 {
     models
         .iter()
-        .flat_map(move |(uri, model)| of(model).map(move |d| (uri.clone(), d)))
+        .flat_map(move |(uri, model)| of(model).map(move |d| (&**uri, d)))
 }
 
 fn get_files(to_visit: Vec<(PathBuf, bool)>) -> std::io::Result<Vec<PathBuf>> {

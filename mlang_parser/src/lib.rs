@@ -254,11 +254,12 @@ fn parse_m_with_cache(
 ) -> Parse<AnyMRoot> {
     tracing::debug_span!("parse").in_scope(move || {
         let (events, errors, tokens) = parse_common(text, source_type);
+        let braces = delimiter_balance::collect_braces(&events, &errors);
         let mut tree_sink = MLosslessTreeSink::with_cache(text, &tokens, cache);
         biome_parser::event::process(&mut tree_sink, events, errors);
         let (green, mut parse_errors) = tree_sink.finish();
         let green = sql_literal_rewriter::rewrite_sql_literals(green);
-        delimiter_balance::refine(text, &green, &mut parse_errors);
+        delimiter_balance::refine(text, &green, braces, &mut parse_errors);
         Parse::new(green, parse_errors)
     })
 }

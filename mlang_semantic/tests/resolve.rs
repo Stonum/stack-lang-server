@@ -1,6 +1,9 @@
 //! End-to-end resolution: cursor -> `SemanticInfo` -> `lsp_definition` queries.
 
+use std::sync::LazyLock;
+
 use biome_rowan::TextSize;
+use line_index::LineIndex;
 use lsp_definition::{get_completion, get_declaration, get_hover, get_reference, get_signatures};
 use mlang_parser::parse;
 use mlang_semantic::{
@@ -40,11 +43,16 @@ func use() {
 
 fn model() -> SemanticModel {
     let file_source = MFileSource::module();
-    semantics(SRC, parse(SRC, file_source).syntax(), file_source)
+    semantics(
+        &LineIndex::new(SRC),
+        parse(SRC, file_source).syntax(),
+        file_source,
+    )
 }
 
-fn uri() -> Url {
-    Url::parse("file:///test.prg").unwrap()
+fn uri() -> &'static Url {
+    static URI: LazyLock<Url> = LazyLock::new(|| Url::parse("file:///test.prg").unwrap());
+    &URI
 }
 
 /// Offset of `$` inside `pattern`; `pattern` without `$` must occur once in `SRC`.
@@ -111,7 +119,7 @@ fn references(pattern: &str) -> Vec<String> {
     )
     .unwrap_or_else(|| panic!("no info at `{pattern}`"));
     // references are grouped by a hash map key, so their order is unspecified
-    let mut locations = get_reference(&info, &uri(), model.references());
+    let mut locations = get_reference(&info, uri(), model.references());
     locations.sort_by_key(|l| (l.range.start.line, l.range.start.character));
     texts(&locations)
 }

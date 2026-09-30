@@ -1,29 +1,24 @@
-use mlang_syntax::{AnyMStatement, AstNode, MIfStatement, MSyntaxNode};
+use mlang_syntax::{AnyMStatement, AstNode, MIfStatement};
 
 use crate::{Diagnostic, Severity};
 
 pub const CODE: &str = "no-empty-if";
 
-pub fn check(root: &MSyntaxNode) -> Vec<Diagnostic> {
-    root.descendants()
-        .filter_map(MIfStatement::cast)
-        .filter_map(|if_stmt| {
-            let consequent = if_stmt.consequent().ok()?;
-            let AnyMStatement::MEmptyStatement(_) = consequent else {
-                return None;
-            };
+pub fn check(if_stmt: &MIfStatement) -> Option<Diagnostic> {
+    let consequent = if_stmt.consequent().ok()?;
+    let AnyMStatement::MEmptyStatement(_) = consequent else {
+        return None;
+    };
 
-            Some(Diagnostic {
-                severity: Severity::Warning,
-                code: CODE,
-                message: "Empty statement (';') right after 'if (...)' \
-                          — the intended statement is never executed."
-                    .to_string(),
-                range: if_stmt.range(),
-                tags: vec![],
-            })
-        })
-        .collect()
+    Some(Diagnostic {
+        severity: Severity::Warning,
+        code: CODE,
+        message: "Empty statement (';') right after 'if (...)' \
+                  — the intended statement is never executed."
+            .to_string(),
+        range: if_stmt.range(),
+        tags: vec![],
+    })
 }
 
 #[cfg(test)]
@@ -35,7 +30,9 @@ mod tests {
 
     fn lint(text: &str) -> Vec<Diagnostic> {
         let parsed = parse(text, MFileSource::script());
-        check(&parsed.syntax())
+        let mut diagnostics = crate::syntax_diagnostics(&parsed.syntax());
+        diagnostics.retain(|d| d.code == CODE);
+        diagnostics
     }
 
     #[test]

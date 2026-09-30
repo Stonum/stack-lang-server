@@ -102,11 +102,10 @@ impl RxDefinition {
     }
 }
 
-pub fn rx_semantics(text: &str, root: &XmlSyntaxNode) -> RxSemanticModel {
-    let index = LineIndex::new(text);
+pub fn rx_semantics(index: &LineIndex, root: &XmlSyntaxNode) -> RxSemanticModel {
     let definitions: Vec<_> = root
         .descendants()
-        .filter_map(|node| rx_definition(&index, &node))
+        .filter_map(|node| rx_definition(index, &node))
         .collect();
 
     let mut references: HashMap<SemanticInfo, Vec<RxName>> = HashMap::new();
@@ -423,7 +422,7 @@ mod tests {
 </Resources>"#;
 
     fn model() -> RxSemanticModel {
-        rx_semantics(SRC, &parse(SRC).syntax())
+        rx_semantics(&LineIndex::new(SRC), &parse(SRC).syntax())
     }
 
     /// Columns are counted in chars, not bytes.

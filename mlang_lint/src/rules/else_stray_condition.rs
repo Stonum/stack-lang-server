@@ -1,4 +1,4 @@
-use mlang_syntax::{AnyMExpression, AnyMStatement, AstNode, MIfStatement, MSyntaxNode};
+use mlang_syntax::{AnyMExpression, AnyMStatement, AstNode, MIfStatement};
 
 use crate::{Diagnostic, Severity};
 
@@ -8,31 +8,25 @@ pub const CODE: &str = "no-condition-in-else";
 /// take a condition: the parenthesized expression parses as the *entire*
 /// body of the else-branch (a no-op expression statement), and whatever
 /// follows it runs unconditionally, silently defeating the intended guard.
-pub fn check(root: &MSyntaxNode) -> Vec<Diagnostic> {
-    root.descendants()
-        .filter_map(MIfStatement::cast)
-        .filter_map(|if_stmt| {
-            let alternate = if_stmt.else_clause()?.alternate().ok()?;
-            let AnyMStatement::MExpressionStatement(expr_stmt) = alternate else {
-                return None;
-            };
-            let AnyMExpression::MParenthesizedExpression(paren) = expr_stmt.expression().ok()?
-            else {
-                return None;
-            };
+pub fn check(if_stmt: &MIfStatement) -> Option<Diagnostic> {
+    let alternate = if_stmt.else_clause()?.alternate().ok()?;
+    let AnyMStatement::MExpressionStatement(expr_stmt) = alternate else {
+        return None;
+    };
+    let AnyMExpression::MParenthesizedExpression(paren) = expr_stmt.expression().ok()? else {
+        return None;
+    };
 
-            Some(Diagnostic {
-                severity: Severity::Error,
-                code: CODE,
-                message: "'else' does not support conditions — did you mean 'else if (...)'? \
-                          As written, this parenthesized expression is the entire body of \
-                          the 'else' branch, and any following statement runs unconditionally."
-                    .to_string(),
-                range: paren.range(),
-                tags: vec![],
-            })
-        })
-        .collect()
+    Some(Diagnostic {
+        severity: Severity::Error,
+        code: CODE,
+        message: "'else' does not support conditions — did you mean 'else if (...)'? \
+                  As written, this parenthesized expression is the entire body of \
+                  the 'else' branch, and any following statement runs unconditionally."
+            .to_string(),
+        range: paren.range(),
+        tags: vec![],
+    })
 }
 
 #[cfg(test)]
@@ -44,7 +38,9 @@ mod tests {
 
     fn lint(text: &str) -> Vec<Diagnostic> {
         let parsed = parse(text, MFileSource::script());
-        check(&parsed.syntax())
+        let mut diagnostics = crate::syntax_diagnostics(&parsed.syntax());
+        diagnostics.retain(|d| d.code == CODE);
+        diagnostics
     }
 
     #[test]

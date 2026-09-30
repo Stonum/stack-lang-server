@@ -12,7 +12,7 @@ use crate::{
 
 pub fn get_completion<'a, I, D>(info: &SemanticInfo, definitions: I) -> Vec<CompletionItem>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + CodeSymbolInformation + MarkupDefinition + LocationDefinition + 'a,
 {
     match (&info.symbol, info.usage) {

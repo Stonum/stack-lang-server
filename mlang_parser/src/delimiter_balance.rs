@@ -14,6 +14,7 @@
 //!   extra diagnostic, ever.
 
 use biome_parser::diagnostic::ParseDiagnostic;
+use biome_parser::event::Event;
 use biome_rowan::{Direction, TextRange, TextSize};
 use mlang_syntax::MSyntaxKind::{
     L_CURLY, M_BLOCK_STATEMENT, M_CLASS_DECLARATION, M_CLASS_EXPRESSION, M_FUNCTION_BODY,
@@ -30,12 +31,44 @@ const STRAY_CURLY: &str = "instead found '}";
 /// Cascade fallout once a `{` is dropped and later code drifts out of its function.
 const RETURN_OUTSIDE_FN: &str = "Illegal return statement outside of a function";
 
-pub(crate) fn refine(source: &str, root: &MSyntaxNode, diagnostics: &mut Vec<ParseDiagnostic>) {
-    if diagnostics.is_empty() {
-        return;
+/// `{` (`true`) and `}` of the parsed tokens; `None` when no diagnostic is about braces
+/// and there is nothing to refine. Read off the parser events, not the tree, so that
+/// every parse with errors doesn't walk the whole tree.
+pub(crate) fn collect_braces(
+    events: &[Event<MSyntaxKind>],
+    diagnostics: &[ParseDiagnostic],
+) -> Option<Vec<(bool, TextRange)>> {
+    let about_braces = diagnostics.iter().any(|d| {
+        let message = d.message.to_string();
+        message == MISSING_CURLY || message.contains(STRAY_CURLY)
+    });
+    if !about_braces {
+        return None;
     }
 
-    let braces = collect_braces(root);
+    let braces = events
+        .iter()
+        .filter_map(|event| match event {
+            Event::Token { kind, end } if matches!(kind, L_CURLY | R_CURLY) => {
+                let range = TextRange::new(*end - TextSize::from(1), *end);
+                Some((*kind == L_CURLY, range))
+            }
+            _ => None,
+        })
+        .collect();
+    Some(braces)
+}
+
+pub(crate) fn refine(
+    source: &str,
+    root: &MSyntaxNode,
+    braces: Option<Vec<(bool, TextRange)>>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    let Some(braces) = braces else {
+        return;
+    };
+
     let opens = braces.iter().filter(|(is_open, _)| *is_open).count();
     let closes = braces.len() - opens;
 
@@ -235,19 +268,6 @@ fn block_header_range(source: &str, lines: &Lines, opener: TextRange) -> TextRan
     lines.content(source, opener_line).unwrap_or(opener)
 }
 
-fn collect_braces(root: &MSyntaxNode) -> Vec<(bool, TextRange)> {
-    root.descendants_with_tokens(Direction::Next)
-        .filter_map(|element| {
-            let token = element.into_token()?;
-            match token.kind() {
-                L_CURLY => Some((true, token.text_trimmed_range())),
-                R_CURLY => Some((false, token.text_trimmed_range())),
-                _ => None,
-            }
-        })
-        .collect()
-}
-
 fn is_curly_block(node: &MSyntaxNode) -> bool {
     matches!(
         node.kind(),
@@ -315,5 +335,36 @@ impl Lines {
                 TextSize::try_from(content_end).unwrap(),
             )
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use mlang_syntax::MFileSource;
+
+    use super::*;
+
+    #[test]
+    fn braces_from_events_match_the_tree() {
+        let text = "func f() {\n   if (a) { b(\"}\"); }\n   # }\n}\n}\n";
+        let (events, errors, _) = crate::parse_common(text, MFileSource::module());
+        let braces = collect_braces(&events, &errors).expect("a diagnostic about braces");
+
+        let tree: Vec<_> = crate::parse(text, MFileSource::module())
+            .syntax()
+            .descendants_tokens(Direction::Next)
+            .filter(|token| matches!(token.kind(), L_CURLY | R_CURLY))
+            .map(|token| (token.kind() == L_CURLY, token.text_trimmed_range()))
+            .collect();
+        assert_eq!(braces.len(), 5);
+        assert_eq!(braces, tree);
+    }
+
+    #[test]
+    fn no_braces_without_a_diagnostic_about_them() {
+        let (events, errors, _) =
+            crate::parse_common("func f() { var a = ; }", MFileSource::module());
+        assert!(!errors.is_empty());
+        assert_eq!(collect_braces(&events, &errors), None);
     }
 }

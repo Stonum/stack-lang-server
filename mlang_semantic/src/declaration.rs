@@ -1040,7 +1040,7 @@ mod tests {
         let file_source = MFileSource::module();
         let parsed = parse(text, file_source);
 
-        let semantic_model = semantics(text, parsed.syntax(), file_source);
+        let semantic_model = semantics(&LineIndex::new(text), parsed.syntax(), file_source);
         let mut definitions = semantic_model.definitions();
 
         assert_ne!(definitions.len(), 0);
@@ -1197,7 +1197,7 @@ mod tests {
         let file_source = MFileSource::module();
         let parsed = parse(text, file_source);
 
-        let semantic_model = semantics(text, parsed.syntax(), file_source);
+        let semantic_model = semantics(&LineIndex::new(text), parsed.syntax(), file_source);
         let mut definitions = semantic_model.definitions();
 
         assert_eq!(definitions.len(), 5);
@@ -1338,7 +1338,7 @@ mod tests {
         let file_source = MFileSource::report();
         let parsed = parse(text, file_source);
 
-        let semantic_model = semantics(text, parsed.syntax(), file_source);
+        let semantic_model = semantics(&LineIndex::new(text), parsed.syntax(), file_source);
         let mut definitions = semantic_model.definitions();
 
         assert_ne!(!definitions.len(), 0);
@@ -1423,7 +1423,7 @@ mod tests {
     "#;
         let file_source = MFileSource::module();
         let parsed = parse(text, file_source);
-        let model = semantics(text, parsed.syntax(), file_source);
+        let model = semantics(&LineIndex::new(text), parsed.syntax(), file_source);
 
         let deprecated = model
             .definitions()
@@ -1538,7 +1538,7 @@ mod tests {
         for (text, ranges) in inputs {
             let parsed = parse(text, file_source);
 
-            let semantic_model = semantics(text, parsed.syntax(), file_source);
+            let semantic_model = semantics(&LineIndex::new(text), parsed.syntax(), file_source);
             let mut definitions = semantic_model.definitions();
 
             assert_eq!(definitions.len(), 1);

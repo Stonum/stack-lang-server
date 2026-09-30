@@ -12,4 +12,5 @@ biome_rowan = { workspace = true }
 unicase = { workspace = true }
 
 [dev-dependencies]
+line_index = { workspace = true }
 mlang_parser = { workspace = true }

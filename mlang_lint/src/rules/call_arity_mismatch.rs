@@ -2,7 +2,7 @@ use biome_rowan::AstSeparatedList;
 use lsp_definition::{CodeSymbolDefinition, DefinitionKind};
 use mlang_core::AnyMCoreDefinition;
 use mlang_semantic::AnyMDefinition;
-use mlang_syntax::{AnyMExpression, AstNode, MCallExpression, MSyntaxNode};
+use mlang_syntax::{AnyMExpression, AstNode, MCallExpression};
 use std::collections::HashMap;
 use unicase::UniCase;
 
@@ -10,18 +10,26 @@ use crate::{Diagnostic, Severity};
 
 pub const CODE: &str = "call-arity-mismatch";
 
-pub fn check<'a>(
-    root: &MSyntaxNode,
-    core: &'a [AnyMCoreDefinition],
-    definitions: impl Iterator<Item = &'a AnyMDefinition>,
-) -> Vec<Diagnostic> {
-    let core_index = build_index(core.iter());
-    let definitions_index = build_index(definitions);
+/// Built-in and user functions by name.
+pub struct Index<'a> {
+    core: HashMap<UniCase<String>, Vec<&'a AnyMCoreDefinition>>,
+    definitions: HashMap<UniCase<String>, Vec<&'a AnyMDefinition>>,
+}
 
-    root.descendants()
-        .filter_map(MCallExpression::cast)
-        .filter_map(|call| check_call(&call, &core_index, &definitions_index))
-        .collect()
+impl<'a> Index<'a> {
+    pub fn new(
+        core: &'a [AnyMCoreDefinition],
+        definitions: impl Iterator<Item = &'a AnyMDefinition>,
+    ) -> Self {
+        Self {
+            core: build_index(core.iter()),
+            definitions: build_index(definitions),
+        }
+    }
+}
+
+pub fn check(call: &MCallExpression, index: &Index) -> Option<Diagnostic> {
+    check_call(call, &index.core, &index.definitions)
 }
 
 /// Indexes `items` by case-folded name (matching
@@ -88,6 +96,7 @@ fn check_call(
 
 #[cfg(test)]
 mod tests {
+    use line_index::LineIndex;
     use mlang_core::load_core_api;
     use mlang_parser::parse;
     use mlang_semantic::semantics;
@@ -99,8 +108,10 @@ mod tests {
         let core = load_core_api();
         let parsed = parse(text, MFileSource::module());
         let root = parsed.syntax();
-        let model = semantics(text, root.clone(), MFileSource::module());
-        check(&root, &core, model.definitions())
+        let model = semantics(&LineIndex::new(text), root.clone(), MFileSource::module());
+        let mut diagnostics = crate::diagnostics(&root, &core, model.definitions());
+        diagnostics.retain(|d| d.code == CODE);
+        diagnostics
     }
 
     #[test]

@@ -135,7 +135,7 @@ mod tests {
         let file_source = MFileSource::module();
         let parsed = parse(text, file_source);
 
-        semantics(text, parsed.syntax(), file_source)
+        semantics(&LineIndex::new(text), parsed.syntax(), file_source)
     }
 
     #[test]

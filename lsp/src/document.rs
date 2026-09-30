@@ -174,8 +174,9 @@ impl CurrentDocument {
         root: MSyntaxNode,
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
+        let line_index = LineIndex::new(text);
         let semantics = Some(Semantics::Mlang(Arc::new(semantics(
-            text,
+            &line_index,
             root.clone(),
             file_source,
         ))));
@@ -185,7 +186,6 @@ impl CurrentDocument {
                 type_name::<MLanguage>()
             )
         });
-        let line_index = LineIndex::new(text);
         let parse_diagnostics = diagnostics.to_vec();
 
         CurrentDocument {
@@ -245,15 +245,15 @@ impl CurrentDocument {
         diagnostics: &[ParseDiagnostic],
     ) -> CurrentDocument {
         let kind = DocumentKind::from_xml(file_source);
+        let line_index = LineIndex::new(text);
         let semantics = (kind == DocumentKind::Resource)
-            .then(|| Semantics::Resource(Arc::new(rx_semantics(text, &root))));
+            .then(|| Semantics::Resource(Arc::new(rx_semantics(&line_index, &root))));
         let root = root.as_send().unwrap_or_else(|| {
             panic!(
                 "could not upcast root node from language {}",
                 type_name::<XmlLanguage>()
             )
         });
-        let line_index = LineIndex::new(text);
         let parse_diagnostics = diagnostics.to_vec();
 
         CurrentDocument {

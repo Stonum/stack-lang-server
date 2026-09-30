@@ -160,9 +160,9 @@ pub fn handler_resource(handler: &str) -> Symbol {
 
 /// Definitions of a resource, handler or handler event with the given name.
 /// Links between them are given by [handler_resource] and by the resources themselves.
-pub(crate) fn resolve_linked<'a, I, D>(symbol: &Symbol, definitions: I) -> Vec<(Url, &'a D)>
+pub(crate) fn resolve_linked<'a, I, D>(symbol: &Symbol, definitions: I) -> Vec<(&'a Url, &'a D)>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + 'a,
 {
     let named =
@@ -257,14 +257,11 @@ mod tests {
     fn resolve(symbol: Symbol) -> Vec<(DefinitionKind, &'static str)> {
         let uri = Url::parse("file:///a.rx").unwrap();
         let defs = workspace();
-        let found = |found: Vec<(Url, &Def)>| -> Vec<_> {
+        let found = |found: Vec<(&Url, &Def)>| -> Vec<_> {
             found.into_iter().map(|(_, d)| (d.kind, d.id)).collect()
         };
-        let scanned = found(resolve_linked(
-            &symbol,
-            defs.iter().map(|d| (uri.clone(), d)),
-        ));
-        let index = LinkIndex::new(defs.iter().map(|d| (uri.clone(), d)));
+        let scanned = found(resolve_linked(&symbol, defs.iter().map(|d| (&uri, d))));
+        let index = LinkIndex::new(defs.iter().map(|d| (&uri, d)));
         assert_eq!(
             found(index.resolve(&symbol).unwrap()),
             scanned,

@@ -23,18 +23,18 @@ enum Mode {
 
 pub fn get_declaration<'a, I, D>(info: &SemanticInfo, definitions: I) -> Vec<Location>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + LocationDefinition + 'a,
 {
     resolve(info, definitions, Mode::Goto)
         .into_iter()
-        .map(|(uri, d)| d.id_location(uri))
+        .map(|(uri, d)| d.id_location(uri.clone()))
         .collect()
 }
 
 pub fn get_hover<'a, I, D>(info: &SemanticInfo, definitions: I) -> Vec<MarkedString>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + MarkupDefinition + 'a,
 {
     resolve(info, definitions, Mode::Hover)
@@ -51,7 +51,7 @@ pub fn get_project_hover<'a, I, D>(
     roots: &[PathBuf],
 ) -> Vec<MarkedString>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + MarkupDefinition + LocationDefinition + 'a,
 {
     let located = info.symbol.is_linked();
@@ -61,7 +61,7 @@ where
             let mut markdown = d.full_markdown();
             if located {
                 markdown.push_str("  \n");
-                markdown.push_str(&location_link(&uri, d.id_range().start.line, roots));
+                markdown.push_str(&location_link(uri, d.id_range().start.line, roots));
             }
             MarkedString::String(markdown)
         })
@@ -114,7 +114,7 @@ pub fn get_signatures<'a, I, D>(
     current_argument: u32,
 ) -> Vec<SignatureInformation>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + MarkupDefinition + SignatureParameters + 'a,
 {
     let callables = match (&info.symbol, info.usage) {
@@ -166,9 +166,9 @@ fn signature<D: SignatureParameters>(d: &D, current_argument: u32) -> SignatureI
     }
 }
 
-fn resolve<'a, I, D>(info: &SemanticInfo, definitions: I, mode: Mode) -> Vec<(Url, &'a D)>
+fn resolve<'a, I, D>(info: &SemanticInfo, definitions: I, mode: Mode) -> Vec<(&'a Url, &'a D)>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + 'a,
 {
     let SemanticInfo { symbol, usage } = info;
@@ -223,7 +223,11 @@ fn accepts(symbol: &Symbol, usage: Usage, kind: DefinitionKind) -> bool {
     }
 }
 
-fn by_arity<D>(candidates: Vec<(Url, &D)>, arguments: Option<usize>, mode: Mode) -> Vec<(Url, &D)>
+fn by_arity<'a, D>(
+    candidates: Vec<(&'a Url, &'a D)>,
+    arguments: Option<usize>,
+    mode: Mode,
+) -> Vec<(&'a Url, &'a D)>
 where
     D: CodeSymbolDefinition,
 {
@@ -250,9 +254,9 @@ fn class_with_constructors<'a, I, D>(
     arguments: Option<usize>,
     definitions: I,
     mode: Mode,
-) -> Vec<(Url, &'a D)>
+) -> Vec<(&'a Url, &'a D)>
 where
-    I: IntoIterator<Item = (Url, &'a D)>,
+    I: IntoIterator<Item = (&'a Url, &'a D)>,
     D: CodeSymbolDefinition + 'a,
 {
     let definitions = Vec::from_iter(definitions);
@@ -273,7 +277,7 @@ where
         let constructors = by_arity(constructors, arguments, mode);
 
         if mode == Mode::Hover || constructors.is_empty() {
-            result.push((uri.clone(), *class));
+            result.push((*uri, *class));
         }
         result.extend(constructors);
     }
