@@ -1,6 +1,9 @@
 use std::{
     path::{Path, PathBuf},
-    sync::{Arc, PoisonError},
+    sync::{
+        Arc, PoisonError,
+        atomic::{AtomicI32, Ordering},
+    },
 };
 
 use dashmap::DashMap;
@@ -30,7 +33,7 @@ use xml_semantic::{
 use xml_syntax::{TextSize, XmlFileSource, XmlSyntaxNode};
 
 use tokio::runtime::Handle;
-use tokio::sync::{OwnedRwLockReadGuard, RwLock, Semaphore};
+use tokio::sync::{Mutex, OwnedMutexGuard, RwLock, Semaphore};
 use tokio::task::JoinError;
 
 use tower_lsp::lsp_types::{
@@ -82,7 +85,7 @@ impl WorkspaceError {
 }
 
 pub struct Workspace {
-    opened_files: DashMap<Url, Arc<RwLock<CurrentDocument>>>,
+    opened_files: DashMap<Url, Arc<OpenedDocument>>,
     mlang_semantics: FileIndex<SemanticModel>,
     rx_semantics: FileIndex<RxSemanticModel>,
     /// Where paths are shown relative to: the editor's workspace folders and the
@@ -92,6 +95,72 @@ pub struct Workspace {
     // `Arc<[_]>` so it is shared with the lint index.
     core: Arc<[AnyMCoreDefinition]>,
     lint: Arc<LintIndex>,
+}
+
+/// A document open in the editor, or loaded for a request.
+struct OpenedDocument {
+    /// Requests wait here while a change is parsed, so they see the latest text.
+    current: RwLock<Versioned>,
+    /// The newest version the client has sent.
+    latest: AtomicI32,
+    /// The newest version whose diagnostics were handed out for publishing.
+    published: Arc<Mutex<i32>>,
+}
+
+struct Versioned {
+    document: Arc<CurrentDocument>,
+    version: i32,
+}
+
+/// Diagnostics of one version of an opened document. Publish them before dropping this:
+/// it keeps the publishes of the document in the order of its versions.
+#[derive(Debug)]
+pub struct DocumentDiagnostics {
+    pub version: i32,
+    pub diagnostics: Vec<Diagnostic>,
+    _order: OwnedMutexGuard<i32>,
+}
+
+impl OpenedDocument {
+    fn new(document: Arc<CurrentDocument>, version: i32) -> Self {
+        OpenedDocument {
+            current: RwLock::new(Versioned { document, version }),
+            latest: AtomicI32::new(version),
+            published: Arc::new(Mutex::new(i32::MIN)),
+        }
+    }
+
+    async fn document(&self) -> Arc<CurrentDocument> {
+        Arc::clone(&self.current.read().await.document)
+    }
+
+    fn is_latest(&self, version: i32) -> bool {
+        self.latest.load(Ordering::Acquire) == version
+    }
+
+    /// `None` when a newer version was sent or published meanwhile.
+    async fn publish(
+        &self,
+        version: i32,
+        diagnostics: Vec<Diagnostic>,
+    ) -> Option<DocumentDiagnostics> {
+        let mut published = Arc::clone(&self.published).lock_owned().await;
+        if !self.is_latest(version) || version < *published {
+            return None;
+        }
+        *published = version;
+        Some(DocumentDiagnostics {
+            version,
+            diagnostics,
+            _order: published,
+        })
+    }
+
+    /// Nothing is published for the document afterwards.
+    async fn close(&self) {
+        self.latest.store(i32::MAX, Ordering::Release);
+        *self.published.lock().await = i32::MAX;
+    }
 }
 
 /// What documents are linted against, kept up to date with the cross-file index.
@@ -346,12 +415,18 @@ impl Workspace {
         }
     }
 
+    fn opened(&self, uri: &Url) -> Option<Arc<OpenedDocument>> {
+        self.opened_files
+            .get(uri)
+            .map(|entry| Arc::clone(entry.value()))
+    }
+
     pub async fn get_opened_document(
         &self,
         uri: &Url,
-    ) -> Result<OwnedRwLockReadGuard<CurrentDocument>, WorkspaceError> {
-        if let Some(document) = self.opened_files.get(uri) {
-            return Ok(Arc::clone(document.value()).read_owned().await);
+    ) -> Result<Arc<CurrentDocument>, WorkspaceError> {
+        if let Some(opened) = self.opened(uri) {
+            return Ok(opened.document().await);
         }
 
         let path = uri
@@ -364,10 +439,13 @@ impl Workspace {
             tokio::task::spawn_blocking(move || CurrentDocument::new(file_uri, &path, &text))
                 .await??;
 
-        let document = Arc::new(RwLock::new(document));
-        self.opened_files.insert(uri.clone(), Arc::clone(&document));
+        let opened = self
+            .opened_files
+            .entry(uri.clone())
+            .or_insert_with(|| Arc::new(OpenedDocument::new(Arc::new(document), 0)))
+            .clone();
 
-        Ok(document.read_owned().await)
+        Ok(opened.document().await)
     }
 
     pub async fn hover(
@@ -629,29 +707,26 @@ impl Workspace {
     pub async fn open_document(
         &self,
         document: TextDocumentItem,
-    ) -> Result<Vec<Diagnostic>, WorkspaceError> {
+    ) -> Result<Option<DocumentDiagnostics>, WorkspaceError> {
         let uri = document.uri;
+        let version = document.version;
 
         let path = uri
             .to_file_path()
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
 
         let document_uri = uri.clone();
-        let index = Arc::clone(&self.lint);
+        let path_for_blocking = path.clone();
+        let document = tokio::task::spawn_blocking(move || {
+            CurrentDocument::new(document_uri, &path_for_blocking, &document.text)
+        })
+        .await??;
+        let document = Arc::new(document);
 
-        let handle = tokio::task::spawn_blocking(move || {
-            let document = CurrentDocument::new(document_uri, &path, &document.text)?;
-            let lint = index.lint(&path, &document);
-            let diagnostics = document.diagnostics(&lint);
-            Ok::<_, mlang_syntax::FileSourceError>((document, diagnostics))
-        });
+        let opened = Arc::new(OpenedDocument::new(Arc::clone(&document), version));
+        self.opened_files.insert(uri, Arc::clone(&opened));
 
-        let (document, diagnostics) = handle.await??;
-
-        self.opened_files
-            .insert(uri, Arc::new(RwLock::new(document)));
-
-        Ok(diagnostics)
+        self.lint_document(&opened, path, document, version).await
     }
 
     pub fn opened_documents(&self) -> Vec<Url> {
@@ -661,80 +736,116 @@ impl Workspace {
             .collect()
     }
 
-    /// Lints an opened document against the current index; the returned read
-    /// guard keeps a concurrent change from overtaking the caller's publish.
-    pub async fn lint_opened_document(
-        &self,
-        uri: &Url,
-    ) -> Option<(OwnedRwLockReadGuard<CurrentDocument>, Vec<Diagnostic>)> {
-        let document = Arc::clone(self.opened_files.get(uri)?.value());
+    /// Lints an opened document against the current index.
+    pub async fn lint_opened_document(&self, uri: &Url) -> Option<DocumentDiagnostics> {
+        let opened = self.opened(uri)?;
         let path = uri.to_file_path().ok()?;
-        let document = document.read_owned().await;
-        let index = Arc::clone(&self.lint);
+        let (document, version) = {
+            let current = opened.current.read().await;
+            (Arc::clone(&current.document), current.version)
+        };
+        self.lint_document(&opened, path, document, version)
+            .await
+            .ok()?
+    }
 
-        tokio::task::spawn_blocking(move || {
+    /// Skips the lint when a newer version was already sent.
+    async fn lint_document(
+        &self,
+        opened: &OpenedDocument,
+        path: PathBuf,
+        document: Arc<CurrentDocument>,
+        version: i32,
+    ) -> Result<Option<DocumentDiagnostics>, WorkspaceError> {
+        if !opened.is_latest(version) {
+            return Ok(None);
+        }
+        let index = Arc::clone(&self.lint);
+        let diagnostics = tokio::task::spawn_blocking(move || {
             let lint = index.lint(&path, &document);
-            let diagnostics = document.diagnostics(&lint);
-            (document, diagnostics)
+            document.diagnostics(&lint)
         })
-        .await
-        .ok()
+        .await?;
+        Ok(opened.publish(version, diagnostics).await)
     }
 
     pub async fn close_document(&self, document_url: &Url) {
-        self.opened_files.remove(document_url);
+        if let Some((_, opened)) = self.opened_files.remove(document_url) {
+            opened.close().await;
+        }
     }
 
+    /// A change from the editor. No diagnostics when the document isn't open
+    /// or a newer version was sent meanwhile.
     pub async fn change_document(
         &self,
         document: TextDocumentItem,
-    ) -> Result<Vec<Diagnostic>, WorkspaceError> {
-        let uri = document.uri;
+    ) -> Result<Option<DocumentDiagnostics>, WorkspaceError> {
+        self.update_document(document.uri, document.text, Some(document.version))
+            .await
+    }
 
+    /// A change on disk: an opened document keeps its version.
+    pub async fn reload_document(
+        &self,
+        uri: Url,
+        text: String,
+    ) -> Result<Option<DocumentDiagnostics>, WorkspaceError> {
+        self.update_document(uri, text, None).await
+    }
+
+    async fn update_document(
+        &self,
+        uri: Url,
+        text: String,
+        version: Option<i32>,
+    ) -> Result<Option<DocumentDiagnostics>, WorkspaceError> {
         let path = uri
             .to_file_path()
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
 
-        // lock file for read
-        let guard = self.opened_files.get(&uri);
-        let opened_file = if let Some(guard) = guard {
-            Some(Arc::clone(guard.value()).write_owned().await)
-        } else {
-            None
+        let opened = self.opened(&uri);
+        let path_for_blocking = path.clone();
+        let parse = move || {
+            tokio::task::spawn_blocking(move || {
+                CurrentDocument::new(uri, &path_for_blocking, &text)
+            })
         };
 
-        let document_uri = uri.clone();
-        let path_for_blocking = path.clone();
-        let document = tokio::task::spawn_blocking(move || {
-            CurrentDocument::new(document_uri, &path_for_blocking, &document.text)
-        })
-        .await??;
+        let Some(opened) = opened else {
+            let document = parse().await??;
+            if let Some(model) = document.index_model() {
+                self.insert_model(path, model);
+            }
+            return Ok(None);
+        };
 
+        if let Some(version) = version {
+            opened.latest.fetch_max(version, Ordering::AcqRel);
+        }
+        // requests sent after this change wait for its text
+        let mut current = opened.current.write().await;
+        let version = version.unwrap_or(current.version);
+        if version < current.version {
+            return Ok(None);
+        }
+
+        let document = Arc::new(parse().await??);
         // the index shares the document's model instead of analysing it again
         if let Some(model) = document.index_model() {
             self.insert_model(path.clone(), model);
         }
+        *current = Versioned {
+            document: Arc::clone(&document),
+            version,
+        };
+        drop(current);
 
-        if let Some(mut opened_file) = opened_file {
-            let index = Arc::clone(&self.lint);
-
-            let (document, diagnostics) = tokio::task::spawn_blocking(move || {
-                let lint = index.lint(&path, &document);
-                let diagnostics = document.diagnostics(&lint);
-                (document, diagnostics)
-            })
-            .await?;
-
-            *opened_file = document;
-
-            // show diagnostics only for opened files
-            return Ok(diagnostics);
-        }
-
-        Ok(vec![])
+        self.lint_document(&opened, path, document, version).await
     }
+
     pub async fn delete_document(&self, document_url: &Url) {
-        self.opened_files.remove(document_url);
+        self.close_document(document_url).await;
 
         let path = document_url.to_file_path();
         if let Ok(path) = path {

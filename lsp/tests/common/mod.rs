@@ -10,7 +10,8 @@
 
 use std::fs;
 
-use tower_lsp::lsp_types::{FormattingOptions, Position, Range, TextDocumentItem, Url};
+use stack_lang_server::workspace::DocumentDiagnostics;
+use tower_lsp::lsp_types::{Diagnostic, FormattingOptions, Position, Range, TextDocumentItem, Url};
 
 /// A real on-disk workspace dir, removed on drop.
 pub struct TempDir(pub std::path::PathBuf);
@@ -54,6 +55,10 @@ pub fn text_document(uri: Url, language_id: &str, text: &str) -> TextDocumentIte
         version: 1,
         text: text.to_string(),
     }
+}
+
+pub fn published(diagnostics: Option<DocumentDiagnostics>) -> Vec<Diagnostic> {
+    diagnostics.expect("diagnostics to publish").diagnostics
 }
 
 pub fn formatting_options() -> FormattingOptions {

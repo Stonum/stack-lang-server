@@ -6,7 +6,7 @@ use log::{error, info, trace};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::workspace::{Workspace, WorkspaceError};
+use crate::workspace::{DocumentDiagnostics, Workspace, WorkspaceError};
 
 use tower_lsp::jsonrpc::{Error, Result};
 use tower_lsp::lsp_types::notification::Notification;
@@ -146,7 +146,7 @@ impl LanguageServer for Backend {
         trace!("did_open {}", &file_uri);
 
         match self.workspace.open_document(text_document).await {
-            Ok(diagnostics) => self.publish_diagnostics(file_uri, diagnostics).await,
+            Ok(diagnostics) => publish_document(&self.client, file_uri, diagnostics).await,
             Err(e) if e.is_unsupported_document() => trace!("Open workspace document: {e}"),
             Err(e) => error!("Open workspace document: {e}"),
         }
@@ -171,7 +171,7 @@ impl LanguageServer for Backend {
         trace!("did_change {}", &file_uri);
 
         match self.workspace.change_document(text_document).await {
-            Ok(diagnostics) => self.publish_diagnostics(file_uri, diagnostics).await,
+            Ok(diagnostics) => publish_document(&self.client, file_uri, diagnostics).await,
             Err(e) if e.is_unsupported_document() => trace!("Change workspace document: {e}"),
             Err(e) => error!("Change workspace document: {e}"),
         }
@@ -186,24 +186,18 @@ impl LanguageServer for Backend {
 
             match change.typ {
                 FileChangeType::CREATED | FileChangeType::CHANGED => {
-                    let text_document: Option<TextDocumentItem> = async {
+                    let text = async {
                         let file = change.uri.to_file_path().ok()?;
-                        let text = tokio::fs::read_to_string(&file).await.ok()?;
-                        Some(TextDocumentItem {
-                            uri: change.uri,
-                            language_id: String::from(""),
-                            text,
-                            version: 0,
-                        })
+                        tokio::fs::read_to_string(&file).await.ok()
                     }
                     .await;
 
-                    if let Some(text_document) = text_document {
-                        let file_uri = text_document.uri.clone();
+                    if let Some(text) = text {
+                        let file_uri = change.uri.clone();
 
-                        match self.workspace.change_document(text_document).await {
+                        match self.workspace.reload_document(change.uri, text).await {
                             Ok(diagnostics) => {
-                                self.publish_diagnostics(file_uri, diagnostics).await
+                                publish_document(&self.client, file_uri, diagnostics).await
                             }
                             Err(e) if e.is_unsupported_document() => {
                                 trace!("Change workspace document: {e}")
@@ -375,6 +369,21 @@ impl Backend {
     }
 }
 
+/// Nothing to publish for a document that isn't open or already has newer text.
+async fn publish_document(client: &Client, uri: Url, diagnostics: Option<DocumentDiagnostics>) {
+    if let Some(published) = diagnostics {
+        let DocumentDiagnostics {
+            version,
+            diagnostics,
+            ..
+        } = published;
+        // the rest is held until published, keeping publishes in version order
+        client
+            .publish_diagnostics(uri, diagnostics, Some(version))
+            .await;
+    }
+}
+
 async fn send_status_bar_notofication(client: &Client, msg: &str) {
     client
         .send_notification::<StatusBarNotification>(StatusBarNotification::create(msg))
@@ -476,10 +485,8 @@ async fn request_ini_path(client: &Client) -> Option<String> {
 
 async fn publish_opened_diagnostics(client: &Client, workspace: &Workspace) {
     for uri in workspace.opened_documents() {
-        // held until published, so a concurrent change publishes after us
-        if let Some((_document, diagnostics)) = workspace.lint_opened_document(&uri).await {
-            client.publish_diagnostics(uri, diagnostics, None).await;
-        }
+        let diagnostics = workspace.lint_opened_document(&uri).await;
+        publish_document(client, uri, diagnostics).await;
     }
 }
 

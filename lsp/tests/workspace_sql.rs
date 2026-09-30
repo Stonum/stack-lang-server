@@ -13,7 +13,7 @@
 
 mod common;
 
-use common::{formatting_options, temp_uri, text_document, whole_document_range};
+use common::{formatting_options, published, temp_uri, text_document, whole_document_range};
 use stack_lang_server::workspace::Workspace;
 use tower_lsp::lsp_types::{Position, Range};
 
@@ -27,6 +27,8 @@ async fn opens_a_sql_document_via_workspace() {
         .await
         .expect("open_document should not error");
 
+    let diagnostics = published(diagnostics);
+
     assert!(diagnostics.is_empty());
 }
 
@@ -39,6 +41,8 @@ async fn opening_malformed_sql_reports_diagnostics_not_a_panic() {
         .open_document(text_document(uri, "sql", "select from where;;;\n"))
         .await
         .expect("open_document should not error, even for invalid SQL");
+
+    let diagnostics = published(diagnostics);
 
     assert!(!diagnostics.is_empty());
     assert_eq!(diagnostics[0].source.as_deref(), Some("sql-parser"));

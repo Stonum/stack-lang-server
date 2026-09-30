@@ -9,7 +9,7 @@ mod common;
 use std::sync::Arc;
 use std::time::Duration;
 
-use common::{TempDir, temp_uri, text_document};
+use common::{TempDir, published, temp_uri, text_document};
 use stack_lang_server::workspace::Workspace;
 use tower_lsp::lsp_types::{DocumentSymbolResponse, Url, WorkspaceFolder};
 
@@ -146,6 +146,7 @@ async fn open_document_lints_calls_against_workspace_definitions() {
         ))
         .await
         .expect("open_document should not error");
+    let diagnostics = published(diagnostics);
 
     assert!(
         diagnostics
