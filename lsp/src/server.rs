@@ -1,5 +1,5 @@
 #![allow(deprecated)]
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use log::{error, info, trace};
 
@@ -18,6 +18,7 @@ use std::time::Instant;
 pub struct Backend {
     client: Client,
     workspace: Arc<Workspace>,
+    startup: Mutex<Startup>,
 }
 
 impl Backend {
@@ -25,8 +26,18 @@ impl Backend {
         Backend {
             client,
             workspace: Arc::new(Workspace::new()),
+            startup: Mutex::default(),
         }
     }
+}
+
+/// What `initialize` already told us, so the warm-up doesn't have to ask the client.
+#[derive(Default)]
+struct Startup {
+    folders: Option<Vec<WorkspaceFolder>>,
+    ini_path: Option<String>,
+    code_lens_refresh: bool,
+    semantic_tokens_refresh: bool,
 }
 
 #[tower_lsp::async_trait]
@@ -39,6 +50,22 @@ impl LanguageServer for Backend {
             && let Ok(new_settings) = serde_json::from_value(opts)
         {
             settings = new_settings;
+        }
+
+        let workspace_capabilities = params.capabilities.workspace.as_ref();
+        let startup = Startup {
+            folders: params.workspace_folders,
+            ini_path: settings.ini_path.clone(),
+            code_lens_refresh: settings.lens_enabled
+                && workspace_capabilities
+                    .and_then(|w| w.code_lens.as_ref()?.refresh_support)
+                    .unwrap_or(false),
+            semantic_tokens_refresh: workspace_capabilities
+                .and_then(|w| w.semantic_tokens.as_ref()?.refresh_support)
+                .unwrap_or(false),
+        };
+        if let Ok(mut current) = self.startup.lock() {
+            *current = startup;
         }
 
         let mut capabilities = ServerCapabilities {
@@ -105,7 +132,12 @@ impl LanguageServer for Backend {
 
         let client = self.client.clone();
         let workspace = Arc::clone(&self.workspace);
-        tokio::spawn(async move { warm_up_workspace(client, workspace).await });
+        let startup = self
+            .startup
+            .lock()
+            .map(|mut startup| std::mem::take(&mut *startup))
+            .unwrap_or_default();
+        tokio::spawn(async move { warm_up_workspace(client, workspace, startup).await });
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
@@ -328,8 +360,11 @@ impl Notification for StatusBarNotification {
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
+#[serde(default)]
 struct ServerSettings {
     lens_enabled: bool,
+    /// `None` from older clients that don't send it -- then it is requested.
+    ini_path: Option<String>,
 }
 
 impl Backend {
@@ -347,28 +382,23 @@ async fn send_status_bar_notofication(client: &Client, msg: &str) {
 }
 
 /// Discovers the workspace files and builds the semantic cache
-async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
+async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>, mut startup: Startup) {
     let start = Instant::now();
     info!("Start workspace initialization");
     send_status_bar_notofication(&client, "Workspace initialization - loading settings").await;
 
-    let settings_path = async {
-        let params = vec![ConfigurationItem {
-            scope_uri: None,
-            section: Some("stack.iniPath".to_owned()),
-        }];
-        let cfg = client.configuration(params).await.ok()?;
-        match cfg.first().map(|s| s.to_owned()) {
-            Some(Value::String(s)) => Some(s),
-            _ => None,
-        }
-    }
-    .await;
+    let settings_path = match startup.ini_path.take() {
+        Some(path) => Some(path),
+        None => request_ini_path(&client).await,
+    };
 
-    let folders = client.workspace_folders().await.unwrap_or_else(|e| {
-        error!("Error receiving workspace folders: {e}");
-        None
-    });
+    let folders = match startup.folders.take() {
+        Some(folders) => Some(folders),
+        None => client.workspace_folders().await.unwrap_or_else(|e| {
+            error!("Error receiving workspace folders: {e}");
+            None
+        }),
+    };
     workspace.set_workspace_folders(folders.as_deref());
 
     send_status_bar_notofication(&client, "Workspace initialization - getting files").await;
@@ -401,12 +431,56 @@ async fn warm_up_workspace(client: Client, workspace: Arc<Workspace>) {
     .await;
 
     workspace.update_semantic_information().await;
+    publish_opened_diagnostics(&client, &workspace).await;
 
     info!(
         "Workspace initialization completed for {:?}",
         start.elapsed()
     );
+
     send_status_bar_notofication(&client, "").await;
+
+    refresh_views(&client, &startup).await;
+}
+
+/// Documents opened during the warm-up were served from an empty index.
+async fn refresh_views(client: &Client, startup: &Startup) {
+    let code_lens = async {
+        if startup.code_lens_refresh
+            && let Err(e) = client.code_lens_refresh().await
+        {
+            error!("Code lens refresh: {e}");
+        }
+    };
+    let semantic_tokens = async {
+        if startup.semantic_tokens_refresh
+            && let Err(e) = client.semantic_tokens_refresh().await
+        {
+            error!("Semantic tokens refresh: {e}");
+        }
+    };
+    tokio::join!(code_lens, semantic_tokens);
+}
+
+async fn request_ini_path(client: &Client) -> Option<String> {
+    let params = vec![ConfigurationItem {
+        scope_uri: None,
+        section: Some("stack.iniPath".to_owned()),
+    }];
+    let cfg = client.configuration(params).await.ok()?;
+    match cfg.first().map(|s| s.to_owned()) {
+        Some(Value::String(s)) => Some(s),
+        _ => None,
+    }
+}
+
+async fn publish_opened_diagnostics(client: &Client, workspace: &Workspace) {
+    for uri in workspace.opened_documents() {
+        // held until published, so a concurrent change publishes after us
+        if let Some((_document, diagnostics)) = workspace.lint_opened_document(&uri).await {
+            client.publish_diagnostics(uri, diagnostics, None).await;
+        }
+    }
 }
 
 fn log_internal_error(err: WorkspaceError) -> Error {

@@ -654,6 +654,33 @@ impl Workspace {
         Ok(diagnostics)
     }
 
+    pub fn opened_documents(&self) -> Vec<Url> {
+        self.opened_files
+            .iter()
+            .map(|entry| entry.key().clone())
+            .collect()
+    }
+
+    /// Lints an opened document against the current index; the returned read
+    /// guard keeps a concurrent change from overtaking the caller's publish.
+    pub async fn lint_opened_document(
+        &self,
+        uri: &Url,
+    ) -> Option<(OwnedRwLockReadGuard<CurrentDocument>, Vec<Diagnostic>)> {
+        let document = Arc::clone(self.opened_files.get(uri)?.value());
+        let path = uri.to_file_path().ok()?;
+        let document = document.read_owned().await;
+        let index = Arc::clone(&self.lint);
+
+        tokio::task::spawn_blocking(move || {
+            let lint = index.lint(&path, &document);
+            let diagnostics = document.diagnostics(&lint);
+            (document, diagnostics)
+        })
+        .await
+        .ok()
+    }
+
     pub async fn close_document(&self, document_url: &Url) {
         self.opened_files.remove(document_url);
     }
