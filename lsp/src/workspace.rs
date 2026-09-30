@@ -1,6 +1,6 @@
 use std::{
     path::{Path, PathBuf},
-    sync::Arc,
+    sync::{Arc, PoisonError},
 };
 
 use dashmap::DashMap;
@@ -89,8 +89,31 @@ pub struct Workspace {
     /// common ancestor of the indexed folders, for files outside of them.
     workspace_folders: std::sync::RwLock<Vec<PathBuf>>,
     root: std::sync::RwLock<Option<PathBuf>>,
-    // `Arc<[_]>` so it can be cheaply handed to `spawn_blocking` closures.
+    // `Arc<[_]>` so it is shared with the lint index.
     core: Arc<[AnyMCoreDefinition]>,
+    lint: Arc<LintIndex>,
+}
+
+/// What documents are linted against, kept up to date with the cross-file index.
+struct LintIndex {
+    core: mlang_lint::CoreIndex,
+    project: std::sync::RwLock<mlang_lint::ProjectIndex<PathBuf>>,
+}
+
+impl LintIndex {
+    fn project_mut(&self) -> std::sync::RwLockWriteGuard<'_, mlang_lint::ProjectIndex<PathBuf>> {
+        self.project.write().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// Lints `document` against the core API and the project's definitions.
+    fn lint(&self, path: &Path, document: &CurrentDocument) -> Vec<mlang_lint::Diagnostic> {
+        let Some(root) = document.mlang_syntax() else {
+            return Vec::new();
+        };
+        let project = self.project.read().unwrap_or_else(PoisonError::into_inner);
+        let definitions = document.definitions().as_slice();
+        mlang_lint::diagnostics(&root, &self.core, &project, path, definitions)
+    }
 }
 
 /// A file of the cross-file index: its url, converted once, and its model once analysed.
@@ -121,13 +144,19 @@ fn index_semantics(path: &Path, text: &str) -> Option<Semantics> {
 
 impl Workspace {
     pub fn new() -> Workspace {
+        let core: Arc<[AnyMCoreDefinition]> = load_core_api().into();
+        let lint = LintIndex {
+            core: mlang_lint::CoreIndex::new(Arc::clone(&core)),
+            project: Default::default(),
+        };
         Workspace {
             opened_files: DashMap::new(),
             mlang_semantics: DashMap::new(),
             rx_semantics: DashMap::new(),
             workspace_folders: Default::default(),
             root: Default::default(),
-            core: load_core_api().into(),
+            core,
+            lint: Arc::new(lint),
         }
     }
 
@@ -138,6 +167,7 @@ impl Workspace {
 
         self.mlang_semantics.clear();
         self.rx_semantics.clear();
+        self.lint.project_mut().clear();
         for path in files {
             let Ok(uri) = Url::from_file_path(&path) else {
                 continue;
@@ -190,7 +220,12 @@ impl Workspace {
 
     fn insert_model(&self, path: PathBuf, model: Semantics) {
         match model {
-            Semantics::Mlang(model) => index_model(&self.mlang_semantics, path, model),
+            Semantics::Mlang(model) => {
+                self.lint
+                    .project_mut()
+                    .insert(path.clone(), Arc::clone(&model));
+                index_model(&self.mlang_semantics, path, model);
+            }
             Semantics::Resource(model) => index_model(&self.rx_semantics, path, model),
         }
     }
@@ -590,35 +625,7 @@ impl Workspace {
     }
 }
 
-/// Lints `document` against the core API and the workspace's cross-file definitions
-fn semantic_lint(
-    core: &[AnyMCoreDefinition],
-    workspace_semantics: &[Arc<SemanticModel>],
-    document: &CurrentDocument,
-) -> Vec<mlang_lint::Diagnostic> {
-    let Some(root) = document.mlang_syntax() else {
-        return Vec::new();
-    };
-
-    let definitions: Vec<&AnyMDefinition> = document
-        .definitions()
-        .chain(workspace_semantics.iter().flat_map(|s| s.definitions()))
-        .collect();
-
-    mlang_lint::diagnostics(&root, core, definitions.into_iter())
-}
-
 impl Workspace {
-    /// Snapshot of the cross-file semantic models to lint an open document
-    /// against. Cheap `Arc` clones; take it before moving work into
-    /// `spawn_blocking`.
-    fn workspace_semantics_snapshot(&self) -> Vec<Arc<SemanticModel>> {
-        self.mlang_semantics
-            .iter()
-            .filter_map(|r| r.value().model.clone())
-            .collect()
-    }
-
     pub async fn open_document(
         &self,
         document: TextDocumentItem,
@@ -630,12 +637,11 @@ impl Workspace {
             .or(Err(WorkspaceError::UrlConversion(uri.clone())))?;
 
         let document_uri = uri.clone();
-        let core = Arc::clone(&self.core);
-        let workspace_semantics = self.workspace_semantics_snapshot();
+        let index = Arc::clone(&self.lint);
 
         let handle = tokio::task::spawn_blocking(move || {
             let document = CurrentDocument::new(document_uri, &path, &document.text)?;
-            let lint = semantic_lint(&core, &workspace_semantics, &document);
+            let lint = index.lint(&path, &document);
             let diagnostics = document.diagnostics(&lint);
             Ok::<_, mlang_syntax::FileSourceError>((document, diagnostics))
         });
@@ -679,15 +685,14 @@ impl Workspace {
 
         // the index shares the document's model instead of analysing it again
         if let Some(model) = document.index_model() {
-            self.insert_model(path, model);
+            self.insert_model(path.clone(), model);
         }
 
         if let Some(mut opened_file) = opened_file {
-            let core = Arc::clone(&self.core);
-            let workspace_semantics = self.workspace_semantics_snapshot();
+            let index = Arc::clone(&self.lint);
 
             let (document, diagnostics) = tokio::task::spawn_blocking(move || {
-                let lint = semantic_lint(&core, &workspace_semantics, &document);
+                let lint = index.lint(&path, &document);
                 let diagnostics = document.diagnostics(&lint);
                 (document, diagnostics)
             })
@@ -708,6 +713,7 @@ impl Workspace {
         if let Ok(path) = path {
             self.mlang_semantics.remove(&path);
             self.rx_semantics.remove(&path);
+            self.lint.project_mut().remove(&path);
         }
     }
 }
@@ -1017,5 +1023,37 @@ mod tests {
         assert_eq!(common_ancestor(&folders), Some(root.clone()));
         assert_eq!(common_ancestor(&[root.join("prg")]), Some(root.join("prg")));
         assert_eq!(common_ancestor(&[]), None);
+    }
+
+    #[test]
+    fn lint_sees_indexed_edits_of_other_files() {
+        let workspace = Workspace::new();
+        let root = std::env::temp_dir().join("master");
+        let module = |name: &str, text: &str| {
+            let path = root.join(name);
+            let uri = Url::from_file_path(&path).unwrap();
+            (
+                path.clone(),
+                CurrentDocument::new(uri, &path, text).unwrap(),
+            )
+        };
+        let lint = |path: &Path, document: &CurrentDocument| {
+            let lint = workspace.lint.lint(path, document);
+            lint.into_iter().map(|d| d.code).collect::<Vec<_>>()
+        };
+
+        let (path, document) = module(
+            "b.prg",
+            r#"
+var x = f(1);
+"#,
+        );
+        let (other, definition) = module("a.prg", "func f(a, b) {}");
+        workspace.insert_model(other.clone(), definition.index_model().unwrap());
+        assert_eq!(lint(&path, &document), ["call-arity-mismatch"]);
+
+        let (other, definition) = module("a.prg", "func f(a) {}");
+        workspace.insert_model(other, definition.index_model().unwrap());
+        assert!(lint(&path, &document).is_empty());
     }
 }

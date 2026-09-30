@@ -1,12 +1,11 @@
 use biome_rowan::AstSeparatedList;
-use lsp_definition::{CodeSymbolDefinition, DefinitionKind};
+use lsp_definition::CodeSymbolDefinition;
 use mlang_semantic::AnyMDefinition;
 use mlang_syntax::{
     AnyMExpression, AstNode, MCallExpression, MClassDeclaration, MNewExpression, TextRange,
 };
-use std::collections::HashMap;
-use unicase::UniCase;
 
+use super::SemanticIndex;
 use crate::{Diagnostic, DiagnosticTag, Severity};
 
 pub const CODE: &str = "deprecated";
@@ -14,74 +13,31 @@ pub const CODE: &str = "deprecated";
 /// Guards the `this.method()` lookup against cyclic `extends` chains.
 const MAX_INHERITANCE_DEPTH: usize = 16;
 
-type Key = UniCase<String>;
-
-#[derive(Default)]
-pub struct Index<'a> {
-    functions: HashMap<Key, Vec<&'a AnyMDefinition>>,
-    classes: HashMap<Key, Vec<&'a AnyMDefinition>>,
-    constructors: HashMap<Key, Vec<&'a AnyMDefinition>>,
-    methods: HashMap<(Key, Key), Vec<&'a AnyMDefinition>>,
-}
-
-impl<'a> Index<'a> {
-    /// `None` when none of `definitions` is deprecated.
-    pub fn new(definitions: impl Iterator<Item = &'a AnyMDefinition>) -> Option<Self> {
-        let definitions = definitions.collect::<Vec<_>>();
-        if !definitions.iter().any(|d| d.deprecated().is_some()) {
-            return None;
+fn method<'a>(
+    index: &SemanticIndex<'a>,
+    class: &str,
+    name: &str,
+    count: usize,
+) -> Option<Deprecation<'a>> {
+    let mut class = class;
+    for _ in 0..MAX_INHERITANCE_DEPTH {
+        let mut methods = index.methods(class, name).peekable();
+        if methods.peek().is_some() {
+            return deprecation(callable(methods, count));
         }
-
-        let mut index = Index::default();
-        for d in definitions {
-            let key = || UniCase::new(d.id().to_string());
-            let class_key = || d.container().map(|c| UniCase::new(c.id().to_string()));
-
-            match d.kind() {
-                DefinitionKind::Function => index.functions.entry(key()).or_default().push(d),
-                DefinitionKind::Class => index.classes.entry(key()).or_default().push(d),
-                DefinitionKind::Constructor => {
-                    if let Some(class) = class_key() {
-                        index.constructors.entry(class).or_default().push(d);
-                    }
-                }
-                DefinitionKind::Method => {
-                    if let Some(class) = class_key() {
-                        index.methods.entry((class, key())).or_default().push(d);
-                    }
-                }
-                _ => {}
-            }
-        }
-        Some(index)
+        class = index.classes(class).find_map(|c| c.parent())?;
     }
-
-    fn method(&self, class: &str, name: &str, count: usize) -> Option<Deprecation<'a>> {
-        let name = UniCase::new(name.to_string());
-        let mut class = UniCase::new(class.to_string());
-        for _ in 0..MAX_INHERITANCE_DEPTH {
-            let key = (class, name.clone());
-            if let Some(methods) = self.methods.get(&key) {
-                return deprecation(callable(methods, count));
-            }
-            let parent = self.classes.get(&key.0)?.iter().find_map(|c| c.parent())?;
-            class = UniCase::new(parent.to_string());
-        }
-        None
-    }
+    None
 }
 
 /// Reason of a deprecated symbol usage.
 struct Deprecation<'a>(&'a str);
 
 fn callable<'a>(
-    candidates: &[&'a AnyMDefinition],
+    candidates: impl Iterator<Item = &'a AnyMDefinition>,
     count: usize,
 ) -> impl Iterator<Item = &'a AnyMDefinition> {
-    candidates
-        .iter()
-        .copied()
-        .filter(move |d| d.can_be_called(count))
+    candidates.filter(move |d| d.can_be_called(count))
 }
 
 /// A usage is deprecated only if every resolved candidate is deprecated,
@@ -99,14 +55,13 @@ fn deprecation<'a>(
     Some(Deprecation(reason))
 }
 
-pub fn check_call(call: &MCallExpression, index: &Index) -> Option<Diagnostic> {
+pub fn check_call(call: &MCallExpression, index: &SemanticIndex) -> Option<Diagnostic> {
     let count = call.arguments().ok()?.args().len();
 
     match call.callee().ok()? {
         AnyMExpression::MIdentifierExpression(ident) => {
             let name = ident.name().ok()?.text();
-            let functions = index.functions.get(&UniCase::new(name.clone()))?;
-            let deprecation = deprecation(callable(functions, count))?;
+            let deprecation = deprecation(callable(index.functions(&name), count))?;
             Some(diagnostic(&name, deprecation, ident.range()))
         }
         AnyMExpression::MStaticMemberExpression(member) => {
@@ -121,29 +76,25 @@ pub fn check_call(call: &MCallExpression, index: &Index) -> Option<Diagnostic> {
                 .ok()?
                 .text();
             let name = member.member().ok()?;
-            let deprecation = index.method(&class, &name.text(), count)?;
+            let deprecation = method(index, &class, &name.text(), count)?;
             Some(diagnostic(&name.text(), deprecation, name.range()))
         }
         _ => None,
     }
 }
 
-pub fn check_new(new: &MNewExpression, index: &Index) -> Option<Diagnostic> {
+pub fn check_new(new: &MNewExpression, index: &SemanticIndex) -> Option<Diagnostic> {
     let AnyMExpression::MIdentifierExpression(ident) = new.callee().ok()? else {
         return None;
     };
     let name = ident.name().ok()?.text();
-    let key = UniCase::new(name.clone());
 
-    if let Some(classes) = index.classes.get(&key)
-        && let Some(deprecation) = deprecation(classes.iter().copied())
-    {
+    if let Some(deprecation) = deprecation(index.classes(&name)) {
         return Some(diagnostic(&name, deprecation, ident.range()));
     }
 
     let count = new.arguments().map_or(0, |args| args.args().len());
-    let constructors = index.constructors.get(&key)?;
-    let deprecation = deprecation(callable(constructors, count))?;
+    let deprecation = deprecation(callable(index.constructors(&name), count))?;
     Some(diagnostic(&name, deprecation, ident.range()))
 }
 
@@ -176,7 +127,7 @@ mod tests {
         let parsed = parse(text, MFileSource::module());
         let root = parsed.syntax();
         let model = semantics(&LineIndex::new(text), root.clone(), MFileSource::module());
-        crate::diagnostics(&root, &[], model.definitions())
+        crate::tests::lint(&root, &model)
             .into_iter()
             .filter(|d| d.code == CODE)
             .map(|d| (text[d.range].to_string(), d.message))
