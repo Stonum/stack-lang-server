@@ -354,6 +354,20 @@ async fn handler_hover_shows_only_same_named_handlers() {
 }
 
 #[tokio::test]
+async fn no_hover_on_handler_event_labels() {
+    let f = Fixture::new("hover_event").await;
+    let hover = f
+        .workspace
+        .hover(
+            &f.uri("prg/app.hdl"),
+            Fixture::position("prg/app.hdl", r#""Д$ействиеА""#),
+        )
+        .await
+        .expect("hover");
+    assert_eq!(hover, None);
+}
+
+#[tokio::test]
 async fn handler_lenses_lead_to_their_resources() {
     let f = Fixture::new("handler_lens").await;
     let target = |t: &str| vec![t.to_string()];

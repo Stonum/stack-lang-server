@@ -457,6 +457,12 @@ impl Workspace {
         let Some(semantic_info) = semantic_info else {
             return Ok(None);
         };
+        // an event label of a handler would only show itself
+        if semantic_info.usage == Usage::Declaration
+            && matches!(semantic_info.symbol, Symbol::HandlerEvent { .. })
+        {
+            return Ok(None);
+        }
 
         let mut markups = get_hover(&semantic_info, self.core.iter().map(|d| (uri, d)));
         if markups.is_empty() {
