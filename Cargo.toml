@@ -79,4 +79,4 @@ biome_rowan = { version = "=0.5.8", features = ["serde"] }
 biome_parser = "0.5.8"
 biome_formatter = { git = "https://github.com/Stonum/biome_formatter.git" }
 biome_unicode_table = "0.5.9"
-biome_diagnostics = "0.5.8"
+biome_diagnostics = "0.7.0"
