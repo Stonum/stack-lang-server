@@ -1,6 +1,6 @@
 use biome_rowan::AstSeparatedList;
 use lsp_definition::CodeSymbolDefinition;
-use mlang_syntax::{AnyMExpression, AstNode, MCallExpression};
+use mlang_syntax::{AnyMCallArgument, AnyMExpression, AstNode, MCallExpression};
 
 use super::SemanticIndex;
 use crate::{Diagnostic, Severity};
@@ -13,6 +13,14 @@ pub fn check(call: &MCallExpression, index: &SemanticIndex) -> Option<Diagnostic
     };
     let name = ident.name().ok()?.text();
     let arguments = call.arguments().ok()?;
+    // A spread expands to an unknown number of arguments.
+    if arguments
+        .args()
+        .iter()
+        .any(|arg| matches!(arg, Ok(AnyMCallArgument::MSpread(_))))
+    {
+        return None;
+    }
     let count = arguments.args().len();
 
     let mut known = false;
@@ -102,6 +110,14 @@ mod tests {
     #[test]
     fn accepts_user_function_call_with_correct_arity() {
         let diagnostics = lint_with_core("func f(a, b) {} f(1, 2)");
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn ignores_call_with_spread_argument() {
+        let diagnostics = lint_with_core("func f(a, b) {} var p = [1, 2]; f(...p)");
+        assert!(diagnostics.is_empty());
+        let diagnostics = lint_with_core("var p = [1]; var x = Извлечь(...p)");
         assert!(diagnostics.is_empty());
     }
 
