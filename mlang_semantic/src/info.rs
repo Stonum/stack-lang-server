@@ -380,25 +380,29 @@ fn get_nearest_variable_declaration(variable: &AnyMExpression) -> Option<Semanti
         _ => return None,
     };
 
+    let usage = variable.syntax().text_range();
     variable
         .syntax()
         .ancestors()
-        .find_map(|parent| get_first_assignment_or_declaration(&parent, &name))
+        .find_map(|parent| get_first_assignment_or_declaration(&parent, &name, usage))
         .and_then(find_identifier_from_right_side)
 }
 
+// `usage` inside the right side refers to the previous value (`x = x.f()`), so skip it
 fn get_first_assignment_or_declaration(
     parent: &SyntaxNode<MLanguage>,
     ident: &str,
+    usage: TextRange,
 ) -> Option<SyntaxNode<MLanguage>> {
     parent
         .siblings(biome_rowan::Direction::Prev)
-        .find_map(|n| match n.kind() {
+        .filter_map(|n| match n.kind() {
             MSyntaxKind::M_EXPRESSION_STATEMENT => find_expression_statement(n, ident),
             MSyntaxKind::M_ASSIGNMENT_EXPRESSION => find_assignment_expression(n, ident),
             MSyntaxKind::M_VARIABLE_STATEMENT => find_variable_statement(n, ident),
             _ => None,
         })
+        .find(|right| !right.text_range().contains_range(usage))
 }
 
 fn find_expression_statement(
@@ -817,7 +821,11 @@ mod tests {
             ("a = 3, x = new Tst(); x ", 23, instance("Tst")),
             ("x = new Tst(), a = 3; x ", 23, instance("Tst")),
             ("x = callFunction(); x ", 21, call_result("callFunction", 0)),
-            ("var y = z = x = new Tst(); x ", 28, instance("Tst"))
+            ("var y = z = x = new Tst(); x ", 28, instance("Tst")),
+            ("var x = new Tst(); x = x.m(); x ", 24, instance("Tst")),
+            ("var x = new Tst(); x = x.m(); x ", 26, method("m", 0, Some("Tst"))),
+            ("var x = new Tst(); x = x.m(); x ", 31, method_result("m", 0, Some("Tst"))),
+            ("var x = new Tst(), x = x.m(); x ", 24, instance("Tst")),
         ];
 
         for (input, offset, info) in inputs {
