@@ -144,3 +144,44 @@ fn test_create_table_dangling_not_reports_error() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_create_table_key_constraints() {
+    let res = parse(
+        "create table t (id int primary key, code text unique not null, parent int references p (id))",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_PRIMARY_KEY_CONSTRAINT"));
+    assert!(tree.contains("SQL_UNIQUE_CONSTRAINT"));
+    assert!(tree.contains("SQL_REFERENCES_CONSTRAINT"));
+}
+
+#[test]
+fn test_create_table_named_check_constraint() {
+    let res = parse(
+        "create table t (a int constraint a_positive check (a > 0), b int references ~Таблица~)",
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_CONSTRAINT_NAME"));
+    assert!(tree.contains("SQL_CHECK_CONSTRAINT"));
+}
+
+#[test]
+fn test_create_table_primary_without_key_reports_error() {
+    let res = parse("create table t (a int primary)", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_check_without_parentheses_reports_error() {
+    let res = parse("create table t (a int check a > 0)", postgres());
+
+    assert!(res.has_errors());
+}

@@ -300,6 +300,10 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::SqlCastFunctionExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_CHECK_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlCheckConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_COL_REFERENCE => {
                     let $pattern = unsafe { $crate::SqlColReference::new_unchecked(node) };
                     $body
@@ -310,6 +314,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_COLUMN_LIST => {
                     let $pattern = unsafe { $crate::SqlColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_CONSTRAINT_NAME => {
+                    let $pattern = unsafe { $crate::SqlConstraintName::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_CREATE_TABLE_STATEMENT => {
@@ -471,6 +479,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlPrecisionModifier::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_PRIMARY_KEY_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlPrimaryKeyConstraint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_REFERENCES_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlReferencesConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ROOT => {
                     let $pattern = unsafe { $crate::SqlRoot::new_unchecked(node) };
                     $body
@@ -567,6 +583,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_UNARY_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlUnaryExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_UNIQUE_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlUniqueConstraint::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_UPDATE_FROM_CLAUSE => {

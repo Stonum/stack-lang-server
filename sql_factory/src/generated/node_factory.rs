@@ -1578,6 +1578,22 @@ pub fn sql_cast_function_expression(
         ],
     ))
 }
+pub fn sql_check_constraint(
+    check_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    condition: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> SqlCheckConstraint {
+    SqlCheckConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_CHECK_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(check_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn sql_col_reference(name: SqlName) -> SqlColReference {
     SqlColReference::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_COL_REFERENCE,
@@ -1609,6 +1625,15 @@ pub fn sql_column_list(
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(items.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn sql_constraint_name(constraint_token: SyntaxToken, name: SqlName) -> SqlConstraintName {
+    SqlConstraintName::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_CONSTRAINT_NAME,
+        [
+            Some(SyntaxElement::Token(constraint_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
         ],
     ))
 }
@@ -2719,6 +2744,50 @@ pub fn sql_precision_modifier(precision_token: SyntaxToken) -> SqlPrecisionModif
         [Some(SyntaxElement::Token(precision_token))],
     ))
 }
+pub fn sql_primary_key_constraint(
+    primary_token: SyntaxToken,
+    key_token: SyntaxToken,
+) -> SqlPrimaryKeyConstraint {
+    SqlPrimaryKeyConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_PRIMARY_KEY_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(primary_token)),
+            Some(SyntaxElement::Token(key_token)),
+        ],
+    ))
+}
+pub fn sql_references_constraint(
+    references_token: SyntaxToken,
+    table: SqlTableName,
+) -> SqlReferencesConstraintBuilder {
+    SqlReferencesConstraintBuilder {
+        references_token,
+        table,
+        columns: None,
+    }
+}
+pub struct SqlReferencesConstraintBuilder {
+    references_token: SyntaxToken,
+    table: SqlTableName,
+    columns: Option<SqlColumnList>,
+}
+impl SqlReferencesConstraintBuilder {
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
+        self
+    }
+    pub fn build(self) -> SqlReferencesConstraint {
+        SqlReferencesConstraint::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_REFERENCES_CONSTRAINT,
+            [
+                Some(SyntaxElement::Token(self.references_token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn sql_root(stmt: SqlStatementList, eof_token: SyntaxToken) -> SqlRootBuilder {
     SqlRootBuilder {
         stmt,
@@ -3332,6 +3401,12 @@ pub fn sql_unary_expression(
             Some(SyntaxElement::Token(operator_token_token)),
             Some(SyntaxElement::Node(expression.into_syntax())),
         ],
+    ))
+}
+pub fn sql_unique_constraint(unique_token: SyntaxToken) -> SqlUniqueConstraint {
+    SqlUniqueConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_UNIQUE_CONSTRAINT,
+        [Some(SyntaxElement::Token(unique_token))],
     ))
 }
 pub fn sql_update_from_clause(

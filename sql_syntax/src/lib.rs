@@ -84,6 +84,7 @@ impl SqlSyntaxKind {
                 | ORDER_BY_KW
                 | PARTITION_BY_KW
                 | PRIMARY_KW
+                | REFERENCES_KW
                 | RETURNING_KW
                 | SELECT_KW
                 | SOME_KW

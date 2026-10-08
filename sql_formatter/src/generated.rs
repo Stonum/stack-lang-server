@@ -2431,6 +2431,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCastFunctionExpression {
         FormatOwnedWithRule :: new (self , crate :: sql :: expressions :: cast_function_expression :: FormatSqlCastFunctionExpression :: default ())
     }
 }
+impl FormatRule<sql_syntax::SqlCheckConstraint>
+    for crate::sql::auxiliary::check_constraint::FormatSqlCheckConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlCheckConstraint, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCheckConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCheckConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCheckConstraint,
+        crate::sql::auxiliary::check_constraint::FormatSqlCheckConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::check_constraint::FormatSqlCheckConstraint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCheckConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCheckConstraint,
+        crate::sql::auxiliary::check_constraint::FormatSqlCheckConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::check_constraint::FormatSqlCheckConstraint::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlColReference>
     for crate::sql::auxiliary::col_reference::FormatSqlColReference
 {
@@ -2534,6 +2568,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlColumnList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::column_list::FormatSqlColumnList::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlConstraintName>
+    for crate::sql::auxiliary::constraint_name::FormatSqlConstraintName
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlConstraintName, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlConstraintName>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlConstraintName {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlConstraintName,
+        crate::sql::auxiliary::constraint_name::FormatSqlConstraintName,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::constraint_name::FormatSqlConstraintName::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlConstraintName {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlConstraintName,
+        crate::sql::auxiliary::constraint_name::FormatSqlConstraintName,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::constraint_name::FormatSqlConstraintName::default(),
         )
     }
 }
@@ -3892,6 +3960,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrecisionModifier {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlPrimaryKeyConstraint>
+    for crate::sql::auxiliary::primary_key_constraint::FormatSqlPrimaryKeyConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlPrimaryKeyConstraint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlPrimaryKeyConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlPrimaryKeyConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlPrimaryKeyConstraint,
+        crate::sql::auxiliary::primary_key_constraint::FormatSqlPrimaryKeyConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::primary_key_constraint::FormatSqlPrimaryKeyConstraint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrimaryKeyConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlPrimaryKeyConstraint,
+        crate::sql::auxiliary::primary_key_constraint::FormatSqlPrimaryKeyConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::primary_key_constraint::FormatSqlPrimaryKeyConstraint::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlReferencesConstraint>
+    for crate::sql::auxiliary::references_constraint::FormatSqlReferencesConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlReferencesConstraint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlReferencesConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlReferencesConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlReferencesConstraint,
+        crate::sql::auxiliary::references_constraint::FormatSqlReferencesConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::references_constraint::FormatSqlReferencesConstraint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReferencesConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlReferencesConstraint,
+        crate::sql::auxiliary::references_constraint::FormatSqlReferencesConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::references_constraint::FormatSqlReferencesConstraint::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlRoot> for crate::sql::auxiliary::root::FormatSqlRoot {
     type Context = SqlFormatContext;
     #[inline(always)]
@@ -4693,6 +4837,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlUnaryExpression {
         FormatOwnedWithRule::new(
             self,
             crate::sql::expressions::unary_expression::FormatSqlUnaryExpression::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlUniqueConstraint>
+    for crate::sql::auxiliary::unique_constraint::FormatSqlUniqueConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlUniqueConstraint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlUniqueConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlUniqueConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlUniqueConstraint,
+        crate::sql::auxiliary::unique_constraint::FormatSqlUniqueConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::unique_constraint::FormatSqlUniqueConstraint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlUniqueConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlUniqueConstraint,
+        crate::sql::auxiliary::unique_constraint::FormatSqlUniqueConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::unique_constraint::FormatSqlUniqueConstraint::default(),
         )
     }
 }
