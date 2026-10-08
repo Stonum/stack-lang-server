@@ -3185,6 +3185,156 @@ pub struct SqlAliasColumnListFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlAllTriggersTarget {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlAllTriggersTarget {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlAllTriggersTargetFields {
+        SqlAllTriggersTargetFields {
+            scope: self.scope(),
+        }
+    }
+    pub fn scope(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for SqlAllTriggersTarget {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlAllTriggersTargetFields {
+    pub scope: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlAlterTableStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlAlterTableStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlAlterTableStatementFields {
+        SqlAlterTableStatementFields {
+            alter_token: self.alter_token(),
+            table_token: self.table_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            only_token: self.only_token(),
+            name: self.name(),
+            actions: self.actions(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn alter_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn table_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn only_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 5usize)
+    }
+    pub fn actions(&self) -> SqlAlterTableActionList {
+        support::list(&self.syntax, 6usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for SqlAlterTableStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlAlterTableStatementFields {
+    pub alter_token: SyntaxResult<SyntaxToken>,
+    pub table_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub only_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<SqlTableName>,
+    pub actions: SqlAlterTableActionList,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlAlterTriggerAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlAlterTriggerAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlAlterTriggerActionFields {
+        SqlAlterTriggerActionFields {
+            action: self.action(),
+            trigger_token: self.trigger_token(),
+            target: self.target(),
+        }
+    }
+    pub fn action(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn trigger_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn target(&self) -> SyntaxResult<AnySqlTriggerTarget> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlAlterTriggerAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlAlterTriggerActionFields {
+    pub action: SyntaxResult<SyntaxToken>,
+    pub trigger_token: SyntaxResult<SyntaxToken>,
+    pub target: SyntaxResult<AnySqlTriggerTarget>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlAnyAllExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -8443,6 +8593,7 @@ impl AnySqlSelectQuantifier {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlStatement {
+    SqlAlterTableStatement(SqlAlterTableStatement),
     SqlBogusStatement(SqlBogusStatement),
     SqlCallStatement(SqlCallStatement),
     SqlCreateTableAsStatement(SqlCreateTableAsStatement),
@@ -8468,6 +8619,12 @@ pub enum AnySqlStatement {
     PsqlVacuumStatement(PsqlVacuumStatement),
 }
 impl AnySqlStatement {
+    pub fn as_sql_alter_table_statement(&self) -> Option<&SqlAlterTableStatement> {
+        match &self {
+            Self::SqlAlterTableStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_sql_bogus_statement(&self) -> Option<&SqlBogusStatement> {
         match &self {
             Self::SqlBogusStatement(item) => Some(item),
@@ -8674,6 +8831,25 @@ impl AnySqlTableElement {
     pub fn as_sql_table_constraint(&self) -> Option<&SqlTableConstraint> {
         match &self {
             Self::SqlTableConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnySqlTriggerTarget {
+    SqlAllTriggersTarget(SqlAllTriggersTarget),
+    SqlName(SqlName),
+}
+impl AnySqlTriggerTarget {
+    pub fn as_sql_all_triggers_target(&self) -> Option<&SqlAllTriggersTarget> {
+        match &self {
+            Self::SqlAllTriggersTarget(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_name(&self) -> Option<&SqlName> {
+        match &self {
+            Self::SqlName(item) => Some(item),
             _ => None,
         }
     }
@@ -12319,6 +12495,174 @@ impl From<SqlAliasColumnList> for SyntaxNode {
 }
 impl From<SqlAliasColumnList> for SyntaxElement {
     fn from(n: SqlAliasColumnList) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlAllTriggersTarget {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ALL_TRIGGERS_TARGET as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ALL_TRIGGERS_TARGET
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlAllTriggersTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlAllTriggersTarget")
+                .field("scope", &support::DebugSyntaxResult(self.scope()))
+                .finish()
+        } else {
+            f.debug_struct("SqlAllTriggersTarget").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlAllTriggersTarget> for SyntaxNode {
+    fn from(n: SqlAllTriggersTarget) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlAllTriggersTarget> for SyntaxElement {
+    fn from(n: SqlAllTriggersTarget) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlAlterTableStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ALTER_TABLE_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ALTER_TABLE_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlAlterTableStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlAlterTableStatement")
+                .field(
+                    "alter_token",
+                    &support::DebugSyntaxResult(self.alter_token()),
+                )
+                .field(
+                    "table_token",
+                    &support::DebugSyntaxResult(self.table_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field(
+                    "only_token",
+                    &support::DebugOptionalElement(self.only_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("actions", &self.actions())
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlAlterTableStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlAlterTableStatement> for SyntaxNode {
+    fn from(n: SqlAlterTableStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlAlterTableStatement> for SyntaxElement {
+    fn from(n: SqlAlterTableStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlAlterTriggerAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ALTER_TRIGGER_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ALTER_TRIGGER_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlAlterTriggerAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlAlterTriggerAction")
+                .field("action", &support::DebugSyntaxResult(self.action()))
+                .field(
+                    "trigger_token",
+                    &support::DebugSyntaxResult(self.trigger_token()),
+                )
+                .field("target", &support::DebugSyntaxResult(self.target()))
+                .finish()
+        } else {
+            f.debug_struct("SqlAlterTriggerAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlAlterTriggerAction> for SyntaxNode {
+    fn from(n: SqlAlterTriggerAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlAlterTriggerAction> for SyntaxElement {
+    fn from(n: SqlAlterTriggerAction) -> Self {
         n.syntax.into()
     }
 }
@@ -19297,6 +19641,11 @@ impl From<AnySqlSelectQuantifier> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlAlterTableStatement> for AnySqlStatement {
+    fn from(node: SqlAlterTableStatement) -> Self {
+        Self::SqlAlterTableStatement(node)
+    }
+}
 impl From<SqlBogusStatement> for AnySqlStatement {
     fn from(node: SqlBogusStatement) -> Self {
         Self::SqlBogusStatement(node)
@@ -19414,7 +19763,8 @@ impl From<PsqlVacuumStatement> for AnySqlStatement {
 }
 impl AstNode for AnySqlStatement {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = SqlBogusStatement::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = SqlAlterTableStatement::KIND_SET
+        .union(SqlBogusStatement::KIND_SET)
         .union(SqlCallStatement::KIND_SET)
         .union(SqlCreateTableAsStatement::KIND_SET)
         .union(SqlCreateTableStatement::KIND_SET)
@@ -19440,7 +19790,8 @@ impl AstNode for AnySqlStatement {
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            SQL_BOGUS_STATEMENT
+            SQL_ALTER_TABLE_STATEMENT
+                | SQL_BOGUS_STATEMENT
                 | SQL_CALL_STATEMENT
                 | SQL_CREATE_TABLE_AS_STATEMENT
                 | SQL_CREATE_TABLE_STATEMENT
@@ -19467,6 +19818,9 @@ impl AstNode for AnySqlStatement {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            SQL_ALTER_TABLE_STATEMENT => {
+                Self::SqlAlterTableStatement(SqlAlterTableStatement { syntax })
+            }
             SQL_BOGUS_STATEMENT => Self::SqlBogusStatement(SqlBogusStatement { syntax }),
             SQL_CALL_STATEMENT => Self::SqlCallStatement(SqlCallStatement { syntax }),
             SQL_CREATE_TABLE_AS_STATEMENT => {
@@ -19516,6 +19870,7 @@ impl AstNode for AnySqlStatement {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::SqlAlterTableStatement(it) => &it.syntax,
             Self::SqlBogusStatement(it) => &it.syntax,
             Self::SqlCallStatement(it) => &it.syntax,
             Self::SqlCreateTableAsStatement(it) => &it.syntax,
@@ -19543,6 +19898,7 @@ impl AstNode for AnySqlStatement {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::SqlAlterTableStatement(it) => it.syntax,
             Self::SqlBogusStatement(it) => it.syntax,
             Self::SqlCallStatement(it) => it.syntax,
             Self::SqlCreateTableAsStatement(it) => it.syntax,
@@ -19572,6 +19928,7 @@ impl AstNode for AnySqlStatement {
 impl std::fmt::Debug for AnySqlStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::SqlAlterTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCallStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableAsStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -19601,6 +19958,7 @@ impl std::fmt::Debug for AnySqlStatement {
 impl From<AnySqlStatement> for SyntaxNode {
     fn from(n: AnySqlStatement) -> Self {
         match n {
+            AnySqlStatement::SqlAlterTableStatement(it) => it.into(),
             AnySqlStatement::SqlBogusStatement(it) => it.into(),
             AnySqlStatement::SqlCallStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableAsStatement(it) => it.into(),
@@ -19847,6 +20205,66 @@ impl From<AnySqlTableElement> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlAllTriggersTarget> for AnySqlTriggerTarget {
+    fn from(node: SqlAllTriggersTarget) -> Self {
+        Self::SqlAllTriggersTarget(node)
+    }
+}
+impl From<SqlName> for AnySqlTriggerTarget {
+    fn from(node: SqlName) -> Self {
+        Self::SqlName(node)
+    }
+}
+impl AstNode for AnySqlTriggerTarget {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SqlAllTriggersTarget::KIND_SET.union(SqlName::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, SQL_ALL_TRIGGERS_TARGET | SQL_NAME)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_ALL_TRIGGERS_TARGET => Self::SqlAllTriggersTarget(SqlAllTriggersTarget { syntax }),
+            SQL_NAME => Self::SqlName(SqlName { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlAllTriggersTarget(it) => &it.syntax,
+            Self::SqlName(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlAllTriggersTarget(it) => it.syntax,
+            Self::SqlName(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnySqlTriggerTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlAllTriggersTarget(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlName(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnySqlTriggerTarget> for SyntaxNode {
+    fn from(n: AnySqlTriggerTarget) -> Self {
+        match n {
+            AnySqlTriggerTarget::SqlAllTriggersTarget(it) => it.into(),
+            AnySqlTriggerTarget::SqlName(it) => it.into(),
+        }
+    }
+}
+impl From<AnySqlTriggerTarget> for SyntaxElement {
+    fn from(n: AnySqlTriggerTarget) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<PsqlTildeArraySuffix> for AnySqlTypeArraySuffix {
     fn from(node: PsqlTildeArraySuffix) -> Self {
         Self::PsqlTildeArraySuffix(node)
@@ -20087,6 +20505,11 @@ impl std::fmt::Display for AnySqlTableConstraint {
     }
 }
 impl std::fmt::Display for AnySqlTableElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnySqlTriggerTarget {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -20422,6 +20845,21 @@ impl std::fmt::Display for SqlAliasColumnDefinition {
     }
 }
 impl std::fmt::Display for SqlAliasColumnList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlAllTriggersTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlAlterTableStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlAlterTriggerAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -22115,6 +22553,88 @@ impl IntoIterator for SqlAliasColumnDefinitionList {
 impl IntoIterator for &SqlAliasColumnDefinitionList {
     type Item = SyntaxResult<SqlAliasColumnDefinition>;
     type IntoIter = AstSeparatedListNodesIterator<Language, SqlAliasColumnDefinition>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct SqlAlterTableActionList {
+    syntax_list: SyntaxList,
+}
+impl SqlAlterTableActionList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for SqlAlterTableActionList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ALTER_TABLE_ACTION_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ALTER_TABLE_ACTION_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for SqlAlterTableActionList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for SqlAlterTableActionList {
+    type Language = Language;
+    type Node = SqlAlterTriggerAction;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for SqlAlterTableActionList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SqlAlterTableActionList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for SqlAlterTableActionList {
+    type Item = SyntaxResult<SqlAlterTriggerAction>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, SqlAlterTriggerAction>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &SqlAlterTableActionList {
+    type Item = SyntaxResult<SqlAlterTriggerAction>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, SqlAlterTriggerAction>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

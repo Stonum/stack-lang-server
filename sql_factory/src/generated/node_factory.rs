@@ -1530,6 +1530,87 @@ pub fn sql_alias_column_list(
         ],
     ))
 }
+pub fn sql_all_triggers_target(scope_token: SyntaxToken) -> SqlAllTriggersTarget {
+    SqlAllTriggersTarget::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_ALL_TRIGGERS_TARGET,
+        [Some(SyntaxElement::Token(scope_token))],
+    ))
+}
+pub fn sql_alter_table_statement(
+    alter_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: SqlTableName,
+    actions: SqlAlterTableActionList,
+) -> SqlAlterTableStatementBuilder {
+    SqlAlterTableStatementBuilder {
+        alter_token,
+        table_token,
+        name,
+        actions,
+        if_token: None,
+        exists_token: None,
+        only_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlAlterTableStatementBuilder {
+    alter_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: SqlTableName,
+    actions: SqlAlterTableActionList,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    only_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlAlterTableStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_only_token(mut self, only_token: SyntaxToken) -> Self {
+        self.only_token = Some(only_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlAlterTableStatement {
+        SqlAlterTableStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_ALTER_TABLE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.alter_token)),
+                Some(SyntaxElement::Token(self.table_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                self.only_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Node(self.actions.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn sql_alter_trigger_action(
+    action_token: SyntaxToken,
+    trigger_token: SyntaxToken,
+    target: AnySqlTriggerTarget,
+) -> SqlAlterTriggerAction {
+    SqlAlterTriggerAction::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_ALTER_TRIGGER_ACTION,
+        [
+            Some(SyntaxElement::Token(action_token)),
+            Some(SyntaxElement::Token(trigger_token)),
+            Some(SyntaxElement::Node(target.into_syntax())),
+        ],
+    ))
+}
 pub fn sql_any_all_expression(
     quantifier_token: SyntaxToken,
     source: AnySqlAnyAllSource,
@@ -4207,6 +4288,27 @@ where
     let length = items.len() + separators.len();
     SqlAliasColumnDefinitionList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_ALIAS_COLUMN_DEFINITION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn sql_alter_table_action_list<I, S>(items: I, separators: S) -> SqlAlterTableActionList
+where
+    I: IntoIterator<Item = SqlAlterTriggerAction>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    SqlAlterTableActionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_ALTER_TABLE_ACTION_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

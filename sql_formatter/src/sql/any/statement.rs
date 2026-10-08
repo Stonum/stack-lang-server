@@ -8,6 +8,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &AnySqlStatement, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
+            AnySqlStatement::SqlAlterTableStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlBogusStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCallStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateTableAsStatement(node) => node.format().fmt(f),

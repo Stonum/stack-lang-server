@@ -1,3 +1,4 @@
+mod alter_table;
 mod call;
 mod ddl;
 mod delete;

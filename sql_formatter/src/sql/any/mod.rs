@@ -22,5 +22,6 @@ pub(crate) mod statement;
 pub(crate) mod subquery_body;
 pub(crate) mod table_constraint;
 pub(crate) mod table_element;
+pub(crate) mod trigger_target;
 pub(crate) mod type_array_suffix;
 pub(crate) mod type_modifier;

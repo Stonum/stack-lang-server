@@ -73,3 +73,7 @@ pub fn expected_table_constraint(p: &SqlParser, range: TextRange) -> ParseDiagno
 pub fn expected_references_clause(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("references clause", range, p)
 }
+
+pub fn expected_alter_table_action(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("alter table action", range, p)
+}

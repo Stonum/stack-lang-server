@@ -287,6 +287,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlAliasColumnList::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_ALL_TRIGGERS_TARGET => {
+                    let $pattern = unsafe { $crate::SqlAllTriggersTarget::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_ALTER_TABLE_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlAlterTableStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_ALTER_TRIGGER_ACTION => {
+                    let $pattern = unsafe { $crate::SqlAlterTriggerAction::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ANY_ALL_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlAnyAllExpression::new_unchecked(node) };
                     $body
@@ -753,6 +765,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::SQL_ALIAS_COLUMN_DEFINITION_LIST => {
                     let $pattern =
                         unsafe { $crate::SqlAliasColumnDefinitionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_ALTER_TABLE_ACTION_LIST => {
+                    let $pattern = unsafe { $crate::SqlAlterTableActionList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_CALL_ARGUMENT_LIST => {
