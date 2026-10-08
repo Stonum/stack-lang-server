@@ -109,6 +109,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlNamedArgument::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_ON_COMMIT_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlOnCommitClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_ON_CONFLICT_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlOnConflictClause::new_unchecked(node) };
                     $body

@@ -9,6 +9,7 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
     fn fmt_fields(&self, node: &SqlCreateTableStatement, f: &mut SqlFormatter) -> FormatResult<()> {
         let SqlCreateTableStatementFields {
             create_token,
+            persistence,
             table_token,
             if_token,
             not_token,
@@ -17,10 +18,15 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
             l_paren_token,
             elements,
             r_paren_token,
+            on_commit,
             semicolon_token,
         } = node.as_fields();
 
-        write!(f, [create_token.format(), space(), table_token.format()])?;
+        write!(f, [create_token.format()])?;
+        if let Some(persistence) = persistence {
+            write!(f, [space(), persistence.format()])?;
+        }
+        write!(f, [space(), table_token.format()])?;
 
         if let Some(if_token) = if_token {
             write!(f, [space(), if_token.format()])?;
@@ -35,6 +41,9 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
         write!(f, [space(), name.format(), space()])?;
         write_bracketed_fill_list(l_paren_token, &elements, r_paren_token, |_| false, f)?;
 
+        if let Some(on_commit) = on_commit {
+            write!(f, [space(), on_commit.format()])?;
+        }
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
         }

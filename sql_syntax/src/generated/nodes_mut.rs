@@ -683,6 +683,32 @@ impl PsqlNamedArgument {
         )
     }
 }
+impl PsqlOnCommitClause {
+    pub fn with_on_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_commit_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_action_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_rows_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
 impl PsqlOnConflictClause {
     pub fn with_on_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -1746,59 +1772,71 @@ impl SqlCreateTableStatement {
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
         )
     }
+    pub fn with_persistence_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
     pub fn with_table_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
         )
     }
     pub fn with_if_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(2usize..=2usize, once(element.map(|element| element.into()))),
+                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
         )
     }
     pub fn with_not_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
+                .splice_slots(4usize..=4usize, once(element.map(|element| element.into()))),
         )
     }
     pub fn with_exists_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(4usize..=4usize, once(element.map(|element| element.into()))),
+                .splice_slots(5usize..=5usize, once(element.map(|element| element.into()))),
         )
     }
     pub fn with_name(self, element: SqlTableName) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(5usize..=5usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(6usize..=6usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_l_paren_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(6usize..=6usize, once(Some(element.into()))),
+                .splice_slots(7usize..=7usize, once(Some(element.into()))),
         )
     }
     pub fn with_elements(self, element: SqlTableElementList) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(7usize..=7usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(8usize..=8usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_r_paren_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(8usize..=8usize, once(Some(element.into()))),
+                .splice_slots(9usize..=9usize, once(Some(element.into()))),
         )
     }
+    pub fn with_on_commit(self, element: Option<PsqlOnCommitClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            10usize..=10usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
     pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(9usize..=9usize, once(element.map(|element| element.into()))),
-        )
+        Self::unwrap_cast(self.syntax.splice_slots(
+            11usize..=11usize,
+            once(element.map(|element| element.into())),
+        ))
     }
 }
 impl SqlCreateViewStatement {
