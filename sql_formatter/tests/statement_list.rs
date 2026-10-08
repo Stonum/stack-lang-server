@@ -53,3 +53,29 @@ fn format_go_batch_separator_recovers_without_swallowing_the_next_statement() {
         "drop function if exists foo;\nGO\ncreate function foo() as 'select 1';\nselect 1;\n"
     );
 }
+
+#[test]
+fn format_statements_around_a_broken_one_are_still_formatted() {
+    // A broken statement stays a single `SqlBogusStatement` printed verbatim
+    // instead of collapsing the whole root, so its neighbours still format.
+    use biome_formatter::LineWidth;
+    use sql_formatter::{SqlFormatOptions, format_node};
+    use sql_parser::parse;
+    use sql_syntax::{SqlDialect, SqlFileSource};
+
+    let src = "SELECT   1;\nselect a,   ? from t;\nSELECT   2;\n";
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
+    let tree = parse(src, syntax);
+    assert!(tree.has_errors());
+
+    let options = SqlFormatOptions::new(syntax).with_line_width(LineWidth::try_from(120).unwrap());
+    let result = format_node(options, &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .into_code();
+
+    assert_eq!(result, "select 1;\nselect a,   ? from t;\nselect 2;\n");
+}

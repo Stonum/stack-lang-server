@@ -21,8 +21,9 @@ use crate::{
 };
 use sql_syntax::{SqlSyntaxKind::*, T, *};
 
+/// Includes `;` so recovery never runs past the end of the current statement.
 pub const EXPR_RECOVERY_SET: TokenSet<SqlSyntaxKind> =
-    token_set![R_PAREN, L_PAREN, L_BRACK, R_BRACK];
+    token_set![R_PAREN, L_PAREN, L_BRACK, R_BRACK, T![;]];
 
 pub(crate) fn parse_expression(p: &mut SqlParser) -> ParsedSyntax {
     parse_binary_or_logical_expression(p, OperatorPrecedence::lowest())
