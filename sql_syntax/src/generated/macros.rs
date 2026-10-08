@@ -89,6 +89,15 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlFunctionParameter::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_GENERATED_COLUMN_CONSTRAINT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlGeneratedColumnConstraint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_IDENTITY_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::PsqlIdentityConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_INTERVAL_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlIntervalExpression::new_unchecked(node) };
                     $body
@@ -168,6 +177,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_SECURITY_OPTION => {
                     let $pattern = unsafe { $crate::PsqlSecurityOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SEQUENCE_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlSequenceOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SEQUENCE_OPTIONS => {
+                    let $pattern = unsafe { $crate::PsqlSequenceOptions::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_STRICT_OPTION => {
@@ -706,6 +723,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST => {
                     let $pattern =
                         unsafe { $crate::PsqlReturnsTableColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SEQUENCE_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlSequenceOptionList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_TABLE_AND_COLUMNS_LIST => {

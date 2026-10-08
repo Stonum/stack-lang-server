@@ -3,6 +3,7 @@
 pub(crate) mod function_option_list;
 pub(crate) mod function_parameter_list;
 pub(crate) mod returns_table_column_list;
+pub(crate) mod sequence_option_list;
 pub(crate) mod table_and_columns_list;
 pub(crate) mod trigger_event_list;
 pub(crate) mod trigger_referencing_item_list;

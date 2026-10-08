@@ -606,6 +606,76 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameter {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlGeneratedColumnConstraint>
+    for crate::psql::auxiliary::generated_column_constraint::FormatPsqlGeneratedColumnConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlGeneratedColumnConstraint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlGeneratedColumnConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlGeneratedColumnConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlGeneratedColumnConstraint,
+        crate::psql::auxiliary::generated_column_constraint::FormatPsqlGeneratedColumnConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: generated_column_constraint :: FormatPsqlGeneratedColumnConstraint :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlGeneratedColumnConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlGeneratedColumnConstraint,
+        crate::psql::auxiliary::generated_column_constraint::FormatPsqlGeneratedColumnConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: generated_column_constraint :: FormatPsqlGeneratedColumnConstraint :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlIdentityConstraint>
+    for crate::psql::auxiliary::identity_constraint::FormatPsqlIdentityConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlIdentityConstraint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlIdentityConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlIdentityConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlIdentityConstraint,
+        crate::psql::auxiliary::identity_constraint::FormatPsqlIdentityConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::identity_constraint::FormatPsqlIdentityConstraint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlIdentityConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlIdentityConstraint,
+        crate::psql::auxiliary::identity_constraint::FormatPsqlIdentityConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::identity_constraint::FormatPsqlIdentityConstraint::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlIntervalExpression>
     for crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression
 {
@@ -1333,6 +1403,78 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSecurityOption {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::security_option::FormatPsqlSecurityOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSequenceOption>
+    for crate::psql::auxiliary::sequence_option::FormatPsqlSequenceOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlSequenceOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSequenceOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSequenceOption,
+        crate::psql::auxiliary::sequence_option::FormatPsqlSequenceOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::sequence_option::FormatPsqlSequenceOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSequenceOption,
+        crate::psql::auxiliary::sequence_option::FormatPsqlSequenceOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::sequence_option::FormatPsqlSequenceOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSequenceOptions>
+    for crate::psql::auxiliary::sequence_options::FormatPsqlSequenceOptions
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlSequenceOptions,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSequenceOptions>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOptions {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSequenceOptions,
+        crate::psql::auxiliary::sequence_options::FormatPsqlSequenceOptions,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::sequence_options::FormatPsqlSequenceOptions::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOptions {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSequenceOptions,
+        crate::psql::auxiliary::sequence_options::FormatPsqlSequenceOptions,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::sequence_options::FormatPsqlSequenceOptions::default(),
         )
     }
 }
@@ -5561,6 +5703,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableColumnList {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: lists :: returns_table_column_list :: FormatPsqlReturnsTableColumnList :: default ())
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSequenceOptionList,
+        crate::psql::lists::sequence_option_list::FormatPsqlSequenceOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::sequence_option_list::FormatPsqlSequenceOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOptionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSequenceOptionList,
+        crate::psql::lists::sequence_option_list::FormatPsqlSequenceOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::sequence_option_list::FormatPsqlSequenceOptionList::default(),
+        )
     }
 }
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTableAndColumnsList {
