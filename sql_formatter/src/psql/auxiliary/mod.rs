@@ -3,12 +3,16 @@
 pub(crate) mod cte_materialized_hint;
 pub(crate) mod drop_function_parameters;
 pub(crate) mod function_parameter;
+pub(crate) mod generated_column_constraint;
+pub(crate) mod identity_constraint;
 pub(crate) mod language_option;
 pub(crate) mod named_argument;
 pub(crate) mod parameter_default;
 pub(crate) mod returns_null_option;
 pub(crate) mod returns_table_column;
 pub(crate) mod security_option;
+pub(crate) mod sequence_option;
+pub(crate) mod sequence_options;
 pub(crate) mod strict_option;
 pub(crate) mod table_and_columns;
 pub(crate) mod table_query;

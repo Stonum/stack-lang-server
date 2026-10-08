@@ -12,8 +12,9 @@ use super::parse_error::*;
 use super::postgres::ddl::{
     eat_cascade_or_restrict, eat_table_persistence, parse_create_function_statement,
     parse_create_policy_statement, parse_create_trigger_statement, parse_drop_function_parameters,
-    parse_drop_policy_statement, parse_drop_trigger_statement, parse_on_commit_clause,
-    parse_table_query, parse_truncate_identity_clause, parse_view_options, parse_with_data_clause,
+    parse_drop_policy_statement, parse_drop_trigger_statement, parse_generated_constraint,
+    parse_on_commit_clause, parse_table_query, parse_truncate_identity_clause, parse_view_options,
+    parse_with_data_clause,
 };
 use super::select::parse_select_statement;
 use super::stmt::STMT_RECOVERY_SET;
@@ -297,6 +298,10 @@ fn parse_column_constraint(p: &mut SqlParser) -> ParsedSyntax {
         T![references] => {
             m.abandon(p);
             return parse_references_constraint(p);
+        }
+        T![generated] => {
+            m.abandon(p);
+            return parse_generated_constraint(p);
         }
         T![null] => {
             p.bump(T![null]);

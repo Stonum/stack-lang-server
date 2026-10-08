@@ -637,6 +637,85 @@ impl PsqlFunctionParameterBuilder {
         ))
     }
 }
+pub fn psql_generated_column_constraint(
+    generated_token: SyntaxToken,
+    always_token: SyntaxToken,
+    as_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    expression: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+    stored_token: SyntaxToken,
+) -> PsqlGeneratedColumnConstraint {
+    PsqlGeneratedColumnConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_GENERATED_COLUMN_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(generated_token)),
+            Some(SyntaxElement::Token(always_token)),
+            Some(SyntaxElement::Token(as_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+            Some(SyntaxElement::Token(stored_token)),
+        ],
+    ))
+}
+pub fn psql_identity_constraint(
+    generated_token: SyntaxToken,
+    as_token: SyntaxToken,
+    identity_token: SyntaxToken,
+) -> PsqlIdentityConstraintBuilder {
+    PsqlIdentityConstraintBuilder {
+        generated_token,
+        as_token,
+        identity_token,
+        always_token: None,
+        by_token: None,
+        default_token: None,
+        options: None,
+    }
+}
+pub struct PsqlIdentityConstraintBuilder {
+    generated_token: SyntaxToken,
+    as_token: SyntaxToken,
+    identity_token: SyntaxToken,
+    always_token: Option<SyntaxToken>,
+    by_token: Option<SyntaxToken>,
+    default_token: Option<SyntaxToken>,
+    options: Option<PsqlSequenceOptions>,
+}
+impl PsqlIdentityConstraintBuilder {
+    pub fn with_always_token(mut self, always_token: SyntaxToken) -> Self {
+        self.always_token = Some(always_token);
+        self
+    }
+    pub fn with_by_token(mut self, by_token: SyntaxToken) -> Self {
+        self.by_token = Some(by_token);
+        self
+    }
+    pub fn with_default_token(mut self, default_token: SyntaxToken) -> Self {
+        self.default_token = Some(default_token);
+        self
+    }
+    pub fn with_options(mut self, options: PsqlSequenceOptions) -> Self {
+        self.options = Some(options);
+        self
+    }
+    pub fn build(self) -> PsqlIdentityConstraint {
+        PsqlIdentityConstraint::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_IDENTITY_CONSTRAINT,
+            [
+                Some(SyntaxElement::Token(self.generated_token)),
+                self.always_token.map(|token| SyntaxElement::Token(token)),
+                self.by_token.map(|token| SyntaxElement::Token(token)),
+                self.default_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.as_token)),
+                Some(SyntaxElement::Token(self.identity_token)),
+                self.options
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_interval_expression(
     interval_token: SyntaxToken,
     value: SqlStringLiteralExpression,
@@ -930,6 +1009,51 @@ pub fn psql_security_option(
         [
             Some(SyntaxElement::Token(security_token)),
             Some(SyntaxElement::Token(value_token)),
+        ],
+    ))
+}
+pub fn psql_sequence_option(
+    name_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlSequenceOptionBuilder {
+    PsqlSequenceOptionBuilder {
+        name_token,
+        value,
+        joiner_token: None,
+    }
+}
+pub struct PsqlSequenceOptionBuilder {
+    name_token: SyntaxToken,
+    value: AnySqlExpression,
+    joiner_token: Option<SyntaxToken>,
+}
+impl PsqlSequenceOptionBuilder {
+    pub fn with_joiner_token(mut self, joiner_token: SyntaxToken) -> Self {
+        self.joiner_token = Some(joiner_token);
+        self
+    }
+    pub fn build(self) -> PsqlSequenceOption {
+        PsqlSequenceOption::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_SEQUENCE_OPTION,
+            [
+                Some(SyntaxElement::Token(self.name_token)),
+                self.joiner_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.value.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_sequence_options(
+    l_paren_token: SyntaxToken,
+    items: PsqlSequenceOptionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlSequenceOptions {
+    PsqlSequenceOptions::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SEQUENCE_OPTIONS,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
 }
@@ -3967,6 +4091,18 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_sequence_option_list<I>(items: I) -> PsqlSequenceOptionList
+where
+    I: IntoIterator<Item = PsqlSequenceOption>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlSequenceOptionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SEQUENCE_OPTION_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_table_and_columns_list<I, S>(items: I, separators: S) -> PsqlTableAndColumnsList

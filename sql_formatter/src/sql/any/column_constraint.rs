@@ -16,6 +16,8 @@ impl FormatRule<AnySqlColumnConstraint> for FormatAnySqlColumnConstraint {
             AnySqlColumnConstraint::SqlPrimaryKeyConstraint(node) => node.format().fmt(f),
             AnySqlColumnConstraint::SqlReferencesConstraint(node) => node.format().fmt(f),
             AnySqlColumnConstraint::SqlUniqueConstraint(node) => node.format().fmt(f),
+            AnySqlColumnConstraint::PsqlGeneratedColumnConstraint(node) => node.format().fmt(f),
+            AnySqlColumnConstraint::PsqlIdentityConstraint(node) => node.format().fmt(f),
         }
     }
 }

@@ -584,6 +584,41 @@ AnySqlColumnConstraint =
    | SqlUniqueConstraint
    | SqlCheckConstraint
    | SqlReferencesConstraint
+   | PsqlIdentityConstraint
+   | PsqlGeneratedColumnConstraint
+
+// `GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequence options)]` --
+// exactly one of `always` / `by default` is present.
+PsqlIdentityConstraint =
+   'generated'
+   'always'?
+   ('by' 'default')?
+   'as'
+   'identity'
+   options: PsqlSequenceOptions?
+
+// `(START WITH 1 INCREMENT BY 1 ...)`
+PsqlSequenceOptions =
+   '('
+   items: PsqlSequenceOptionList
+   ')'
+
+PsqlSequenceOptionList = PsqlSequenceOption*
+
+PsqlSequenceOption =
+   name: ('start' | 'increment' | 'minvalue' | 'maxvalue' | 'cache')
+   joiner: ('with' | 'by')?
+   value: AnySqlExpression
+
+// `GENERATED ALWAYS AS (expr) STORED`
+PsqlGeneratedColumnConstraint =
+   'generated'
+   'always'
+   'as'
+   '('
+   expression: AnySqlExpression
+   ')'
+   'stored'
 
 // `CONSTRAINT name` -- names the constraint that follows it.
 SqlConstraintName =

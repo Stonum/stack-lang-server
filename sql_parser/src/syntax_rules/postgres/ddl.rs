@@ -33,6 +33,84 @@ pub(crate) fn eat_table_persistence(p: &mut SqlParser) {
     }
 }
 
+/// `GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(options)]` or
+/// `GENERATED ALWAYS AS (expr) STORED` column constraint.
+pub(crate) fn parse_generated_constraint(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![generated]) {
+        return Absent;
+    }
+
+    let is_stored = p.nth_at(1, T![always]) && p.nth_at(2, T![as]) && p.nth_at(3, T!['(']);
+
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![generated]);
+
+            if is_stored {
+                p.bump(T![always]);
+                p.bump(T![as]);
+                p.bump(T!['(']);
+                parse_expression(p).or_add_diagnostic(p, expected_expression);
+                p.expect(T![')']);
+                p.expect(T![stored]);
+                return Present(m.complete(p, PSQL_GENERATED_COLUMN_CONSTRAINT));
+            }
+
+            if p.at(T![always]) {
+                p.bump(T![always]);
+            } else if p.at(T![by]) {
+                p.bump(T![by]);
+                p.expect(T![default]);
+            } else {
+                let range = p.cur_range();
+                let err =
+                    p.err_builder("Expected `always` or `by default` after `generated`", range);
+                p.error(err);
+            }
+            p.expect(T![as]);
+            p.expect(T![identity]);
+            let _ = parse_sequence_options(p);
+            Present(m.complete(p, PSQL_IDENTITY_CONSTRAINT))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`GENERATED` columns", marker.range(p)),
+    )
+}
+
+/// `(START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE n CACHE 1)`
+fn parse_sequence_options(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T!['(']) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T!['(']);
+
+    let items = p.start();
+    while is_at_sequence_option(p) {
+        let item = p.start();
+        p.bump_any();
+        if p.at(T![with]) || p.at(T![by]) {
+            p.bump_any();
+        }
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        item.complete(p, PSQL_SEQUENCE_OPTION);
+    }
+    items.complete(p, PSQL_SEQUENCE_OPTION_LIST);
+
+    p.expect(T![')']);
+    Present(m.complete(p, PSQL_SEQUENCE_OPTIONS))
+}
+
+fn is_at_sequence_option(p: &mut SqlParser) -> bool {
+    p.at(T![start])
+        || p.at(T![increment])
+        || p.at(T![minvalue])
+        || p.at(T![maxvalue])
+        || p.at(T![cache])
+}
+
 /// `TABLE name` as the query of `CREATE TABLE ... AS`.
 pub(crate) fn parse_table_query(p: &mut SqlParser) -> ParsedSyntax {
     if !p.at(T![table]) {
