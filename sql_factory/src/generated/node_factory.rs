@@ -682,6 +682,20 @@ pub fn psql_limit_clause(
         ],
     ))
 }
+pub fn psql_named_argument(
+    name: SqlName,
+    fat_arrow_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlNamedArgument {
+    PsqlNamedArgument::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_NAMED_ARGUMENT,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Token(fat_arrow_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_on_conflict_clause(
     on_token: SyntaxToken,
     conflict_token: SyntaxToken,
@@ -1395,7 +1409,7 @@ pub fn sql_boolean_literal_expression(value_token: SyntaxToken) -> SqlBooleanLit
 pub fn sql_call_expression(
     name: AnySqlName,
     l_paren_token: SyntaxToken,
-    arguments: SqlExpressionList,
+    arguments: SqlCallArgumentList,
     r_paren_token: SyntaxToken,
 ) -> SqlCallExpressionBuilder {
     SqlCallExpressionBuilder {
@@ -1410,7 +1424,7 @@ pub fn sql_call_expression(
 pub struct SqlCallExpressionBuilder {
     name: AnySqlName,
     l_paren_token: SyntaxToken,
-    arguments: SqlExpressionList,
+    arguments: SqlCallArgumentList,
     r_paren_token: SyntaxToken,
     schema: Option<SqlShemaName>,
     filter_clause: Option<PsqlFilterClause>,
@@ -3691,6 +3705,27 @@ where
     let length = items.len() + separators.len();
     SqlAliasColumnDefinitionList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_ALIAS_COLUMN_DEFINITION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn sql_call_argument_list<I, S>(items: I, separators: S) -> SqlCallArgumentList
+where
+    I: IntoIterator<Item = AnySqlCallArgument>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    SqlCallArgumentList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_CALL_ARGUMENT_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

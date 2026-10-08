@@ -781,9 +781,21 @@ SqlCallExpression =
    schema: SqlShemaName?
    name: AnySqlName
    '('
-   arguments: SqlExpressionList
+   arguments: SqlCallArgumentList
    ')'
    filter_clause: PsqlFilterClause?
+
+SqlCallArgumentList = (AnySqlCallArgument (',' AnySqlCallArgument)*)
+
+AnySqlCallArgument =
+   AnySqlExpression
+   | PsqlNamedArgument
+
+// `name => value` -- Postgres named notation, e.g. `make_interval(hours => 1)`.
+PsqlNamedArgument =
+   name: SqlName
+   '=>'
+   value: AnySqlExpression
 
 SqlWindowFunctionExpression =
    call: SqlCallExpression

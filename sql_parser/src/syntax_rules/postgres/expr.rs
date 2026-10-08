@@ -4,13 +4,30 @@ use biome_parser::prelude::*;
 
 use super::parse_error::postgres_only_syntax_error;
 use crate::syntax_rules::expr::{
-    SqlExpressionList, parse_expression, parse_string_literal_expression, parse_type_name,
+    SqlExpressionList, parse_expression, parse_name, parse_string_literal_expression,
+    parse_type_name,
 };
 use crate::syntax_rules::parse_error::{
-    expected_expression, expected_string_literal, expected_type_name,
+    expected_expression, expected_identifier, expected_string_literal, expected_type_name,
 };
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
+
+/// `name => value` -- a named function argument. The caller has already
+/// checked that `name =>` is ahead.
+pub(crate) fn parse_named_argument(p: &mut SqlParser) -> ParsedSyntax {
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            p.bump(T![=>]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            Present(m.complete(p, PSQL_NAMED_ARGUMENT))
+        },
+        |p, marker| postgres_only_syntax_error(p, "Named arguments", marker.range(p)),
+    )
+}
 
 /// `array[1, 2, 3]` -- Postgres-only, no native array type/literal in
 /// T-SQL (including the mlang extension's own `~[...]~` escaped spelling

@@ -4,6 +4,7 @@ pub(crate) mod cte_materialized_hint;
 pub(crate) mod drop_function_parameters;
 pub(crate) mod function_parameter;
 pub(crate) mod language_option;
+pub(crate) mod named_argument;
 pub(crate) mod parameter_default;
 pub(crate) mod returns_null_option;
 pub(crate) mod returns_table_column;
