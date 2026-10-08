@@ -9,6 +9,7 @@ use super::ddl::{
 use super::delete::{parse_delete_statement, parse_delete_statement_body};
 use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
+use super::postgres::maintenance::{parse_analyze_statement, parse_vacuum_statement};
 use super::select::{parse_select_statement, parse_select_statement_body};
 use super::update::{parse_update_statement, parse_update_statement_body};
 use super::values::{parse_values_clause, parse_values_clause_body};
@@ -32,7 +33,10 @@ pub const STMT_RECOVERY_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![drop],
     T![create],
     T![grant],
-    T![truncate]
+    T![truncate],
+    T![vacuum],
+    T![analyze],
+    T![analyse]
 ];
 
 pub(crate) fn parse_statements(p: &mut SqlParser, statement_list: Marker) {
@@ -84,6 +88,8 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
         T![create] => parse_create_statement(p),
         T![grant] => parse_grant_statement(p),
         T![truncate] => parse_truncate_statement(p),
+        T![vacuum] => parse_vacuum_statement(p),
+        T![analyze] | T![analyse] => parse_analyze_statement(p),
         _ => Absent,
     }
 }

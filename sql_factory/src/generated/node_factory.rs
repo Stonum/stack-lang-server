@@ -7,6 +7,45 @@ use sql_syntax::{
     SqlSyntaxElement as SyntaxElement, SqlSyntaxNode as SyntaxNode, SqlSyntaxToken as SyntaxToken,
     *,
 };
+pub fn psql_analyze_statement(
+    analyze_token: SyntaxToken,
+    tables: PsqlTableAndColumnsList,
+) -> PsqlAnalyzeStatementBuilder {
+    PsqlAnalyzeStatementBuilder {
+        analyze_token,
+        tables,
+        verbose_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlAnalyzeStatementBuilder {
+    analyze_token: SyntaxToken,
+    tables: PsqlTableAndColumnsList,
+    verbose_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlAnalyzeStatementBuilder {
+    pub fn with_verbose_token(mut self, verbose_token: SyntaxToken) -> Self {
+        self.verbose_token = Some(verbose_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlAnalyzeStatement {
+        PsqlAnalyzeStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_ANALYZE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.analyze_token)),
+                self.verbose_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_array_expression(
     array_token: SyntaxToken,
     l_brack_token: SyntaxToken,
@@ -923,6 +962,32 @@ pub fn psql_substring_from_clause(
         ],
     ))
 }
+pub fn psql_table_and_columns(table: SqlTableName) -> PsqlTableAndColumnsBuilder {
+    PsqlTableAndColumnsBuilder {
+        table,
+        columns: None,
+    }
+}
+pub struct PsqlTableAndColumnsBuilder {
+    table: SqlTableName,
+    columns: Option<SqlColumnList>,
+}
+impl PsqlTableAndColumnsBuilder {
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
+        self
+    }
+    pub fn build(self) -> PsqlTableAndColumns {
+        PsqlTableAndColumns::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_TABLE_AND_COLUMNS,
+            [
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_tilde_array_expression(
     array_token: SyntaxToken,
     open_tilde_token: SyntaxToken,
@@ -1085,6 +1150,66 @@ pub fn psql_type_array_suffix(
             Some(SyntaxElement::Token(r_brack_token)),
         ],
     ))
+}
+pub fn psql_vacuum_statement(
+    vacuum_token: SyntaxToken,
+    tables: PsqlTableAndColumnsList,
+) -> PsqlVacuumStatementBuilder {
+    PsqlVacuumStatementBuilder {
+        vacuum_token,
+        tables,
+        full_token: None,
+        freeze_token: None,
+        verbose_token: None,
+        analyze_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlVacuumStatementBuilder {
+    vacuum_token: SyntaxToken,
+    tables: PsqlTableAndColumnsList,
+    full_token: Option<SyntaxToken>,
+    freeze_token: Option<SyntaxToken>,
+    verbose_token: Option<SyntaxToken>,
+    analyze_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlVacuumStatementBuilder {
+    pub fn with_full_token(mut self, full_token: SyntaxToken) -> Self {
+        self.full_token = Some(full_token);
+        self
+    }
+    pub fn with_freeze_token(mut self, freeze_token: SyntaxToken) -> Self {
+        self.freeze_token = Some(freeze_token);
+        self
+    }
+    pub fn with_verbose_token(mut self, verbose_token: SyntaxToken) -> Self {
+        self.verbose_token = Some(verbose_token);
+        self
+    }
+    pub fn with_analyze_token(mut self, analyze_token: SyntaxToken) -> Self {
+        self.analyze_token = Some(analyze_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlVacuumStatement {
+        PsqlVacuumStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_VACUUM_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.vacuum_token)),
+                self.full_token.map(|token| SyntaxElement::Token(token)),
+                self.freeze_token.map(|token| SyntaxElement::Token(token)),
+                self.verbose_token.map(|token| SyntaxElement::Token(token)),
+                self.analyze_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn psql_view_option(
     name: SqlName,
@@ -3423,6 +3548,27 @@ where
     let length = items.len() + separators.len();
     PsqlReturnsTableColumnList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_table_and_columns_list<I, S>(items: I, separators: S) -> PsqlTableAndColumnsList
+where
+    I: IntoIterator<Item = PsqlTableAndColumns>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlTableAndColumnsList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TABLE_AND_COLUMNS_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

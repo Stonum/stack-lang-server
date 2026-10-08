@@ -9,6 +9,7 @@ pub(crate) mod returns_null_option;
 pub(crate) mod returns_table_column;
 pub(crate) mod security_option;
 pub(crate) mod strict_option;
+pub(crate) mod table_and_columns;
 pub(crate) mod tilde_array_suffix;
 pub(crate) mod trigger_event;
 pub(crate) mod trigger_referencing_item;

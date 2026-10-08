@@ -22,11 +22,13 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlTruncateStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlUpdateStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlValuesClause(node) => node.format().fmt(f),
+            AnySqlStatement::PsqlAnalyzeStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateFunctionStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreatePolicyStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateTriggerStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlDropPolicyStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlDropTriggerStatement(node) => node.format().fmt(f),
+            AnySqlStatement::PsqlVacuumStatement(node) => node.format().fmt(f),
         }
     }
 }
