@@ -77,3 +77,7 @@ pub fn expected_references_clause(p: &SqlParser, range: TextRange) -> ParseDiagn
 pub fn expected_alter_table_action(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("alter table action", range, p)
 }
+
+pub fn expected_column_definition(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("column definition", range, p)
+}

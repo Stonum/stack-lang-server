@@ -3055,6 +3055,66 @@ pub struct PsqlWithDataClauseFields {
     pub data_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlAddColumnAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlAddColumnAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlAddColumnActionFields {
+        SqlAddColumnActionFields {
+            add_token: self.add_token(),
+            column_token: self.column_token(),
+            if_token: self.if_token(),
+            not_token: self.not_token(),
+            exists_token: self.exists_token(),
+            column: self.column(),
+        }
+    }
+    pub fn add_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn column_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
+    pub fn column(&self) -> SyntaxResult<SqlColumnDefinition> {
+        support::required_node(&self.syntax, 5usize)
+    }
+}
+impl Serialize for SqlAddColumnAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlAddColumnActionFields {
+    pub add_token: SyntaxResult<SyntaxToken>,
+    pub column_token: Option<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub not_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub column: SyntaxResult<SqlColumnDefinition>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlAlias {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4511,6 +4571,66 @@ pub struct SqlDeleteStatementFields {
     pub where_clause: Option<SqlWhereClause>,
     pub returning_clause: Option<PsqlReturningClause>,
     pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlDropColumnAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlDropColumnAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlDropColumnActionFields {
+        SqlDropColumnActionFields {
+            drop_token: self.drop_token(),
+            column_token: self.column_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            drop_behavior: self.drop_behavior(),
+        }
+    }
+    pub fn drop_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn column_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for SqlDropColumnAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlDropColumnActionFields {
+    pub drop_token: SyntaxResult<SyntaxToken>,
+    pub column_token: Option<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<SqlName>,
+    pub drop_behavior: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlDropFunctionStatement {
@@ -7926,6 +8046,32 @@ pub struct SqlWithClauseFields {
     pub with_token: SyntaxResult<SyntaxToken>,
     pub recursive_token: Option<SyntaxToken>,
     pub ctes: SqlCteDefinitionList,
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnySqlAlterTableAction {
+    SqlAddColumnAction(SqlAddColumnAction),
+    SqlAlterTriggerAction(SqlAlterTriggerAction),
+    SqlDropColumnAction(SqlDropColumnAction),
+}
+impl AnySqlAlterTableAction {
+    pub fn as_sql_add_column_action(&self) -> Option<&SqlAddColumnAction> {
+        match &self {
+            Self::SqlAddColumnAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_alter_trigger_action(&self) -> Option<&SqlAlterTriggerAction> {
+        match &self {
+            Self::SqlAlterTriggerAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_drop_column_action(&self) -> Option<&SqlDropColumnAction> {
+        match &self {
+            Self::SqlDropColumnAction(item) => Some(item),
+            _ => None,
+        }
+    }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlAnyAllSource {
@@ -12346,6 +12492,67 @@ impl From<PsqlWithDataClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlAddColumnAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ADD_COLUMN_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ADD_COLUMN_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlAddColumnAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlAddColumnAction")
+                .field("add_token", &support::DebugSyntaxResult(self.add_token()))
+                .field(
+                    "column_token",
+                    &support::DebugOptionalElement(self.column_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("column", &support::DebugSyntaxResult(self.column()))
+                .finish()
+        } else {
+            f.debug_struct("SqlAddColumnAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlAddColumnAction> for SyntaxNode {
+    fn from(n: SqlAddColumnAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlAddColumnAction> for SyntaxElement {
+    fn from(n: SqlAddColumnAction) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlAlias {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -13917,6 +14124,67 @@ impl From<SqlDeleteStatement> for SyntaxNode {
 }
 impl From<SqlDeleteStatement> for SyntaxElement {
     fn from(n: SqlDeleteStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlDropColumnAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_DROP_COLUMN_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_DROP_COLUMN_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlDropColumnAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlDropColumnAction")
+                .field("drop_token", &support::DebugSyntaxResult(self.drop_token()))
+                .field(
+                    "column_token",
+                    &support::DebugOptionalElement(self.column_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlDropColumnAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlDropColumnAction> for SyntaxNode {
+    fn from(n: SqlDropColumnAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlDropColumnAction> for SyntaxElement {
+    fn from(n: SqlDropColumnAction) -> Self {
         n.syntax.into()
     }
 }
@@ -17911,6 +18179,82 @@ impl From<SqlWithClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl From<SqlAddColumnAction> for AnySqlAlterTableAction {
+    fn from(node: SqlAddColumnAction) -> Self {
+        Self::SqlAddColumnAction(node)
+    }
+}
+impl From<SqlAlterTriggerAction> for AnySqlAlterTableAction {
+    fn from(node: SqlAlterTriggerAction) -> Self {
+        Self::SqlAlterTriggerAction(node)
+    }
+}
+impl From<SqlDropColumnAction> for AnySqlAlterTableAction {
+    fn from(node: SqlDropColumnAction) -> Self {
+        Self::SqlDropColumnAction(node)
+    }
+}
+impl AstNode for AnySqlAlterTableAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SqlAddColumnAction::KIND_SET
+        .union(SqlAlterTriggerAction::KIND_SET)
+        .union(SqlDropColumnAction::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            SQL_ADD_COLUMN_ACTION | SQL_ALTER_TRIGGER_ACTION | SQL_DROP_COLUMN_ACTION
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_ADD_COLUMN_ACTION => Self::SqlAddColumnAction(SqlAddColumnAction { syntax }),
+            SQL_ALTER_TRIGGER_ACTION => {
+                Self::SqlAlterTriggerAction(SqlAlterTriggerAction { syntax })
+            }
+            SQL_DROP_COLUMN_ACTION => Self::SqlDropColumnAction(SqlDropColumnAction { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlAddColumnAction(it) => &it.syntax,
+            Self::SqlAlterTriggerAction(it) => &it.syntax,
+            Self::SqlDropColumnAction(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlAddColumnAction(it) => it.syntax,
+            Self::SqlAlterTriggerAction(it) => it.syntax,
+            Self::SqlDropColumnAction(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnySqlAlterTableAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlAddColumnAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlAlterTriggerAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlDropColumnAction(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnySqlAlterTableAction> for SyntaxNode {
+    fn from(n: AnySqlAlterTableAction) -> Self {
+        match n {
+            AnySqlAlterTableAction::SqlAddColumnAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlAlterTriggerAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlDropColumnAction(it) => it.into(),
+        }
+    }
+}
+impl From<AnySqlAlterTableAction> for SyntaxElement {
+    fn from(n: AnySqlAlterTableAction) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlParenthesizedExpression> for AnySqlAnyAllSource {
     fn from(node: SqlParenthesizedExpression) -> Self {
         Self::SqlParenthesizedExpression(node)
@@ -20399,6 +20743,11 @@ impl From<AnySqlTypeModifier> for SyntaxElement {
         node.into()
     }
 }
+impl std::fmt::Display for AnySqlAlterTableAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnySqlAnyAllSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -20834,6 +21183,11 @@ impl std::fmt::Display for PsqlWithDataClause {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlAddColumnAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlAlias {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -20970,6 +21324,11 @@ impl std::fmt::Display for SqlDefaultConstraint {
     }
 }
 impl std::fmt::Display for SqlDeleteStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlDropColumnAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -22611,7 +22970,7 @@ impl Serialize for SqlAlterTableActionList {
 }
 impl AstSeparatedList for SqlAlterTableActionList {
     type Language = Language;
-    type Node = SqlAlterTriggerAction;
+    type Node = AnySqlAlterTableAction;
     fn syntax_list(&self) -> &SyntaxList {
         &self.syntax_list
     }
@@ -22626,15 +22985,15 @@ impl Debug for SqlAlterTableActionList {
     }
 }
 impl IntoIterator for SqlAlterTableActionList {
-    type Item = SyntaxResult<SqlAlterTriggerAction>;
-    type IntoIter = AstSeparatedListNodesIterator<Language, SqlAlterTriggerAction>;
+    type Item = SyntaxResult<AnySqlAlterTableAction>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnySqlAlterTableAction>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
 impl IntoIterator for &SqlAlterTableActionList {
-    type Item = SyntaxResult<SqlAlterTriggerAction>;
-    type IntoIter = AstSeparatedListNodesIterator<Language, SqlAlterTriggerAction>;
+    type Item = SyntaxResult<AnySqlAlterTableAction>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnySqlAlterTableAction>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

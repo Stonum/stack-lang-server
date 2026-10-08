@@ -21,3 +21,24 @@ alter table if exists t enable trigger all, disable trigger "Trg";
 "#
     );
 }
+
+#[test]
+fn format_alter_table_add_and_drop_columns() {
+    assert_fmt!(
+        r#"--
+alter table t add column if not exists a int not null default 0, drop column if exists b cascade;
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_add_column_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+ALTER TABLE t  ADD   COLUMN  a  varchar(10)  NULL ,DROP  b
+"#,
+        r#"--
+alter table t add column a varchar(10) null, drop b
+"#
+    );
+}

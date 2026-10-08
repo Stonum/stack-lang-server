@@ -66,3 +66,57 @@ fn test_alter_table_trigger_without_target_reports_error() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_alter_table_add_column_if_not_exists() {
+    let res = parse(
+        r#"alter table #tmp add column if not exists "Поле" numeric(15, 2) not null default 0"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_ADD_COLUMN_ACTION"));
+}
+
+#[test]
+fn test_alter_table_drop_columns() {
+    let res = parse(
+        "alter table ~Первая таблица~ drop column if exists a, drop column b cascade, drop c",
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert_eq!(tree.matches("SQL_DROP_COLUMN_ACTION").count(), 3);
+}
+
+#[test]
+fn test_alter_table_add_and_drop_mixed() {
+    let res = parse("alter table t add b int, drop column a", postgres());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_alter_table_drop_column_does_not_swallow_next_drop_statement() {
+    let res = parse("alter table t drop column a\ndrop table u", postgres());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_DROP_TABLE_STATEMENT"));
+}
+
+#[test]
+fn test_alter_table_add_column_without_definition_reports_error() {
+    let res = parse("alter table t add column;", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_column_is_reserved() {
+    let res = parse("select column from t", postgres());
+
+    assert!(res.has_errors());
+}
