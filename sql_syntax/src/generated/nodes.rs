@@ -3025,6 +3025,51 @@ pub struct SqlCallExpressionFields {
     pub filter_clause: Option<PsqlFilterClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCallStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCallStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCallStatementFields {
+        SqlCallStatementFields {
+            call_token: self.call_token(),
+            procedure: self.procedure(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn call_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn procedure(&self) -> SyntaxResult<SqlCallExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlCallStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCallStatementFields {
+    pub call_token: SyntaxResult<SyntaxToken>,
+    pub procedure: SyntaxResult<SqlCallExpression>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlCaseElseClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -7269,6 +7314,7 @@ impl AnySqlSelectQuantifier {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlStatement {
     SqlBogusStatement(SqlBogusStatement),
+    SqlCallStatement(SqlCallStatement),
     SqlCreateTableStatement(SqlCreateTableStatement),
     SqlCreateViewStatement(SqlCreateViewStatement),
     SqlDeleteStatement(SqlDeleteStatement),
@@ -7294,6 +7340,12 @@ impl AnySqlStatement {
     pub fn as_sql_bogus_statement(&self) -> Option<&SqlBogusStatement> {
         match &self {
             Self::SqlBogusStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_call_statement(&self) -> Option<&SqlCallStatement> {
+        match &self {
+            Self::SqlCallStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -10899,6 +10951,58 @@ impl From<SqlCallExpression> for SyntaxNode {
 }
 impl From<SqlCallExpression> for SyntaxElement {
     fn from(n: SqlCallExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlCallStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_CALL_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_CALL_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCallStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCallStatement")
+                .field("call_token", &support::DebugSyntaxResult(self.call_token()))
+                .field("procedure", &support::DebugSyntaxResult(self.procedure()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlCallStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCallStatement> for SyntaxNode {
+    fn from(n: SqlCallStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCallStatement> for SyntaxElement {
+    fn from(n: SqlCallStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -16552,6 +16656,11 @@ impl From<SqlBogusStatement> for AnySqlStatement {
         Self::SqlBogusStatement(node)
     }
 }
+impl From<SqlCallStatement> for AnySqlStatement {
+    fn from(node: SqlCallStatement) -> Self {
+        Self::SqlCallStatement(node)
+    }
+}
 impl From<SqlCreateTableStatement> for AnySqlStatement {
     fn from(node: SqlCreateTableStatement) -> Self {
         Self::SqlCreateTableStatement(node)
@@ -16655,6 +16764,7 @@ impl From<PsqlVacuumStatement> for AnySqlStatement {
 impl AstNode for AnySqlStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlBogusStatement::KIND_SET
+        .union(SqlCallStatement::KIND_SET)
         .union(SqlCreateTableStatement::KIND_SET)
         .union(SqlCreateViewStatement::KIND_SET)
         .union(SqlDeleteStatement::KIND_SET)
@@ -16679,6 +16789,7 @@ impl AstNode for AnySqlStatement {
         matches!(
             kind,
             SQL_BOGUS_STATEMENT
+                | SQL_CALL_STATEMENT
                 | SQL_CREATE_TABLE_STATEMENT
                 | SQL_CREATE_VIEW_STATEMENT
                 | SQL_DELETE_STATEMENT
@@ -16704,6 +16815,7 @@ impl AstNode for AnySqlStatement {
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             SQL_BOGUS_STATEMENT => Self::SqlBogusStatement(SqlBogusStatement { syntax }),
+            SQL_CALL_STATEMENT => Self::SqlCallStatement(SqlCallStatement { syntax }),
             SQL_CREATE_TABLE_STATEMENT => {
                 Self::SqlCreateTableStatement(SqlCreateTableStatement { syntax })
             }
@@ -16749,6 +16861,7 @@ impl AstNode for AnySqlStatement {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::SqlBogusStatement(it) => &it.syntax,
+            Self::SqlCallStatement(it) => &it.syntax,
             Self::SqlCreateTableStatement(it) => &it.syntax,
             Self::SqlCreateViewStatement(it) => &it.syntax,
             Self::SqlDeleteStatement(it) => &it.syntax,
@@ -16774,6 +16887,7 @@ impl AstNode for AnySqlStatement {
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::SqlBogusStatement(it) => it.syntax,
+            Self::SqlCallStatement(it) => it.syntax,
             Self::SqlCreateTableStatement(it) => it.syntax,
             Self::SqlCreateViewStatement(it) => it.syntax,
             Self::SqlDeleteStatement(it) => it.syntax,
@@ -16801,6 +16915,7 @@ impl std::fmt::Debug for AnySqlStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::SqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlCallStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDeleteStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -16828,6 +16943,7 @@ impl From<AnySqlStatement> for SyntaxNode {
     fn from(n: AnySqlStatement) -> Self {
         match n {
             AnySqlStatement::SqlBogusStatement(it) => it.into(),
+            AnySqlStatement::SqlCallStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableStatement(it) => it.into(),
             AnySqlStatement::SqlCreateViewStatement(it) => it.into(),
             AnySqlStatement::SqlDeleteStatement(it) => it.into(),
@@ -17452,6 +17568,11 @@ impl std::fmt::Display for SqlBooleanLiteralExpression {
     }
 }
 impl std::fmt::Display for SqlCallExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlCallStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

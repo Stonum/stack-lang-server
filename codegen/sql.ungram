@@ -113,6 +113,7 @@ AnySqlStatement =
    | SqlDropViewStatement
    | SqlGrantStatement
    | SqlTruncateStatement
+   | SqlCallStatement
    | PsqlVacuumStatement
    | PsqlAnalyzeStatement
    | PsqlCreateFunctionStatement
@@ -449,6 +450,12 @@ SqlTruncateStatement =
 PsqlTruncateIdentityClause =
    action: ('restart' | 'continue')
    'identity'
+
+// `CALL name(arg, ...) [;]` -- invokes a stored procedure.
+SqlCallStatement =
+   'call'
+   procedure: SqlCallExpression
+   ';'?
 
 // `VACUUM [FULL] [FREEZE] [VERBOSE] [ANALYZE] [table [(col, ...)], ...] [;]`
 // -- the parenthesized `VACUUM (option, ...)` form isn't modeled yet.

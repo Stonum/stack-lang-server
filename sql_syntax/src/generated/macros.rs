@@ -275,6 +275,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlCallExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_CALL_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlCallStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_CASE_ELSE_CLAUSE => {
                     let $pattern = unsafe { $crate::SqlCaseElseClause::new_unchecked(node) };
                     $body
