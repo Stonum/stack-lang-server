@@ -23,3 +23,4 @@ pub(crate) mod trigger_for_each_clause;
 pub(crate) mod trigger_referencing_clause;
 pub(crate) mod trigger_update_of_clause;
 pub(crate) mod trigger_when_clause;
+pub(crate) mod truncate_identity_clause;

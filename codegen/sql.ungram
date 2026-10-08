@@ -112,6 +112,7 @@ AnySqlStatement =
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
+   | SqlTruncateStatement
    | PsqlCreateFunctionStatement
    | PsqlCreatePolicyStatement
    | PsqlDropPolicyStatement
@@ -431,6 +432,21 @@ SqlDropTableStatement =
    ';'?
 
 SqlTableNameList = (SqlTableName (',' SqlTableName)*)
+
+// `TRUNCATE [TABLE] name (',' name)* [RESTART|CONTINUE IDENTITY]
+// [CASCADE|RESTRICT] [;]` -- the identity clause and `CASCADE`/`RESTRICT`
+// are Postgres-only.
+SqlTruncateStatement =
+   'truncate'
+   'table'?
+   tables: SqlTableNameList
+   identity_clause: PsqlTruncateIdentityClause?
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+PsqlTruncateIdentityClause =
+   action: ('restart' | 'continue')
+   'identity'
 
 // `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --
 // column list only for now, no column-level (NOT NULL/DEFAULT/PRIMARY KEY/

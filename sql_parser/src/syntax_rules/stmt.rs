@@ -3,7 +3,9 @@ use biome_parser::parse_recovery::ParseRecoveryTokenSet;
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::ddl::{parse_create_statement, parse_drop_statement, parse_grant_statement};
+use super::ddl::{
+    parse_create_statement, parse_drop_statement, parse_grant_statement, parse_truncate_statement,
+};
 use super::delete::{parse_delete_statement, parse_delete_statement_body};
 use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
@@ -29,7 +31,8 @@ pub const STMT_RECOVERY_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![insert],
     T![drop],
     T![create],
-    T![grant]
+    T![grant],
+    T![truncate]
 ];
 
 pub(crate) fn parse_statements(p: &mut SqlParser, statement_list: Marker) {
@@ -80,6 +83,7 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
         T![drop] => parse_drop_statement(p),
         T![create] => parse_create_statement(p),
         T![grant] => parse_grant_statement(p),
+        T![truncate] => parse_truncate_statement(p),
         _ => Absent,
     }
 }

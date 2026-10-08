@@ -4,16 +4,17 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::expr::{
-    EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_start, is_at_tilde_name_start,
-    parse_any_name, parse_name, parse_table_name, parse_type_name,
+    EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_segment_start, is_at_name_start,
+    is_at_tilde_name_start, parse_any_name, parse_name, parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
 use super::postgres::ddl::{
     eat_cascade_or_restrict, parse_create_function_statement, parse_create_policy_statement,
     parse_create_trigger_statement, parse_drop_function_parameters, parse_drop_policy_statement,
-    parse_drop_trigger_statement, parse_view_options,
+    parse_drop_trigger_statement, parse_truncate_identity_clause, parse_view_options,
 };
 use super::select::parse_select_statement;
+use super::stmt::STMT_RECOVERY_SET;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T, *};
 
@@ -298,6 +299,26 @@ fn parse_drop_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_DROP_TABLE_STATEMENT))
 }
 
+/// `TRUNCATE [TABLE] name, ... [RESTART|CONTINUE IDENTITY] [CASCADE|RESTRICT] [;]`
+pub(crate) fn parse_truncate_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![truncate]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![truncate]);
+    p.eat(T![table]);
+
+    SqlTableNameList.parse_list(p);
+
+    let _ = parse_truncate_identity_clause(p);
+    eat_cascade_or_restrict(p);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, SQL_TRUNCATE_STATEMENT))
+}
+
 /// A plain or schema-qualified table name (`table`/`schema.table`), or a
 /// mlang tilde name -- no alias, unlike [super::from::parse_table_binding].
 pub(crate) fn parse_table_name_for_ddl(p: &mut SqlParser) -> ParsedSyntax {
@@ -305,7 +326,7 @@ pub(crate) fn parse_table_name_for_ddl(p: &mut SqlParser) -> ParsedSyntax {
         return Present(parse_table_name(p, 0));
     }
 
-    if !p.at(T![ident]) {
+    if !is_at_name_segment_start(p) {
         return Absent;
     }
 
@@ -325,7 +346,13 @@ impl ParseSeparatedList for SqlTableNameList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![;]) || p.at(T![cascade]) || p.at(T![restrict])
+        // The next statement may follow without a `;` in mlang command batches.
+        p.at(EOF)
+            || p.at_ts(STMT_RECOVERY_SET)
+            || p.at(T![cascade])
+            || p.at(T![restrict])
+            || p.at(T![restart])
+            || p.at(T![continue])
     }
 
     fn recover(
@@ -342,6 +369,10 @@ impl ParseSeparatedList for SqlTableNameList {
 
     fn separating_element_kind(&mut self) -> Self::Kind {
         T![,]
+    }
+
+    fn allow_empty(&self) -> bool {
+        false
     }
 }
 

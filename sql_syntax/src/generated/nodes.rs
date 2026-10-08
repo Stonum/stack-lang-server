@@ -2290,6 +2290,46 @@ pub struct PsqlTriggerWhenClauseFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTruncateIdentityClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTruncateIdentityClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTruncateIdentityClauseFields {
+        PsqlTruncateIdentityClauseFields {
+            action: self.action(),
+            identity_token: self.identity_token(),
+        }
+    }
+    pub fn action(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn identity_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlTruncateIdentityClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTruncateIdentityClauseFields {
+    pub action: SyntaxResult<SyntaxToken>,
+    pub identity_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTypeArraySuffix {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5873,6 +5913,66 @@ pub struct SqlTimeZoneModifierFields {
     pub zone_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlTruncateStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlTruncateStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlTruncateStatementFields {
+        SqlTruncateStatementFields {
+            truncate_token: self.truncate_token(),
+            table_token: self.table_token(),
+            tables: self.tables(),
+            identity_clause: self.identity_clause(),
+            drop_behavior: self.drop_behavior(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn truncate_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn table_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn tables(&self) -> SqlTableNameList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn identity_clause(&self) -> Option<PsqlTruncateIdentityClause> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for SqlTruncateStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlTruncateStatementFields {
+    pub truncate_token: SyntaxResult<SyntaxToken>,
+    pub table_token: Option<SyntaxToken>,
+    pub tables: SqlTableNameList,
+    pub identity_clause: Option<PsqlTruncateIdentityClause>,
+    pub drop_behavior: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlTypeArguments {
     pub(crate) syntax: SyntaxNode,
 }
@@ -7024,6 +7124,7 @@ pub enum AnySqlStatement {
     SqlGrantStatement(SqlGrantStatement),
     SqlInsertStatement(SqlInsertStatement),
     SqlSelectStatement(SqlSelectStatement),
+    SqlTruncateStatement(SqlTruncateStatement),
     SqlUpdateStatement(SqlUpdateStatement),
     SqlValuesClause(SqlValuesClause),
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
@@ -7096,6 +7197,12 @@ impl AnySqlStatement {
     pub fn as_sql_select_statement(&self) -> Option<&SqlSelectStatement> {
         match &self {
             Self::SqlSelectStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_truncate_statement(&self) -> Option<&SqlTruncateStatement> {
+        match &self {
+            Self::SqlTruncateStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -9776,6 +9883,57 @@ impl From<PsqlTriggerWhenClause> for SyntaxNode {
 }
 impl From<PsqlTriggerWhenClause> for SyntaxElement {
     fn from(n: PsqlTriggerWhenClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTruncateIdentityClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TRUNCATE_IDENTITY_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TRUNCATE_IDENTITY_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTruncateIdentityClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTruncateIdentityClause")
+                .field("action", &support::DebugSyntaxResult(self.action()))
+                .field(
+                    "identity_token",
+                    &support::DebugSyntaxResult(self.identity_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlTruncateIdentityClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTruncateIdentityClause> for SyntaxNode {
+    fn from(n: PsqlTruncateIdentityClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTruncateIdentityClause> for SyntaxElement {
+    fn from(n: PsqlTruncateIdentityClause) -> Self {
         n.syntax.into()
     }
 }
@@ -13850,6 +14008,73 @@ impl From<SqlTimeZoneModifier> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlTruncateStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_TRUNCATE_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_TRUNCATE_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlTruncateStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlTruncateStatement")
+                .field(
+                    "truncate_token",
+                    &support::DebugSyntaxResult(self.truncate_token()),
+                )
+                .field(
+                    "table_token",
+                    &support::DebugOptionalElement(self.table_token()),
+                )
+                .field("tables", &self.tables())
+                .field(
+                    "identity_clause",
+                    &support::DebugOptionalElement(self.identity_clause()),
+                )
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlTruncateStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlTruncateStatement> for SyntaxNode {
+    fn from(n: SqlTruncateStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlTruncateStatement> for SyntaxElement {
+    fn from(n: SqlTruncateStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlTypeArguments {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -16036,6 +16261,11 @@ impl From<SqlSelectStatement> for AnySqlStatement {
         Self::SqlSelectStatement(node)
     }
 }
+impl From<SqlTruncateStatement> for AnySqlStatement {
+    fn from(node: SqlTruncateStatement) -> Self {
+        Self::SqlTruncateStatement(node)
+    }
+}
 impl From<SqlUpdateStatement> for AnySqlStatement {
     fn from(node: SqlUpdateStatement) -> Self {
         Self::SqlUpdateStatement(node)
@@ -16084,6 +16314,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlGrantStatement::KIND_SET)
         .union(SqlInsertStatement::KIND_SET)
         .union(SqlSelectStatement::KIND_SET)
+        .union(SqlTruncateStatement::KIND_SET)
         .union(SqlUpdateStatement::KIND_SET)
         .union(SqlValuesClause::KIND_SET)
         .union(PsqlCreateFunctionStatement::KIND_SET)
@@ -16105,6 +16336,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_GRANT_STATEMENT
                 | SQL_INSERT_STATEMENT
                 | SQL_SELECT_STATEMENT
+                | SQL_TRUNCATE_STATEMENT
                 | SQL_UPDATE_STATEMENT
                 | SQL_VALUES_CLAUSE
                 | PSQL_CREATE_FUNCTION_STATEMENT
@@ -16135,6 +16367,7 @@ impl AstNode for AnySqlStatement {
             SQL_GRANT_STATEMENT => Self::SqlGrantStatement(SqlGrantStatement { syntax }),
             SQL_INSERT_STATEMENT => Self::SqlInsertStatement(SqlInsertStatement { syntax }),
             SQL_SELECT_STATEMENT => Self::SqlSelectStatement(SqlSelectStatement { syntax }),
+            SQL_TRUNCATE_STATEMENT => Self::SqlTruncateStatement(SqlTruncateStatement { syntax }),
             SQL_UPDATE_STATEMENT => Self::SqlUpdateStatement(SqlUpdateStatement { syntax }),
             SQL_VALUES_CLAUSE => Self::SqlValuesClause(SqlValuesClause { syntax }),
             PSQL_CREATE_FUNCTION_STATEMENT => {
@@ -16169,6 +16402,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlGrantStatement(it) => &it.syntax,
             Self::SqlInsertStatement(it) => &it.syntax,
             Self::SqlSelectStatement(it) => &it.syntax,
+            Self::SqlTruncateStatement(it) => &it.syntax,
             Self::SqlUpdateStatement(it) => &it.syntax,
             Self::SqlValuesClause(it) => &it.syntax,
             Self::PsqlCreateFunctionStatement(it) => &it.syntax,
@@ -16191,6 +16425,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlGrantStatement(it) => it.syntax,
             Self::SqlInsertStatement(it) => it.syntax,
             Self::SqlSelectStatement(it) => it.syntax,
+            Self::SqlTruncateStatement(it) => it.syntax,
             Self::SqlUpdateStatement(it) => it.syntax,
             Self::SqlValuesClause(it) => it.syntax,
             Self::PsqlCreateFunctionStatement(it) => it.syntax,
@@ -16215,6 +16450,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlGrantStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlTruncateStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlUpdateStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlValuesClause(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -16239,6 +16475,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlGrantStatement(it) => it.into(),
             AnySqlStatement::SqlInsertStatement(it) => it.into(),
             AnySqlStatement::SqlSelectStatement(it) => it.into(),
+            AnySqlStatement::SqlTruncateStatement(it) => it.into(),
             AnySqlStatement::SqlUpdateStatement(it) => it.into(),
             AnySqlStatement::SqlValuesClause(it) => it.into(),
             AnySqlStatement::PsqlCreateFunctionStatement(it) => it.into(),
@@ -16774,6 +17011,11 @@ impl std::fmt::Display for PsqlTriggerWhenClause {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlTruncateIdentityClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlTypeArraySuffix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -17145,6 +17387,11 @@ impl std::fmt::Display for SqlTildeName {
     }
 }
 impl std::fmt::Display for SqlTimeZoneModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlTruncateStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

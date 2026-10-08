@@ -1062,6 +1062,18 @@ pub fn psql_trigger_when_clause(
         ],
     ))
 }
+pub fn psql_truncate_identity_clause(
+    action_token: SyntaxToken,
+    identity_token: SyntaxToken,
+) -> PsqlTruncateIdentityClause {
+    PsqlTruncateIdentityClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TRUNCATE_IDENTITY_CLAUSE,
+        [
+            Some(SyntaxElement::Token(action_token)),
+            Some(SyntaxElement::Token(identity_token)),
+        ],
+    ))
+}
 pub fn psql_type_array_suffix(
     l_brack_token: SyntaxToken,
     r_brack_token: SyntaxToken,
@@ -2992,6 +3004,61 @@ pub fn sql_time_zone_modifier(
             Some(SyntaxElement::Token(zone_token)),
         ],
     ))
+}
+pub fn sql_truncate_statement(
+    truncate_token: SyntaxToken,
+    tables: SqlTableNameList,
+) -> SqlTruncateStatementBuilder {
+    SqlTruncateStatementBuilder {
+        truncate_token,
+        tables,
+        table_token: None,
+        identity_clause: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlTruncateStatementBuilder {
+    truncate_token: SyntaxToken,
+    tables: SqlTableNameList,
+    table_token: Option<SyntaxToken>,
+    identity_clause: Option<PsqlTruncateIdentityClause>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlTruncateStatementBuilder {
+    pub fn with_table_token(mut self, table_token: SyntaxToken) -> Self {
+        self.table_token = Some(table_token);
+        self
+    }
+    pub fn with_identity_clause(mut self, identity_clause: PsqlTruncateIdentityClause) -> Self {
+        self.identity_clause = Some(identity_clause);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlTruncateStatement {
+        SqlTruncateStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_TRUNCATE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.truncate_token)),
+                self.table_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.identity_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn sql_type_arguments(
     l_paren_token: SyntaxToken,
