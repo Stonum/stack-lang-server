@@ -33,6 +33,43 @@ pub(crate) fn eat_table_persistence(p: &mut SqlParser) {
     }
 }
 
+/// `TABLE name` as the query of `CREATE TABLE ... AS`.
+pub(crate) fn parse_table_query(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![table]) {
+        return Absent;
+    }
+
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![table]);
+            parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+            Present(m.complete(p, PSQL_TABLE_QUERY))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`TABLE name` queries", marker.range(p)),
+    )
+}
+
+/// `WITH [NO] DATA` after `CREATE TABLE ... AS query`.
+pub(crate) fn parse_with_data_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![with]) || !(p.nth_at(1, T![data]) || p.nth_at(1, T![no])) {
+        return Absent;
+    }
+
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![with]);
+            p.eat(T![no]);
+            p.expect(T![data]);
+            Present(m.complete(p, PSQL_WITH_DATA_CLAUSE))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`WITH [NO] DATA`", marker.range(p)),
+    )
+}
+
 /// `ON COMMIT DROP | DELETE ROWS | PRESERVE ROWS` after `CREATE TABLE (...)`.
 pub(crate) fn parse_on_commit_clause(p: &mut SqlParser) -> ParsedSyntax {
     if !p.at(T![on]) || !p.nth_at(1, T![commit]) {

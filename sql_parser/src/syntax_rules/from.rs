@@ -56,6 +56,8 @@ impl ParseSeparatedList for SqlFromItemList {
             || p.at(T![returning])
             // `insert into t select ... from ... on conflict ...`
             || p.at(T![on])
+            // `create table t as select ... from s with no data`
+            || p.at(T![with])
             || p.at(T![;])
             // A subquery's `from`/`using` list is wrapped in parens, e.g.
             // `(select a from t)`, so it must also stop before `)`.

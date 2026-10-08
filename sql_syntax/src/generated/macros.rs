@@ -190,6 +190,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTableAndColumns::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_TABLE_QUERY => {
+                    let $pattern = unsafe { $crate::PsqlTableQuery::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_TILDE_ARRAY_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlTildeArrayExpression::new_unchecked(node) };
                     $body
@@ -248,6 +252,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_VOLATILITY_OPTION => {
                     let $pattern = unsafe { $crate::PsqlVolatilityOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_WITH_DATA_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlWithDataClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_ALIAS => {
@@ -322,6 +330,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_CONSTRAINT_NAME => {
                     let $pattern = unsafe { $crate::SqlConstraintName::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_CREATE_TABLE_AS_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::SqlCreateTableAsStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_CREATE_TABLE_STATEMENT => {

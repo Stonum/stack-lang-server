@@ -5,6 +5,7 @@ pub(crate) mod call_argument;
 pub(crate) mod column_constraint;
 pub(crate) mod conflict_action;
 pub(crate) mod conflict_target;
+pub(crate) mod create_table_as_query;
 pub(crate) mod expression;
 pub(crate) mod fetch_tail;
 pub(crate) mod from_expression;

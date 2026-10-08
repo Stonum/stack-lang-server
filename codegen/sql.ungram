@@ -109,6 +109,7 @@ AnySqlStatement =
    | SqlDropFunctionStatement
    | SqlDropTableStatement
    | SqlCreateTableStatement
+   | SqlCreateTableAsStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
@@ -495,6 +496,37 @@ SqlCreateTableStatement =
    ')'
    on_commit: PsqlOnCommitClause?
    ';'?
+
+// `CREATE [TEMP|TEMPORARY|UNLOGGED] TABLE [IF NOT EXISTS] name [(col, ...)]
+// [ON COMMIT ...] AS query [WITH [NO] DATA] [;]`
+SqlCreateTableAsStatement =
+   'create'
+   persistence: ('temp' | 'temporary' | 'unlogged')?
+   'table'
+   ('if' 'not' 'exists')?
+   name: SqlTableName
+   columns: SqlColumnList?
+   on_commit: PsqlOnCommitClause?
+   'as'
+   query: AnySqlCreateTableAsQuery
+   with_data: PsqlWithDataClause?
+   ';'?
+
+AnySqlCreateTableAsQuery =
+   SqlSelectStatement
+   | SqlSubqueryExpression
+   | PsqlTableQuery
+
+// `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
+PsqlTableQuery =
+   'table'
+   table: SqlTableName
+
+// `WITH [NO] DATA`
+PsqlWithDataClause =
+   'with'
+   'no'?
+   'data'
 
 // `ON COMMIT DROP | DELETE ROWS | PRESERVE ROWS`
 PsqlOnCommitClause =

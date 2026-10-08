@@ -165,3 +165,24 @@ create unlogged table tmp.foo (a int)
 "#
     );
 }
+
+#[test]
+fn format_create_table_as_select() {
+    assert_fmt!(
+        r#"--
+create temp table foo on commit drop as select a from t;
+"#
+    );
+}
+
+#[test]
+fn format_create_table_as_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE TABLE foo(a,b)  AS  TABLE bar   WITH  NO  DATA;
+"#,
+        r#"--
+create table foo (a, b) as table bar with no data;
+"#
+    );
+}
