@@ -15,7 +15,7 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
             exists_token,
             name,
             l_paren_token,
-            columns,
+            elements,
             r_paren_token,
             semicolon_token,
         } = node.as_fields();
@@ -33,7 +33,7 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
         }
 
         write!(f, [space(), name.format(), space()])?;
-        write_bracketed_fill_list(l_paren_token, &columns, r_paren_token, |_| false, f)?;
+        write_bracketed_fill_list(l_paren_token, &elements, r_paren_token, |_| false, f)?;
 
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;

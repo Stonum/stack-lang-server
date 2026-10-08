@@ -185,3 +185,51 @@ fn test_create_table_check_without_parentheses_reports_error() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_create_table_table_level_constraints() {
+    let res = parse(
+        "create table t (a int, b int, c int, primary key (a, b), unique (c), check (a < b), foreign key (c) references p (id))",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert_eq!(tree.matches("SQL_TABLE_CONSTRAINT@").count(), 4);
+    assert!(tree.contains("SQL_PRIMARY_KEY_TABLE_CONSTRAINT"));
+    assert!(tree.contains("SQL_UNIQUE_TABLE_CONSTRAINT"));
+    assert!(tree.contains("SQL_FOREIGN_KEY_TABLE_CONSTRAINT"));
+}
+
+#[test]
+fn test_create_table_named_table_constraint() {
+    let res = parse(
+        r#"create table #t ("Ключ" varchar(256), "id" int, constraint pk_t primary key ("Ключ", "id"))"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_CONSTRAINT_NAME"));
+}
+
+#[test]
+fn test_create_table_constraint_name_without_constraint_reports_error() {
+    let res = parse("create table t (a int, constraint c)", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_primary_key_without_columns_reports_error() {
+    let res = parse("create table t (a int, primary key)", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_foreign_key_without_references_reports_error() {
+    let res = parse("create table t (a int, foreign key (a))", postgres());
+
+    assert!(res.has_errors());
+}

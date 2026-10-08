@@ -65,3 +65,11 @@ pub fn expected_column_list(p: &SqlParser, range: TextRange) -> ParseDiagnostic 
 pub fn expected_values_row(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("values row (...)", range, p)
 }
+
+pub fn expected_table_constraint(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("table constraint", range, p)
+}
+
+pub fn expected_references_clause(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("references clause", range, p)
+}

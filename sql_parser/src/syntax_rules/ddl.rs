@@ -58,9 +58,7 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
 }
 
-/// `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --
-/// column list only for now, no column-level or table-level constraints
-/// yet (see the matching note in `codegen/sql.ungram`).
+/// `CREATE TABLE [IF NOT EXISTS] name (column | table constraint, ...) [;]`
 fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![create]);
@@ -75,7 +73,7 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
 
     p.expect(T!['(']);
-    SqlColumnDefinitionList.parse_list(p);
+    SqlTableElementList.parse_list(p);
     p.expect(T![')']);
 
     p.eat(T![;]);
@@ -83,15 +81,19 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_CREATE_TABLE_STATEMENT))
 }
 
-struct SqlColumnDefinitionList;
+struct SqlTableElementList;
 
-impl ParseSeparatedList for SqlColumnDefinitionList {
+impl ParseSeparatedList for SqlTableElementList {
     type Kind = SqlSyntaxKind;
     type Parser<'source> = SqlParser<'source>;
-    const LIST_KIND: Self::Kind = SQL_COLUMN_DEFINITION_LIST;
+    const LIST_KIND: Self::Kind = SQL_TABLE_ELEMENT_LIST;
 
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
-        parse_column_definition(p)
+        if is_at_table_constraint_start(p) {
+            parse_table_constraint(p)
+        } else {
+            parse_column_definition(p)
+        }
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
@@ -131,6 +133,82 @@ fn parse_column_definition(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_COLUMN_DEFINITION))
 }
 
+fn is_at_table_constraint_start(p: &mut SqlParser) -> bool {
+    p.at(T![constraint])
+        || p.at(T![primary])
+        || p.at(T![unique])
+        || p.at(T![check])
+        || p.at(T![foreign])
+}
+
+/// `[CONSTRAINT name] PRIMARY KEY (...) | UNIQUE (...) | CHECK (...) |
+/// FOREIGN KEY (...) REFERENCES ...`
+fn parse_table_constraint(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    if p.at(T![constraint]) {
+        let name = p.start();
+        p.bump(T![constraint]);
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        name.complete(p, SQL_CONSTRAINT_NAME);
+    }
+
+    let constraint = p.start();
+    let kind = match p.cur() {
+        T![primary] => {
+            p.bump(T![primary]);
+            p.expect(T![key]);
+            parse_column_name_list(p).or_add_diagnostic(p, expected_column_list);
+            SQL_PRIMARY_KEY_TABLE_CONSTRAINT
+        }
+        T![unique] => {
+            p.bump(T![unique]);
+            parse_column_name_list(p).or_add_diagnostic(p, expected_column_list);
+            SQL_UNIQUE_TABLE_CONSTRAINT
+        }
+        T![check] => {
+            bump_check_constraint(p);
+            SQL_CHECK_CONSTRAINT
+        }
+        T![foreign] => {
+            p.bump(T![foreign]);
+            p.expect(T![key]);
+            parse_column_name_list(p).or_add_diagnostic(p, expected_column_list);
+            parse_references_constraint(p).or_add_diagnostic(p, expected_references_clause);
+            SQL_FOREIGN_KEY_TABLE_CONSTRAINT
+        }
+        _ => {
+            constraint.abandon(p);
+            let range = p.cur_range();
+            p.error(expected_table_constraint(p, range));
+            return Present(m.complete(p, SQL_TABLE_CONSTRAINT));
+        }
+    };
+    constraint.complete(p, kind);
+
+    Present(m.complete(p, SQL_TABLE_CONSTRAINT))
+}
+
+/// `CHECK (condition)`; the parser is at `check`.
+fn bump_check_constraint(p: &mut SqlParser) {
+    p.bump(T![check]);
+    p.expect(T!['(']);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![')']);
+}
+
+/// `REFERENCES table [(column, ...)]`
+fn parse_references_constraint(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![references]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![references]);
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+    let _ = parse_column_name_list(p);
+    Present(m.complete(p, SQL_REFERENCES_CONSTRAINT))
+}
+
 /// One column constraint after the column's type, or a `CONSTRAINT name`
 /// naming the one that follows.
 fn parse_column_constraint(p: &mut SqlParser) -> ParsedSyntax {
@@ -151,17 +229,12 @@ fn parse_column_constraint(p: &mut SqlParser) -> ParsedSyntax {
             SQL_UNIQUE_CONSTRAINT
         }
         T![check] => {
-            p.bump(T![check]);
-            p.expect(T!['(']);
-            parse_expression(p).or_add_diagnostic(p, expected_expression);
-            p.expect(T![')']);
+            bump_check_constraint(p);
             SQL_CHECK_CONSTRAINT
         }
         T![references] => {
-            p.bump(T![references]);
-            parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
-            let _ = parse_column_name_list(p);
-            SQL_REFERENCES_CONSTRAINT
+            m.abandon(p);
+            return parse_references_constraint(p);
         }
         T![null] => {
             p.bump(T![null]);

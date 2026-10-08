@@ -2836,7 +2836,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlColumnDefinitionList::can_cast(element.kind())
+                    && SqlTableElementList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -3446,6 +3446,46 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(SQL_FETCH_WITH_TIES_TAIL, children)
+            }
+            SQL_FOREIGN_KEY_TABLE_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![foreign]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![key]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlColumnList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlReferencesConstraint::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_FOREIGN_KEY_TABLE_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_FOREIGN_KEY_TABLE_CONSTRAINT, children)
             }
             SQL_FROM_CLAUSE => {
                 let mut elements = (&children).into_iter();
@@ -4333,6 +4373,39 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(SQL_PRIMARY_KEY_CONSTRAINT, children)
             }
+            SQL_PRIMARY_KEY_TABLE_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![primary]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![key]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlColumnList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_PRIMARY_KEY_TABLE_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_PRIMARY_KEY_TABLE_CONSTRAINT, children)
+            }
             SQL_REFERENCES_CONSTRAINT => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
@@ -4923,6 +4996,32 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(SQL_TABLE_COL_REFERENCE, children)
             }
+            SQL_TABLE_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && SqlConstraintName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnySqlTableConstraint::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_TABLE_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_TABLE_CONSTRAINT, children)
+            }
             SQL_TABLE_NAME => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
@@ -5228,6 +5327,32 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(SQL_UNIQUE_CONSTRAINT, children)
+            }
+            SQL_UNIQUE_TABLE_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![unique]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlColumnList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_UNIQUE_TABLE_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_UNIQUE_TABLE_CONSTRAINT, children)
             }
             SQL_UPDATE_FROM_CLAUSE => {
                 let mut elements = (&children).into_iter();
@@ -5637,13 +5762,6 @@ impl SyntaxFactory for SqlSyntaxFactory {
             SQL_COLUMN_CONSTRAINT_LIST => {
                 Self::make_node_list_syntax(kind, children, AnySqlColumnConstraint::can_cast)
             }
-            SQL_COLUMN_DEFINITION_LIST => Self::make_separated_list_syntax(
-                kind,
-                children,
-                SqlColumnDefinition::can_cast,
-                T ! [,],
-                false,
-            ),
             SQL_COLUMN_NAME_LIST => {
                 Self::make_separated_list_syntax(kind, children, SqlName::can_cast, T ! [,], false)
             }
@@ -5708,6 +5826,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
             SQL_STATEMENT_LIST => {
                 Self::make_node_list_syntax(kind, children, AnySqlStatement::can_cast)
             }
+            SQL_TABLE_ELEMENT_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                AnySqlTableElement::can_cast,
+                T ! [,],
+                false,
+            ),
             SQL_TABLE_NAME_LIST => Self::make_separated_list_syntax(
                 kind,
                 children,
