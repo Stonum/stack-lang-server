@@ -288,3 +288,75 @@ fn test_create_table_on_commit_rejected_under_standard_dialect() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_create_table_as_select() {
+    let res = parse("create table #tmp2 as select distinct a from #t;", mlang());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_CREATE_TABLE_AS_STATEMENT"));
+}
+
+#[test]
+fn test_create_temp_table_on_commit_drop_as_with_query() {
+    let res = parse(
+        "create temporary table r on commit drop as with x as (select 1 as a) select a from x",
+        postgres(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_table_as_parenthesized_query_with_columns() {
+    let res = parse("create table t (a, b) as (select 1, 2)", postgres());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_SUBQUERY_EXPRESSION"));
+    assert!(!tree.contains("SQL_TABLE_ELEMENT_LIST"));
+}
+
+#[test]
+fn test_create_table_as_table_with_no_data() {
+    let res = parse("create table t as table #tmp with no data;", mlang());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("PSQL_TABLE_QUERY"));
+    assert!(tree.contains("PSQL_WITH_DATA_CLAUSE"));
+}
+
+#[test]
+fn test_create_table_with_on_commit_but_no_as_is_still_a_regular_table() {
+    let res = parse("create temp table t (a int) on commit drop", postgres());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_CREATE_TABLE_STATEMENT"));
+}
+
+#[test]
+fn test_create_table_as_without_query_reports_error() {
+    let res = parse("create table t as;", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_as_table_rejected_under_mssql_dialect() {
+    let res = parse(
+        "create table t as table s",
+        SqlFileSource::script().with_dialect(SqlDialect::Mssql),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_as_select_from_with_no_data() {
+    let res = parse("create table #a as select * from #b with no data", mlang());
+
+    assert_parser!(res);
+}

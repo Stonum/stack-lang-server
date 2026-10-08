@@ -6,17 +6,18 @@ use biome_parser::prelude::*;
 use super::expr::{
     EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_segment_start, is_at_name_start,
     is_at_tilde_name_start, parse_any_name, parse_column_name_list, parse_expression, parse_name,
-    parse_table_name, parse_type_name,
+    parse_subquery_expression, parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
 use super::postgres::ddl::{
     eat_cascade_or_restrict, eat_table_persistence, parse_create_function_statement,
     parse_create_policy_statement, parse_create_trigger_statement, parse_drop_function_parameters,
     parse_drop_policy_statement, parse_drop_trigger_statement, parse_on_commit_clause,
-    parse_truncate_identity_clause, parse_view_options,
+    parse_table_query, parse_truncate_identity_clause, parse_view_options, parse_with_data_clause,
 };
 use super::select::parse_select_statement;
 use super::stmt::STMT_RECOVERY_SET;
+use super::with_clause::parse_with_prefixed_select_statement;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T, *};
 
@@ -60,7 +61,8 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
 }
 
 /// `CREATE [TEMP|TEMPORARY|UNLOGGED] TABLE [IF NOT EXISTS] name
-/// (column | table constraint, ...) [ON COMMIT ...] [;]`
+/// (column | table constraint, ...) [ON COMMIT ...] [;]`, or the
+/// `... name [(col, ...)] [ON COMMIT ...] AS query [WITH [NO] DATA]` form.
 fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![create]);
@@ -75,6 +77,16 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
 
     parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
 
+    if is_at_create_table_as(p) {
+        let _ = parse_column_name_list(p);
+        let _ = parse_on_commit_clause(p);
+        p.expect(T![as]);
+        parse_create_table_as_query(p).or_add_diagnostic(p, expected_statement);
+        let _ = parse_with_data_clause(p);
+        p.eat(T![;]);
+        return Present(m.complete(p, SQL_CREATE_TABLE_AS_STATEMENT));
+    }
+
     p.expect(T!['(']);
     SqlTableElementList.parse_list(p);
     p.expect(T![')']);
@@ -84,6 +96,47 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     p.eat(T![;]);
 
     Present(m.complete(p, SQL_CREATE_TABLE_STATEMENT))
+}
+
+/// After the table name: `AS` follows, possibly behind a parenthesized
+/// column list and an `ON COMMIT` clause.
+fn is_at_create_table_as(p: &mut SqlParser) -> bool {
+    p.lookahead(|p| {
+        if p.at(T!['(']) {
+            let mut depth = 0;
+            loop {
+                match p.cur() {
+                    T!['('] => depth += 1,
+                    T![')'] => depth -= 1,
+                    EOF => return false,
+                    _ => {}
+                }
+                p.bump_any();
+                if depth == 0 {
+                    break;
+                }
+            }
+        }
+        if p.at(T![on]) && p.nth_at(1, T![commit]) {
+            p.bump_any();
+            p.bump_any();
+            if !p.at(EOF) {
+                p.bump_any();
+            }
+            p.eat(T![rows]);
+        }
+        p.at(T![as])
+    })
+}
+
+/// `select ...`, `with ... select ...`, `(select ...)` or `TABLE name`.
+fn parse_create_table_as_query(p: &mut SqlParser) -> ParsedSyntax {
+    match p.cur() {
+        T![select] | T![with] => parse_with_prefixed_select_statement(p),
+        T!['('] => parse_subquery_expression(p),
+        T![table] => parse_table_query(p),
+        _ => Absent,
+    }
 }
 
 fn is_at_table_persistence(p: &mut SqlParser, n: usize) -> bool {

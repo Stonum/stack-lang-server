@@ -1037,6 +1037,15 @@ impl PsqlTableAndColumnsBuilder {
         ))
     }
 }
+pub fn psql_table_query(table_token: SyntaxToken, table: SqlTableName) -> PsqlTableQuery {
+    PsqlTableQuery::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TABLE_QUERY,
+        [
+            Some(SyntaxElement::Token(table_token)),
+            Some(SyntaxElement::Node(table.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_tilde_array_expression(
     array_token: SyntaxToken,
     open_tilde_token: SyntaxToken,
@@ -1295,6 +1304,37 @@ pub fn psql_volatility_option(value_token: SyntaxToken) -> PsqlVolatilityOption 
         SqlSyntaxKind::PSQL_VOLATILITY_OPTION,
         [Some(SyntaxElement::Token(value_token))],
     ))
+}
+pub fn psql_with_data_clause(
+    with_token: SyntaxToken,
+    data_token: SyntaxToken,
+) -> PsqlWithDataClauseBuilder {
+    PsqlWithDataClauseBuilder {
+        with_token,
+        data_token,
+        no_token: None,
+    }
+}
+pub struct PsqlWithDataClauseBuilder {
+    with_token: SyntaxToken,
+    data_token: SyntaxToken,
+    no_token: Option<SyntaxToken>,
+}
+impl PsqlWithDataClauseBuilder {
+    pub fn with_no_token(mut self, no_token: SyntaxToken) -> Self {
+        self.no_token = Some(no_token);
+        self
+    }
+    pub fn build(self) -> PsqlWithDataClause {
+        PsqlWithDataClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_WITH_DATA_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.with_token)),
+                self.no_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.data_token)),
+            ],
+        ))
+    }
 }
 pub fn sql_alias(value: SqlName) -> SqlAliasBuilder {
     SqlAliasBuilder {
@@ -1671,6 +1711,103 @@ pub fn sql_constraint_name(constraint_token: SyntaxToken, name: SqlName) -> SqlC
             Some(SyntaxElement::Node(name.into_syntax())),
         ],
     ))
+}
+pub fn sql_create_table_as_statement(
+    create_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: SqlTableName,
+    as_token: SyntaxToken,
+    query: AnySqlCreateTableAsQuery,
+) -> SqlCreateTableAsStatementBuilder {
+    SqlCreateTableAsStatementBuilder {
+        create_token,
+        table_token,
+        name,
+        as_token,
+        query,
+        persistence_token: None,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+        columns: None,
+        on_commit: None,
+        with_data: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlCreateTableAsStatementBuilder {
+    create_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: SqlTableName,
+    as_token: SyntaxToken,
+    query: AnySqlCreateTableAsQuery,
+    persistence_token: Option<SyntaxToken>,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    columns: Option<SqlColumnList>,
+    on_commit: Option<PsqlOnCommitClause>,
+    with_data: Option<PsqlWithDataClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlCreateTableAsStatementBuilder {
+    pub fn with_persistence_token(mut self, persistence_token: SyntaxToken) -> Self {
+        self.persistence_token = Some(persistence_token);
+        self
+    }
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
+        self
+    }
+    pub fn with_on_commit(mut self, on_commit: PsqlOnCommitClause) -> Self {
+        self.on_commit = Some(on_commit);
+        self
+    }
+    pub fn with_with_data(mut self, with_data: PsqlWithDataClause) -> Self {
+        self.with_data = Some(with_data);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlCreateTableAsStatement {
+        SqlCreateTableAsStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_CREATE_TABLE_AS_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                self.persistence_token
+                    .map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.table_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.on_commit
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.as_token)),
+                Some(SyntaxElement::Node(self.query.into_syntax())),
+                self.with_data
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn sql_create_table_statement(
     create_token: SyntaxToken,

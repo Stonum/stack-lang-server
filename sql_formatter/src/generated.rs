@@ -1524,6 +1524,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTableAndColumns {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlTableQuery>
+    for crate::psql::auxiliary::table_query::FormatPsqlTableQuery
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlTableQuery, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTableQuery>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTableQuery {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTableQuery,
+        crate::psql::auxiliary::table_query::FormatPsqlTableQuery,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::table_query::FormatPsqlTableQuery::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTableQuery {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTableQuery,
+        crate::psql::auxiliary::table_query::FormatPsqlTableQuery,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::table_query::FormatPsqlTableQuery::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlTildeArrayExpression>
     for crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression
 {
@@ -2013,6 +2047,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlVolatilityOption {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::volatility_option::FormatPsqlVolatilityOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlWithDataClause>
+    for crate::psql::clauses::with_data_clause::FormatPsqlWithDataClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlWithDataClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlWithDataClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlWithDataClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlWithDataClause,
+        crate::psql::clauses::with_data_clause::FormatPsqlWithDataClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::with_data_clause::FormatPsqlWithDataClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlWithDataClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlWithDataClause,
+        crate::psql::clauses::with_data_clause::FormatPsqlWithDataClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::with_data_clause::FormatPsqlWithDataClause::default(),
         )
     }
 }
@@ -2637,6 +2705,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlConstraintName {
             self,
             crate::sql::auxiliary::constraint_name::FormatSqlConstraintName::default(),
         )
+    }
+}
+impl FormatRule<sql_syntax::SqlCreateTableAsStatement>
+    for crate::sql::statements::create_table_as_statement::FormatSqlCreateTableAsStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlCreateTableAsStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCreateTableAsStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCreateTableAsStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCreateTableAsStatement,
+        crate::sql::statements::create_table_as_statement::FormatSqlCreateTableAsStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: statements :: create_table_as_statement :: FormatSqlCreateTableAsStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCreateTableAsStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCreateTableAsStatement,
+        crate::sql::statements::create_table_as_statement::FormatSqlCreateTableAsStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: statements :: create_table_as_statement :: FormatSqlCreateTableAsStatement :: default ())
     }
 }
 impl FormatRule<sql_syntax::SqlCreateTableStatement>
@@ -6442,6 +6542,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlConflictTarget {
         FormatOwnedWithRule::new(
             self,
             crate::sql::any::conflict_target::FormatAnySqlConflictTarget::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlCreateTableAsQuery {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlCreateTableAsQuery,
+        crate::sql::any::create_table_as_query::FormatAnySqlCreateTableAsQuery,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::create_table_as_query::FormatAnySqlCreateTableAsQuery::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlCreateTableAsQuery {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlCreateTableAsQuery,
+        crate::sql::any::create_table_as_query::FormatAnySqlCreateTableAsQuery,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::create_table_as_query::FormatAnySqlCreateTableAsQuery::default(),
         )
     }
 }
