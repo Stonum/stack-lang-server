@@ -6,6 +6,44 @@ use crate::{
     AsFormat, FormatBogusNodeRule, FormatNodeRule, IntoFormat, SqlFormatContext, SqlFormatter,
 };
 use biome_formatter::{FormatOwnedWithRule, FormatRefWithRule, FormatResult, FormatRule};
+impl FormatRule<sql_syntax::PsqlAnalyzeStatement>
+    for crate::psql::statements::analyze_statement::FormatPsqlAnalyzeStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlAnalyzeStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlAnalyzeStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlAnalyzeStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlAnalyzeStatement,
+        crate::psql::statements::analyze_statement::FormatPsqlAnalyzeStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::analyze_statement::FormatPsqlAnalyzeStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlAnalyzeStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlAnalyzeStatement,
+        crate::psql::statements::analyze_statement::FormatPsqlAnalyzeStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::analyze_statement::FormatPsqlAnalyzeStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlArrayExpression>
     for crate::psql::expressions::array_expression::FormatPsqlArrayExpression
 {
@@ -1380,6 +1418,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSubstringFromClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlTableAndColumns>
+    for crate::psql::auxiliary::table_and_columns::FormatPsqlTableAndColumns
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTableAndColumns,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTableAndColumns>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTableAndColumns {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTableAndColumns,
+        crate::psql::auxiliary::table_and_columns::FormatPsqlTableAndColumns,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::table_and_columns::FormatPsqlTableAndColumns::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTableAndColumns {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTableAndColumns,
+        crate::psql::auxiliary::table_and_columns::FormatPsqlTableAndColumns,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::table_and_columns::FormatPsqlTableAndColumns::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlTildeArrayExpression>
     for crate::psql::expressions::tilde_array_expression::FormatPsqlTildeArrayExpression
 {
@@ -1725,6 +1801,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTypeArraySuffix {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlVacuumStatement>
+    for crate::psql::statements::vacuum_statement::FormatPsqlVacuumStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlVacuumStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlVacuumStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlVacuumStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlVacuumStatement,
+        crate::psql::statements::vacuum_statement::FormatPsqlVacuumStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::vacuum_statement::FormatPsqlVacuumStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlVacuumStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlVacuumStatement,
+        crate::psql::statements::vacuum_statement::FormatPsqlVacuumStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::vacuum_statement::FormatPsqlVacuumStatement::default(),
         )
     }
 }
@@ -4815,6 +4929,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTableColumnList {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: lists :: returns_table_column_list :: FormatPsqlReturnsTableColumnList :: default ())
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTableAndColumnsList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTableAndColumnsList,
+        crate::psql::lists::table_and_columns_list::FormatPsqlTableAndColumnsList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::table_and_columns_list::FormatPsqlTableAndColumnsList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTableAndColumnsList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTableAndColumnsList,
+        crate::psql::lists::table_and_columns_list::FormatPsqlTableAndColumnsList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::table_and_columns_list::FormatPsqlTableAndColumnsList::default(),
+        )
     }
 }
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTriggerEventList {

@@ -113,6 +113,8 @@ AnySqlStatement =
    | SqlDropViewStatement
    | SqlGrantStatement
    | SqlTruncateStatement
+   | PsqlVacuumStatement
+   | PsqlAnalyzeStatement
    | PsqlCreateFunctionStatement
    | PsqlCreatePolicyStatement
    | PsqlDropPolicyStatement
@@ -447,6 +449,30 @@ SqlTruncateStatement =
 PsqlTruncateIdentityClause =
    action: ('restart' | 'continue')
    'identity'
+
+// `VACUUM [FULL] [FREEZE] [VERBOSE] [ANALYZE] [table [(col, ...)], ...] [;]`
+// -- the parenthesized `VACUUM (option, ...)` form isn't modeled yet.
+PsqlVacuumStatement =
+   'vacuum'
+   'full'?
+   'freeze'?
+   'verbose'?
+   analyze: ('analyze' | 'analyse')?
+   tables: PsqlTableAndColumnsList
+   ';'?
+
+// `ANALYZE [VERBOSE] [table [(col, ...)], ...] [;]`
+PsqlAnalyzeStatement =
+   analyze: ('analyze' | 'analyse')
+   'verbose'?
+   tables: PsqlTableAndColumnsList
+   ';'?
+
+PsqlTableAndColumnsList = (PsqlTableAndColumns (',' PsqlTableAndColumns)*)
+
+PsqlTableAndColumns =
+   table: SqlTableName
+   columns: SqlColumnList?
 
 // `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --
 // column list only for now, no column-level (NOT NULL/DEFAULT/PRIMARY KEY/

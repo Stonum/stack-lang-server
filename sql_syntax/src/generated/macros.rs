@@ -16,6 +16,10 @@ macro_rules! map_syntax_node {
     ($ node : expr , $ pattern : pat => $ body : expr) => {
         match $node {
             node => match $crate::SqlSyntaxNode::kind(&node) {
+                $crate::SqlSyntaxKind::PSQL_ANALYZE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlAnalyzeStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_ARRAY_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlArrayExpression::new_unchecked(node) };
                     $body
@@ -174,6 +178,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlSubstringFromClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_TABLE_AND_COLUMNS => {
+                    let $pattern = unsafe { $crate::PsqlTableAndColumns::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_TILDE_ARRAY_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlTildeArrayExpression::new_unchecked(node) };
                     $body
@@ -216,6 +224,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_TYPE_ARRAY_SUFFIX => {
                     let $pattern = unsafe { $crate::PsqlTypeArraySuffix::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_VACUUM_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlVacuumStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_VIEW_OPTION => {
@@ -619,6 +631,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST => {
                     let $pattern =
                         unsafe { $crate::PsqlReturnsTableColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TABLE_AND_COLUMNS_LIST => {
+                    let $pattern = unsafe { $crate::PsqlTableAndColumnsList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_TRIGGER_EVENT_LIST => {

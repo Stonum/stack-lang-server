@@ -21,7 +21,8 @@ use mlang_syntax::{AnyMExpression, MBinaryExpression, MLanguage, MSyntaxKind, MS
 /// top-level statement starters `sql_parser::syntax_rules::stmt::parse_statement`
 /// actually dispatches on, not just a handful of the most common ones.
 const SQL_KEYWORDS: &[&str] = &[
-    "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant", "truncate",
+    "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant",
+    "truncate", "vacuum", "analyze", "analyse",
 ];
 
 /// Strips leading whitespace and `/* ... */`/`-- ...` comments, repeatedly,
@@ -385,6 +386,23 @@ mod tests {
             root.descendants()
                 .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
         );
+    }
+
+    #[test]
+    fn rewrites_vacuum_and_analyze_statements() {
+        for source in [
+            "#\nvar q = \"vacuum analyze ~Таблица~\";",
+            "#\nvar q = \"analyze #tmp\";",
+        ] {
+            let tree = crate::parse(source, mlang_syntax::MFileSource::script());
+            let root = tree.syntax();
+
+            assert!(
+                root.descendants()
+                    .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION),
+                "{source}"
+            );
+        }
     }
 
     #[test]

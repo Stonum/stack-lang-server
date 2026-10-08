@@ -43,6 +43,8 @@ impl SqlSyntaxKind {
         matches!(
             self,
             ALL_KW
+                | ANALYSE_KW
+                | ANALYZE_KW
                 | AND_KW
                 | ANY_KW
                 | ARRAY_KW
@@ -97,6 +99,7 @@ impl SqlSyntaxKind {
                 | WITH_KW
                 // type_func_name
                 | CROSS_KW
+                | FREEZE_KW
                 | FULL_KW
                 | ILIKE_KW
                 | INNER_KW
@@ -106,6 +109,7 @@ impl SqlSyntaxKind {
                 | LIKE_KW
                 | OUTER_KW
                 | RIGHT_KW
+                | VERBOSE_KW
         )
     }
 
