@@ -481,16 +481,27 @@ PsqlTableAndColumns =
    table: SqlTableName
    columns: SqlColumnList?
 
-// `CREATE TABLE [IF NOT EXISTS] name (column | table constraint, ...) [;]`
+// `CREATE [TEMP|TEMPORARY|UNLOGGED] TABLE [IF NOT EXISTS] name
+// (column | table constraint, ...) [ON COMMIT ...] [;]` -- the persistence
+// keyword and `ON COMMIT` are Postgres-only.
 SqlCreateTableStatement =
    'create'
+   persistence: ('temp' | 'temporary' | 'unlogged')?
    'table'
    ('if' 'not' 'exists')?
    name: SqlTableName
    '('
    elements: SqlTableElementList
    ')'
+   on_commit: PsqlOnCommitClause?
    ';'?
+
+// `ON COMMIT DROP | DELETE ROWS | PRESERVE ROWS`
+PsqlOnCommitClause =
+   'on'
+   'commit'
+   action: ('drop' | 'delete' | 'preserve')
+   'rows'?
 
 SqlTableElementList = (AnySqlTableElement (',' AnySqlTableElement)*)
 

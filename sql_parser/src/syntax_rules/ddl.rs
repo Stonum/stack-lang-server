@@ -10,9 +10,10 @@ use super::expr::{
 };
 use super::parse_error::*;
 use super::postgres::ddl::{
-    eat_cascade_or_restrict, parse_create_function_statement, parse_create_policy_statement,
-    parse_create_trigger_statement, parse_drop_function_parameters, parse_drop_policy_statement,
-    parse_drop_trigger_statement, parse_truncate_identity_clause, parse_view_options,
+    eat_cascade_or_restrict, eat_table_persistence, parse_create_function_statement,
+    parse_create_policy_statement, parse_create_trigger_statement, parse_drop_function_parameters,
+    parse_drop_policy_statement, parse_drop_trigger_statement, parse_on_commit_clause,
+    parse_truncate_identity_clause, parse_view_options,
 };
 use super::select::parse_select_statement;
 use super::stmt::STMT_RECOVERY_SET;
@@ -29,7 +30,7 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
         return Absent;
     }
 
-    if p.nth_at(1, T![table]) {
+    if p.nth_at(1, T![table]) || (is_at_table_persistence(p, 1) && p.nth_at(2, T![table])) {
         return parse_create_table_statement(p);
     }
     if p.nth_at(1, T![policy]) {
@@ -58,10 +59,12 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
 }
 
-/// `CREATE TABLE [IF NOT EXISTS] name (column | table constraint, ...) [;]`
+/// `CREATE [TEMP|TEMPORARY|UNLOGGED] TABLE [IF NOT EXISTS] name
+/// (column | table constraint, ...) [ON COMMIT ...] [;]`
 fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![create]);
+    eat_table_persistence(p);
     p.bump(T![table]);
 
     if p.at(T![if]) {
@@ -76,9 +79,15 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     SqlTableElementList.parse_list(p);
     p.expect(T![')']);
 
+    let _ = parse_on_commit_clause(p);
+
     p.eat(T![;]);
 
     Present(m.complete(p, SQL_CREATE_TABLE_STATEMENT))
+}
+
+fn is_at_table_persistence(p: &mut SqlParser, n: usize) -> bool {
+    p.nth_at(n, T![temp]) || p.nth_at(n, T![temporary]) || p.nth_at(n, T![unlogged])
 }
 
 struct SqlTableElementList;

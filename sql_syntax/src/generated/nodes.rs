@@ -1210,6 +1210,56 @@ pub struct PsqlNamedArgumentFields {
     pub value: SyntaxResult<AnySqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlOnCommitClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlOnCommitClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlOnCommitClauseFields {
+        PsqlOnCommitClauseFields {
+            on_token: self.on_token(),
+            commit_token: self.commit_token(),
+            action: self.action(),
+            rows_token: self.rows_token(),
+        }
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn commit_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn action(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn rows_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlOnCommitClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlOnCommitClauseFields {
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub commit_token: SyntaxResult<SyntaxToken>,
+    pub action: SyntaxResult<SyntaxToken>,
+    pub rows_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlOnConflictClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3549,6 +3599,7 @@ impl SqlCreateTableStatement {
     pub fn as_fields(&self) -> SqlCreateTableStatementFields {
         SqlCreateTableStatementFields {
             create_token: self.create_token(),
+            persistence: self.persistence(),
             table_token: self.table_token(),
             if_token: self.if_token(),
             not_token: self.not_token(),
@@ -3557,38 +3608,45 @@ impl SqlCreateTableStatement {
             l_paren_token: self.l_paren_token(),
             elements: self.elements(),
             r_paren_token: self.r_paren_token(),
+            on_commit: self.on_commit(),
             semicolon_token: self.semicolon_token(),
         }
     }
     pub fn create_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
+    pub fn persistence(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
     pub fn table_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 1usize)
+        support::required_token(&self.syntax, 2usize)
     }
     pub fn if_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 2usize)
-    }
-    pub fn not_token(&self) -> Option<SyntaxToken> {
         support::token(&self.syntax, 3usize)
     }
-    pub fn exists_token(&self) -> Option<SyntaxToken> {
+    pub fn not_token(&self) -> Option<SyntaxToken> {
         support::token(&self.syntax, 4usize)
     }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
     pub fn name(&self) -> SyntaxResult<SqlTableName> {
-        support::required_node(&self.syntax, 5usize)
+        support::required_node(&self.syntax, 6usize)
     }
     pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 6usize)
+        support::required_token(&self.syntax, 7usize)
     }
     pub fn elements(&self) -> SqlTableElementList {
-        support::list(&self.syntax, 7usize)
+        support::list(&self.syntax, 8usize)
     }
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 8usize)
+        support::required_token(&self.syntax, 9usize)
+    }
+    pub fn on_commit(&self) -> Option<PsqlOnCommitClause> {
+        support::node(&self.syntax, 10usize)
     }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 9usize)
+        support::token(&self.syntax, 11usize)
     }
 }
 impl Serialize for SqlCreateTableStatement {
@@ -3602,6 +3660,7 @@ impl Serialize for SqlCreateTableStatement {
 #[derive(Serialize)]
 pub struct SqlCreateTableStatementFields {
     pub create_token: SyntaxResult<SyntaxToken>,
+    pub persistence: Option<SyntaxToken>,
     pub table_token: SyntaxResult<SyntaxToken>,
     pub if_token: Option<SyntaxToken>,
     pub not_token: Option<SyntaxToken>,
@@ -3610,6 +3669,7 @@ pub struct SqlCreateTableStatementFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub elements: SqlTableElementList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub on_commit: Option<PsqlOnCommitClause>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -9499,6 +9559,62 @@ impl From<PsqlNamedArgument> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlOnCommitClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ON_COMMIT_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ON_COMMIT_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlOnCommitClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlOnCommitClause")
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field(
+                    "commit_token",
+                    &support::DebugSyntaxResult(self.commit_token()),
+                )
+                .field("action", &support::DebugSyntaxResult(self.action()))
+                .field(
+                    "rows_token",
+                    &support::DebugOptionalElement(self.rows_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlOnCommitClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlOnCommitClause> for SyntaxNode {
+    fn from(n: PsqlOnCommitClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlOnCommitClause> for SyntaxElement {
+    fn from(n: PsqlOnCommitClause) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlOnConflictClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -12247,6 +12363,10 @@ impl std::fmt::Debug for SqlCreateTableStatement {
                     &support::DebugSyntaxResult(self.create_token()),
                 )
                 .field(
+                    "persistence",
+                    &support::DebugOptionalElement(self.persistence()),
+                )
+                .field(
                     "table_token",
                     &support::DebugSyntaxResult(self.table_token()),
                 )
@@ -12268,6 +12388,10 @@ impl std::fmt::Debug for SqlCreateTableStatement {
                 .field(
                     "r_paren_token",
                     &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field(
+                    "on_commit",
+                    &support::DebugOptionalElement(self.on_commit()),
                 )
                 .field(
                     "semicolon_token",
@@ -19093,6 +19217,11 @@ impl std::fmt::Display for PsqlLimitClause {
     }
 }
 impl std::fmt::Display for PsqlNamedArgument {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlOnCommitClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

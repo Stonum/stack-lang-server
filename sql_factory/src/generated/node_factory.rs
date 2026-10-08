@@ -696,6 +696,41 @@ pub fn psql_named_argument(
         ],
     ))
 }
+pub fn psql_on_commit_clause(
+    on_token: SyntaxToken,
+    commit_token: SyntaxToken,
+    action_token: SyntaxToken,
+) -> PsqlOnCommitClauseBuilder {
+    PsqlOnCommitClauseBuilder {
+        on_token,
+        commit_token,
+        action_token,
+        rows_token: None,
+    }
+}
+pub struct PsqlOnCommitClauseBuilder {
+    on_token: SyntaxToken,
+    commit_token: SyntaxToken,
+    action_token: SyntaxToken,
+    rows_token: Option<SyntaxToken>,
+}
+impl PsqlOnCommitClauseBuilder {
+    pub fn with_rows_token(mut self, rows_token: SyntaxToken) -> Self {
+        self.rows_token = Some(rows_token);
+        self
+    }
+    pub fn build(self) -> PsqlOnCommitClause {
+        PsqlOnCommitClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_ON_COMMIT_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.on_token)),
+                Some(SyntaxElement::Token(self.commit_token)),
+                Some(SyntaxElement::Token(self.action_token)),
+                self.rows_token.map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_on_conflict_clause(
     on_token: SyntaxToken,
     conflict_token: SyntaxToken,
@@ -1652,9 +1687,11 @@ pub fn sql_create_table_statement(
         l_paren_token,
         elements,
         r_paren_token,
+        persistence_token: None,
         if_token: None,
         not_token: None,
         exists_token: None,
+        on_commit: None,
         semicolon_token: None,
     }
 }
@@ -1665,12 +1702,18 @@ pub struct SqlCreateTableStatementBuilder {
     l_paren_token: SyntaxToken,
     elements: SqlTableElementList,
     r_paren_token: SyntaxToken,
+    persistence_token: Option<SyntaxToken>,
     if_token: Option<SyntaxToken>,
     not_token: Option<SyntaxToken>,
     exists_token: Option<SyntaxToken>,
+    on_commit: Option<PsqlOnCommitClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlCreateTableStatementBuilder {
+    pub fn with_persistence_token(mut self, persistence_token: SyntaxToken) -> Self {
+        self.persistence_token = Some(persistence_token);
+        self
+    }
     pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
         self.if_token = Some(if_token);
         self
@@ -1683,6 +1726,10 @@ impl SqlCreateTableStatementBuilder {
         self.exists_token = Some(exists_token);
         self
     }
+    pub fn with_on_commit(mut self, on_commit: PsqlOnCommitClause) -> Self {
+        self.on_commit = Some(on_commit);
+        self
+    }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
         self.semicolon_token = Some(semicolon_token);
         self
@@ -1692,6 +1739,8 @@ impl SqlCreateTableStatementBuilder {
             SqlSyntaxKind::SQL_CREATE_TABLE_STATEMENT,
             [
                 Some(SyntaxElement::Token(self.create_token)),
+                self.persistence_token
+                    .map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.table_token)),
                 self.if_token.map(|token| SyntaxElement::Token(token)),
                 self.not_token.map(|token| SyntaxElement::Token(token)),
@@ -1700,6 +1749,8 @@ impl SqlCreateTableStatementBuilder {
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.elements.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
+                self.on_commit
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
             ],

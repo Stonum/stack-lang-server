@@ -233,3 +233,58 @@ fn test_create_table_foreign_key_without_references_reports_error() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_create_temp_temporary_and_unlogged_tables() {
+    for src in [
+        "create temp table t (a int)",
+        "create temporary table if not exists t (a int)",
+        "create unlogged table tmp.t (a int)",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+    }
+}
+
+#[test]
+fn test_create_table_on_commit_actions() {
+    for src in [
+        "create temp table t (a int) on commit drop;",
+        "create temp table t (a int) on commit delete rows",
+        "create temp table t (a int) on commit preserve rows",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("PSQL_ON_COMMIT_CLAUSE"), "{src}");
+    }
+}
+
+#[test]
+fn test_create_table_on_commit_without_action_reports_error() {
+    let res = parse("create temp table t (a int) on commit", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_temp_table_rejected_under_mssql_dialect() {
+    let res = parse(
+        "create temp table t (a int)",
+        SqlFileSource::script().with_dialect(SqlDialect::Mssql),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_on_commit_rejected_under_standard_dialect() {
+    let res = parse(
+        "create table t (a int) on commit drop",
+        SqlFileSource::script(),
+    );
+
+    assert!(res.has_errors());
+}

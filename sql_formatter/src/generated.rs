@@ -784,6 +784,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlNamedArgument {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlOnCommitClause>
+    for crate::psql::clauses::on_commit_clause::FormatPsqlOnCommitClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlOnCommitClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlOnCommitClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlOnCommitClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlOnCommitClause,
+        crate::psql::clauses::on_commit_clause::FormatPsqlOnCommitClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::on_commit_clause::FormatPsqlOnCommitClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlOnCommitClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlOnCommitClause,
+        crate::psql::clauses::on_commit_clause::FormatPsqlOnCommitClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::on_commit_clause::FormatPsqlOnCommitClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlOnConflictClause>
     for crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause
 {

@@ -16,6 +16,56 @@ use crate::syntax_rules::parse_error::{
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
 
+/// `TEMP`/`TEMPORARY`/`UNLOGGED` between `CREATE` and `TABLE`.
+pub(crate) fn eat_table_persistence(p: &mut SqlParser) {
+    if !p.at(T![temp]) && !p.at(T![temporary]) && !p.at(T![unlogged]) {
+        return;
+    }
+
+    let range = p.cur_range();
+    p.bump_any();
+    if !SqlSyntaxFeature::Postgres.is_supported(p) {
+        p.error(postgres_only_syntax_error(
+            p,
+            "`TEMP`/`TEMPORARY`/`UNLOGGED` tables",
+            range,
+        ));
+    }
+}
+
+/// `ON COMMIT DROP | DELETE ROWS | PRESERVE ROWS` after `CREATE TABLE (...)`.
+pub(crate) fn parse_on_commit_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![on]) || !p.nth_at(1, T![commit]) {
+        return Absent;
+    }
+
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![on]);
+            p.bump(T![commit]);
+            match p.cur() {
+                T![drop] => p.bump(T![drop]),
+                T![delete] | T![preserve] => {
+                    p.bump_any();
+                    p.expect(T![rows]);
+                }
+                _ => {
+                    let range = p.cur_range();
+                    let err = p.err_builder(
+                        "Expected `drop`, `delete rows` or `preserve rows` after `on commit`",
+                        range,
+                    );
+                    p.error(err);
+                }
+            }
+            Present(m.complete(p, PSQL_ON_COMMIT_CLAUSE))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`ON COMMIT`", marker.range(p)),
+    )
+}
+
 /// `RESTART IDENTITY` / `CONTINUE IDENTITY` after `TRUNCATE`'s table list.
 pub(crate) fn parse_truncate_identity_clause(p: &mut SqlParser) -> ParsedSyntax {
     if !p.at(T![restart]) && !p.at(T![continue]) {

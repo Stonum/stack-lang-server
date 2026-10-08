@@ -132,3 +132,36 @@ create table foo (a int, b int, constraint pk_foo primary key (a, b), check (a <
 "#
     );
 }
+
+#[test]
+fn format_create_temp_table_on_commit_drop() {
+    assert_fmt!(
+        r#"--
+create temp table foo (a int) on commit drop;
+"#
+    );
+}
+
+#[test]
+fn format_create_temp_table_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE   TEMPORARY  TABLE foo (a int)  ON   COMMIT  PRESERVE   ROWS;
+"#,
+        r#"--
+create temporary table foo (a int) on commit preserve rows;
+"#
+    );
+}
+
+#[test]
+fn format_create_unlogged_table() {
+    assert_fmt_eq!(
+        r#"--
+CREATE UNLOGGED TABLE tmp.foo (a int)
+"#,
+        r#"--
+create unlogged table tmp.foo (a int)
+"#
+    );
+}
