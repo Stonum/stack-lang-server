@@ -287,7 +287,7 @@ pub(crate) fn parse_subquery_binding_body(p: &mut SqlParser, m: Marker) -> Parse
     Present(m.complete(p, SQL_SUBQUERY_BINDING))
 }
 
-/// `true` if a `(` is followed by a from-expression rather than `select`/
+/// `true` if a `(` is followed by a from-expression rather than `select`/`values`/
 /// `with` -- i.e. a parenthesized join `(a JOIN b ON ...)` rather than a
 /// subquery `(select ...)`. Both start with `(`, so this lookahead is what
 /// keeps [parse_from_expression] from routing a parenthesized join into
@@ -297,7 +297,10 @@ fn is_at_parenthesized_join_start(p: &mut SqlParser) -> bool {
     p.at(T!['(']) && {
         p.lookahead(|p| {
             p.bump(T!['(']);
-            !p.at(T![select]) && !p.at(T![with]) && is_at_from_expression_start(p)
+            !p.at(T![select])
+                && !p.at(T![with])
+                && !p.at(T![values])
+                && is_at_from_expression_start(p)
         })
     }
 }

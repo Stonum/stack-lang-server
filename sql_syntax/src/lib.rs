@@ -36,6 +36,84 @@ impl SqlSyntaxKind {
         (self as u16) <= (SqlSyntaxKind::FALSE_KW as u16)
             && (self as u16) >= (SqlSyntaxKind::INTEGER_KW as u16)
     }
+
+    /// Postgres `reserved` and `type_func_name` keywords: never a column or
+    /// table name without quoting.
+    pub const fn is_reserved_keyword(self) -> bool {
+        matches!(
+            self,
+            ALL_KW
+                | AND_KW
+                | ANY_KW
+                | ARRAY_KW
+                | AS_KW
+                | ASC_KW
+                | CASE_KW
+                | CAST_KW
+                | CHECK_KW
+                | CONSTRAINT_KW
+                | CREATE_KW
+                | DEFAULT_KW
+                | DESC_KW
+                | DISTINCT_KW
+                | DO_KW
+                | ELSE_KW
+                | END_KW
+                | EXCEPT_KW
+                | FALSE_KW
+                | FETCH_KW
+                | FOR_KW
+                | FOREIGN_KW
+                | FROM_KW
+                | GRANT_KW
+                | GROUP_BY_KW
+                | HAVING_KW
+                | IN_KW
+                | INTERSECT_KW
+                | INTO_KW
+                | LATERAL_KW
+                | LIMIT_KW
+                | NOT_KW
+                | NULL_KW
+                | OFFSET_KW
+                | ON_KW
+                | ONLY_KW
+                | OR_KW
+                | ORDER_BY_KW
+                | PARTITION_BY_KW
+                | PRIMARY_KW
+                | RETURNING_KW
+                | SELECT_KW
+                | SOME_KW
+                | TABLE_KW
+                | THEN_KW
+                | TO_KW
+                | TRUE_KW
+                | UNION_KW
+                | UNIQUE_KW
+                | USING_KW
+                | WHEN_KW
+                | WHERE_KW
+                | WITH_KW
+                // type_func_name
+                | CROSS_KW
+                | FULL_KW
+                | ILIKE_KW
+                | INNER_KW
+                | IS_KW
+                | JOIN_KW
+                | LEFT_KW
+                | LIKE_KW
+                | OUTER_KW
+                | RIGHT_KW
+        )
+    }
+
+    /// A keyword Postgres also accepts as a column/table name (`ColId`),
+    /// e.g. `key`, `rows`, `text`.
+    pub const fn is_non_reserved_keyword(self) -> bool {
+        self.is_keyword() && !self.is_reserved_keyword()
+    }
 }
 
 impl biome_rowan::SyntaxKind for SqlSyntaxKind {

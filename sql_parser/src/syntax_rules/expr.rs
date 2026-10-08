@@ -254,6 +254,8 @@ fn parse_primary_expression(p: &mut SqlParser) -> ParsedSyntax {
         T![right] | T![left] | T![replace] if p.nth_at(1, T!['(']) => {
             parse_keyword_as_call_expression(p)
         }
+        // Checked last, after every keyword that starts its own construct.
+        kind if kind.is_non_reserved_keyword() => parse_ident_expression(p),
         _ => Absent,
     };
 
@@ -968,27 +970,11 @@ pub(crate) fn count_dotted_name_segments(p: &mut SqlParser) -> usize {
     })
 }
 
-/// A plain name, e.g. a column/parameter/CTE name. Also accepts `full`
-/// and every type-name keyword (`date`, `time`, `text`, `numeric`, ...) --
-/// unlike `select`/`from`/etc., real Postgres doesn't fully reserve any of
-/// these (only their meaning in a type-expression position, or -- for
-/// `full` specifically -- inside `FROM ... FULL JOIN` and bare-alias
-/// position, is special), so a column or parameter can legitimately be
-/// named `date` or `full` (both seen in real scripts: a `date timestamp`
-/// parameter, a `full`-named `RETURNS TABLE(...)` column). Bare alias
-/// position (`from t full`, ambiguous with the start of `FULL JOIN`) and
-/// column-*reference* position are deliberately left alone --
-/// `parse_alias`/`parse_primary_expression` have their own, narrower gates
-/// that don't check for these keywords, so this widening only ever takes
-/// effect where a name is being *defined*, not referenced.
-///
-/// `SqlName`'s single child slot is declared in the grammar as a plain
-/// `ident` token, so a keyword token is remapped to `T![ident]`
-/// (`bump_remap`, the same technique `mlang_parser` already uses for its
-/// own contextual-keyword-as-name cases) rather than widening the
-/// grammar/generated node-factory validation to accept the keyword's own
-/// kind as-is -- the resulting tree still just sees an ordinary
-/// `SQL_NAME(IDENT)`.
+/// A plain name, e.g. a column/parameter/CTE name. Besides `ident` it
+/// accepts every non-reserved keyword (Postgres `ColId`: `key`, `rows`,
+/// `text`, ...) plus `full` (a `full`-named `RETURNS TABLE(...)` column is
+/// real-world confirmed). A keyword is remapped to `T![ident]`, so the
+/// tree still sees an ordinary `SQL_NAME(IDENT)`.
 pub(crate) fn parse_name(p: &mut SqlParser) -> ParsedSyntax {
     if !is_at_name_start(p) {
         return Absent;
@@ -1004,12 +990,23 @@ pub(crate) fn parse_name(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_NAME))
 }
 
-/// `true` if the parser is at whatever [parse_name] would accept -- kept
-/// as its own function so every "is a name coming next?" gate stays in
-/// sync with `parse_name`'s own acceptance check, rather than each call
-/// site re-deriving (and risking drifting from) the same condition.
+/// `true` if the parser is at whatever [parse_name] would accept.
 pub(crate) fn is_at_name_start(p: &mut SqlParser) -> bool {
-    p.at(T![ident]) || p.at(T![full]) || p.at_ts(TYPE_NAME_TOKEN_SET) || is_at_bracket_name_start(p)
+    p.at(T![ident])
+        || p.at(T![full])
+        || p.at_ts(TYPE_NAME_TOKEN_SET)
+        || p.cur().is_non_reserved_keyword()
+        || is_at_bracket_name_start(p)
+}
+
+/// A name after `AS` (Postgres `ColLabel`): any keyword, reserved or not.
+fn parse_label(p: &mut SqlParser) -> ParsedSyntax {
+    if !is_at_name_start(p) && p.cur().is_keyword() {
+        let m = p.start();
+        p.bump_remap(T![ident]);
+        return Present(m.complete(p, SQL_NAME));
+    }
+    parse_name(p)
 }
 
 /// `true` if the parser is at a `[` that could be the start of the mlang
@@ -1031,7 +1028,8 @@ pub(crate) fn is_at_bracket_name_start(p: &mut SqlParser) -> bool {
 }
 
 /// `true` if the parser is at a single dotted-name segment -- a plain
-/// `ident` or (mlang dialect) a `[bracket name]`. The shared gate behind
+/// `ident`, a non-reserved keyword (`t.key`, a column named `rows`) or
+/// (mlang dialect) a `[bracket name]`. The shared gate behind
 /// every "how many `a.b.c`-style segments are ahead" scan
 /// ([count_dotted_name_segments], [is_at_table_star]) and every actual
 /// per-segment consumer ([bump_name_segment]), so a bracket-quoted segment
@@ -1039,7 +1037,7 @@ pub(crate) fn is_at_bracket_name_start(p: &mut SqlParser) -> bool {
 /// appears (`[Table].col`, `t.[Col]`, `[Table].[Col]`) instead of only at
 /// whichever position a given call site happened to check for it.
 pub(crate) fn is_at_name_segment_start(p: &mut SqlParser) -> bool {
-    p.at(T![ident]) || is_at_bracket_name_start(p)
+    p.at(T![ident]) || p.cur().is_non_reserved_keyword() || is_at_bracket_name_start(p)
 }
 
 /// Consumes one dotted-name segment already confirmed present by
@@ -1050,6 +1048,8 @@ pub(crate) fn is_at_name_segment_start(p: &mut SqlParser) -> bool {
 pub(crate) fn bump_name_segment(p: &mut SqlParser) {
     if p.at(T![ident]) {
         p.bump(T![ident]);
+    } else if p.cur().is_non_reserved_keyword() {
+        p.bump_remap(T![ident]);
     } else {
         p.re_lex(SqlReLexContext::BracketName);
         p.bump(IDENT);
@@ -1098,7 +1098,7 @@ pub(crate) fn parse_alias(p: &mut SqlParser) {
     let m = p.start();
     if p.at(T![as]) {
         p.bump(T![as]);
-        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        parse_label(p).or_add_diagnostic(p, expected_identifier);
     } else {
         parse_name(p).unwrap();
     }
