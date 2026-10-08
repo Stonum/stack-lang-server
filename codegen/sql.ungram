@@ -481,19 +481,49 @@ PsqlTableAndColumns =
    table: SqlTableName
    columns: SqlColumnList?
 
-// `CREATE TABLE [IF NOT EXISTS] name (col type [constraint ...], ...) [;]`
-// -- no table-level (CONSTRAINT/FOREIGN KEY/...) constraints yet.
+// `CREATE TABLE [IF NOT EXISTS] name (column | table constraint, ...) [;]`
 SqlCreateTableStatement =
    'create'
    'table'
    ('if' 'not' 'exists')?
    name: SqlTableName
    '('
-   columns: SqlColumnDefinitionList
+   elements: SqlTableElementList
    ')'
    ';'?
 
-SqlColumnDefinitionList = (SqlColumnDefinition (',' SqlColumnDefinition)*)
+SqlTableElementList = (AnySqlTableElement (',' AnySqlTableElement)*)
+
+AnySqlTableElement =
+   SqlColumnDefinition
+   | SqlTableConstraint
+
+// `[CONSTRAINT name] PRIMARY KEY (...) | UNIQUE (...) | CHECK (...) |
+// FOREIGN KEY (...) REFERENCES ...` inside `CREATE TABLE (...)`.
+SqlTableConstraint =
+   name: SqlConstraintName?
+   constraint: AnySqlTableConstraint
+
+AnySqlTableConstraint =
+   SqlPrimaryKeyTableConstraint
+   | SqlUniqueTableConstraint
+   | SqlCheckConstraint
+   | SqlForeignKeyTableConstraint
+
+SqlPrimaryKeyTableConstraint =
+   'primary'
+   'key'
+   columns: SqlColumnList
+
+SqlUniqueTableConstraint =
+   'unique'
+   columns: SqlColumnList
+
+SqlForeignKeyTableConstraint =
+   'foreign'
+   'key'
+   columns: SqlColumnList
+   references: SqlReferencesConstraint
 
 SqlColumnDefinition =
    name: SqlName

@@ -1782,7 +1782,7 @@ impl SqlCreateTableStatement {
                 .splice_slots(6usize..=6usize, once(Some(element.into()))),
         )
     }
-    pub fn with_columns(self, element: SqlColumnDefinitionList) -> Self {
+    pub fn with_elements(self, element: SqlTableElementList) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(7usize..=7usize, once(Some(element.into_syntax().into()))),
@@ -2190,6 +2190,32 @@ impl SqlFetchWithTiesTail {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlForeignKeyTableConstraint {
+    pub fn with_foreign_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_key_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_columns(self, element: SqlColumnList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_references(self, element: SqlReferencesConstraint) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
         )
     }
 }
@@ -2737,6 +2763,26 @@ impl SqlPrimaryKeyConstraint {
         )
     }
 }
+impl SqlPrimaryKeyTableConstraint {
+    pub fn with_primary_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_key_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_columns(self, element: SqlColumnList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl SqlReferencesConstraint {
     pub fn with_references_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -3107,6 +3153,20 @@ impl SqlTableColReference {
         )
     }
 }
+impl SqlTableConstraint {
+    pub fn with_name(self, element: Option<SqlConstraintName>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            0usize..=0usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_constraint(self, element: AnySqlTableConstraint) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl SqlTableName {
     pub fn with_schema(self, element: Option<SqlShemaName>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
@@ -3272,6 +3332,20 @@ impl SqlUniqueConstraint {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlUniqueTableConstraint {
+    pub fn with_unique_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_columns(self, element: SqlColumnList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
         )
     }
 }

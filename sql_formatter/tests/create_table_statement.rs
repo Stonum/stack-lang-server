@@ -111,3 +111,24 @@ create table foo (a int constraint a_positive check (a > 0) not null, b int refe
 "#
     );
 }
+
+#[test]
+fn format_create_table_table_level_constraints() {
+    assert_fmt!(
+        r#"--
+create table foo (a int, b int, primary key (a, b), unique (b), foreign key (b) references bar (id))
+"#
+    );
+}
+
+#[test]
+fn format_create_table_table_level_constraints_normalize_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE TABLE foo ( a int, b int,CONSTRAINT  pk_foo  PRIMARY KEY(a,b) ,CHECK(a<b) )
+"#,
+        r#"--
+create table foo (a int, b int, constraint pk_foo primary key (a, b), check (a < b))
+"#
+    );
+}

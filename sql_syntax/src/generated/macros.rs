@@ -376,6 +376,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlFetchWithTiesTail::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_FOREIGN_KEY_TABLE_CONSTRAINT => {
+                    let $pattern =
+                        unsafe { $crate::SqlForeignKeyTableConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_FROM_CLAUSE => {
                     let $pattern = unsafe { $crate::SqlFromClause::new_unchecked(node) };
                     $body
@@ -483,6 +488,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlPrimaryKeyConstraint::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_PRIMARY_KEY_TABLE_CONSTRAINT => {
+                    let $pattern =
+                        unsafe { $crate::SqlPrimaryKeyTableConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_REFERENCES_CONSTRAINT => {
                     let $pattern = unsafe { $crate::SqlReferencesConstraint::new_unchecked(node) };
                     $body
@@ -553,6 +563,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlTableColReference::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_TABLE_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlTableConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_TABLE_NAME => {
                     let $pattern = unsafe { $crate::SqlTableName::new_unchecked(node) };
                     $body
@@ -587,6 +601,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_UNIQUE_CONSTRAINT => {
                     let $pattern = unsafe { $crate::SqlUniqueConstraint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_UNIQUE_TABLE_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlUniqueTableConstraint::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_UPDATE_FROM_CLAUSE => {
@@ -711,10 +729,6 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlColumnConstraintList::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_COLUMN_DEFINITION_LIST => {
-                    let $pattern = unsafe { $crate::SqlColumnDefinitionList::new_unchecked(node) };
-                    $body
-                }
                 $crate::SqlSyntaxKind::SQL_COLUMN_NAME_LIST => {
                     let $pattern = unsafe { $crate::SqlColumnNameList::new_unchecked(node) };
                     $body
@@ -761,6 +775,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_STATEMENT_LIST => {
                     let $pattern = unsafe { $crate::SqlStatementList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_TABLE_ELEMENT_LIST => {
+                    let $pattern = unsafe { $crate::SqlTableElementList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_TABLE_NAME_LIST => {

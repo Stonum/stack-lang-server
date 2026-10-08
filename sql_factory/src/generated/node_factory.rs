@@ -1642,7 +1642,7 @@ pub fn sql_create_table_statement(
     table_token: SyntaxToken,
     name: SqlTableName,
     l_paren_token: SyntaxToken,
-    columns: SqlColumnDefinitionList,
+    elements: SqlTableElementList,
     r_paren_token: SyntaxToken,
 ) -> SqlCreateTableStatementBuilder {
     SqlCreateTableStatementBuilder {
@@ -1650,7 +1650,7 @@ pub fn sql_create_table_statement(
         table_token,
         name,
         l_paren_token,
-        columns,
+        elements,
         r_paren_token,
         if_token: None,
         not_token: None,
@@ -1663,7 +1663,7 @@ pub struct SqlCreateTableStatementBuilder {
     table_token: SyntaxToken,
     name: SqlTableName,
     l_paren_token: SyntaxToken,
-    columns: SqlColumnDefinitionList,
+    elements: SqlTableElementList,
     r_paren_token: SyntaxToken,
     if_token: Option<SyntaxToken>,
     not_token: Option<SyntaxToken>,
@@ -1698,7 +1698,7 @@ impl SqlCreateTableStatementBuilder {
                 self.exists_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.name.into_syntax())),
                 Some(SyntaxElement::Token(self.l_paren_token)),
-                Some(SyntaxElement::Node(self.columns.into_syntax())),
+                Some(SyntaxElement::Node(self.elements.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
@@ -2168,6 +2168,22 @@ pub fn sql_fetch_with_ties_tail(
         [
             Some(SyntaxElement::Token(with_token)),
             Some(SyntaxElement::Token(ties_token)),
+        ],
+    ))
+}
+pub fn sql_foreign_key_table_constraint(
+    foreign_token: SyntaxToken,
+    key_token: SyntaxToken,
+    columns: SqlColumnList,
+    references: SqlReferencesConstraint,
+) -> SqlForeignKeyTableConstraint {
+    SqlForeignKeyTableConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_FOREIGN_KEY_TABLE_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(foreign_token)),
+            Some(SyntaxElement::Token(key_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+            Some(SyntaxElement::Node(references.into_syntax())),
         ],
     ))
 }
@@ -2756,6 +2772,20 @@ pub fn sql_primary_key_constraint(
         ],
     ))
 }
+pub fn sql_primary_key_table_constraint(
+    primary_token: SyntaxToken,
+    key_token: SyntaxToken,
+    columns: SqlColumnList,
+) -> SqlPrimaryKeyTableConstraint {
+    SqlPrimaryKeyTableConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_PRIMARY_KEY_TABLE_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(primary_token)),
+            Some(SyntaxElement::Token(key_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+        ],
+    ))
+}
 pub fn sql_references_constraint(
     references_token: SyntaxToken,
     table: SqlTableName,
@@ -3227,6 +3257,32 @@ pub fn sql_table_col_reference(
         ],
     ))
 }
+pub fn sql_table_constraint(constraint: AnySqlTableConstraint) -> SqlTableConstraintBuilder {
+    SqlTableConstraintBuilder {
+        constraint,
+        name: None,
+    }
+}
+pub struct SqlTableConstraintBuilder {
+    constraint: AnySqlTableConstraint,
+    name: Option<SqlConstraintName>,
+}
+impl SqlTableConstraintBuilder {
+    pub fn with_name(mut self, name: SqlConstraintName) -> Self {
+        self.name = Some(name);
+        self
+    }
+    pub fn build(self) -> SqlTableConstraint {
+        SqlTableConstraint::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_TABLE_CONSTRAINT,
+            [
+                self.name
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.constraint.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn sql_table_name(name: AnySqlName) -> SqlTableNameBuilder {
     SqlTableNameBuilder { name, schema: None }
 }
@@ -3407,6 +3463,18 @@ pub fn sql_unique_constraint(unique_token: SyntaxToken) -> SqlUniqueConstraint {
     SqlUniqueConstraint::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_UNIQUE_CONSTRAINT,
         [Some(SyntaxElement::Token(unique_token))],
+    ))
+}
+pub fn sql_unique_table_constraint(
+    unique_token: SyntaxToken,
+    columns: SqlColumnList,
+) -> SqlUniqueTableConstraint {
+    SqlUniqueTableConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_UNIQUE_TABLE_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(unique_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+        ],
     ))
 }
 pub fn sql_update_from_clause(
@@ -3869,27 +3937,6 @@ where
             .map(|item| Some(item.into_syntax().into())),
     ))
 }
-pub fn sql_column_definition_list<I, S>(items: I, separators: S) -> SqlColumnDefinitionList
-where
-    I: IntoIterator<Item = SqlColumnDefinition>,
-    I::IntoIter: ExactSizeIterator,
-    S: IntoIterator<Item = SqlSyntaxToken>,
-    S::IntoIter: ExactSizeIterator,
-{
-    let mut items = items.into_iter();
-    let mut separators = separators.into_iter();
-    let length = items.len() + separators.len();
-    SqlColumnDefinitionList::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::SQL_COLUMN_DEFINITION_LIST,
-        (0..length).map(|index| {
-            if index % 2 == 0 {
-                Some(items.next()?.into_syntax().into())
-            } else {
-                Some(separators.next()?.into())
-            }
-        }),
-    ))
-}
 pub fn sql_column_name_list<I, S>(items: I, separators: S) -> SqlColumnNameList
 where
     I: IntoIterator<Item = SqlName>,
@@ -4113,6 +4160,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn sql_table_element_list<I, S>(items: I, separators: S) -> SqlTableElementList
+where
+    I: IntoIterator<Item = AnySqlTableElement>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    SqlTableElementList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_TABLE_ELEMENT_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn sql_table_name_list<I, S>(items: I, separators: S) -> SqlTableNameList
