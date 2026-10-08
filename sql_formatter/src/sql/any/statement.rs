@@ -19,6 +19,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlGrantStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlInsertStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlSelectStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlTruncateStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlUpdateStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlValuesClause(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateFunctionStatement(node) => node.format().fmt(f),

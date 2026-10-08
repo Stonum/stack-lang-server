@@ -10,4 +10,5 @@ pub(crate) mod empty_statement;
 pub(crate) mod grant_statement;
 pub(crate) mod insert_statement;
 pub(crate) mod select_statement;
+pub(crate) mod truncate_statement;
 pub(crate) mod update_statement;

@@ -16,6 +16,24 @@ use crate::syntax_rules::parse_error::{
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
 
+/// `RESTART IDENTITY` / `CONTINUE IDENTITY` after `TRUNCATE`'s table list.
+pub(crate) fn parse_truncate_identity_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![restart]) && !p.at(T![continue]) {
+        return Absent;
+    }
+
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump_any();
+            p.expect(T![identity]);
+            Present(m.complete(p, PSQL_TRUNCATE_IDENTITY_CLAUSE))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`RESTART`/`CONTINUE IDENTITY`", marker.range(p)),
+    )
+}
+
 /// `CASCADE`/`RESTRICT` after `DROP TABLE`/`DROP VIEW`/`DROP FUNCTION` --
 /// Postgres-only, no equivalent at all in T-SQL's `DROP` grammar (`DROP
 /// POLICY`/`DROP TRIGGER` don't need their own call site here since the

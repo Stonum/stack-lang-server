@@ -1658,6 +1658,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerWhenClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlTruncateIdentityClause>
+    for crate::psql::clauses::truncate_identity_clause::FormatPsqlTruncateIdentityClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTruncateIdentityClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTruncateIdentityClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTruncateIdentityClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTruncateIdentityClause,
+        crate::psql::clauses::truncate_identity_clause::FormatPsqlTruncateIdentityClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: clauses :: truncate_identity_clause :: FormatPsqlTruncateIdentityClause :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTruncateIdentityClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTruncateIdentityClause,
+        crate::psql::clauses::truncate_identity_clause::FormatPsqlTruncateIdentityClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: truncate_identity_clause :: FormatPsqlTruncateIdentityClause :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlTypeArraySuffix>
     for crate::psql::auxiliary::type_array_suffix::FormatPsqlTypeArraySuffix
 {
@@ -4231,6 +4263,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTimeZoneModifier {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::time_zone_modifier::FormatSqlTimeZoneModifier::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlTruncateStatement>
+    for crate::sql::statements::truncate_statement::FormatSqlTruncateStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlTruncateStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlTruncateStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlTruncateStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlTruncateStatement,
+        crate::sql::statements::truncate_statement::FormatSqlTruncateStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::truncate_statement::FormatSqlTruncateStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlTruncateStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlTruncateStatement,
+        crate::sql::statements::truncate_statement::FormatSqlTruncateStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::truncate_statement::FormatSqlTruncateStatement::default(),
         )
     }
 }

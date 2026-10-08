@@ -90,3 +90,10 @@ fn test_array_literal_still_allows_zero() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_drop_table_requires_at_least_one_name() {
+    let res = parse("drop table;", SqlFileSource::script());
+
+    assert!(res.has_errors());
+}

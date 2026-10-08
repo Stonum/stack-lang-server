@@ -209,6 +209,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTriggerWhenClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_TRUNCATE_IDENTITY_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlTruncateIdentityClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_TYPE_ARRAY_SUFFIX => {
                     let $pattern = unsafe { $crate::PsqlTypeArraySuffix::new_unchecked(node) };
                     $body
@@ -514,6 +519,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_TIME_ZONE_MODIFIER => {
                     let $pattern = unsafe { $crate::SqlTimeZoneModifier::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_TRUNCATE_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlTruncateStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_TYPE_ARGUMENTS => {
