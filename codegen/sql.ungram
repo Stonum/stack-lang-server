@@ -110,6 +110,7 @@ AnySqlStatement =
    | SqlDropTableStatement
    | SqlCreateTableStatement
    | SqlCreateTableAsStatement
+   | SqlAlterTableStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
@@ -496,6 +497,32 @@ SqlCreateTableStatement =
    ')'
    on_commit: PsqlOnCommitClause?
    ';'?
+
+// `ALTER TABLE [IF EXISTS] [ONLY] name action, ... [;]`
+SqlAlterTableStatement =
+   'alter'
+   'table'
+   ('if' 'exists')?
+   'only'?
+   name: SqlTableName
+   actions: SqlAlterTableActionList
+   ';'?
+
+SqlAlterTableActionList = (SqlAlterTriggerAction (',' SqlAlterTriggerAction)*)
+
+// `ENABLE | DISABLE TRIGGER name | ALL | USER`
+SqlAlterTriggerAction =
+   action: ('enable' | 'disable')
+   'trigger'
+   target: AnySqlTriggerTarget
+
+AnySqlTriggerTarget =
+   SqlName
+   | SqlAllTriggersTarget
+
+// `ALL` / `USER` -- every trigger, or only the non-system ones.
+SqlAllTriggersTarget =
+   scope: ('all' | 'user')
 
 // `CREATE [TEMP|TEMPORARY|UNLOGGED] TABLE [IF NOT EXISTS] name [(col, ...)]
 // [ON COMMIT ...] AS query [WITH [NO] DATA] [;]`

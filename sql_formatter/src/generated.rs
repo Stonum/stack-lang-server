@@ -2327,6 +2327,120 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAliasColumnList {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlAllTriggersTarget>
+    for crate::sql::auxiliary::all_triggers_target::FormatSqlAllTriggersTarget
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlAllTriggersTarget,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAllTriggersTarget>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAllTriggersTarget {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAllTriggersTarget,
+        crate::sql::auxiliary::all_triggers_target::FormatSqlAllTriggersTarget,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::all_triggers_target::FormatSqlAllTriggersTarget::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAllTriggersTarget {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAllTriggersTarget,
+        crate::sql::auxiliary::all_triggers_target::FormatSqlAllTriggersTarget,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::all_triggers_target::FormatSqlAllTriggersTarget::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlAlterTableStatement>
+    for crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlAlterTableStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAlterTableStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAlterTableStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAlterTableStatement,
+        crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterTableStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAlterTableStatement,
+        crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlAlterTriggerAction>
+    for crate::sql::auxiliary::alter_trigger_action::FormatSqlAlterTriggerAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlAlterTriggerAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAlterTriggerAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAlterTriggerAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAlterTriggerAction,
+        crate::sql::auxiliary::alter_trigger_action::FormatSqlAlterTriggerAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::alter_trigger_action::FormatSqlAlterTriggerAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterTriggerAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAlterTriggerAction,
+        crate::sql::auxiliary::alter_trigger_action::FormatSqlAlterTriggerAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::alter_trigger_action::FormatSqlAlterTriggerAction::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlAnyAllExpression>
     for crate::sql::expressions::any_all_expression::FormatSqlAnyAllExpression
 {
@@ -5868,6 +5982,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAliasColumnDefinitionList {
         FormatOwnedWithRule :: new (self , crate :: sql :: lists :: alias_column_definition_list :: FormatSqlAliasColumnDefinitionList :: default ())
     }
 }
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAlterTableActionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAlterTableActionList,
+        crate::sql::lists::alter_table_action_list::FormatSqlAlterTableActionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::lists::alter_table_action_list::FormatSqlAlterTableActionList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterTableActionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAlterTableActionList,
+        crate::sql::lists::alter_table_action_list::FormatSqlAlterTableActionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::lists::alter_table_action_list::FormatSqlAlterTableActionList::default(),
+        )
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::SqlCallArgumentList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -7123,6 +7262,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlTableElement {
         FormatOwnedWithRule::new(
             self,
             crate::sql::any::table_element::FormatAnySqlTableElement::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlTriggerTarget {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlTriggerTarget,
+        crate::sql::any::trigger_target::FormatAnySqlTriggerTarget,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::trigger_target::FormatAnySqlTriggerTarget::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlTriggerTarget {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlTriggerTarget,
+        crate::sql::any::trigger_target::FormatAnySqlTriggerTarget,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::trigger_target::FormatAnySqlTriggerTarget::default(),
         )
     }
 }

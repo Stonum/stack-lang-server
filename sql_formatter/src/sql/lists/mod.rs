@@ -1,6 +1,7 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
 pub(crate) mod alias_column_definition_list;
+pub(crate) mod alter_table_action_list;
 pub(crate) mod call_argument_list;
 pub(crate) mod case_when_clause_list;
 pub(crate) mod column_constraint_list;

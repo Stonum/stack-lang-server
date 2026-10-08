@@ -3,6 +3,8 @@
 pub(crate) mod alias;
 pub(crate) mod alias_column_definition;
 pub(crate) mod alias_column_list;
+pub(crate) mod all_triggers_target;
+pub(crate) mod alter_trigger_action;
 pub(crate) mod check_constraint;
 pub(crate) mod col_reference;
 pub(crate) mod column_definition;
