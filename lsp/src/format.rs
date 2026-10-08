@@ -201,19 +201,18 @@ mod tests {
     }
 
     #[test]
-    fn malformed_sql_falls_back_to_the_original_text() {
+    fn malformed_sql_statement_is_kept_verbatim_and_the_rest_formatted() {
         let uri = Url::parse("file:///test.sql").unwrap();
-        let text = "select from where;;;\n";
+        let text = "select   a from t;\nselect from   where;\n";
         let document = CurrentDocument::new_sql(uri, text, SqlFileSource::script());
 
-        // Doesn't parse cleanly, so sql_formatter's own verbatim safety
-        // net kicks in -- reproduces the text unchanged rather than
-        // guessing at a "prettier" but potentially wrong structure.
+        // Only the statement that doesn't parse falls back to its original
+        // text; the valid one next to it is still formatted.
         let edits = format(&document, formatting_options(), whole_document_range(text))
             .expect("malformed input should not panic");
 
         assert_eq!(edits.len(), 1);
-        assert_eq!(edits[0].new_text, "select from where;;;");
+        assert_eq!(edits[0].new_text, "select a from t;\nselect from   where;");
     }
 
     #[test]

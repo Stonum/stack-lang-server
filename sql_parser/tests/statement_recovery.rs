@@ -97,3 +97,67 @@ fn test_lone_semicolon_is_an_empty_statement_not_bogus() {
     let tree = format!("{:#?}", res.syntax());
     assert!(tree.contains("SQL_EMPTY_STATEMENT"));
 }
+
+fn postgres() -> SqlFileSource {
+    SqlFileSource::script()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true)
+}
+
+fn statement_kinds(res: &sql_parser::Parse<sql_syntax::SqlRoot>) -> Vec<sql_syntax::SqlSyntaxKind> {
+    use biome_rowan::{AstNode, AstNodeList};
+
+    res.tree()
+        .stmt()
+        .iter()
+        .map(|stmt| stmt.syntax().kind())
+        .collect()
+}
+
+#[test]
+fn test_broken_select_item_does_not_collapse_the_root() {
+    use sql_syntax::SqlSyntaxKind::*;
+
+    // Also a regression test for list recovery running past the `;` and
+    // swallowing the following statement into the same bogus node.
+    let res = parse("select 1;\nselect a, ? from t;\nselect 2;", postgres());
+
+    assert!(res.has_errors());
+    assert!(res.try_tree().is_some());
+    assert_eq!(
+        statement_kinds(&res),
+        [
+            SQL_SELECT_STATEMENT,
+            SQL_BOGUS_STATEMENT,
+            SQL_SELECT_STATEMENT
+        ]
+    );
+}
+
+#[test]
+fn test_broken_column_definition_does_not_collapse_the_root() {
+    use sql_syntax::SqlSyntaxKind::*;
+
+    let res = parse("create table t (a int, 1);\nselect 1;", postgres());
+
+    assert!(res.has_errors());
+    assert!(res.try_tree().is_some());
+    assert_eq!(
+        statement_kinds(&res),
+        [SQL_BOGUS_STATEMENT, SQL_SELECT_STATEMENT]
+    );
+}
+
+#[test]
+fn test_broken_subquery_only_turns_its_own_statement_bogus() {
+    use sql_syntax::SqlSyntaxKind::*;
+
+    let res = parse("select (select a, ? from t) from u;\nselect 1;", postgres());
+
+    assert!(res.has_errors());
+    assert!(res.try_tree().is_some());
+    assert_eq!(
+        statement_kinds(&res),
+        [SQL_BOGUS_STATEMENT, SQL_SELECT_STATEMENT]
+    );
+}

@@ -58,6 +58,9 @@ impl biome_rowan::SyntaxKind for SqlSyntaxKind {
     fn to_bogus(&self) -> SqlSyntaxKind {
         match self {
             kind if AnySqlExpression::can_cast(*kind) => SQL_BOGUS_EXPRESSION,
+            // Keeps a broken statement inside the statement list instead of
+            // collapsing the list (and the root) into `SQL_BOGUS`.
+            kind if AnySqlStatement::can_cast(*kind) => SQL_BOGUS_STATEMENT,
             _ => SQL_BOGUS,
         }
     }
