@@ -1,7 +1,7 @@
 use crate::prelude::*;
-use crate::utils::{is_simple_expression, write_bracketed_fill_list};
+use crate::utils::{is_simple_call_argument, write_bracketed_fill_list};
 use biome_formatter::write;
-use sql_syntax::AnySqlExpression;
+use sql_syntax::AnySqlCallArgument;
 use sql_syntax::SqlCallExpression;
 use sql_syntax::SqlCallExpressionFields;
 #[derive(Debug, Clone, Default)]
@@ -25,7 +25,7 @@ impl FormatNodeRule<SqlCallExpression> for FormatSqlCallExpression {
             l_paren_token,
             &arguments,
             r_paren_token,
-            |expr: &AnySqlExpression| !is_simple_expression(expr, 0),
+            |argument: &AnySqlCallArgument| !is_simple_call_argument(argument, 0),
             f,
         )?;
         if let Some(filter_clause) = filter_clause {

@@ -105,6 +105,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlLimitClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_NAMED_ARGUMENT => {
+                    let $pattern = unsafe { $crate::PsqlNamedArgument::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_ON_CONFLICT_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlOnConflictClause::new_unchecked(node) };
                     $body
@@ -661,6 +665,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::SQL_ALIAS_COLUMN_DEFINITION_LIST => {
                     let $pattern =
                         unsafe { $crate::SqlAliasColumnDefinitionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_CALL_ARGUMENT_LIST => {
+                    let $pattern = unsafe { $crate::SqlCallArgumentList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_CASE_WHEN_CLAUSE_LIST => {

@@ -750,6 +750,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLimitClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlNamedArgument>
+    for crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlNamedArgument, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlNamedArgument>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlNamedArgument {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlNamedArgument,
+        crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlNamedArgument {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlNamedArgument,
+        crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlOnConflictClause>
     for crate::psql::clauses::on_conflict_clause::FormatPsqlOnConflictClause
 {
@@ -5103,6 +5137,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAliasColumnDefinitionList {
         FormatOwnedWithRule :: new (self , crate :: sql :: lists :: alias_column_definition_list :: FormatSqlAliasColumnDefinitionList :: default ())
     }
 }
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCallArgumentList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCallArgumentList,
+        crate::sql::lists::call_argument_list::FormatSqlCallArgumentList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::lists::call_argument_list::FormatSqlCallArgumentList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCallArgumentList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCallArgumentList,
+        crate::sql::lists::call_argument_list::FormatSqlCallArgumentList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::lists::call_argument_list::FormatSqlCallArgumentList::default(),
+        )
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::SqlCaseWhenClauseList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -5794,6 +5853,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlAnyAllSource {
         FormatOwnedWithRule::new(
             self,
             crate::sql::any::any_all_source::FormatAnySqlAnyAllSource::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlCallArgument {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlCallArgument,
+        crate::sql::any::call_argument::FormatAnySqlCallArgument,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::call_argument::FormatAnySqlCallArgument::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlCallArgument {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlCallArgument,
+        crate::sql::any::call_argument::FormatAnySqlCallArgument,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::call_argument::FormatAnySqlCallArgument::default(),
         )
     }
 }

@@ -6,8 +6,8 @@ use biome_parser::prelude::*;
 use super::postgres::expr::{
     gate_binary_expression, gate_type_name, is_at_substring_from_form,
     is_postgres_only_binary_operator, parse_array_expression, parse_array_subscript_tail,
-    parse_cast_tail, parse_filter_clause, parse_interval_expression, parse_substring_expression,
-    parse_type_array_suffix,
+    parse_cast_tail, parse_filter_clause, parse_interval_expression, parse_named_argument,
+    parse_substring_expression, parse_type_array_suffix,
 };
 use super::select::parse_order_by_clause;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -558,7 +558,7 @@ pub(crate) fn parse_call_expression(p: &mut SqlParser, segment_count: usize) -> 
 /// remapped) name has already been bumped into the still-open marker `m`.
 fn parse_call_expression_body(p: &mut SqlParser, m: Marker) -> ParsedSyntax {
     p.expect(T!['(']);
-    SqlExpressionList.parse_list(p);
+    SqlCallArgumentList.parse_list(p);
     p.expect(T![')']);
     let _ = parse_filter_clause(p);
 
@@ -1203,6 +1203,42 @@ impl ParseSeparatedList for SqlExpressionList {
         // `)` closes call/values/in-list arguments; `]` closes an
         // `array[...]` literal's items.
         p.at(EOF) || p.at(T![')']) || p.at(T![']'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(SQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
+}
+
+/// Function call arguments: expressions or Postgres named arguments.
+struct SqlCallArgumentList;
+
+impl ParseSeparatedList for SqlCallArgumentList {
+    type Kind = SqlSyntaxKind;
+    type Parser<'source> = SqlParser<'source>;
+    const LIST_KIND: Self::Kind = SQL_CALL_ARGUMENT_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        if is_at_name_start(p) && p.nth_at(1, T![=>]) {
+            return parse_named_argument(p);
+        }
+        parse_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
     }
 
     fn recover(

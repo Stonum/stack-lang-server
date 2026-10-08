@@ -3,8 +3,8 @@ use biome_formatter::format_element::document::Document;
 use biome_formatter::{FormatOptions, Formatted, VecBuffer, format_args, write};
 use biome_rowan::{AstSeparatedList, SyntaxResult};
 use sql_syntax::{
-    AnySqlExpression, AnySqlFromExpression, SqlFromClause, SqlFromItem, SqlGroupByClause,
-    SqlHavingClause, SqlSelectClause, SqlSyntaxToken, SqlWhereClause,
+    AnySqlCallArgument, AnySqlExpression, AnySqlFromExpression, SqlFromClause, SqlFromItem,
+    SqlGroupByClause, SqlHavingClause, SqlSelectClause, SqlSyntaxToken, SqlWhereClause,
 };
 
 /// Prints the `select ... [from ...] [where ...] [group_by ...] [having
@@ -184,13 +184,24 @@ pub(crate) fn is_simple_expression(expr: &AnySqlExpression, depth: u8) -> bool {
             arguments.len() as u8 + depth <= 2
                 && arguments
                     .iter()
-                    .all(|arg| arg.is_ok_and(|arg| is_simple_expression(&arg, depth + 1)))
+                    .all(|arg| arg.is_ok_and(|arg| is_simple_call_argument(&arg, depth + 1)))
         }
         AnySqlExpression::PsqlArrayExpression(array) => array
             .items()
             .iter()
             .all(|item| item.is_ok_and(|item| is_simple_expression(&item, depth + 1))),
         _ => false,
+    }
+}
+
+/// [is_simple_expression] for a call argument; a named argument is as
+/// simple as its value.
+pub(crate) fn is_simple_call_argument(argument: &AnySqlCallArgument, depth: u8) -> bool {
+    match argument {
+        AnySqlCallArgument::AnySqlExpression(expr) => is_simple_expression(expr, depth),
+        AnySqlCallArgument::PsqlNamedArgument(named) => named
+            .value()
+            .is_ok_and(|value| is_simple_expression(&value, depth)),
     }
 }
 

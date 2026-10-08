@@ -991,6 +991,39 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_LIMIT_CLAUSE, children)
             }
+            PSQL_NAMED_ARGUMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && SqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [=>]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_NAMED_ARGUMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_NAMED_ARGUMENT, children)
+            }
             PSQL_ON_CONFLICT_CLAUSE => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
@@ -2370,7 +2403,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlExpressionList::can_cast(element.kind())
+                    && SqlCallArgumentList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -5366,6 +5399,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 kind,
                 children,
                 SqlAliasColumnDefinition::can_cast,
+                T ! [,],
+                false,
+            ),
+            SQL_CALL_ARGUMENT_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                AnySqlCallArgument::can_cast,
                 T ! [,],
                 false,
             ),

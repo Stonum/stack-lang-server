@@ -407,6 +407,20 @@ mod tests {
     }
 
     #[test]
+    fn rewrites_a_query_with_named_arguments() {
+        let tree = crate::parse(
+            "#\nvar q = \"select now() - make_interval(hours => :1)\";",
+            mlang_syntax::MFileSource::script(),
+        );
+        let root = tree.syntax();
+
+        assert!(
+            root.descendants()
+                .any(|node| node.kind() == MSyntaxKind::M_SQL_STRING_LITERAL_EXPRESSION)
+        );
+    }
+
+    #[test]
     fn leaves_an_unrelated_string_literal_untouched() {
         let tree = crate::parse(
             "#\nvar q = \"just a plain string\";",

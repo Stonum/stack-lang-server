@@ -564,6 +564,17 @@ impl<'src> SqlLexer<'src> {
         }
     }
 
+    /// `=>` is Postgres's named-argument arrow (`f(name => value)`).
+    fn resolve_eq(&mut self) -> SqlSyntaxKind {
+        match self.next_byte() {
+            Some(b'>') => {
+                self.next_byte();
+                T![=>]
+            }
+            _ => T![=],
+        }
+    }
+
     #[inline]
     fn resolve_tilde(&mut self) -> SqlSyntaxKind {
         match self.next_byte() {
@@ -802,7 +813,7 @@ impl<'src> SqlLexer<'src> {
             MIN => self.read_minus(),
             MUL => self.eat_byte(T![*]),
             SLH => self.read_slash(),
-            EQL => self.eat_byte(T![=]),
+            EQL => self.resolve_eq(),
             PRC => self.eat_byte(T![%]),
             EXL => self.resolve_bang(),
             _ => {
