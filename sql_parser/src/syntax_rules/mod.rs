@@ -1,3 +1,4 @@
+mod call;
 mod ddl;
 mod delete;
 mod expr;

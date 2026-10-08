@@ -2229,6 +2229,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCallExpression {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlCallStatement>
+    for crate::sql::statements::call_statement::FormatSqlCallStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlCallStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCallStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCallStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCallStatement,
+        crate::sql::statements::call_statement::FormatSqlCallStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::call_statement::FormatSqlCallStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCallStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCallStatement,
+        crate::sql::statements::call_statement::FormatSqlCallStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::call_statement::FormatSqlCallStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlCaseElseClause>
     for crate::sql::clauses::case_else_clause::FormatSqlCaseElseClause
 {

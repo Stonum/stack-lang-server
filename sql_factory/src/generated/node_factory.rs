@@ -1440,6 +1440,38 @@ impl SqlCallExpressionBuilder {
         ))
     }
 }
+pub fn sql_call_statement(
+    call_token: SyntaxToken,
+    procedure: SqlCallExpression,
+) -> SqlCallStatementBuilder {
+    SqlCallStatementBuilder {
+        call_token,
+        procedure,
+        semicolon_token: None,
+    }
+}
+pub struct SqlCallStatementBuilder {
+    call_token: SyntaxToken,
+    procedure: SqlCallExpression,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlCallStatementBuilder {
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlCallStatement {
+        SqlCallStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_CALL_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.call_token)),
+                Some(SyntaxElement::Node(self.procedure.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn sql_case_else_clause(
     else_token: SyntaxToken,
     result: AnySqlExpression,

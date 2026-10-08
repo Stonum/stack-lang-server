@@ -22,7 +22,7 @@ use mlang_syntax::{AnyMExpression, MBinaryExpression, MLanguage, MSyntaxKind, MS
 /// actually dispatches on, not just a handful of the most common ones.
 const SQL_KEYWORDS: &[&str] = &[
     "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant",
-    "truncate", "vacuum", "analyze", "analyse",
+    "truncate", "vacuum", "analyze", "analyse", "call",
 ];
 
 /// Strips leading whitespace and `/* ... */`/`-- ...` comments, repeatedly,
@@ -389,10 +389,11 @@ mod tests {
     }
 
     #[test]
-    fn rewrites_vacuum_and_analyze_statements() {
+    fn rewrites_maintenance_and_call_statements() {
         for source in [
             "#\nvar q = \"vacuum analyze ~Таблица~\";",
             "#\nvar q = \"analyze #tmp\";",
+            "#\nvar q = \"call ~SomeProc~(:1, :2, :3::date)\";",
         ] {
             let tree = crate::parse(source, mlang_syntax::MFileSource::script());
             let root = tree.syntax();
