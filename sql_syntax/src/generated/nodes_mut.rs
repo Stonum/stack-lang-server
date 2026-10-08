@@ -1672,6 +1672,12 @@ impl SqlColumnDefinition {
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
         )
     }
+    pub fn with_constraints(self, element: SqlColumnConstraintList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
 }
 impl SqlColumnList {
     pub fn with_l_paren_token(self, element: SyntaxToken) -> Self {
@@ -1866,6 +1872,20 @@ impl SqlDataBaseName {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlDefaultConstraint {
+    pub fn with_default_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_value(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
         )
     }
 }
@@ -2503,6 +2523,28 @@ impl SqlLogicalExpression {
 }
 impl SqlName {
     pub fn with_value_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlNotNullConstraint {
+    pub fn with_not_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_null_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlNullConstraint {
+    pub fn with_null_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(0usize..=0usize, once(Some(element.into()))),

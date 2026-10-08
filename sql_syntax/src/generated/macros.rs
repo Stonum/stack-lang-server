@@ -328,6 +328,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlDataBaseName::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_DEFAULT_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlDefaultConstraint::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_DELETE_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlDeleteStatement::new_unchecked(node) };
                     $body
@@ -418,6 +422,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_NAME => {
                     let $pattern = unsafe { $crate::SqlName::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_NOT_NULL_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlNotNullConstraint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_NULL_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlNullConstraint::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_NULL_LITERAL_EXPRESSION => {
@@ -673,6 +685,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_CASE_WHEN_CLAUSE_LIST => {
                     let $pattern = unsafe { $crate::SqlCaseWhenClauseList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_COLUMN_CONSTRAINT_LIST => {
+                    let $pattern = unsafe { $crate::SqlColumnConstraintList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_COLUMN_DEFINITION_LIST => {

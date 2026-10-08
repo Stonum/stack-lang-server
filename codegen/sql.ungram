@@ -481,12 +481,8 @@ PsqlTableAndColumns =
    table: SqlTableName
    columns: SqlColumnList?
 
-// `CREATE TABLE [IF NOT EXISTS] name (col type, col type, ...) [;]` --
-// column list only for now, no column-level (NOT NULL/DEFAULT/PRIMARY KEY/
-// ...) or table-level (CONSTRAINT/FOREIGN KEY/...) constraints yet. No real
-// example in the client corpus this grammar is otherwise grounded in, so
-// this deliberately starts minimal rather than guessing at the full
-// standard-Postgres constraint grammar up front.
+// `CREATE TABLE [IF NOT EXISTS] name (col type [constraint ...], ...) [;]`
+// -- no table-level (CONSTRAINT/FOREIGN KEY/...) constraints yet.
 SqlCreateTableStatement =
    'create'
    'table'
@@ -502,6 +498,25 @@ SqlColumnDefinitionList = (SqlColumnDefinition (',' SqlColumnDefinition)*)
 SqlColumnDefinition =
    name: SqlName
    type: SqlTypeName
+   constraints: SqlColumnConstraintList
+
+SqlColumnConstraintList = AnySqlColumnConstraint*
+
+AnySqlColumnConstraint =
+   SqlNullConstraint
+   | SqlNotNullConstraint
+   | SqlDefaultConstraint
+
+SqlNullConstraint =
+   'null'
+
+SqlNotNullConstraint =
+   'not'
+   'null'
+
+SqlDefaultConstraint =
+   'default'
+   value: AnySqlExpression
 
 AnySqlFunctionOption =
    PsqlLanguageOption

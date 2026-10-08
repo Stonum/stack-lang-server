@@ -2652,7 +2652,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             SQL_COLUMN_DEFINITION => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && SqlName::can_cast(element.kind())
@@ -2663,6 +2663,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && SqlTypeName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlColumnConstraintList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -2952,6 +2959,32 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(SQL_DATA_BASE_NAME, children)
+            }
+            SQL_DEFAULT_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![default]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_DEFAULT_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_DEFAULT_CONSTRAINT, children)
             }
             SQL_DELETE_STATEMENT => {
                 let mut elements = (&children).into_iter();
@@ -3921,6 +3954,51 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     return RawSyntaxNode::new(SQL_NAME.to_bogus(), children.into_iter().map(Some));
                 }
                 slots.into_node(SQL_NAME, children)
+            }
+            SQL_NOT_NULL_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![not]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![null]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_NOT_NULL_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_NOT_NULL_CONSTRAINT, children)
+            }
+            SQL_NULL_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![null]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_NULL_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_NULL_CONSTRAINT, children)
             }
             SQL_NULL_LITERAL_EXPRESSION => {
                 let mut elements = (&children).into_iter();
@@ -5411,6 +5489,9 @@ impl SyntaxFactory for SqlSyntaxFactory {
             ),
             SQL_CASE_WHEN_CLAUSE_LIST => {
                 Self::make_node_list_syntax(kind, children, SqlCaseWhenClause::can_cast)
+            }
+            SQL_COLUMN_CONSTRAINT_LIST => {
+                Self::make_node_list_syntax(kind, children, AnySqlColumnConstraint::can_cast)
             }
             SQL_COLUMN_DEFINITION_LIST => Self::make_separated_list_syntax(
                 kind,

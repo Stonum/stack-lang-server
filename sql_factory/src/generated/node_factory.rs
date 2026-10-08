@@ -1584,12 +1584,17 @@ pub fn sql_col_reference(name: SqlName) -> SqlColReference {
         [Some(SyntaxElement::Node(name.into_syntax()))],
     ))
 }
-pub fn sql_column_definition(name: SqlName, ty: SqlTypeName) -> SqlColumnDefinition {
+pub fn sql_column_definition(
+    name: SqlName,
+    ty: SqlTypeName,
+    constraints: SqlColumnConstraintList,
+) -> SqlColumnDefinition {
     SqlColumnDefinition::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_COLUMN_DEFINITION,
         [
             Some(SyntaxElement::Node(name.into_syntax())),
             Some(SyntaxElement::Node(ty.into_syntax())),
+            Some(SyntaxElement::Node(constraints.into_syntax())),
         ],
     ))
 }
@@ -1800,6 +1805,18 @@ pub fn sql_data_base_name(name: SqlName, dot_token: SyntaxToken) -> SqlDataBaseN
         [
             Some(SyntaxElement::Node(name.into_syntax())),
             Some(SyntaxElement::Token(dot_token)),
+        ],
+    ))
+}
+pub fn sql_default_constraint(
+    default_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> SqlDefaultConstraint {
+    SqlDefaultConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_DEFAULT_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(default_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
         ],
     ))
 }
@@ -2552,6 +2569,24 @@ pub fn sql_name(value_token: SyntaxToken) -> SqlName {
     SqlName::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_NAME,
         [Some(SyntaxElement::Token(value_token))],
+    ))
+}
+pub fn sql_not_null_constraint(
+    not_token: SyntaxToken,
+    null_token: SyntaxToken,
+) -> SqlNotNullConstraint {
+    SqlNotNullConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_NOT_NULL_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(not_token)),
+            Some(SyntaxElement::Token(null_token)),
+        ],
+    ))
+}
+pub fn sql_null_constraint(null_token: SyntaxToken) -> SqlNullConstraint {
+    SqlNullConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_NULL_CONSTRAINT,
+        [Some(SyntaxElement::Token(null_token))],
     ))
 }
 pub fn sql_null_literal_expression(value_token: SyntaxToken) -> SqlNullLiteralExpression {
@@ -3742,6 +3777,18 @@ where
 {
     SqlCaseWhenClauseList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_CASE_WHEN_CLAUSE_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn sql_column_constraint_list<I>(items: I) -> SqlColumnConstraintList
+where
+    I: IntoIterator<Item = AnySqlColumnConstraint>,
+    I::IntoIter: ExactSizeIterator,
+{
+    SqlColumnConstraintList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_COLUMN_CONSTRAINT_LIST,
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
