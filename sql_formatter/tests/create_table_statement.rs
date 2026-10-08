@@ -69,3 +69,24 @@ create table foo (
 "#
     );
 }
+
+#[test]
+fn format_create_table_column_constraints() {
+    assert_fmt!(
+        r#"--
+create table foo (a int not null default 0, b text null, c timestamp default now())
+"#
+    );
+}
+
+#[test]
+fn format_create_table_column_constraints_normalize_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE TABLE #t ( a int   NOT   NULL,b VARCHAR(256)   NULL , c int DEFAULT   1+2 )
+"#,
+        r#"--
+create table #t (a int not null, b varchar(256) null, c int default 1 + 2)
+"#
+    );
+}

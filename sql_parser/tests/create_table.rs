@@ -105,3 +105,42 @@ fn test_create_and_drop_table_do_not_shadow_each_other() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_create_table_null_and_not_null_columns() {
+    let res = parse(
+        "create table #t (a int not null, b varchar(256) null, c int)",
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_NOT_NULL_CONSTRAINT"));
+    assert!(tree.contains("SQL_NULL_CONSTRAINT"));
+}
+
+#[test]
+fn test_create_table_default_values() {
+    let res = parse(
+        "create table t (a int default 0 not null, b timestamp default now(), c text not null default 'x' || 'y')",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert_eq!(tree.matches("SQL_DEFAULT_CONSTRAINT").count(), 3);
+}
+
+#[test]
+fn test_create_table_default_without_value_reports_error() {
+    let res = parse("create table t (a int default)", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_table_dangling_not_reports_error() {
+    let res = parse("create table t (a int not)", postgres());
+
+    assert!(res.has_errors());
+}

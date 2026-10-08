@@ -6,8 +6,16 @@ use sql_syntax::SqlColumnDefinitionFields;
 pub(crate) struct FormatSqlColumnDefinition;
 impl FormatNodeRule<SqlColumnDefinition> for FormatSqlColumnDefinition {
     fn fmt_fields(&self, node: &SqlColumnDefinition, f: &mut SqlFormatter) -> FormatResult<()> {
-        let SqlColumnDefinitionFields { name, ty } = node.as_fields();
+        let SqlColumnDefinitionFields {
+            name,
+            ty,
+            constraints,
+        } = node.as_fields();
 
-        write!(f, [name.format(), space(), ty.format()])
+        write!(f, [name.format(), space(), ty.format()])?;
+        if !constraints.is_empty() {
+            write!(f, [space(), constraints.format()])?;
+        }
+        Ok(())
     }
 }

@@ -5,7 +5,8 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_segment_start, is_at_name_start,
-    is_at_tilde_name_start, parse_any_name, parse_name, parse_table_name, parse_type_name,
+    is_at_tilde_name_start, parse_any_name, parse_expression, parse_name, parse_table_name,
+    parse_type_name,
 };
 use super::parse_error::*;
 use super::postgres::ddl::{
@@ -122,7 +123,38 @@ fn parse_column_definition(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     parse_name(p).unwrap();
     parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+
+    let constraints = p.start();
+    while parse_column_constraint(p).is_present() {}
+    constraints.complete(p, SQL_COLUMN_CONSTRAINT_LIST);
+
     Present(m.complete(p, SQL_COLUMN_DEFINITION))
+}
+
+/// `NULL`, `NOT NULL` or `DEFAULT expr` after a column's type.
+fn parse_column_constraint(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    let kind = match p.cur() {
+        T![null] => {
+            p.bump(T![null]);
+            SQL_NULL_CONSTRAINT
+        }
+        T![not] if p.nth_at(1, T![null]) => {
+            p.bump(T![not]);
+            p.bump(T![null]);
+            SQL_NOT_NULL_CONSTRAINT
+        }
+        T![default] => {
+            p.bump(T![default]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            SQL_DEFAULT_CONSTRAINT
+        }
+        _ => {
+            m.abandon(p);
+            return Absent;
+        }
+    };
+    Present(m.complete(p, kind))
 }
 
 /// `CREATE [OR REPLACE] VIEW name [WITH (opt=val, ...)] AS <select> [;]` --
