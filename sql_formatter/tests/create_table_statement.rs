@@ -90,3 +90,24 @@ create table #t (a int not null, b varchar(256) null, c int default 1 + 2)
 "#
     );
 }
+
+#[test]
+fn format_create_table_key_constraints() {
+    assert_fmt!(
+        r#"--
+create table foo (id int primary key, code text unique, parent int references bar (id))
+"#
+    );
+}
+
+#[test]
+fn format_create_table_key_constraints_normalize_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE TABLE foo ( a int  CONSTRAINT  a_positive  CHECK(a>0)   NOT NULL,b int REFERENCES  bar(id) )
+"#,
+        r#"--
+create table foo (a int constraint a_positive check (a > 0) not null, b int references bar (id))
+"#
+    );
+}

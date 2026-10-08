@@ -5,8 +5,8 @@ use biome_parser::prelude::*;
 
 use super::expr::{
     EXPR_RECOVERY_SET, count_dotted_name_segments, is_at_name_segment_start, is_at_name_start,
-    is_at_tilde_name_start, parse_any_name, parse_expression, parse_name, parse_table_name,
-    parse_type_name,
+    is_at_tilde_name_start, parse_any_name, parse_column_name_list, parse_expression, parse_name,
+    parse_table_name, parse_type_name,
 };
 use super::parse_error::*;
 use super::postgres::ddl::{
@@ -131,10 +131,38 @@ fn parse_column_definition(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_COLUMN_DEFINITION))
 }
 
-/// `NULL`, `NOT NULL` or `DEFAULT expr` after a column's type.
+/// One column constraint after the column's type, or a `CONSTRAINT name`
+/// naming the one that follows.
 fn parse_column_constraint(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     let kind = match p.cur() {
+        T![constraint] => {
+            p.bump(T![constraint]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            SQL_CONSTRAINT_NAME
+        }
+        T![primary] => {
+            p.bump(T![primary]);
+            p.expect(T![key]);
+            SQL_PRIMARY_KEY_CONSTRAINT
+        }
+        T![unique] => {
+            p.bump(T![unique]);
+            SQL_UNIQUE_CONSTRAINT
+        }
+        T![check] => {
+            p.bump(T![check]);
+            p.expect(T!['(']);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            p.expect(T![')']);
+            SQL_CHECK_CONSTRAINT
+        }
+        T![references] => {
+            p.bump(T![references]);
+            parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+            let _ = parse_column_name_list(p);
+            SQL_REFERENCES_CONSTRAINT
+        }
         T![null] => {
             p.bump(T![null]);
             SQL_NULL_CONSTRAINT

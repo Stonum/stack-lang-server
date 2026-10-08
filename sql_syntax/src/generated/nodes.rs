@@ -3320,6 +3320,56 @@ pub struct SqlCastFunctionExpressionFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCheckConstraint {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCheckConstraint {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCheckConstraintFields {
+        SqlCheckConstraintFields {
+            check_token: self.check_token(),
+            l_paren_token: self.l_paren_token(),
+            condition: self.condition(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn check_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for SqlCheckConstraint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCheckConstraintFields {
+    pub check_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnySqlExpression>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlColReference {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3441,6 +3491,46 @@ pub struct SqlColumnListFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub items: SqlColumnNameList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlConstraintName {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlConstraintName {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlConstraintNameFields {
+        SqlConstraintNameFields {
+            constraint_token: self.constraint_token(),
+            name: self.name(),
+        }
+    }
+    pub fn constraint_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlConstraintName {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlConstraintNameFields {
+    pub constraint_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<SqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlCreateTableStatement {
@@ -5368,6 +5458,91 @@ pub struct SqlPrecisionModifierFields {
     pub precision_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlPrimaryKeyConstraint {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlPrimaryKeyConstraint {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlPrimaryKeyConstraintFields {
+        SqlPrimaryKeyConstraintFields {
+            primary_token: self.primary_token(),
+            key_token: self.key_token(),
+        }
+    }
+    pub fn primary_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn key_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlPrimaryKeyConstraint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlPrimaryKeyConstraintFields {
+    pub primary_token: SyntaxResult<SyntaxToken>,
+    pub key_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlReferencesConstraint {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlReferencesConstraint {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlReferencesConstraintFields {
+        SqlReferencesConstraintFields {
+            references_token: self.references_token(),
+            table: self.table(),
+            columns: self.columns(),
+        }
+    }
+    pub fn references_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn table(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn columns(&self) -> Option<SqlColumnList> {
+        support::node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlReferencesConstraint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlReferencesConstraintFields {
+    pub references_token: SyntaxResult<SyntaxToken>,
+    pub table: SyntaxResult<SqlTableName>,
+    pub columns: Option<SqlColumnList>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlRoot {
     pub(crate) syntax: SyntaxNode,
 }
@@ -6473,6 +6648,41 @@ pub struct SqlUnaryExpressionFields {
     pub expression: SyntaxResult<AnySqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlUniqueConstraint {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlUniqueConstraint {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlUniqueConstraintFields {
+        SqlUniqueConstraintFields {
+            unique_token: self.unique_token(),
+        }
+    }
+    pub fn unique_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for SqlUniqueConstraint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlUniqueConstraintFields {
+    pub unique_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlUpdateFromClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -6972,11 +7182,28 @@ impl AnySqlCallArgument {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlColumnConstraint {
+    SqlCheckConstraint(SqlCheckConstraint),
+    SqlConstraintName(SqlConstraintName),
     SqlDefaultConstraint(SqlDefaultConstraint),
     SqlNotNullConstraint(SqlNotNullConstraint),
     SqlNullConstraint(SqlNullConstraint),
+    SqlPrimaryKeyConstraint(SqlPrimaryKeyConstraint),
+    SqlReferencesConstraint(SqlReferencesConstraint),
+    SqlUniqueConstraint(SqlUniqueConstraint),
 }
 impl AnySqlColumnConstraint {
+    pub fn as_sql_check_constraint(&self) -> Option<&SqlCheckConstraint> {
+        match &self {
+            Self::SqlCheckConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_constraint_name(&self) -> Option<&SqlConstraintName> {
+        match &self {
+            Self::SqlConstraintName(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_sql_default_constraint(&self) -> Option<&SqlDefaultConstraint> {
         match &self {
             Self::SqlDefaultConstraint(item) => Some(item),
@@ -6992,6 +7219,24 @@ impl AnySqlColumnConstraint {
     pub fn as_sql_null_constraint(&self) -> Option<&SqlNullConstraint> {
         match &self {
             Self::SqlNullConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_primary_key_constraint(&self) -> Option<&SqlPrimaryKeyConstraint> {
+        match &self {
+            Self::SqlPrimaryKeyConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_references_constraint(&self) -> Option<&SqlReferencesConstraint> {
+        match &self {
+            Self::SqlReferencesConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_unique_constraint(&self) -> Option<&SqlUniqueConstraint> {
+        match &self {
+            Self::SqlUniqueConstraint(item) => Some(item),
             _ => None,
         }
     }
@@ -11481,6 +11726,65 @@ impl From<SqlCastFunctionExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlCheckConstraint {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_CHECK_CONSTRAINT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_CHECK_CONSTRAINT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCheckConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCheckConstraint")
+                .field(
+                    "check_token",
+                    &support::DebugSyntaxResult(self.check_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlCheckConstraint").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCheckConstraint> for SyntaxNode {
+    fn from(n: SqlCheckConstraint) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCheckConstraint> for SyntaxElement {
+    fn from(n: SqlCheckConstraint) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlColReference {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11629,6 +11933,57 @@ impl From<SqlColumnList> for SyntaxNode {
 }
 impl From<SqlColumnList> for SyntaxElement {
     fn from(n: SqlColumnList) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlConstraintName {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_CONSTRAINT_NAME as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_CONSTRAINT_NAME
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlConstraintName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlConstraintName")
+                .field(
+                    "constraint_token",
+                    &support::DebugSyntaxResult(self.constraint_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("SqlConstraintName").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlConstraintName> for SyntaxNode {
+    fn from(n: SqlConstraintName) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlConstraintName> for SyntaxElement {
+    fn from(n: SqlConstraintName) -> Self {
         n.syntax.into()
     }
 }
@@ -13784,6 +14139,109 @@ impl From<SqlPrecisionModifier> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlPrimaryKeyConstraint {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_PRIMARY_KEY_CONSTRAINT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_PRIMARY_KEY_CONSTRAINT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlPrimaryKeyConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlPrimaryKeyConstraint")
+                .field(
+                    "primary_token",
+                    &support::DebugSyntaxResult(self.primary_token()),
+                )
+                .field("key_token", &support::DebugSyntaxResult(self.key_token()))
+                .finish()
+        } else {
+            f.debug_struct("SqlPrimaryKeyConstraint").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlPrimaryKeyConstraint> for SyntaxNode {
+    fn from(n: SqlPrimaryKeyConstraint) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlPrimaryKeyConstraint> for SyntaxElement {
+    fn from(n: SqlPrimaryKeyConstraint) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlReferencesConstraint {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_REFERENCES_CONSTRAINT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_REFERENCES_CONSTRAINT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlReferencesConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlReferencesConstraint")
+                .field(
+                    "references_token",
+                    &support::DebugSyntaxResult(self.references_token()),
+                )
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field("columns", &support::DebugOptionalElement(self.columns()))
+                .finish()
+        } else {
+            f.debug_struct("SqlReferencesConstraint").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlReferencesConstraint> for SyntaxNode {
+    fn from(n: SqlReferencesConstraint) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlReferencesConstraint> for SyntaxElement {
+    fn from(n: SqlReferencesConstraint) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlRoot {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -15088,6 +15546,56 @@ impl From<SqlUnaryExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlUniqueConstraint {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_UNIQUE_CONSTRAINT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_UNIQUE_CONSTRAINT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlUniqueConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlUniqueConstraint")
+                .field(
+                    "unique_token",
+                    &support::DebugSyntaxResult(self.unique_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlUniqueConstraint").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlUniqueConstraint> for SyntaxNode {
+    fn from(n: SqlUniqueConstraint) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlUniqueConstraint> for SyntaxElement {
+    fn from(n: SqlUniqueConstraint) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlUpdateFromClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -15764,6 +16272,16 @@ impl From<AnySqlCallArgument> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlCheckConstraint> for AnySqlColumnConstraint {
+    fn from(node: SqlCheckConstraint) -> Self {
+        Self::SqlCheckConstraint(node)
+    }
+}
+impl From<SqlConstraintName> for AnySqlColumnConstraint {
+    fn from(node: SqlConstraintName) -> Self {
+        Self::SqlConstraintName(node)
+    }
+}
 impl From<SqlDefaultConstraint> for AnySqlColumnConstraint {
     fn from(node: SqlDefaultConstraint) -> Self {
         Self::SqlDefaultConstraint(node)
@@ -15779,56 +16297,112 @@ impl From<SqlNullConstraint> for AnySqlColumnConstraint {
         Self::SqlNullConstraint(node)
     }
 }
+impl From<SqlPrimaryKeyConstraint> for AnySqlColumnConstraint {
+    fn from(node: SqlPrimaryKeyConstraint) -> Self {
+        Self::SqlPrimaryKeyConstraint(node)
+    }
+}
+impl From<SqlReferencesConstraint> for AnySqlColumnConstraint {
+    fn from(node: SqlReferencesConstraint) -> Self {
+        Self::SqlReferencesConstraint(node)
+    }
+}
+impl From<SqlUniqueConstraint> for AnySqlColumnConstraint {
+    fn from(node: SqlUniqueConstraint) -> Self {
+        Self::SqlUniqueConstraint(node)
+    }
+}
 impl AstNode for AnySqlColumnConstraint {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = SqlDefaultConstraint::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = SqlCheckConstraint::KIND_SET
+        .union(SqlConstraintName::KIND_SET)
+        .union(SqlDefaultConstraint::KIND_SET)
         .union(SqlNotNullConstraint::KIND_SET)
-        .union(SqlNullConstraint::KIND_SET);
+        .union(SqlNullConstraint::KIND_SET)
+        .union(SqlPrimaryKeyConstraint::KIND_SET)
+        .union(SqlReferencesConstraint::KIND_SET)
+        .union(SqlUniqueConstraint::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            SQL_DEFAULT_CONSTRAINT | SQL_NOT_NULL_CONSTRAINT | SQL_NULL_CONSTRAINT
+            SQL_CHECK_CONSTRAINT
+                | SQL_CONSTRAINT_NAME
+                | SQL_DEFAULT_CONSTRAINT
+                | SQL_NOT_NULL_CONSTRAINT
+                | SQL_NULL_CONSTRAINT
+                | SQL_PRIMARY_KEY_CONSTRAINT
+                | SQL_REFERENCES_CONSTRAINT
+                | SQL_UNIQUE_CONSTRAINT
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            SQL_CHECK_CONSTRAINT => Self::SqlCheckConstraint(SqlCheckConstraint { syntax }),
+            SQL_CONSTRAINT_NAME => Self::SqlConstraintName(SqlConstraintName { syntax }),
             SQL_DEFAULT_CONSTRAINT => Self::SqlDefaultConstraint(SqlDefaultConstraint { syntax }),
             SQL_NOT_NULL_CONSTRAINT => Self::SqlNotNullConstraint(SqlNotNullConstraint { syntax }),
             SQL_NULL_CONSTRAINT => Self::SqlNullConstraint(SqlNullConstraint { syntax }),
+            SQL_PRIMARY_KEY_CONSTRAINT => {
+                Self::SqlPrimaryKeyConstraint(SqlPrimaryKeyConstraint { syntax })
+            }
+            SQL_REFERENCES_CONSTRAINT => {
+                Self::SqlReferencesConstraint(SqlReferencesConstraint { syntax })
+            }
+            SQL_UNIQUE_CONSTRAINT => Self::SqlUniqueConstraint(SqlUniqueConstraint { syntax }),
             _ => return None,
         };
         Some(res)
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::SqlCheckConstraint(it) => &it.syntax,
+            Self::SqlConstraintName(it) => &it.syntax,
             Self::SqlDefaultConstraint(it) => &it.syntax,
             Self::SqlNotNullConstraint(it) => &it.syntax,
             Self::SqlNullConstraint(it) => &it.syntax,
+            Self::SqlPrimaryKeyConstraint(it) => &it.syntax,
+            Self::SqlReferencesConstraint(it) => &it.syntax,
+            Self::SqlUniqueConstraint(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::SqlCheckConstraint(it) => it.syntax,
+            Self::SqlConstraintName(it) => it.syntax,
             Self::SqlDefaultConstraint(it) => it.syntax,
             Self::SqlNotNullConstraint(it) => it.syntax,
             Self::SqlNullConstraint(it) => it.syntax,
+            Self::SqlPrimaryKeyConstraint(it) => it.syntax,
+            Self::SqlReferencesConstraint(it) => it.syntax,
+            Self::SqlUniqueConstraint(it) => it.syntax,
         }
     }
 }
 impl std::fmt::Debug for AnySqlColumnConstraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::SqlCheckConstraint(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlConstraintName(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDefaultConstraint(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlNotNullConstraint(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlNullConstraint(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlPrimaryKeyConstraint(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlReferencesConstraint(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlUniqueConstraint(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
 impl From<AnySqlColumnConstraint> for SyntaxNode {
     fn from(n: AnySqlColumnConstraint) -> Self {
         match n {
+            AnySqlColumnConstraint::SqlCheckConstraint(it) => it.into(),
+            AnySqlColumnConstraint::SqlConstraintName(it) => it.into(),
             AnySqlColumnConstraint::SqlDefaultConstraint(it) => it.into(),
             AnySqlColumnConstraint::SqlNotNullConstraint(it) => it.into(),
             AnySqlColumnConstraint::SqlNullConstraint(it) => it.into(),
+            AnySqlColumnConstraint::SqlPrimaryKeyConstraint(it) => it.into(),
+            AnySqlColumnConstraint::SqlReferencesConstraint(it) => it.into(),
+            AnySqlColumnConstraint::SqlUniqueConstraint(it) => it.into(),
         }
     }
 }
@@ -18158,6 +18732,11 @@ impl std::fmt::Display for SqlCastFunctionExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlCheckConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlColReference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -18169,6 +18748,11 @@ impl std::fmt::Display for SqlColumnDefinition {
     }
 }
 impl std::fmt::Display for SqlColumnList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlConstraintName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -18368,6 +18952,16 @@ impl std::fmt::Display for SqlPrecisionModifier {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlPrimaryKeyConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlReferencesConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlRoot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -18484,6 +19078,11 @@ impl std::fmt::Display for SqlTypeName {
     }
 }
 impl std::fmt::Display for SqlUnaryExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlUniqueConstraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

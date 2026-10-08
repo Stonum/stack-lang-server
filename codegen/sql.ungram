@@ -503,9 +503,19 @@ SqlColumnDefinition =
 SqlColumnConstraintList = AnySqlColumnConstraint*
 
 AnySqlColumnConstraint =
-   SqlNullConstraint
+   SqlConstraintName
+   | SqlNullConstraint
    | SqlNotNullConstraint
    | SqlDefaultConstraint
+   | SqlPrimaryKeyConstraint
+   | SqlUniqueConstraint
+   | SqlCheckConstraint
+   | SqlReferencesConstraint
+
+// `CONSTRAINT name` -- names the constraint that follows it.
+SqlConstraintName =
+   'constraint'
+   name: SqlName
 
 SqlNullConstraint =
    'null'
@@ -517,6 +527,25 @@ SqlNotNullConstraint =
 SqlDefaultConstraint =
    'default'
    value: AnySqlExpression
+
+SqlPrimaryKeyConstraint =
+   'primary'
+   'key'
+
+SqlUniqueConstraint =
+   'unique'
+
+SqlCheckConstraint =
+   'check'
+   '('
+   condition: AnySqlExpression
+   ')'
+
+// `REFERENCES table [(column)]` -- no `ON DELETE`/`ON UPDATE` actions yet.
+SqlReferencesConstraint =
+   'references'
+   table: SqlTableName
+   columns: SqlColumnList?
 
 AnySqlFunctionOption =
    PsqlLanguageOption
