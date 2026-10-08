@@ -1460,6 +1460,58 @@ impl PsqlWithDataClauseBuilder {
         ))
     }
 }
+pub fn sql_add_column_action(
+    add_token: SyntaxToken,
+    column: SqlColumnDefinition,
+) -> SqlAddColumnActionBuilder {
+    SqlAddColumnActionBuilder {
+        add_token,
+        column,
+        column_token: None,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+    }
+}
+pub struct SqlAddColumnActionBuilder {
+    add_token: SyntaxToken,
+    column: SqlColumnDefinition,
+    column_token: Option<SyntaxToken>,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+}
+impl SqlAddColumnActionBuilder {
+    pub fn with_column_token(mut self, column_token: SyntaxToken) -> Self {
+        self.column_token = Some(column_token);
+        self
+    }
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn build(self) -> SqlAddColumnAction {
+        SqlAddColumnAction::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_ADD_COLUMN_ACTION,
+            [
+                Some(SyntaxElement::Token(self.add_token)),
+                self.column_token.map(|token| SyntaxElement::Token(token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.column.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn sql_alias(value: SqlName) -> SqlAliasBuilder {
     SqlAliasBuilder {
         value,
@@ -2301,6 +2353,59 @@ impl SqlDeleteStatementBuilder {
                 self.returning_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn sql_drop_column_action(
+    drop_token: SyntaxToken,
+    name: SqlName,
+) -> SqlDropColumnActionBuilder {
+    SqlDropColumnActionBuilder {
+        drop_token,
+        name,
+        column_token: None,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+    }
+}
+pub struct SqlDropColumnActionBuilder {
+    drop_token: SyntaxToken,
+    name: SqlName,
+    column_token: Option<SyntaxToken>,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+}
+impl SqlDropColumnActionBuilder {
+    pub fn with_column_token(mut self, column_token: SyntaxToken) -> Self {
+        self.column_token = Some(column_token);
+        self
+    }
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn build(self) -> SqlDropColumnAction {
+        SqlDropColumnAction::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_DROP_COLUMN_ACTION,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                self.column_token.map(|token| SyntaxElement::Token(token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
             ],
         ))
@@ -4299,7 +4404,7 @@ where
 }
 pub fn sql_alter_table_action_list<I, S>(items: I, separators: S) -> SqlAlterTableActionList
 where
-    I: IntoIterator<Item = SqlAlterTriggerAction>,
+    I: IntoIterator<Item = AnySqlAlterTableAction>,
     I::IntoIter: ExactSizeIterator,
     S: IntoIterator<Item = SqlSyntaxToken>,
     S::IntoIter: ExactSizeIterator,

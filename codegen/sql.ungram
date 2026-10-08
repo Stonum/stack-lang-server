@@ -508,7 +508,27 @@ SqlAlterTableStatement =
    actions: SqlAlterTableActionList
    ';'?
 
-SqlAlterTableActionList = (SqlAlterTriggerAction (',' SqlAlterTriggerAction)*)
+SqlAlterTableActionList = (AnySqlAlterTableAction (',' AnySqlAlterTableAction)*)
+
+AnySqlAlterTableAction =
+   SqlAlterTriggerAction
+   | SqlAddColumnAction
+   | SqlDropColumnAction
+
+// `ADD [COLUMN] [IF NOT EXISTS] column definition`
+SqlAddColumnAction =
+   'add'
+   'column'?
+   ('if' 'not' 'exists')?
+   column: SqlColumnDefinition
+
+// `DROP [COLUMN] [IF EXISTS] name [CASCADE | RESTRICT]`
+SqlDropColumnAction =
+   'drop'
+   'column'?
+   ('if' 'exists')?
+   name: SqlName
+   drop_behavior: ('cascade' | 'restrict')?
 
 // `ENABLE | DISABLE TRIGGER name | ALL | USER`
 SqlAlterTriggerAction =

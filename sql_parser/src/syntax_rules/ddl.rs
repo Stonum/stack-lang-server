@@ -180,7 +180,7 @@ impl ParseSeparatedList for SqlTableElementList {
     }
 }
 
-fn parse_column_definition(p: &mut SqlParser) -> ParsedSyntax {
+pub(crate) fn parse_column_definition(p: &mut SqlParser) -> ParsedSyntax {
     if !is_at_name_start(p) {
         return Absent;
     }
