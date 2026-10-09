@@ -315,6 +315,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlAlterColumnType::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_ALTER_INDEX_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlAlterIndexStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ALTER_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlAlterTableStatement::new_unchecked(node) };
                     $body
@@ -436,6 +440,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_FUNCTION_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlDropFunctionStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_DROP_INDEX_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlDropIndexStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_TABLE_STATEMENT => {

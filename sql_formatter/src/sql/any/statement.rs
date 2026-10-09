@@ -8,6 +8,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &AnySqlStatement, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
+            AnySqlStatement::SqlAlterIndexStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlAlterTableStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlBogusStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCallStatement(node) => node.format().fmt(f),
@@ -17,6 +18,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlCreateViewStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlDeleteStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlDropFunctionStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlDropIndexStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlDropTableStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlDropViewStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlEmptyStatement(node) => node.format().fmt(f),

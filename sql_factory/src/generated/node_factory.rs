@@ -1705,6 +1705,60 @@ impl SqlAlterColumnTypeBuilder {
         ))
     }
 }
+pub fn sql_alter_index_statement(
+    alter_token: SyntaxToken,
+    index_token: SyntaxToken,
+    name: SqlTableName,
+    action: SqlRenameTableAction,
+) -> SqlAlterIndexStatementBuilder {
+    SqlAlterIndexStatementBuilder {
+        alter_token,
+        index_token,
+        name,
+        action,
+        if_token: None,
+        exists_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlAlterIndexStatementBuilder {
+    alter_token: SyntaxToken,
+    index_token: SyntaxToken,
+    name: SqlTableName,
+    action: SqlRenameTableAction,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlAlterIndexStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlAlterIndexStatement {
+        SqlAlterIndexStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_ALTER_INDEX_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.alter_token)),
+                Some(SyntaxElement::Token(self.index_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Node(self.action.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn sql_alter_table_statement(
     alter_token: SyntaxToken,
     table_token: SyntaxToken,
@@ -2789,6 +2843,72 @@ impl SqlDropFunctionStatementBuilder {
                 Some(SyntaxElement::Node(self.name.into_syntax())),
                 self.parameters
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn sql_drop_index_statement(
+    drop_token: SyntaxToken,
+    index_token: SyntaxToken,
+    indexes: SqlTableNameList,
+) -> SqlDropIndexStatementBuilder {
+    SqlDropIndexStatementBuilder {
+        drop_token,
+        index_token,
+        indexes,
+        concurrently_token: None,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlDropIndexStatementBuilder {
+    drop_token: SyntaxToken,
+    index_token: SyntaxToken,
+    indexes: SqlTableNameList,
+    concurrently_token: Option<SyntaxToken>,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlDropIndexStatementBuilder {
+    pub fn with_concurrently_token(mut self, concurrently_token: SyntaxToken) -> Self {
+        self.concurrently_token = Some(concurrently_token);
+        self
+    }
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlDropIndexStatement {
+        SqlDropIndexStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_DROP_INDEX_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.index_token)),
+                self.concurrently_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.indexes.into_syntax())),
                 self.drop_behavior_token
                     .map(|token| SyntaxElement::Token(token)),
                 self.semicolon_token

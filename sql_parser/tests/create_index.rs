@@ -113,3 +113,69 @@ fn test_create_index_postgres_parts_rejected_under_mssql_dialect() {
         assert!(res.has_errors(), "{src}");
     }
 }
+
+#[test]
+fn test_drop_index_forms() {
+    for src in [
+        "drop index ix_t",
+        "drop index if exists ix_a, s.ix_b cascade;",
+        "drop index concurrently if exists ix_t restrict",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("SQL_DROP_INDEX_STATEMENT"), "{src}");
+    }
+}
+
+#[test]
+fn test_drop_index_mlang_name() {
+    let res = parse("drop index if exists ~ix_Таблица~", mlang());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_alter_index_rename() {
+    let res = parse("alter index if exists s.ix_a rename to ix_b;", postgres());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_ALTER_INDEX_STATEMENT"));
+    assert!(tree.contains("SQL_RENAME_TABLE_ACTION"));
+}
+
+#[test]
+fn test_drop_index_batch_with_create_index() {
+    let res = parse(
+        "drop index if exists ix_t\ncreate index ix_t on t (a)",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_DROP_INDEX_STATEMENT"));
+    assert!(tree.contains("SQL_CREATE_INDEX_STATEMENT"));
+}
+
+#[test]
+fn test_drop_index_without_name_reports_error() {
+    let res = parse("drop index;", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_alter_index_without_rename_reports_error() {
+    let res = parse("alter index ix_a to ix_b", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_drop_index_concurrently_rejected_under_mssql_dialect() {
+    let res = parse("drop index concurrently ix_t", mssql());
+
+    assert!(res.has_errors());
+}

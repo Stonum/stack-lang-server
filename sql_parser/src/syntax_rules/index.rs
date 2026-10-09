@@ -3,11 +3,12 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::ddl::parse_table_name_for_ddl;
+use super::ddl::{SqlTableNameList, parse_table_name_for_ddl};
 use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, parse_name};
 use super::parse_error::{
     expected_column_list, expected_expression, expected_identifier, expected_table_binding,
 };
+use super::postgres::ddl::eat_cascade_or_restrict;
 use super::postgres::parse_error::postgres_only_syntax_error;
 use super::select::parse_order_by_expression;
 use super::where_clause::parse_where_clause;
@@ -66,6 +67,54 @@ pub(crate) fn parse_create_index_statement(p: &mut SqlParser) -> ParsedSyntax {
     p.eat(T![;]);
 
     Present(m.complete(p, SQL_CREATE_INDEX_STATEMENT))
+}
+
+/// `DROP INDEX [CONCURRENTLY] [IF EXISTS] name, ... [CASCADE | RESTRICT] [;]`
+pub(crate) fn parse_drop_index_statement(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![drop]);
+    p.bump(T![index]);
+
+    if p.at(T![concurrently]) {
+        let range = p.cur_range();
+        p.bump(T![concurrently]);
+        report_postgres_only(p, "`CONCURRENTLY`", range);
+    }
+
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+
+    SqlTableNameList.parse_list(p);
+    eat_cascade_or_restrict(p);
+    p.eat(T![;]);
+
+    Present(m.complete(p, SQL_DROP_INDEX_STATEMENT))
+}
+
+/// `ALTER INDEX [IF EXISTS] name RENAME TO new [;]`
+pub(crate) fn parse_alter_index_statement(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![alter]);
+    p.bump(T![index]);
+
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+
+    parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+
+    let rename = p.start();
+    p.expect(T![rename]);
+    p.expect(T![to]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    rename.complete(p, SQL_RENAME_TABLE_ACTION);
+
+    p.eat(T![;]);
+
+    Present(m.complete(p, SQL_ALTER_INDEX_STATEMENT))
 }
 
 fn report_postgres_only(p: &mut SqlParser, syntax: &str, range: TextRange) {

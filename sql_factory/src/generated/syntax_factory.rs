@@ -2743,6 +2743,67 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(SQL_ALTER_COLUMN_TYPE, children)
             }
+            SQL_ALTER_INDEX_STATEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![alter]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![index]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![if]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![exists]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlTableName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlRenameTableAction::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_ALTER_INDEX_STATEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_ALTER_INDEX_STATEMENT, children)
+            }
             SQL_ALTER_TABLE_STATEMENT => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<8usize> = RawNodeSlots::default();
@@ -4238,6 +4299,74 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(SQL_DROP_FUNCTION_STATEMENT, children)
+            }
+            SQL_DROP_INDEX_STATEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<8usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![drop]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![index]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![concurrently]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![if]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![exists]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlTableNameList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![cascade] | T![restrict])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_DROP_INDEX_STATEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_DROP_INDEX_STATEMENT, children)
             }
             SQL_DROP_TABLE_STATEMENT => {
                 let mut elements = (&children).into_iter();

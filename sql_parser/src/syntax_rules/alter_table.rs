@@ -8,6 +8,7 @@ use super::ddl::{
     parse_table_name_for_ddl,
 };
 use super::expr::{EXPR_RECOVERY_SET, parse_expression, parse_name, parse_type_name};
+use super::index::parse_alter_index_statement;
 use super::parse_error::{
     expected_alter_column_operation, expected_alter_table_action, expected_column_definition,
     expected_expression, expected_identifier, expected_table_binding, expected_type_name,
@@ -18,8 +19,11 @@ use super::stmt::STMT_RECOVERY_SET;
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
 
-/// `ALTER TABLE [IF EXISTS] [ONLY] name action, ... [;]`
+/// `ALTER TABLE [IF EXISTS] [ONLY] name action, ... [;]` or `ALTER INDEX ...`
 pub(crate) fn parse_alter_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if p.at(T![alter]) && p.nth_at(1, T![index]) {
+        return parse_alter_index_statement(p);
+    }
     if !p.at(T![alter]) || !p.nth_at(1, T![table]) {
         return Absent;
     }

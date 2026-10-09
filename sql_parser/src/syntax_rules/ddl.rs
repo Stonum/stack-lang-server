@@ -8,7 +8,7 @@ use super::expr::{
     is_at_tilde_name_start, parse_any_name, parse_column_name_list, parse_expression, parse_name,
     parse_subquery_expression, parse_table_name, parse_type_name,
 };
-use super::index::parse_create_index_statement;
+use super::index::{parse_create_index_statement, parse_drop_index_statement};
 use super::parse_error::*;
 use super::postgres::ddl::{
     eat_cascade_or_restrict, eat_table_persistence, parse_create_function_statement,
@@ -453,6 +453,9 @@ pub(crate) fn parse_drop_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.nth_at(1, T![view]) {
         return parse_drop_view_statement(p);
     }
+    if p.nth_at(1, T![index]) {
+        return parse_drop_index_statement(p);
+    }
     if p.nth_at(1, T![policy]) {
         return parse_drop_policy_statement(p);
     }
@@ -538,7 +541,7 @@ pub(crate) fn parse_table_name_for_ddl(p: &mut SqlParser) -> ParsedSyntax {
     Present(parse_table_name(p, segment_count))
 }
 
-struct SqlTableNameList;
+pub(crate) struct SqlTableNameList;
 
 impl ParseSeparatedList for SqlTableNameList {
     type Kind = SqlSyntaxKind;

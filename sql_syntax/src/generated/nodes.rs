@@ -3505,6 +3505,71 @@ pub struct SqlAlterColumnTypeFields {
     pub using: Option<PsqlAlterColumnUsing>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlAlterIndexStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlAlterIndexStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlAlterIndexStatementFields {
+        SqlAlterIndexStatementFields {
+            alter_token: self.alter_token(),
+            index_token: self.index_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            action: self.action(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn alter_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn index_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn action(&self) -> SyntaxResult<SqlRenameTableAction> {
+        support::required_node(&self.syntax, 5usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 6usize)
+    }
+}
+impl Serialize for SqlAlterIndexStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlAlterIndexStatementFields {
+    pub alter_token: SyntaxResult<SyntaxToken>,
+    pub index_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<SqlTableName>,
+    pub action: SyntaxResult<SqlRenameTableAction>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlAlterTableStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5189,6 +5254,76 @@ pub struct SqlDropFunctionStatementFields {
     pub exists_token: Option<SyntaxToken>,
     pub name: SyntaxResult<AnySqlName>,
     pub parameters: Option<PsqlDropFunctionParameters>,
+    pub drop_behavior: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlDropIndexStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlDropIndexStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlDropIndexStatementFields {
+        SqlDropIndexStatementFields {
+            drop_token: self.drop_token(),
+            index_token: self.index_token(),
+            concurrently_token: self.concurrently_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            indexes: self.indexes(),
+            drop_behavior: self.drop_behavior(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn drop_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn index_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn concurrently_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
+    pub fn indexes(&self) -> SqlTableNameList {
+        support::list(&self.syntax, 5usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 6usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for SqlDropIndexStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlDropIndexStatementFields {
+    pub drop_token: SyntaxResult<SyntaxToken>,
+    pub index_token: SyntaxResult<SyntaxToken>,
+    pub concurrently_token: Option<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub indexes: SqlTableNameList,
     pub drop_behavior: Option<SyntaxToken>,
     pub semicolon_token: Option<SyntaxToken>,
 }
@@ -9648,6 +9783,7 @@ impl AnySqlSelectQuantifier {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlStatement {
+    SqlAlterIndexStatement(SqlAlterIndexStatement),
     SqlAlterTableStatement(SqlAlterTableStatement),
     SqlBogusStatement(SqlBogusStatement),
     SqlCallStatement(SqlCallStatement),
@@ -9657,6 +9793,7 @@ pub enum AnySqlStatement {
     SqlCreateViewStatement(SqlCreateViewStatement),
     SqlDeleteStatement(SqlDeleteStatement),
     SqlDropFunctionStatement(SqlDropFunctionStatement),
+    SqlDropIndexStatement(SqlDropIndexStatement),
     SqlDropTableStatement(SqlDropTableStatement),
     SqlDropViewStatement(SqlDropViewStatement),
     SqlEmptyStatement(SqlEmptyStatement),
@@ -9675,6 +9812,12 @@ pub enum AnySqlStatement {
     PsqlVacuumStatement(PsqlVacuumStatement),
 }
 impl AnySqlStatement {
+    pub fn as_sql_alter_index_statement(&self) -> Option<&SqlAlterIndexStatement> {
+        match &self {
+            Self::SqlAlterIndexStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_sql_alter_table_statement(&self) -> Option<&SqlAlterTableStatement> {
         match &self {
             Self::SqlAlterTableStatement(item) => Some(item),
@@ -9726,6 +9869,12 @@ impl AnySqlStatement {
     pub fn as_sql_drop_function_statement(&self) -> Option<&SqlDropFunctionStatement> {
         match &self {
             Self::SqlDropFunctionStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_drop_index_statement(&self) -> Option<&SqlDropIndexStatement> {
+        match &self {
+            Self::SqlDropIndexStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -13931,6 +14080,71 @@ impl From<SqlAlterColumnType> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlAlterIndexStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ALTER_INDEX_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ALTER_INDEX_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlAlterIndexStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlAlterIndexStatement")
+                .field(
+                    "alter_token",
+                    &support::DebugSyntaxResult(self.alter_token()),
+                )
+                .field(
+                    "index_token",
+                    &support::DebugSyntaxResult(self.index_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("action", &support::DebugSyntaxResult(self.action()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlAlterIndexStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlAlterIndexStatement> for SyntaxNode {
+    fn from(n: SqlAlterIndexStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlAlterIndexStatement> for SyntaxElement {
+    fn from(n: SqlAlterIndexStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlAlterTableStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -15688,6 +15902,75 @@ impl From<SqlDropFunctionStatement> for SyntaxNode {
 }
 impl From<SqlDropFunctionStatement> for SyntaxElement {
     fn from(n: SqlDropFunctionStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlDropIndexStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_DROP_INDEX_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_DROP_INDEX_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlDropIndexStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlDropIndexStatement")
+                .field("drop_token", &support::DebugSyntaxResult(self.drop_token()))
+                .field(
+                    "index_token",
+                    &support::DebugSyntaxResult(self.index_token()),
+                )
+                .field(
+                    "concurrently_token",
+                    &support::DebugOptionalElement(self.concurrently_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("indexes", &self.indexes())
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlDropIndexStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlDropIndexStatement> for SyntaxNode {
+    fn from(n: SqlDropIndexStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlDropIndexStatement> for SyntaxElement {
+    fn from(n: SqlDropIndexStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -21986,6 +22269,11 @@ impl From<AnySqlSelectQuantifier> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlAlterIndexStatement> for AnySqlStatement {
+    fn from(node: SqlAlterIndexStatement) -> Self {
+        Self::SqlAlterIndexStatement(node)
+    }
+}
 impl From<SqlAlterTableStatement> for AnySqlStatement {
     fn from(node: SqlAlterTableStatement) -> Self {
         Self::SqlAlterTableStatement(node)
@@ -22029,6 +22317,11 @@ impl From<SqlDeleteStatement> for AnySqlStatement {
 impl From<SqlDropFunctionStatement> for AnySqlStatement {
     fn from(node: SqlDropFunctionStatement) -> Self {
         Self::SqlDropFunctionStatement(node)
+    }
+}
+impl From<SqlDropIndexStatement> for AnySqlStatement {
+    fn from(node: SqlDropIndexStatement) -> Self {
+        Self::SqlDropIndexStatement(node)
     }
 }
 impl From<SqlDropTableStatement> for AnySqlStatement {
@@ -22113,7 +22406,8 @@ impl From<PsqlVacuumStatement> for AnySqlStatement {
 }
 impl AstNode for AnySqlStatement {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = SqlAlterTableStatement::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = SqlAlterIndexStatement::KIND_SET
+        .union(SqlAlterTableStatement::KIND_SET)
         .union(SqlBogusStatement::KIND_SET)
         .union(SqlCallStatement::KIND_SET)
         .union(SqlCreateIndexStatement::KIND_SET)
@@ -22122,6 +22416,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlCreateViewStatement::KIND_SET)
         .union(SqlDeleteStatement::KIND_SET)
         .union(SqlDropFunctionStatement::KIND_SET)
+        .union(SqlDropIndexStatement::KIND_SET)
         .union(SqlDropTableStatement::KIND_SET)
         .union(SqlDropViewStatement::KIND_SET)
         .union(SqlEmptyStatement::KIND_SET)
@@ -22141,7 +22436,8 @@ impl AstNode for AnySqlStatement {
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            SQL_ALTER_TABLE_STATEMENT
+            SQL_ALTER_INDEX_STATEMENT
+                | SQL_ALTER_TABLE_STATEMENT
                 | SQL_BOGUS_STATEMENT
                 | SQL_CALL_STATEMENT
                 | SQL_CREATE_INDEX_STATEMENT
@@ -22150,6 +22446,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_CREATE_VIEW_STATEMENT
                 | SQL_DELETE_STATEMENT
                 | SQL_DROP_FUNCTION_STATEMENT
+                | SQL_DROP_INDEX_STATEMENT
                 | SQL_DROP_TABLE_STATEMENT
                 | SQL_DROP_VIEW_STATEMENT
                 | SQL_EMPTY_STATEMENT
@@ -22170,6 +22467,9 @@ impl AstNode for AnySqlStatement {
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            SQL_ALTER_INDEX_STATEMENT => {
+                Self::SqlAlterIndexStatement(SqlAlterIndexStatement { syntax })
+            }
             SQL_ALTER_TABLE_STATEMENT => {
                 Self::SqlAlterTableStatement(SqlAlterTableStatement { syntax })
             }
@@ -22190,6 +22490,9 @@ impl AstNode for AnySqlStatement {
             SQL_DELETE_STATEMENT => Self::SqlDeleteStatement(SqlDeleteStatement { syntax }),
             SQL_DROP_FUNCTION_STATEMENT => {
                 Self::SqlDropFunctionStatement(SqlDropFunctionStatement { syntax })
+            }
+            SQL_DROP_INDEX_STATEMENT => {
+                Self::SqlDropIndexStatement(SqlDropIndexStatement { syntax })
             }
             SQL_DROP_TABLE_STATEMENT => {
                 Self::SqlDropTableStatement(SqlDropTableStatement { syntax })
@@ -22225,6 +22528,7 @@ impl AstNode for AnySqlStatement {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::SqlAlterIndexStatement(it) => &it.syntax,
             Self::SqlAlterTableStatement(it) => &it.syntax,
             Self::SqlBogusStatement(it) => &it.syntax,
             Self::SqlCallStatement(it) => &it.syntax,
@@ -22234,6 +22538,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlCreateViewStatement(it) => &it.syntax,
             Self::SqlDeleteStatement(it) => &it.syntax,
             Self::SqlDropFunctionStatement(it) => &it.syntax,
+            Self::SqlDropIndexStatement(it) => &it.syntax,
             Self::SqlDropTableStatement(it) => &it.syntax,
             Self::SqlDropViewStatement(it) => &it.syntax,
             Self::SqlEmptyStatement(it) => &it.syntax,
@@ -22254,6 +22559,7 @@ impl AstNode for AnySqlStatement {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::SqlAlterIndexStatement(it) => it.syntax,
             Self::SqlAlterTableStatement(it) => it.syntax,
             Self::SqlBogusStatement(it) => it.syntax,
             Self::SqlCallStatement(it) => it.syntax,
@@ -22263,6 +22569,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlCreateViewStatement(it) => it.syntax,
             Self::SqlDeleteStatement(it) => it.syntax,
             Self::SqlDropFunctionStatement(it) => it.syntax,
+            Self::SqlDropIndexStatement(it) => it.syntax,
             Self::SqlDropTableStatement(it) => it.syntax,
             Self::SqlDropViewStatement(it) => it.syntax,
             Self::SqlEmptyStatement(it) => it.syntax,
@@ -22285,6 +22592,7 @@ impl AstNode for AnySqlStatement {
 impl std::fmt::Debug for AnySqlStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::SqlAlterIndexStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlAlterTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCallStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -22294,6 +22602,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlCreateViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDeleteStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDropFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlDropIndexStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDropTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDropViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -22316,6 +22625,7 @@ impl std::fmt::Debug for AnySqlStatement {
 impl From<AnySqlStatement> for SyntaxNode {
     fn from(n: AnySqlStatement) -> Self {
         match n {
+            AnySqlStatement::SqlAlterIndexStatement(it) => it.into(),
             AnySqlStatement::SqlAlterTableStatement(it) => it.into(),
             AnySqlStatement::SqlBogusStatement(it) => it.into(),
             AnySqlStatement::SqlCallStatement(it) => it.into(),
@@ -22325,6 +22635,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlCreateViewStatement(it) => it.into(),
             AnySqlStatement::SqlDeleteStatement(it) => it.into(),
             AnySqlStatement::SqlDropFunctionStatement(it) => it.into(),
+            AnySqlStatement::SqlDropIndexStatement(it) => it.into(),
             AnySqlStatement::SqlDropTableStatement(it) => it.into(),
             AnySqlStatement::SqlDropViewStatement(it) => it.into(),
             AnySqlStatement::SqlEmptyStatement(it) => it.into(),
@@ -23253,6 +23564,11 @@ impl std::fmt::Display for SqlAlterColumnType {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlAlterIndexStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlAlterTableStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -23399,6 +23715,11 @@ impl std::fmt::Display for SqlDropConstraintAction {
     }
 }
 impl std::fmt::Display for SqlDropFunctionStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlDropIndexStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

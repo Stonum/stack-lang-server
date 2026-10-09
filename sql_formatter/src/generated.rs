@@ -2585,6 +2585,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterColumnType {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlAlterIndexStatement>
+    for crate::sql::statements::alter_index_statement::FormatSqlAlterIndexStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlAlterIndexStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAlterIndexStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAlterIndexStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAlterIndexStatement,
+        crate::sql::statements::alter_index_statement::FormatSqlAlterIndexStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::alter_index_statement::FormatSqlAlterIndexStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterIndexStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAlterIndexStatement,
+        crate::sql::statements::alter_index_statement::FormatSqlAlterIndexStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::alter_index_statement::FormatSqlAlterIndexStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlAlterTableStatement>
     for crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement
 {
@@ -3655,6 +3693,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropFunctionStatement {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: sql :: statements :: drop_function_statement :: FormatSqlDropFunctionStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::SqlDropIndexStatement>
+    for crate::sql::statements::drop_index_statement::FormatSqlDropIndexStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlDropIndexStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlDropIndexStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropIndexStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlDropIndexStatement,
+        crate::sql::statements::drop_index_statement::FormatSqlDropIndexStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::drop_index_statement::FormatSqlDropIndexStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropIndexStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlDropIndexStatement,
+        crate::sql::statements::drop_index_statement::FormatSqlDropIndexStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::drop_index_statement::FormatSqlDropIndexStatement::default(),
+        )
     }
 }
 impl FormatRule<sql_syntax::SqlDropTableStatement>
