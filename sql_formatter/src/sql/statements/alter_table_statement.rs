@@ -29,8 +29,19 @@ impl FormatNodeRule<SqlAlterTableStatement> for FormatSqlAlterTableStatement {
             write!(f, [space(), name.format()])
         });
 
-        // One action per line once the list wraps.
-        write_wrapping_fill_clause(keyword, &actions, |_| true, f)?;
+        if actions.len() == 1 {
+            // A single action that doesn't fit moves under the table name.
+            write!(
+                f,
+                [
+                    keyword,
+                    group(&soft_line_indent_or_space(&actions.format()))
+                ]
+            )?;
+        } else {
+            // One action per line once the list wraps.
+            write_wrapping_fill_clause(keyword, &actions, |_| true, f)?;
+        }
 
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;

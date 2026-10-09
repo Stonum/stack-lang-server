@@ -6598,6 +6598,161 @@ pub struct SqlReferencesConstraintFields {
     pub columns: Option<SqlColumnList>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlRenameColumnAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlRenameColumnAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlRenameColumnActionFields {
+        SqlRenameColumnActionFields {
+            rename_token: self.rename_token(),
+            column_token: self.column_token(),
+            old_name: self.old_name(),
+            to_token: self.to_token(),
+            new_name: self.new_name(),
+        }
+    }
+    pub fn rename_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn column_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn old_name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn to_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn new_name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for SqlRenameColumnAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlRenameColumnActionFields {
+    pub rename_token: SyntaxResult<SyntaxToken>,
+    pub column_token: Option<SyntaxToken>,
+    pub old_name: SyntaxResult<SqlName>,
+    pub to_token: SyntaxResult<SyntaxToken>,
+    pub new_name: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlRenameConstraintAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlRenameConstraintAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlRenameConstraintActionFields {
+        SqlRenameConstraintActionFields {
+            rename_token: self.rename_token(),
+            constraint_token: self.constraint_token(),
+            old_name: self.old_name(),
+            to_token: self.to_token(),
+            new_name: self.new_name(),
+        }
+    }
+    pub fn rename_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn constraint_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn old_name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn to_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn new_name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for SqlRenameConstraintAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlRenameConstraintActionFields {
+    pub rename_token: SyntaxResult<SyntaxToken>,
+    pub constraint_token: SyntaxResult<SyntaxToken>,
+    pub old_name: SyntaxResult<SqlName>,
+    pub to_token: SyntaxResult<SyntaxToken>,
+    pub new_name: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlRenameTableAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlRenameTableAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlRenameTableActionFields {
+        SqlRenameTableActionFields {
+            rename_token: self.rename_token(),
+            to_token: self.to_token(),
+            new_name: self.new_name(),
+        }
+    }
+    pub fn rename_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn to_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn new_name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlRenameTableAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlRenameTableActionFields {
+    pub rename_token: SyntaxResult<SyntaxToken>,
+    pub to_token: SyntaxResult<SyntaxToken>,
+    pub new_name: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlRoot {
     pub(crate) syntax: SyntaxNode,
 }
@@ -7131,6 +7286,51 @@ pub struct SqlSetOperationFields {
     pub where_clause: Option<SqlWhereClause>,
     pub group_by_clause: Option<SqlGroupByClause>,
     pub having_clause: Option<SqlHavingClause>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlSetSchemaAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlSetSchemaAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlSetSchemaActionFields {
+        SqlSetSchemaActionFields {
+            set_token: self.set_token(),
+            schema_token: self.schema_token(),
+            schema: self.schema(),
+        }
+    }
+    pub fn set_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn schema_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn schema(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlSetSchemaAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlSetSchemaActionFields {
+    pub set_token: SyntaxResult<SyntaxToken>,
+    pub schema_token: SyntaxResult<SyntaxToken>,
+    pub schema: SyntaxResult<SqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlShemaName {
@@ -8413,6 +8613,10 @@ pub enum AnySqlAlterTableAction {
     SqlAlterColumnAction(SqlAlterColumnAction),
     SqlAlterTriggerAction(SqlAlterTriggerAction),
     SqlDropColumnAction(SqlDropColumnAction),
+    SqlRenameColumnAction(SqlRenameColumnAction),
+    SqlRenameConstraintAction(SqlRenameConstraintAction),
+    SqlRenameTableAction(SqlRenameTableAction),
+    SqlSetSchemaAction(SqlSetSchemaAction),
 }
 impl AnySqlAlterTableAction {
     pub fn as_sql_add_column_action(&self) -> Option<&SqlAddColumnAction> {
@@ -8436,6 +8640,30 @@ impl AnySqlAlterTableAction {
     pub fn as_sql_drop_column_action(&self) -> Option<&SqlDropColumnAction> {
         match &self {
             Self::SqlDropColumnAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_rename_column_action(&self) -> Option<&SqlRenameColumnAction> {
+        match &self {
+            Self::SqlRenameColumnAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_rename_constraint_action(&self) -> Option<&SqlRenameConstraintAction> {
+        match &self {
+            Self::SqlRenameConstraintAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_rename_table_action(&self) -> Option<&SqlRenameTableAction> {
+        match &self {
+            Self::SqlRenameTableAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_set_schema_action(&self) -> Option<&SqlSetSchemaAction> {
+        match &self {
+            Self::SqlSetSchemaAction(item) => Some(item),
             _ => None,
         }
     }
@@ -16808,6 +17036,172 @@ impl From<SqlReferencesConstraint> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlRenameColumnAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_RENAME_COLUMN_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_RENAME_COLUMN_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlRenameColumnAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlRenameColumnAction")
+                .field(
+                    "rename_token",
+                    &support::DebugSyntaxResult(self.rename_token()),
+                )
+                .field(
+                    "column_token",
+                    &support::DebugOptionalElement(self.column_token()),
+                )
+                .field("old_name", &support::DebugSyntaxResult(self.old_name()))
+                .field("to_token", &support::DebugSyntaxResult(self.to_token()))
+                .field("new_name", &support::DebugSyntaxResult(self.new_name()))
+                .finish()
+        } else {
+            f.debug_struct("SqlRenameColumnAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlRenameColumnAction> for SyntaxNode {
+    fn from(n: SqlRenameColumnAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlRenameColumnAction> for SyntaxElement {
+    fn from(n: SqlRenameColumnAction) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlRenameConstraintAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_RENAME_CONSTRAINT_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_RENAME_CONSTRAINT_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlRenameConstraintAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlRenameConstraintAction")
+                .field(
+                    "rename_token",
+                    &support::DebugSyntaxResult(self.rename_token()),
+                )
+                .field(
+                    "constraint_token",
+                    &support::DebugSyntaxResult(self.constraint_token()),
+                )
+                .field("old_name", &support::DebugSyntaxResult(self.old_name()))
+                .field("to_token", &support::DebugSyntaxResult(self.to_token()))
+                .field("new_name", &support::DebugSyntaxResult(self.new_name()))
+                .finish()
+        } else {
+            f.debug_struct("SqlRenameConstraintAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlRenameConstraintAction> for SyntaxNode {
+    fn from(n: SqlRenameConstraintAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlRenameConstraintAction> for SyntaxElement {
+    fn from(n: SqlRenameConstraintAction) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlRenameTableAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_RENAME_TABLE_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_RENAME_TABLE_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlRenameTableAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlRenameTableAction")
+                .field(
+                    "rename_token",
+                    &support::DebugSyntaxResult(self.rename_token()),
+                )
+                .field("to_token", &support::DebugSyntaxResult(self.to_token()))
+                .field("new_name", &support::DebugSyntaxResult(self.new_name()))
+                .finish()
+        } else {
+            f.debug_struct("SqlRenameTableAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlRenameTableAction> for SyntaxNode {
+    fn from(n: SqlRenameTableAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlRenameTableAction> for SyntaxElement {
+    fn from(n: SqlRenameTableAction) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlRoot {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -17424,6 +17818,58 @@ impl From<SqlSetOperation> for SyntaxNode {
 }
 impl From<SqlSetOperation> for SyntaxElement {
     fn from(n: SqlSetOperation) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlSetSchemaAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_SET_SCHEMA_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_SET_SCHEMA_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlSetSchemaAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlSetSchemaAction")
+                .field("set_token", &support::DebugSyntaxResult(self.set_token()))
+                .field(
+                    "schema_token",
+                    &support::DebugSyntaxResult(self.schema_token()),
+                )
+                .field("schema", &support::DebugSyntaxResult(self.schema()))
+                .finish()
+        } else {
+            f.debug_struct("SqlSetSchemaAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlSetSchemaAction> for SyntaxNode {
+    fn from(n: SqlSetSchemaAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlSetSchemaAction> for SyntaxElement {
+    fn from(n: SqlSetSchemaAction) -> Self {
         n.syntax.into()
     }
 }
@@ -19031,12 +19477,36 @@ impl From<SqlDropColumnAction> for AnySqlAlterTableAction {
         Self::SqlDropColumnAction(node)
     }
 }
+impl From<SqlRenameColumnAction> for AnySqlAlterTableAction {
+    fn from(node: SqlRenameColumnAction) -> Self {
+        Self::SqlRenameColumnAction(node)
+    }
+}
+impl From<SqlRenameConstraintAction> for AnySqlAlterTableAction {
+    fn from(node: SqlRenameConstraintAction) -> Self {
+        Self::SqlRenameConstraintAction(node)
+    }
+}
+impl From<SqlRenameTableAction> for AnySqlAlterTableAction {
+    fn from(node: SqlRenameTableAction) -> Self {
+        Self::SqlRenameTableAction(node)
+    }
+}
+impl From<SqlSetSchemaAction> for AnySqlAlterTableAction {
+    fn from(node: SqlSetSchemaAction) -> Self {
+        Self::SqlSetSchemaAction(node)
+    }
+}
 impl AstNode for AnySqlAlterTableAction {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlAddColumnAction::KIND_SET
         .union(SqlAlterColumnAction::KIND_SET)
         .union(SqlAlterTriggerAction::KIND_SET)
-        .union(SqlDropColumnAction::KIND_SET);
+        .union(SqlDropColumnAction::KIND_SET)
+        .union(SqlRenameColumnAction::KIND_SET)
+        .union(SqlRenameConstraintAction::KIND_SET)
+        .union(SqlRenameTableAction::KIND_SET)
+        .union(SqlSetSchemaAction::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
@@ -19044,6 +19514,10 @@ impl AstNode for AnySqlAlterTableAction {
                 | SQL_ALTER_COLUMN_ACTION
                 | SQL_ALTER_TRIGGER_ACTION
                 | SQL_DROP_COLUMN_ACTION
+                | SQL_RENAME_COLUMN_ACTION
+                | SQL_RENAME_CONSTRAINT_ACTION
+                | SQL_RENAME_TABLE_ACTION
+                | SQL_SET_SCHEMA_ACTION
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
@@ -19054,6 +19528,14 @@ impl AstNode for AnySqlAlterTableAction {
                 Self::SqlAlterTriggerAction(SqlAlterTriggerAction { syntax })
             }
             SQL_DROP_COLUMN_ACTION => Self::SqlDropColumnAction(SqlDropColumnAction { syntax }),
+            SQL_RENAME_COLUMN_ACTION => {
+                Self::SqlRenameColumnAction(SqlRenameColumnAction { syntax })
+            }
+            SQL_RENAME_CONSTRAINT_ACTION => {
+                Self::SqlRenameConstraintAction(SqlRenameConstraintAction { syntax })
+            }
+            SQL_RENAME_TABLE_ACTION => Self::SqlRenameTableAction(SqlRenameTableAction { syntax }),
+            SQL_SET_SCHEMA_ACTION => Self::SqlSetSchemaAction(SqlSetSchemaAction { syntax }),
             _ => return None,
         };
         Some(res)
@@ -19064,6 +19546,10 @@ impl AstNode for AnySqlAlterTableAction {
             Self::SqlAlterColumnAction(it) => &it.syntax,
             Self::SqlAlterTriggerAction(it) => &it.syntax,
             Self::SqlDropColumnAction(it) => &it.syntax,
+            Self::SqlRenameColumnAction(it) => &it.syntax,
+            Self::SqlRenameConstraintAction(it) => &it.syntax,
+            Self::SqlRenameTableAction(it) => &it.syntax,
+            Self::SqlSetSchemaAction(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
@@ -19072,6 +19558,10 @@ impl AstNode for AnySqlAlterTableAction {
             Self::SqlAlterColumnAction(it) => it.syntax,
             Self::SqlAlterTriggerAction(it) => it.syntax,
             Self::SqlDropColumnAction(it) => it.syntax,
+            Self::SqlRenameColumnAction(it) => it.syntax,
+            Self::SqlRenameConstraintAction(it) => it.syntax,
+            Self::SqlRenameTableAction(it) => it.syntax,
+            Self::SqlSetSchemaAction(it) => it.syntax,
         }
     }
 }
@@ -19082,6 +19572,10 @@ impl std::fmt::Debug for AnySqlAlterTableAction {
             Self::SqlAlterColumnAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlAlterTriggerAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDropColumnAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlRenameColumnAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlRenameConstraintAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlRenameTableAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlSetSchemaAction(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -19092,6 +19586,10 @@ impl From<AnySqlAlterTableAction> for SyntaxNode {
             AnySqlAlterTableAction::SqlAlterColumnAction(it) => it.into(),
             AnySqlAlterTableAction::SqlAlterTriggerAction(it) => it.into(),
             AnySqlAlterTableAction::SqlDropColumnAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlRenameColumnAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlRenameConstraintAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlRenameTableAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlSetSchemaAction(it) => it.into(),
         }
     }
 }
@@ -22394,6 +22892,21 @@ impl std::fmt::Display for SqlReferencesConstraint {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlRenameColumnAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlRenameConstraintAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlRenameTableAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlRoot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -22445,6 +22958,11 @@ impl std::fmt::Display for SqlSetItem {
     }
 }
 impl std::fmt::Display for SqlSetOperation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlSetSchemaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

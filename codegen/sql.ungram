@@ -515,6 +515,38 @@ AnySqlAlterTableAction =
    | SqlAddColumnAction
    | SqlDropColumnAction
    | SqlAlterColumnAction
+   | SqlRenameColumnAction
+   | SqlRenameTableAction
+   | SqlRenameConstraintAction
+   | SqlSetSchemaAction
+
+// `RENAME [COLUMN] old TO new`
+SqlRenameColumnAction =
+   'rename'
+   'column'?
+   old_name: SqlName
+   'to'
+   new_name: SqlName
+
+// `RENAME TO new`
+SqlRenameTableAction =
+   'rename'
+   'to'
+   new_name: SqlName
+
+// `RENAME CONSTRAINT old TO new`
+SqlRenameConstraintAction =
+   'rename'
+   'constraint'
+   old_name: SqlName
+   'to'
+   new_name: SqlName
+
+// `SET SCHEMA schema`
+SqlSetSchemaAction =
+   'set'
+   'schema'
+   schema: SqlName
 
 // `ALTER [COLUMN] name operation`
 SqlAlterColumnAction =

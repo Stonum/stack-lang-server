@@ -571,6 +571,19 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlReferencesConstraint::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_RENAME_COLUMN_ACTION => {
+                    let $pattern = unsafe { $crate::SqlRenameColumnAction::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_RENAME_CONSTRAINT_ACTION => {
+                    let $pattern =
+                        unsafe { $crate::SqlRenameConstraintAction::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_RENAME_TABLE_ACTION => {
+                    let $pattern = unsafe { $crate::SqlRenameTableAction::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ROOT => {
                     let $pattern = unsafe { $crate::SqlRoot::new_unchecked(node) };
                     $body
@@ -614,6 +627,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_SET_OPERATION => {
                     let $pattern = unsafe { $crate::SqlSetOperation::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_SET_SCHEMA_ACTION => {
+                    let $pattern = unsafe { $crate::SqlSetSchemaAction::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_SHEMA_NAME => {

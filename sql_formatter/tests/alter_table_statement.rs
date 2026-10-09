@@ -87,10 +87,48 @@ fn format_alter_column_long_using_expression_wraps() {
 alter table t alter column a type numeric using case when some_function(first_argument, second_argument) > 0 then another_function(third_argument) else 0 end
 "#,
         r#"--
-alter table t alter column a type numeric using case
-	when some_function(first_argument, second_argument) > 0 then another_function(third_argument)
-	else 0
-end
+alter table t
+	alter column a type numeric using case
+		when some_function(first_argument, second_argument) > 0 then another_function(third_argument)
+		else 0
+	end
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_rename_and_set_schema() {
+    assert_fmt!(
+        r#"--
+alter table t rename column a to b;
+alter table t rename to u;
+alter table t rename constraint c to d;
+alter table t set schema s;
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_rename_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+ALTER TABLE ~Таблица~  RENAME  COLUMN  "Поле"  TO  "Новое поле"
+"#,
+        r#"--
+alter table ~Таблица~ rename column "Поле" to "Новое поле"
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_single_long_action_moves_under_the_table_name() {
+    assert_fmt_eq!(
+        r#"--
+alter table some_long_schema_name.some_long_table_name rename column some_very_long_old_column_name to some_very_long_new_column_name;
+"#,
+        r#"--
+alter table some_long_schema_name.some_long_table_name
+	rename column some_very_long_old_column_name to some_very_long_new_column_name;
 "#
     );
 }
