@@ -186,6 +186,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCastExpression {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlCreateExtensionStatement>
+    for crate::psql::statements::create_extension_statement::FormatPsqlCreateExtensionStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCreateExtensionStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCreateExtensionStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCreateExtensionStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCreateExtensionStatement,
+        crate::psql::statements::create_extension_statement::FormatPsqlCreateExtensionStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_extension_statement :: FormatPsqlCreateExtensionStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreateExtensionStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCreateExtensionStatement,
+        crate::psql::statements::create_extension_statement::FormatPsqlCreateExtensionStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_extension_statement :: FormatPsqlCreateExtensionStatement :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlCreateFunctionStatement>
     for crate::psql::statements::create_function_statement::FormatPsqlCreateFunctionStatement
 {
@@ -481,6 +513,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDoUpdateClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlDropExtensionStatement>
+    for crate::psql::statements::drop_extension_statement::FormatPsqlDropExtensionStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlDropExtensionStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDropExtensionStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDropExtensionStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDropExtensionStatement,
+        crate::psql::statements::drop_extension_statement::FormatPsqlDropExtensionStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: drop_extension_statement :: FormatPsqlDropExtensionStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropExtensionStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDropExtensionStatement,
+        crate::psql::statements::drop_extension_statement::FormatPsqlDropExtensionStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_extension_statement :: FormatPsqlDropExtensionStatement :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlDropFunctionParameters>
     for crate::psql::auxiliary::drop_function_parameters::FormatPsqlDropFunctionParameters
 {
@@ -596,6 +660,46 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropTriggerStatement {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_trigger_statement :: FormatPsqlDropTriggerStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlExtensionSchemaClause>
+    for crate::psql::clauses::extension_schema_clause::FormatPsqlExtensionSchemaClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlExtensionSchemaClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlExtensionSchemaClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlExtensionSchemaClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlExtensionSchemaClause,
+        crate::psql::clauses::extension_schema_clause::FormatPsqlExtensionSchemaClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::extension_schema_clause::FormatPsqlExtensionSchemaClause::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlExtensionSchemaClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlExtensionSchemaClause,
+        crate::psql::clauses::extension_schema_clause::FormatPsqlExtensionSchemaClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::extension_schema_clause::FormatPsqlExtensionSchemaClause::default(
+            ),
+        )
     }
 }
 impl FormatRule<sql_syntax::PsqlFilterClause>

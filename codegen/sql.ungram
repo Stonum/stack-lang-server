@@ -117,6 +117,8 @@ AnySqlStatement =
    | PsqlCreateMaterializedViewStatement
    | PsqlDropMaterializedViewStatement
    | PsqlRefreshMaterializedViewStatement
+   | PsqlCreateExtensionStatement
+   | PsqlDropExtensionStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
@@ -749,6 +751,30 @@ PsqlRefreshMaterializedViewStatement =
    'concurrently'?
    name: SqlTableName
    with_data: PsqlWithDataClause?
+   ';'?
+
+// `CREATE EXTENSION [IF NOT EXISTS] name [[WITH] SCHEMA schema] [CASCADE] [;]`
+PsqlCreateExtensionStatement =
+   'create'
+   'extension'
+   ('if' 'not' 'exists')?
+   name: SqlName
+   schema_clause: PsqlExtensionSchemaClause?
+   'cascade'?
+   ';'?
+
+PsqlExtensionSchemaClause =
+   'with'?
+   'schema'
+   schema: SqlName
+
+// `DROP EXTENSION [IF EXISTS] name, ... [CASCADE | RESTRICT] [;]`
+PsqlDropExtensionStatement =
+   'drop'
+   'extension'
+   ('if' 'exists')?
+   extensions: SqlTableNameList
+   drop_behavior: ('cascade' | 'restrict')?
    ';'?
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
