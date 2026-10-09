@@ -4262,6 +4262,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFunctionBinding {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlGrantOptionFor>
+    for crate::sql::auxiliary::grant_option_for::FormatSqlGrantOptionFor
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlGrantOptionFor, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlGrantOptionFor>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlGrantOptionFor {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlGrantOptionFor,
+        crate::sql::auxiliary::grant_option_for::FormatSqlGrantOptionFor,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::grant_option_for::FormatSqlGrantOptionFor::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlGrantOptionFor {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlGrantOptionFor,
+        crate::sql::auxiliary::grant_option_for::FormatSqlGrantOptionFor,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::grant_option_for::FormatSqlGrantOptionFor::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlGrantStatement>
     for crate::sql::statements::grant_statement::FormatSqlGrantStatement
 {
@@ -5121,6 +5155,116 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrimaryKeyTableConstraint {
         FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: primary_key_table_constraint :: FormatSqlPrimaryKeyTableConstraint :: default ())
     }
 }
+impl FormatRule<sql_syntax::SqlPrivilege> for crate::sql::auxiliary::privilege::FormatSqlPrivilege {
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlPrivilege, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlPrivilege>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlPrivilege {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlPrivilege,
+        crate::sql::auxiliary::privilege::FormatSqlPrivilege,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::privilege::FormatSqlPrivilege::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrivilege {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlPrivilege,
+        crate::sql::auxiliary::privilege::FormatSqlPrivilege,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::privilege::FormatSqlPrivilege::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlPrivilegeAllInSchema>
+    for crate::sql::auxiliary::privilege_all_in_schema::FormatSqlPrivilegeAllInSchema
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlPrivilegeAllInSchema,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlPrivilegeAllInSchema>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlPrivilegeAllInSchema {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlPrivilegeAllInSchema,
+        crate::sql::auxiliary::privilege_all_in_schema::FormatSqlPrivilegeAllInSchema,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::privilege_all_in_schema::FormatSqlPrivilegeAllInSchema::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrivilegeAllInSchema {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlPrivilegeAllInSchema,
+        crate::sql::auxiliary::privilege_all_in_schema::FormatSqlPrivilegeAllInSchema,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::privilege_all_in_schema::FormatSqlPrivilegeAllInSchema::default(
+            ),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlPrivilegeObjects>
+    for crate::sql::auxiliary::privilege_objects::FormatSqlPrivilegeObjects
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlPrivilegeObjects,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlPrivilegeObjects>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlPrivilegeObjects {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlPrivilegeObjects,
+        crate::sql::auxiliary::privilege_objects::FormatSqlPrivilegeObjects,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::privilege_objects::FormatSqlPrivilegeObjects::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrivilegeObjects {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlPrivilegeObjects,
+        crate::sql::auxiliary::privilege_objects::FormatSqlPrivilegeObjects,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::privilege_objects::FormatSqlPrivilegeObjects::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlReferencesConstraint>
     for crate::sql::auxiliary::references_constraint::FormatSqlReferencesConstraint
 {
@@ -5264,6 +5408,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRenameTableAction {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::rename_table_action::FormatSqlRenameTableAction::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlRevokeStatement>
+    for crate::sql::statements::revoke_statement::FormatSqlRevokeStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlRevokeStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlRevokeStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlRevokeStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlRevokeStatement,
+        crate::sql::statements::revoke_statement::FormatSqlRevokeStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::revoke_statement::FormatSqlRevokeStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRevokeStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlRevokeStatement,
+        crate::sql::statements::revoke_statement::FormatSqlRevokeStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::revoke_statement::FormatSqlRevokeStatement::default(),
         )
     }
 }
@@ -6637,6 +6815,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWithClause {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlWithGrantOption>
+    for crate::sql::auxiliary::with_grant_option::FormatSqlWithGrantOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlWithGrantOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlWithGrantOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlWithGrantOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlWithGrantOption,
+        crate::sql::auxiliary::with_grant_option::FormatSqlWithGrantOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::with_grant_option::FormatSqlWithGrantOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWithGrantOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlWithGrantOption,
+        crate::sql::auxiliary::with_grant_option::FormatSqlWithGrantOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::with_grant_option::FormatSqlWithGrantOption::default(),
+        )
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFunctionOptionList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -7191,6 +7403,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlOrderByExpressionList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::lists::order_by_expression_list::FormatSqlOrderByExpressionList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlPrivilegeList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlPrivilegeList,
+        crate::sql::lists::privilege_list::FormatSqlPrivilegeList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::lists::privilege_list::FormatSqlPrivilegeList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPrivilegeList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlPrivilegeList,
+        crate::sql::lists::privilege_list::FormatSqlPrivilegeList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::lists::privilege_list::FormatSqlPrivilegeList::default(),
         )
     }
 }
@@ -8075,6 +8312,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlName {
         FormatOwnedWithRule<sql_syntax::AnySqlName, crate::sql::any::name::FormatAnySqlName>;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule::new(self, crate::sql::any::name::FormatAnySqlName::default())
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlPrivilegeTarget {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlPrivilegeTarget,
+        crate::sql::any::privilege_target::FormatAnySqlPrivilegeTarget,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::privilege_target::FormatAnySqlPrivilegeTarget::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlPrivilegeTarget {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlPrivilegeTarget,
+        crate::sql::any::privilege_target::FormatAnySqlPrivilegeTarget,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::privilege_target::FormatAnySqlPrivilegeTarget::default(),
+        )
     }
 }
 impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlReturnsType {

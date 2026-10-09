@@ -4,6 +4,7 @@ mod ddl;
 mod delete;
 mod expr;
 mod from;
+mod grant;
 mod index;
 mod insert;
 mod parse_error;

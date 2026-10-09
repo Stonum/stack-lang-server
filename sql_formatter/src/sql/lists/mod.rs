@@ -14,6 +14,7 @@ pub(crate) mod group_by_item_list;
 pub(crate) mod index_element_list;
 pub(crate) mod join_clause_list;
 pub(crate) mod order_by_expression_list;
+pub(crate) mod privilege_list;
 pub(crate) mod select_item_list;
 pub(crate) mod set_item_list;
 pub(crate) mod set_operation_list;

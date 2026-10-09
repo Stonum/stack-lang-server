@@ -22,7 +22,7 @@ use mlang_syntax::{AnyMExpression, MBinaryExpression, MLanguage, MSyntaxKind, MS
 /// actually dispatches on, not just a handful of the most common ones.
 const SQL_KEYWORDS: &[&str] = &[
     "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant",
-    "truncate", "vacuum", "analyze", "analyse", "call", "alter", "refresh",
+    "truncate", "vacuum", "analyze", "analyse", "call", "alter", "refresh", "revoke",
 ];
 
 /// Strips leading whitespace and `/* ... */`/`-- ...` comments, repeatedly,

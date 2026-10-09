@@ -17,6 +17,7 @@ pub(crate) mod insert_source;
 pub(crate) mod limit_value;
 pub(crate) mod literal_expression;
 pub(crate) mod name;
+pub(crate) mod privilege_target;
 pub(crate) mod returns_type;
 pub(crate) mod select_item;
 pub(crate) mod select_quantifier;

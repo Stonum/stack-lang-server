@@ -9,36 +9,32 @@ impl FormatNodeRule<SqlGrantStatement> for FormatSqlGrantStatement {
     fn fmt_fields(&self, node: &SqlGrantStatement, f: &mut SqlFormatter) -> FormatResult<()> {
         let SqlGrantStatementFields {
             grant_token,
-            all_token,
-            on_token,
-            table_token,
-            objects,
+            privileges,
+            target,
             to_token,
             grantees,
+            grant_option,
             semicolon_token,
         } = node.as_fields();
 
-        let objects_keyword = format_with(move |f| {
-            write!(
-                f,
-                [
-                    grant_token.format(),
-                    space(),
-                    all_token.format(),
-                    space(),
-                    on_token.format(),
-                ]
-            )?;
-            if let Some(table_token) = &table_token {
-                write!(f, [space(), table_token.format()])?;
-            }
-            Ok(())
-        });
-        write_wrapping_fill_clause(objects_keyword, &objects, |_| false, f)?;
+        write!(f, [grant_token.format(), space(), privileges.format()])?;
 
-        write!(f, [space()])?;
-        write_wrapping_fill_clause(to_token.format(), &grantees, |_| false, f)?;
-
+        // Once the object list wraps, `TO ...` moves to its own line.
+        write!(
+            f,
+            [group(&format_with(|f: &mut SqlFormatter| {
+                if let Some(target) = &target {
+                    write!(f, [space(), target.format(), soft_line_break_or_space()])?;
+                } else {
+                    write!(f, [space()])?;
+                }
+                write_wrapping_fill_clause(to_token.format(), &grantees, |_| false, f)?;
+                if let Some(grant_option) = &grant_option {
+                    write!(f, [space(), grant_option.format()])?;
+                }
+                Ok(())
+            }))]
+        )?;
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
         }

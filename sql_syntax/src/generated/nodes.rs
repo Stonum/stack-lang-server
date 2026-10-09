@@ -6278,6 +6278,51 @@ pub struct SqlFunctionBindingFields {
     pub alias: Option<SqlAlias>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlGrantOptionFor {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlGrantOptionFor {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlGrantOptionForFields {
+        SqlGrantOptionForFields {
+            grant_token: self.grant_token(),
+            option_token: self.option_token(),
+            for_token: self.for_token(),
+        }
+    }
+    pub fn grant_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn option_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlGrantOptionFor {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlGrantOptionForFields {
+    pub grant_token: SyntaxResult<SyntaxToken>,
+    pub option_token: SyntaxResult<SyntaxToken>,
+    pub for_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlGrantStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -6294,38 +6339,34 @@ impl SqlGrantStatement {
     pub fn as_fields(&self) -> SqlGrantStatementFields {
         SqlGrantStatementFields {
             grant_token: self.grant_token(),
-            all_token: self.all_token(),
-            on_token: self.on_token(),
-            table_token: self.table_token(),
-            objects: self.objects(),
+            privileges: self.privileges(),
+            target: self.target(),
             to_token: self.to_token(),
             grantees: self.grantees(),
+            grant_option: self.grant_option(),
             semicolon_token: self.semicolon_token(),
         }
     }
     pub fn grant_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn all_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 1usize)
+    pub fn privileges(&self) -> SqlPrivilegeList {
+        support::list(&self.syntax, 1usize)
     }
-    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 2usize)
-    }
-    pub fn table_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 3usize)
-    }
-    pub fn objects(&self) -> SqlTableNameList {
-        support::list(&self.syntax, 4usize)
+    pub fn target(&self) -> Option<AnySqlPrivilegeTarget> {
+        support::node(&self.syntax, 2usize)
     }
     pub fn to_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 5usize)
+        support::required_token(&self.syntax, 3usize)
     }
     pub fn grantees(&self) -> SqlGranteeList {
-        support::list(&self.syntax, 6usize)
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn grant_option(&self) -> Option<SqlWithGrantOption> {
+        support::node(&self.syntax, 5usize)
     }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 7usize)
+        support::token(&self.syntax, 6usize)
     }
 }
 impl Serialize for SqlGrantStatement {
@@ -6339,12 +6380,11 @@ impl Serialize for SqlGrantStatement {
 #[derive(Serialize)]
 pub struct SqlGrantStatementFields {
     pub grant_token: SyntaxResult<SyntaxToken>,
-    pub all_token: SyntaxResult<SyntaxToken>,
-    pub on_token: SyntaxResult<SyntaxToken>,
-    pub table_token: Option<SyntaxToken>,
-    pub objects: SqlTableNameList,
+    pub privileges: SqlPrivilegeList,
+    pub target: Option<AnySqlPrivilegeTarget>,
     pub to_token: SyntaxResult<SyntaxToken>,
     pub grantees: SqlGranteeList,
+    pub grant_option: Option<SqlWithGrantOption>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -7408,6 +7448,156 @@ pub struct SqlPrimaryKeyTableConstraintFields {
     pub columns: SyntaxResult<SqlColumnList>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlPrivilege {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlPrivilege {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlPrivilegeFields {
+        SqlPrivilegeFields {
+            kind: self.kind(),
+            privileges_token: self.privileges_token(),
+            columns: self.columns(),
+        }
+    }
+    pub fn kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn privileges_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn columns(&self) -> Option<SqlColumnList> {
+        support::node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlPrivilege {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlPrivilegeFields {
+    pub kind: SyntaxResult<SyntaxToken>,
+    pub privileges_token: Option<SyntaxToken>,
+    pub columns: Option<SqlColumnList>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlPrivilegeAllInSchema {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlPrivilegeAllInSchema {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlPrivilegeAllInSchemaFields {
+        SqlPrivilegeAllInSchemaFields {
+            on_token: self.on_token(),
+            all_token: self.all_token(),
+            object_kind: self.object_kind(),
+            in_token: self.in_token(),
+            schema_token: self.schema_token(),
+            schemas: self.schemas(),
+        }
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn all_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn object_kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn in_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn schema_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn schemas(&self) -> SqlTableNameList {
+        support::list(&self.syntax, 5usize)
+    }
+}
+impl Serialize for SqlPrivilegeAllInSchema {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlPrivilegeAllInSchemaFields {
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub all_token: SyntaxResult<SyntaxToken>,
+    pub object_kind: SyntaxResult<SyntaxToken>,
+    pub in_token: SyntaxResult<SyntaxToken>,
+    pub schema_token: SyntaxResult<SyntaxToken>,
+    pub schemas: SqlTableNameList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlPrivilegeObjects {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlPrivilegeObjects {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlPrivilegeObjectsFields {
+        SqlPrivilegeObjectsFields {
+            on_token: self.on_token(),
+            object_kind: self.object_kind(),
+            objects: self.objects(),
+        }
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn object_kind(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn objects(&self) -> SqlTableNameList {
+        support::list(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlPrivilegeObjects {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlPrivilegeObjectsFields {
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub object_kind: Option<SyntaxToken>,
+    pub objects: SqlTableNameList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlReferencesConstraint {
     pub(crate) syntax: SyntaxNode,
 }
@@ -7606,6 +7796,76 @@ pub struct SqlRenameTableActionFields {
     pub rename_token: SyntaxResult<SyntaxToken>,
     pub to_token: SyntaxResult<SyntaxToken>,
     pub new_name: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlRevokeStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlRevokeStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlRevokeStatementFields {
+        SqlRevokeStatementFields {
+            revoke_token: self.revoke_token(),
+            grant_option_for: self.grant_option_for(),
+            privileges: self.privileges(),
+            target: self.target(),
+            from_token: self.from_token(),
+            grantees: self.grantees(),
+            drop_behavior: self.drop_behavior(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn revoke_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn grant_option_for(&self) -> Option<SqlGrantOptionFor> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn privileges(&self) -> SqlPrivilegeList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn target(&self) -> Option<AnySqlPrivilegeTarget> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn from_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn grantees(&self) -> SqlGranteeList {
+        support::list(&self.syntax, 5usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 6usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for SqlRevokeStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlRevokeStatementFields {
+    pub revoke_token: SyntaxResult<SyntaxToken>,
+    pub grant_option_for: Option<SqlGrantOptionFor>,
+    pub privileges: SqlPrivilegeList,
+    pub target: Option<AnySqlPrivilegeTarget>,
+    pub from_token: SyntaxResult<SyntaxToken>,
+    pub grantees: SqlGranteeList,
+    pub drop_behavior: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlRoot {
@@ -9422,6 +9682,51 @@ pub struct SqlWithClauseFields {
     pub recursive_token: Option<SyntaxToken>,
     pub ctes: SqlCteDefinitionList,
 }
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlWithGrantOption {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlWithGrantOption {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlWithGrantOptionFields {
+        SqlWithGrantOptionFields {
+            with_token: self.with_token(),
+            grant_token: self.grant_token(),
+            option_token: self.option_token(),
+        }
+    }
+    pub fn with_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn grant_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn option_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlWithGrantOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlWithGrantOptionFields {
+    pub with_token: SyntaxResult<SyntaxToken>,
+    pub grant_token: SyntaxResult<SyntaxToken>,
+    pub option_token: SyntaxResult<SyntaxToken>,
+}
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlLanguageName {
     SqlName(SqlName),
@@ -10143,6 +10448,25 @@ impl AnySqlName {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnySqlPrivilegeTarget {
+    SqlPrivilegeAllInSchema(SqlPrivilegeAllInSchema),
+    SqlPrivilegeObjects(SqlPrivilegeObjects),
+}
+impl AnySqlPrivilegeTarget {
+    pub fn as_sql_privilege_all_in_schema(&self) -> Option<&SqlPrivilegeAllInSchema> {
+        match &self {
+            Self::SqlPrivilegeAllInSchema(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_privilege_objects(&self) -> Option<&SqlPrivilegeObjects> {
+        match &self {
+            Self::SqlPrivilegeObjects(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlReturnsType {
     SqlTypeName(SqlTypeName),
     PsqlReturnsSetofClause(PsqlReturnsSetofClause),
@@ -10238,6 +10562,7 @@ pub enum AnySqlStatement {
     SqlEmptyStatement(SqlEmptyStatement),
     SqlGrantStatement(SqlGrantStatement),
     SqlInsertStatement(SqlInsertStatement),
+    SqlRevokeStatement(SqlRevokeStatement),
     SqlSelectStatement(SqlSelectStatement),
     SqlTruncateStatement(SqlTruncateStatement),
     SqlUpdateStatement(SqlUpdateStatement),
@@ -10349,6 +10674,12 @@ impl AnySqlStatement {
     pub fn as_sql_insert_statement(&self) -> Option<&SqlInsertStatement> {
         match &self {
             Self::SqlInsertStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_revoke_statement(&self) -> Option<&SqlRevokeStatement> {
+        match &self {
+            Self::SqlRevokeStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -17457,6 +17788,61 @@ impl From<SqlFunctionBinding> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlGrantOptionFor {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_GRANT_OPTION_FOR as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_GRANT_OPTION_FOR
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlGrantOptionFor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlGrantOptionFor")
+                .field(
+                    "grant_token",
+                    &support::DebugSyntaxResult(self.grant_token()),
+                )
+                .field(
+                    "option_token",
+                    &support::DebugSyntaxResult(self.option_token()),
+                )
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .finish()
+        } else {
+            f.debug_struct("SqlGrantOptionFor").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlGrantOptionFor> for SyntaxNode {
+    fn from(n: SqlGrantOptionFor) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlGrantOptionFor> for SyntaxElement {
+    fn from(n: SqlGrantOptionFor) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlGrantStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -17489,15 +17875,14 @@ impl std::fmt::Debug for SqlGrantStatement {
                     "grant_token",
                     &support::DebugSyntaxResult(self.grant_token()),
                 )
-                .field("all_token", &support::DebugSyntaxResult(self.all_token()))
-                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
-                .field(
-                    "table_token",
-                    &support::DebugOptionalElement(self.table_token()),
-                )
-                .field("objects", &self.objects())
+                .field("privileges", &self.privileges())
+                .field("target", &support::DebugOptionalElement(self.target()))
                 .field("to_token", &support::DebugSyntaxResult(self.to_token()))
                 .field("grantees", &self.grantees())
+                .field(
+                    "grant_option",
+                    &support::DebugOptionalElement(self.grant_option()),
+                )
                 .field(
                     "semicolon_token",
                     &support::DebugOptionalElement(self.semicolon_token()),
@@ -18788,6 +19173,168 @@ impl From<SqlPrimaryKeyTableConstraint> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlPrivilege {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_PRIVILEGE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_PRIVILEGE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlPrivilege {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlPrivilege")
+                .field("kind", &support::DebugSyntaxResult(self.kind()))
+                .field(
+                    "privileges_token",
+                    &support::DebugOptionalElement(self.privileges_token()),
+                )
+                .field("columns", &support::DebugOptionalElement(self.columns()))
+                .finish()
+        } else {
+            f.debug_struct("SqlPrivilege").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlPrivilege> for SyntaxNode {
+    fn from(n: SqlPrivilege) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlPrivilege> for SyntaxElement {
+    fn from(n: SqlPrivilege) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlPrivilegeAllInSchema {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_PRIVILEGE_ALL_IN_SCHEMA as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_PRIVILEGE_ALL_IN_SCHEMA
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlPrivilegeAllInSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlPrivilegeAllInSchema")
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field("all_token", &support::DebugSyntaxResult(self.all_token()))
+                .field(
+                    "object_kind",
+                    &support::DebugSyntaxResult(self.object_kind()),
+                )
+                .field("in_token", &support::DebugSyntaxResult(self.in_token()))
+                .field(
+                    "schema_token",
+                    &support::DebugSyntaxResult(self.schema_token()),
+                )
+                .field("schemas", &self.schemas())
+                .finish()
+        } else {
+            f.debug_struct("SqlPrivilegeAllInSchema").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlPrivilegeAllInSchema> for SyntaxNode {
+    fn from(n: SqlPrivilegeAllInSchema) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlPrivilegeAllInSchema> for SyntaxElement {
+    fn from(n: SqlPrivilegeAllInSchema) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlPrivilegeObjects {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_PRIVILEGE_OBJECTS as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_PRIVILEGE_OBJECTS
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlPrivilegeObjects {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlPrivilegeObjects")
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field(
+                    "object_kind",
+                    &support::DebugOptionalElement(self.object_kind()),
+                )
+                .field("objects", &self.objects())
+                .finish()
+        } else {
+            f.debug_struct("SqlPrivilegeObjects").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlPrivilegeObjects> for SyntaxNode {
+    fn from(n: SqlPrivilegeObjects) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlPrivilegeObjects> for SyntaxElement {
+    fn from(n: SqlPrivilegeObjects) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlReferencesConstraint {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -19003,6 +19550,72 @@ impl From<SqlRenameTableAction> for SyntaxNode {
 }
 impl From<SqlRenameTableAction> for SyntaxElement {
     fn from(n: SqlRenameTableAction) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlRevokeStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_REVOKE_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_REVOKE_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlRevokeStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlRevokeStatement")
+                .field(
+                    "revoke_token",
+                    &support::DebugSyntaxResult(self.revoke_token()),
+                )
+                .field(
+                    "grant_option_for",
+                    &support::DebugOptionalElement(self.grant_option_for()),
+                )
+                .field("privileges", &self.privileges())
+                .field("target", &support::DebugOptionalElement(self.target()))
+                .field("from_token", &support::DebugSyntaxResult(self.from_token()))
+                .field("grantees", &self.grantees())
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlRevokeStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlRevokeStatement> for SyntaxNode {
+    fn from(n: SqlRevokeStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlRevokeStatement> for SyntaxElement {
+    fn from(n: SqlRevokeStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -21161,6 +21774,61 @@ impl From<SqlWithClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlWithGrantOption {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_WITH_GRANT_OPTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_WITH_GRANT_OPTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlWithGrantOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlWithGrantOption")
+                .field("with_token", &support::DebugSyntaxResult(self.with_token()))
+                .field(
+                    "grant_token",
+                    &support::DebugSyntaxResult(self.grant_token()),
+                )
+                .field(
+                    "option_token",
+                    &support::DebugSyntaxResult(self.option_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlWithGrantOption").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlWithGrantOption> for SyntaxNode {
+    fn from(n: SqlWithGrantOption) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlWithGrantOption> for SyntaxElement {
+    fn from(n: SqlWithGrantOption) -> Self {
+        n.syntax.into()
+    }
+}
 impl From<SqlName> for AnyPsqlLanguageName {
     fn from(node: SqlName) -> Self {
         Self::SqlName(node)
@@ -22991,6 +23659,68 @@ impl From<AnySqlName> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlPrivilegeAllInSchema> for AnySqlPrivilegeTarget {
+    fn from(node: SqlPrivilegeAllInSchema) -> Self {
+        Self::SqlPrivilegeAllInSchema(node)
+    }
+}
+impl From<SqlPrivilegeObjects> for AnySqlPrivilegeTarget {
+    fn from(node: SqlPrivilegeObjects) -> Self {
+        Self::SqlPrivilegeObjects(node)
+    }
+}
+impl AstNode for AnySqlPrivilegeTarget {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SqlPrivilegeAllInSchema::KIND_SET.union(SqlPrivilegeObjects::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, SQL_PRIVILEGE_ALL_IN_SCHEMA | SQL_PRIVILEGE_OBJECTS)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_PRIVILEGE_ALL_IN_SCHEMA => {
+                Self::SqlPrivilegeAllInSchema(SqlPrivilegeAllInSchema { syntax })
+            }
+            SQL_PRIVILEGE_OBJECTS => Self::SqlPrivilegeObjects(SqlPrivilegeObjects { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlPrivilegeAllInSchema(it) => &it.syntax,
+            Self::SqlPrivilegeObjects(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlPrivilegeAllInSchema(it) => it.syntax,
+            Self::SqlPrivilegeObjects(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnySqlPrivilegeTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlPrivilegeAllInSchema(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlPrivilegeObjects(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnySqlPrivilegeTarget> for SyntaxNode {
+    fn from(n: AnySqlPrivilegeTarget) -> Self {
+        match n {
+            AnySqlPrivilegeTarget::SqlPrivilegeAllInSchema(it) => it.into(),
+            AnySqlPrivilegeTarget::SqlPrivilegeObjects(it) => it.into(),
+        }
+    }
+}
+impl From<AnySqlPrivilegeTarget> for SyntaxElement {
+    fn from(n: AnySqlPrivilegeTarget) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlTypeName> for AnySqlReturnsType {
     fn from(node: SqlTypeName) -> Self {
         Self::SqlTypeName(node)
@@ -23303,6 +24033,11 @@ impl From<SqlInsertStatement> for AnySqlStatement {
         Self::SqlInsertStatement(node)
     }
 }
+impl From<SqlRevokeStatement> for AnySqlStatement {
+    fn from(node: SqlRevokeStatement) -> Self {
+        Self::SqlRevokeStatement(node)
+    }
+}
 impl From<SqlSelectStatement> for AnySqlStatement {
     fn from(node: SqlSelectStatement) -> Self {
         Self::SqlSelectStatement(node)
@@ -23401,6 +24136,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlEmptyStatement::KIND_SET)
         .union(SqlGrantStatement::KIND_SET)
         .union(SqlInsertStatement::KIND_SET)
+        .union(SqlRevokeStatement::KIND_SET)
         .union(SqlSelectStatement::KIND_SET)
         .union(SqlTruncateStatement::KIND_SET)
         .union(SqlUpdateStatement::KIND_SET)
@@ -23436,6 +24172,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_EMPTY_STATEMENT
                 | SQL_GRANT_STATEMENT
                 | SQL_INSERT_STATEMENT
+                | SQL_REVOKE_STATEMENT
                 | SQL_SELECT_STATEMENT
                 | SQL_TRUNCATE_STATEMENT
                 | SQL_UPDATE_STATEMENT
@@ -23490,6 +24227,7 @@ impl AstNode for AnySqlStatement {
             SQL_EMPTY_STATEMENT => Self::SqlEmptyStatement(SqlEmptyStatement { syntax }),
             SQL_GRANT_STATEMENT => Self::SqlGrantStatement(SqlGrantStatement { syntax }),
             SQL_INSERT_STATEMENT => Self::SqlInsertStatement(SqlInsertStatement { syntax }),
+            SQL_REVOKE_STATEMENT => Self::SqlRevokeStatement(SqlRevokeStatement { syntax }),
             SQL_SELECT_STATEMENT => Self::SqlSelectStatement(SqlSelectStatement { syntax }),
             SQL_TRUNCATE_STATEMENT => Self::SqlTruncateStatement(SqlTruncateStatement { syntax }),
             SQL_UPDATE_STATEMENT => Self::SqlUpdateStatement(SqlUpdateStatement { syntax }),
@@ -23554,6 +24292,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlEmptyStatement(it) => &it.syntax,
             Self::SqlGrantStatement(it) => &it.syntax,
             Self::SqlInsertStatement(it) => &it.syntax,
+            Self::SqlRevokeStatement(it) => &it.syntax,
             Self::SqlSelectStatement(it) => &it.syntax,
             Self::SqlTruncateStatement(it) => &it.syntax,
             Self::SqlUpdateStatement(it) => &it.syntax,
@@ -23590,6 +24329,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlEmptyStatement(it) => it.syntax,
             Self::SqlGrantStatement(it) => it.syntax,
             Self::SqlInsertStatement(it) => it.syntax,
+            Self::SqlRevokeStatement(it) => it.syntax,
             Self::SqlSelectStatement(it) => it.syntax,
             Self::SqlTruncateStatement(it) => it.syntax,
             Self::SqlUpdateStatement(it) => it.syntax,
@@ -23628,6 +24368,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlGrantStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlRevokeStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlTruncateStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlUpdateStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -23666,6 +24407,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlEmptyStatement(it) => it.into(),
             AnySqlStatement::SqlGrantStatement(it) => it.into(),
             AnySqlStatement::SqlInsertStatement(it) => it.into(),
+            AnySqlStatement::SqlRevokeStatement(it) => it.into(),
             AnySqlStatement::SqlSelectStatement(it) => it.into(),
             AnySqlStatement::SqlTruncateStatement(it) => it.into(),
             AnySqlStatement::SqlUpdateStatement(it) => it.into(),
@@ -24185,6 +24927,11 @@ impl std::fmt::Display for AnySqlLiteralExpression {
     }
 }
 impl std::fmt::Display for AnySqlName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnySqlPrivilegeTarget {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -24844,6 +25591,11 @@ impl std::fmt::Display for SqlFunctionBinding {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlGrantOptionFor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlGrantStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -24969,6 +25721,21 @@ impl std::fmt::Display for SqlPrimaryKeyTableConstraint {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlPrivilege {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlPrivilegeAllInSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlPrivilegeObjects {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlReferencesConstraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -24985,6 +25752,11 @@ impl std::fmt::Display for SqlRenameConstraintAction {
     }
 }
 impl std::fmt::Display for SqlRenameTableAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlRevokeStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -25185,6 +25957,11 @@ impl std::fmt::Display for SqlWindowSpecification {
     }
 }
 impl std::fmt::Display for SqlWithClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlWithGrantOption {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -27464,6 +28241,88 @@ impl IntoIterator for SqlOrderByExpressionList {
 impl IntoIterator for &SqlOrderByExpressionList {
     type Item = SyntaxResult<SqlOrderByExpression>;
     type IntoIter = AstSeparatedListNodesIterator<Language, SqlOrderByExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct SqlPrivilegeList {
+    syntax_list: SyntaxList,
+}
+impl SqlPrivilegeList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for SqlPrivilegeList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_PRIVILEGE_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_PRIVILEGE_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for SqlPrivilegeList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for SqlPrivilegeList {
+    type Language = Language;
+    type Node = SqlPrivilege;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for SqlPrivilegeList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SqlPrivilegeList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for SqlPrivilegeList {
+    type Item = SyntaxResult<SqlPrivilege>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, SqlPrivilege>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &SqlPrivilegeList {
+    type Item = SyntaxResult<SqlPrivilege>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, SqlPrivilege>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

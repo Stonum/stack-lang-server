@@ -122,6 +122,7 @@ AnySqlStatement =
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
+   | SqlRevokeStatement
    | SqlTruncateStatement
    | SqlCallStatement
    | PsqlVacuumStatement
@@ -955,15 +956,73 @@ SqlDropViewStatement =
 // (never a column-scoped or itemized SELECT/INSERT/... privilege list),
 // so that's the only form modeled for now; widen this if a real script
 // needs more.
+// `GRANT privilege, ... [ON target] TO grantee, ... [WITH GRANT OPTION] [;]`
+// -- without `ON` the privileges are role names (role membership).
 SqlGrantStatement =
    'grant'
-   'all'
-   'on'
-   'table'?
-   objects: SqlTableNameList
+   privileges: SqlPrivilegeList
+   target: AnySqlPrivilegeTarget?
    'to'
    grantees: SqlGranteeList
+   grant_option: SqlWithGrantOption?
    ';'?
+
+// `REVOKE [GRANT OPTION FOR] privilege, ... [ON target] FROM grantee, ...
+// [CASCADE | RESTRICT] [;]`
+SqlRevokeStatement =
+   'revoke'
+   grant_option_for: SqlGrantOptionFor?
+   privileges: SqlPrivilegeList
+   target: AnySqlPrivilegeTarget?
+   'from'
+   grantees: SqlGranteeList
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+SqlPrivilegeList = (SqlPrivilege (',' SqlPrivilege)*)
+
+// `ALL [PRIVILEGES]`, a privilege keyword with optional `(col, ...)`, or a
+// role name.
+SqlPrivilege =
+   kind: (
+      'all' | 'select' | 'insert' | 'update' | 'delete' | 'truncate'
+      | 'references' | 'trigger' | 'usage' | 'execute' | 'create'
+      | 'connect' | 'temporary' | 'temp' | 'ident'
+   )
+   'privileges'?
+   columns: SqlColumnList?
+
+AnySqlPrivilegeTarget =
+   SqlPrivilegeObjects
+   | SqlPrivilegeAllInSchema
+
+// `ON [TABLE | SEQUENCE | FUNCTION | ... | LANGUAGE] name, ...`
+SqlPrivilegeObjects =
+   'on'
+   object_kind: (
+      'table' | 'sequence' | 'function' | 'procedure' | 'routine'
+      | 'schema' | 'database' | 'language'
+   )?
+   objects: SqlTableNameList
+
+// `ON ALL TABLES | SEQUENCES | FUNCTIONS | PROCEDURES | ROUTINES IN SCHEMA name, ...`
+SqlPrivilegeAllInSchema =
+   'on'
+   'all'
+   object_kind: ('tables' | 'sequences' | 'functions' | 'procedures' | 'routines')
+   'in'
+   'schema'
+   schemas: SqlTableNameList
+
+SqlWithGrantOption =
+   'with'
+   'grant'
+   'option'
+
+SqlGrantOptionFor =
+   'grant'
+   'option'
+   'for'
 
 SqlGranteeList = (SqlName (',' SqlName)*)
 
