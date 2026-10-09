@@ -529,3 +529,11 @@ fn lookahead_buffer() {
     buffered.next_token(SqlLexContext); // EOF
     assert_eq!(buffered.current(), EOF);
 }
+
+#[test]
+fn escape_string_constant() {
+    assert_lex! { r#"E'\b'"#, SQL_STRING_LITERAL:5 }
+    assert_lex! { r#"e'it\'s'"#, SQL_STRING_LITERAL:8 }
+    assert_lex! { "E", IDENT:1 }
+    assert_lex! { "e 'x'", IDENT:1, WHITESPACE:1, SQL_STRING_LITERAL:3 }
+}
