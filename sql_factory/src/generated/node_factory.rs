@@ -120,6 +120,169 @@ pub fn psql_cast_expression(
         ],
     ))
 }
+pub fn psql_copy_file(file: SqlStringLiteralExpression) -> PsqlCopyFileBuilder {
+    PsqlCopyFileBuilder {
+        file,
+        program_token: None,
+    }
+}
+pub struct PsqlCopyFileBuilder {
+    file: SqlStringLiteralExpression,
+    program_token: Option<SyntaxToken>,
+}
+impl PsqlCopyFileBuilder {
+    pub fn with_program_token(mut self, program_token: SyntaxToken) -> Self {
+        self.program_token = Some(program_token);
+        self
+    }
+    pub fn build(self) -> PsqlCopyFile {
+        PsqlCopyFile::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_COPY_FILE,
+            [
+                self.program_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.file.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_copy_option(name: SqlName) -> PsqlCopyOptionBuilder {
+    PsqlCopyOptionBuilder { name, value: None }
+}
+pub struct PsqlCopyOptionBuilder {
+    name: SqlName,
+    value: Option<AnySqlExpression>,
+}
+impl PsqlCopyOptionBuilder {
+    pub fn with_value(mut self, value: AnySqlExpression) -> Self {
+        self.value = Some(value);
+        self
+    }
+    pub fn build(self) -> PsqlCopyOption {
+        PsqlCopyOption::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_COPY_OPTION,
+            [
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.value
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_copy_options(
+    l_paren_token: SyntaxToken,
+    options: PsqlCopyOptionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlCopyOptionsBuilder {
+    PsqlCopyOptionsBuilder {
+        l_paren_token,
+        options,
+        r_paren_token,
+        with_token: None,
+    }
+}
+pub struct PsqlCopyOptionsBuilder {
+    l_paren_token: SyntaxToken,
+    options: PsqlCopyOptionList,
+    r_paren_token: SyntaxToken,
+    with_token: Option<SyntaxToken>,
+}
+impl PsqlCopyOptionsBuilder {
+    pub fn with_with_token(mut self, with_token: SyntaxToken) -> Self {
+        self.with_token = Some(with_token);
+        self
+    }
+    pub fn build(self) -> PsqlCopyOptions {
+        PsqlCopyOptions::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_COPY_OPTIONS,
+            [
+                self.with_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.options.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_copy_statement(
+    copy_token: SyntaxToken,
+    source: AnyPsqlCopySource,
+    direction_token: SyntaxToken,
+    target: AnyPsqlCopyTarget,
+) -> PsqlCopyStatementBuilder {
+    PsqlCopyStatementBuilder {
+        copy_token,
+        source,
+        direction_token,
+        target,
+        options: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCopyStatementBuilder {
+    copy_token: SyntaxToken,
+    source: AnyPsqlCopySource,
+    direction_token: SyntaxToken,
+    target: AnyPsqlCopyTarget,
+    options: Option<PsqlCopyOptions>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCopyStatementBuilder {
+    pub fn with_options(mut self, options: PsqlCopyOptions) -> Self {
+        self.options = Some(options);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCopyStatement {
+        PsqlCopyStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_COPY_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.copy_token)),
+                Some(SyntaxElement::Node(self.source.into_syntax())),
+                Some(SyntaxElement::Token(self.direction_token)),
+                Some(SyntaxElement::Node(self.target.into_syntax())),
+                self.options
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_copy_stdio(value_token: SyntaxToken) -> PsqlCopyStdio {
+    PsqlCopyStdio::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_COPY_STDIO,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
+}
+pub fn psql_copy_table_source(table: SqlTableName) -> PsqlCopyTableSourceBuilder {
+    PsqlCopyTableSourceBuilder {
+        table,
+        columns: None,
+    }
+}
+pub struct PsqlCopyTableSourceBuilder {
+    table: SqlTableName,
+    columns: Option<SqlColumnList>,
+}
+impl PsqlCopyTableSourceBuilder {
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
+        self
+    }
+    pub fn build(self) -> PsqlCopyTableSource {
+        PsqlCopyTableSource::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_COPY_TABLE_SOURCE,
+            [
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_create_extension_statement(
     create_token: SyntaxToken,
     extension_token: SyntaxToken,
@@ -5856,6 +6019,27 @@ pub fn sql_with_grant_option(
             Some(SyntaxElement::Token(grant_token)),
             Some(SyntaxElement::Token(option_token)),
         ],
+    ))
+}
+pub fn psql_copy_option_list<I, S>(items: I, separators: S) -> PsqlCopyOptionList
+where
+    I: IntoIterator<Item = PsqlCopyOption>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlCopyOptionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_COPY_OPTION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_function_option_list<I>(items: I) -> PsqlFunctionOptionList

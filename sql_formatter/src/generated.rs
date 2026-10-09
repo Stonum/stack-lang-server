@@ -218,6 +218,214 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCastExpression {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlCopyFile>
+    for crate::psql::auxiliary::copy_file::FormatPsqlCopyFile
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCopyFile, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCopyFile>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyFile {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyFile,
+        crate::psql::auxiliary::copy_file::FormatPsqlCopyFile,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_file::FormatPsqlCopyFile::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyFile {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyFile,
+        crate::psql::auxiliary::copy_file::FormatPsqlCopyFile,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_file::FormatPsqlCopyFile::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCopyOption>
+    for crate::psql::auxiliary::copy_option::FormatPsqlCopyOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCopyOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCopyOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyOption,
+        crate::psql::auxiliary::copy_option::FormatPsqlCopyOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_option::FormatPsqlCopyOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyOption,
+        crate::psql::auxiliary::copy_option::FormatPsqlCopyOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_option::FormatPsqlCopyOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCopyOptions>
+    for crate::psql::auxiliary::copy_options::FormatPsqlCopyOptions
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCopyOptions, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCopyOptions>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyOptions {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyOptions,
+        crate::psql::auxiliary::copy_options::FormatPsqlCopyOptions,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_options::FormatPsqlCopyOptions::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyOptions {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyOptions,
+        crate::psql::auxiliary::copy_options::FormatPsqlCopyOptions,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_options::FormatPsqlCopyOptions::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCopyStatement>
+    for crate::psql::statements::copy_statement::FormatPsqlCopyStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCopyStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCopyStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyStatement,
+        crate::psql::statements::copy_statement::FormatPsqlCopyStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::copy_statement::FormatPsqlCopyStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyStatement,
+        crate::psql::statements::copy_statement::FormatPsqlCopyStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::copy_statement::FormatPsqlCopyStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCopyStdio>
+    for crate::psql::auxiliary::copy_stdio::FormatPsqlCopyStdio
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCopyStdio, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCopyStdio>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyStdio {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyStdio,
+        crate::psql::auxiliary::copy_stdio::FormatPsqlCopyStdio,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_stdio::FormatPsqlCopyStdio::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyStdio {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyStdio,
+        crate::psql::auxiliary::copy_stdio::FormatPsqlCopyStdio,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_stdio::FormatPsqlCopyStdio::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCopyTableSource>
+    for crate::psql::auxiliary::copy_table_source::FormatPsqlCopyTableSource
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCopyTableSource,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCopyTableSource>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyTableSource {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyTableSource,
+        crate::psql::auxiliary::copy_table_source::FormatPsqlCopyTableSource,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_table_source::FormatPsqlCopyTableSource::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyTableSource {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyTableSource,
+        crate::psql::auxiliary::copy_table_source::FormatPsqlCopyTableSource,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::copy_table_source::FormatPsqlCopyTableSource::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlCreateExtensionStatement>
     for crate::psql::statements::create_extension_statement::FormatPsqlCreateExtensionStatement
 {
@@ -7428,6 +7636,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWithGrantOption {
         )
     }
 }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCopyOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCopyOptionList,
+        crate::psql::lists::copy_option_list::FormatPsqlCopyOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::copy_option_list::FormatPsqlCopyOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCopyOptionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCopyOptionList,
+        crate::psql::lists::copy_option_list::FormatPsqlCopyOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::copy_option_list::FormatPsqlCopyOptionList::default(),
+        )
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFunctionOptionList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -8451,6 +8684,56 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlBogusStatement {
         FormatOwnedWithRule::new(
             self,
             crate::sql::bogus::bogus_statement::FormatSqlBogusStatement::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnyPsqlCopySource {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnyPsqlCopySource,
+        crate::psql::any::copy_source::FormatAnyPsqlCopySource,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::copy_source::FormatAnyPsqlCopySource::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlCopySource {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnyPsqlCopySource,
+        crate::psql::any::copy_source::FormatAnyPsqlCopySource,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::copy_source::FormatAnyPsqlCopySource::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnyPsqlCopyTarget {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnyPsqlCopyTarget,
+        crate::psql::any::copy_target::FormatAnyPsqlCopyTarget,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::copy_target::FormatAnyPsqlCopyTarget::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlCopyTarget {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnyPsqlCopyTarget,
+        crate::psql::any::copy_target::FormatAnyPsqlCopyTarget,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::copy_target::FormatAnyPsqlCopyTarget::default(),
         )
     }
 }

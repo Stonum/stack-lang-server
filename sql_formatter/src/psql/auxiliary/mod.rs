@@ -2,6 +2,11 @@
 
 pub(crate) mod alter_column_using;
 pub(crate) mod attach_partition_action;
+pub(crate) mod copy_file;
+pub(crate) mod copy_option;
+pub(crate) mod copy_options;
+pub(crate) mod copy_stdio;
+pub(crate) mod copy_table_source;
 pub(crate) mod cte_materialized_hint;
 pub(crate) mod detach_partition_action;
 pub(crate) mod drop_function_parameters;

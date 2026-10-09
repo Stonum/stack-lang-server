@@ -129,6 +129,7 @@ AnySqlStatement =
    | PsqlLockStatement
    | PsqlCreateTablePartitionOfStatement
    | SqlGoStatement
+   | PsqlCopyStatement
    | SqlTruncateStatement
    | SqlCallStatement
    | PsqlVacuumStatement
@@ -889,6 +890,48 @@ PsqlLockMode =
    middle: ('row' | 'update')?
    tail: ('share' | 'exclusive')?
    'mode'
+
+// `COPY {table [(col, ...)] | (query)} {FROM | TO} {'file' | PROGRAM 'cmd'
+// | STDIN | STDOUT} [[WITH] (option, ...)] [;]`
+PsqlCopyStatement =
+   'copy'
+   source: AnyPsqlCopySource
+   direction: ('from' | 'to')
+   target: AnyPsqlCopyTarget
+   options: PsqlCopyOptions?
+   ';'?
+
+AnyPsqlCopySource =
+   PsqlCopyTableSource
+   | SqlSubqueryExpression
+
+PsqlCopyTableSource =
+   table: SqlTableName
+   columns: SqlColumnList?
+
+AnyPsqlCopyTarget =
+   PsqlCopyStdio
+   | PsqlCopyFile
+
+PsqlCopyStdio = value: ('stdin' | 'stdout')
+
+// `'file'` or `PROGRAM 'command'`
+PsqlCopyFile =
+   'program'?
+   file: SqlStringLiteralExpression
+
+PsqlCopyOptions =
+   'with'?
+   '('
+   options: PsqlCopyOptionList
+   ')'
+
+PsqlCopyOptionList = (PsqlCopyOption (',' PsqlCopyOption)*)
+
+// `name [value]`, e.g. `format csv`, `header`, `delimiter E'\t'`.
+PsqlCopyOption =
+   name: SqlName
+   value: AnySqlExpression?
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =
