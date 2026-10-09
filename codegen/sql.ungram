@@ -514,6 +514,51 @@ AnySqlAlterTableAction =
    SqlAlterTriggerAction
    | SqlAddColumnAction
    | SqlDropColumnAction
+   | SqlAlterColumnAction
+
+// `ALTER [COLUMN] name operation`
+SqlAlterColumnAction =
+   'alter'
+   'column'?
+   name: SqlName
+   operation: AnySqlAlterColumnOperation
+
+AnySqlAlterColumnOperation =
+   SqlAlterColumnType
+   | SqlSetColumnDefault
+   | SqlDropColumnDefault
+   | SqlSetColumnNotNull
+   | SqlDropColumnNotNull
+
+// `[SET DATA] TYPE type [USING expr]`
+SqlAlterColumnType =
+   ('set' 'data')?
+   'type'
+   type: SqlTypeName
+   using: PsqlAlterColumnUsing?
+
+PsqlAlterColumnUsing =
+   'using'
+   expression: AnySqlExpression
+
+SqlSetColumnDefault =
+   'set'
+   'default'
+   value: AnySqlExpression
+
+SqlDropColumnDefault =
+   'drop'
+   'default'
+
+SqlSetColumnNotNull =
+   'set'
+   'not'
+   'null'
+
+SqlDropColumnNotNull =
+   'drop'
+   'not'
+   'null'
 
 // `ADD [COLUMN] [IF NOT EXISTS] column definition`
 SqlAddColumnAction =

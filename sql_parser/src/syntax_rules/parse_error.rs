@@ -81,3 +81,7 @@ pub fn expected_alter_table_action(p: &SqlParser, range: TextRange) -> ParseDiag
 pub fn expected_column_definition(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     expected_node("column definition", range, p)
 }
+
+pub fn expected_alter_column_operation(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    expected_node("alter column operation", range, p)
+}

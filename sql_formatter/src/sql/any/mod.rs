@@ -1,5 +1,6 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
+pub(crate) mod alter_column_operation;
 pub(crate) mod alter_table_action;
 pub(crate) mod any_all_source;
 pub(crate) mod call_argument;

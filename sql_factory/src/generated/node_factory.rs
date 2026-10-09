@@ -7,6 +7,18 @@ use sql_syntax::{
     SqlSyntaxElement as SyntaxElement, SqlSyntaxNode as SyntaxNode, SqlSyntaxToken as SyntaxToken,
     *,
 };
+pub fn psql_alter_column_using(
+    using_token: SyntaxToken,
+    expression: AnySqlExpression,
+) -> PsqlAlterColumnUsing {
+    PsqlAlterColumnUsing::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ALTER_COLUMN_USING,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(expression.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_analyze_statement(
     analyze_token: SyntaxToken,
     tables: PsqlTableAndColumnsList,
@@ -1588,6 +1600,87 @@ pub fn sql_all_triggers_target(scope_token: SyntaxToken) -> SqlAllTriggersTarget
         [Some(SyntaxElement::Token(scope_token))],
     ))
 }
+pub fn sql_alter_column_action(
+    alter_token: SyntaxToken,
+    name: SqlName,
+    operation: AnySqlAlterColumnOperation,
+) -> SqlAlterColumnActionBuilder {
+    SqlAlterColumnActionBuilder {
+        alter_token,
+        name,
+        operation,
+        column_token: None,
+    }
+}
+pub struct SqlAlterColumnActionBuilder {
+    alter_token: SyntaxToken,
+    name: SqlName,
+    operation: AnySqlAlterColumnOperation,
+    column_token: Option<SyntaxToken>,
+}
+impl SqlAlterColumnActionBuilder {
+    pub fn with_column_token(mut self, column_token: SyntaxToken) -> Self {
+        self.column_token = Some(column_token);
+        self
+    }
+    pub fn build(self) -> SqlAlterColumnAction {
+        SqlAlterColumnAction::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_ALTER_COLUMN_ACTION,
+            [
+                Some(SyntaxElement::Token(self.alter_token)),
+                self.column_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Node(self.operation.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn sql_alter_column_type(
+    type_token: SyntaxToken,
+    ty: SqlTypeName,
+) -> SqlAlterColumnTypeBuilder {
+    SqlAlterColumnTypeBuilder {
+        type_token,
+        ty,
+        set_token: None,
+        data_token: None,
+        using: None,
+    }
+}
+pub struct SqlAlterColumnTypeBuilder {
+    type_token: SyntaxToken,
+    ty: SqlTypeName,
+    set_token: Option<SyntaxToken>,
+    data_token: Option<SyntaxToken>,
+    using: Option<PsqlAlterColumnUsing>,
+}
+impl SqlAlterColumnTypeBuilder {
+    pub fn with_set_token(mut self, set_token: SyntaxToken) -> Self {
+        self.set_token = Some(set_token);
+        self
+    }
+    pub fn with_data_token(mut self, data_token: SyntaxToken) -> Self {
+        self.data_token = Some(data_token);
+        self
+    }
+    pub fn with_using(mut self, using: PsqlAlterColumnUsing) -> Self {
+        self.using = Some(using);
+        self
+    }
+    pub fn build(self) -> SqlAlterColumnType {
+        SqlAlterColumnType::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_ALTER_COLUMN_TYPE,
+            [
+                self.set_token.map(|token| SyntaxElement::Token(token)),
+                self.data_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.type_token)),
+                Some(SyntaxElement::Node(self.ty.into_syntax())),
+                self.using
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn sql_alter_table_statement(
     alter_token: SyntaxToken,
     table_token: SyntaxToken,
@@ -2410,6 +2503,32 @@ impl SqlDropColumnActionBuilder {
             ],
         ))
     }
+}
+pub fn sql_drop_column_default(
+    drop_token: SyntaxToken,
+    default_token: SyntaxToken,
+) -> SqlDropColumnDefault {
+    SqlDropColumnDefault::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_DROP_COLUMN_DEFAULT,
+        [
+            Some(SyntaxElement::Token(drop_token)),
+            Some(SyntaxElement::Token(default_token)),
+        ],
+    ))
+}
+pub fn sql_drop_column_not_null(
+    drop_token: SyntaxToken,
+    not_token: SyntaxToken,
+    null_token: SyntaxToken,
+) -> SqlDropColumnNotNull {
+    SqlDropColumnNotNull::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_DROP_COLUMN_NOT_NULL,
+        [
+            Some(SyntaxElement::Token(drop_token)),
+            Some(SyntaxElement::Token(not_token)),
+            Some(SyntaxElement::Token(null_token)),
+        ],
+    ))
 }
 pub fn sql_drop_function_statement(
     drop_token: SyntaxToken,
@@ -3543,6 +3662,34 @@ pub fn sql_set_clause(set_token: SyntaxToken, items: SqlSetItemList) -> SqlSetCl
         [
             Some(SyntaxElement::Token(set_token)),
             Some(SyntaxElement::Node(items.into_syntax())),
+        ],
+    ))
+}
+pub fn sql_set_column_default(
+    set_token: SyntaxToken,
+    default_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> SqlSetColumnDefault {
+    SqlSetColumnDefault::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_SET_COLUMN_DEFAULT,
+        [
+            Some(SyntaxElement::Token(set_token)),
+            Some(SyntaxElement::Token(default_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn sql_set_column_not_null(
+    set_token: SyntaxToken,
+    not_token: SyntaxToken,
+    null_token: SyntaxToken,
+) -> SqlSetColumnNotNull {
+    SqlSetColumnNotNull::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_SET_COLUMN_NOT_NULL,
+        [
+            Some(SyntaxElement::Token(set_token)),
+            Some(SyntaxElement::Token(not_token)),
+            Some(SyntaxElement::Token(null_token)),
         ],
     ))
 }

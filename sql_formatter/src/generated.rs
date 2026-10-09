@@ -6,6 +6,44 @@ use crate::{
     AsFormat, FormatBogusNodeRule, FormatNodeRule, IntoFormat, SqlFormatContext, SqlFormatter,
 };
 use biome_formatter::{FormatOwnedWithRule, FormatRefWithRule, FormatResult, FormatRule};
+impl FormatRule<sql_syntax::PsqlAlterColumnUsing>
+    for crate::psql::auxiliary::alter_column_using::FormatPsqlAlterColumnUsing
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlAlterColumnUsing,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlAlterColumnUsing>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlAlterColumnUsing {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlAlterColumnUsing,
+        crate::psql::auxiliary::alter_column_using::FormatPsqlAlterColumnUsing,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::alter_column_using::FormatPsqlAlterColumnUsing::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlAlterColumnUsing {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlAlterColumnUsing,
+        crate::psql::auxiliary::alter_column_using::FormatPsqlAlterColumnUsing,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::alter_column_using::FormatPsqlAlterColumnUsing::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlAnalyzeStatement>
     for crate::psql::statements::analyze_statement::FormatPsqlAnalyzeStatement
 {
@@ -2399,6 +2437,78 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAllTriggersTarget {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlAlterColumnAction>
+    for crate::sql::auxiliary::alter_column_action::FormatSqlAlterColumnAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlAlterColumnAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAlterColumnAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAlterColumnAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAlterColumnAction,
+        crate::sql::auxiliary::alter_column_action::FormatSqlAlterColumnAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::alter_column_action::FormatSqlAlterColumnAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterColumnAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAlterColumnAction,
+        crate::sql::auxiliary::alter_column_action::FormatSqlAlterColumnAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::alter_column_action::FormatSqlAlterColumnAction::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlAlterColumnType>
+    for crate::sql::auxiliary::alter_column_type::FormatSqlAlterColumnType
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlAlterColumnType, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAlterColumnType>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAlterColumnType {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAlterColumnType,
+        crate::sql::auxiliary::alter_column_type::FormatSqlAlterColumnType,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::alter_column_type::FormatSqlAlterColumnType::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAlterColumnType {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAlterColumnType,
+        crate::sql::auxiliary::alter_column_type::FormatSqlAlterColumnType,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::alter_column_type::FormatSqlAlterColumnType::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlAlterTableStatement>
     for crate::sql::statements::alter_table_statement::FormatSqlAlterTableStatement
 {
@@ -3282,6 +3392,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropColumnAction {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::drop_column_action::FormatSqlDropColumnAction::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlDropColumnDefault>
+    for crate::sql::auxiliary::drop_column_default::FormatSqlDropColumnDefault
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlDropColumnDefault,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlDropColumnDefault>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropColumnDefault {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlDropColumnDefault,
+        crate::sql::auxiliary::drop_column_default::FormatSqlDropColumnDefault,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::drop_column_default::FormatSqlDropColumnDefault::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropColumnDefault {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlDropColumnDefault,
+        crate::sql::auxiliary::drop_column_default::FormatSqlDropColumnDefault,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::drop_column_default::FormatSqlDropColumnDefault::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlDropColumnNotNull>
+    for crate::sql::auxiliary::drop_column_not_null::FormatSqlDropColumnNotNull
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlDropColumnNotNull,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlDropColumnNotNull>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropColumnNotNull {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlDropColumnNotNull,
+        crate::sql::auxiliary::drop_column_not_null::FormatSqlDropColumnNotNull,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::drop_column_not_null::FormatSqlDropColumnNotNull::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropColumnNotNull {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlDropColumnNotNull,
+        crate::sql::auxiliary::drop_column_not_null::FormatSqlDropColumnNotNull,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::drop_column_not_null::FormatSqlDropColumnNotNull::default(),
         )
     }
 }
@@ -4788,6 +4974,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSetClause {
         FormatOwnedWithRule::new(
             self,
             crate::sql::clauses::set_clause::FormatSqlSetClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlSetColumnDefault>
+    for crate::sql::auxiliary::set_column_default::FormatSqlSetColumnDefault
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlSetColumnDefault,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlSetColumnDefault>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlSetColumnDefault {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlSetColumnDefault,
+        crate::sql::auxiliary::set_column_default::FormatSqlSetColumnDefault,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::set_column_default::FormatSqlSetColumnDefault::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSetColumnDefault {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlSetColumnDefault,
+        crate::sql::auxiliary::set_column_default::FormatSqlSetColumnDefault,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::set_column_default::FormatSqlSetColumnDefault::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlSetColumnNotNull>
+    for crate::sql::auxiliary::set_column_not_null::FormatSqlSetColumnNotNull
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlSetColumnNotNull,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlSetColumnNotNull>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlSetColumnNotNull {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlSetColumnNotNull,
+        crate::sql::auxiliary::set_column_not_null::FormatSqlSetColumnNotNull,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::set_column_not_null::FormatSqlSetColumnNotNull::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSetColumnNotNull {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlSetColumnNotNull,
+        crate::sql::auxiliary::set_column_not_null::FormatSqlSetColumnNotNull,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::set_column_not_null::FormatSqlSetColumnNotNull::default(),
         )
     }
 }
@@ -6795,6 +7057,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlBogusStatement {
         FormatOwnedWithRule::new(
             self,
             crate::sql::bogus::bogus_statement::FormatSqlBogusStatement::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlAlterColumnOperation {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlAlterColumnOperation,
+        crate::sql::any::alter_column_operation::FormatAnySqlAlterColumnOperation,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::alter_column_operation::FormatAnySqlAlterColumnOperation::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlAlterColumnOperation {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlAlterColumnOperation,
+        crate::sql::any::alter_column_operation::FormatAnySqlAlterColumnOperation,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::alter_column_operation::FormatAnySqlAlterColumnOperation::default(),
         )
     }
 }
