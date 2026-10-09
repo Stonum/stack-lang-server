@@ -190,6 +190,99 @@ impl PsqlCreateFunctionStatementBuilder {
         ))
     }
 }
+pub fn psql_create_materialized_view_statement(
+    create_token: SyntaxToken,
+    materialized_token: SyntaxToken,
+    view_token: SyntaxToken,
+    name: SqlTableName,
+    as_token: SyntaxToken,
+    query: AnySqlCreateTableAsQuery,
+) -> PsqlCreateMaterializedViewStatementBuilder {
+    PsqlCreateMaterializedViewStatementBuilder {
+        create_token,
+        materialized_token,
+        view_token,
+        name,
+        as_token,
+        query,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+        columns: None,
+        options: None,
+        with_data: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateMaterializedViewStatementBuilder {
+    create_token: SyntaxToken,
+    materialized_token: SyntaxToken,
+    view_token: SyntaxToken,
+    name: SqlTableName,
+    as_token: SyntaxToken,
+    query: AnySqlCreateTableAsQuery,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    columns: Option<SqlColumnList>,
+    options: Option<PsqlViewOptions>,
+    with_data: Option<PsqlWithDataClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateMaterializedViewStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
+        self
+    }
+    pub fn with_options(mut self, options: PsqlViewOptions) -> Self {
+        self.options = Some(options);
+        self
+    }
+    pub fn with_with_data(mut self, with_data: PsqlWithDataClause) -> Self {
+        self.with_data = Some(with_data);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateMaterializedViewStatement {
+        PsqlCreateMaterializedViewStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CREATE_MATERIALIZED_VIEW_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.materialized_token)),
+                Some(SyntaxElement::Token(self.view_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.options
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.as_token)),
+                Some(SyntaxElement::Node(self.query.into_syntax())),
+                self.with_data
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_create_policy_statement(
     create_token: SyntaxToken,
     policy_token: SyntaxToken,
@@ -465,6 +558,68 @@ pub fn psql_drop_function_parameters(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
+}
+pub fn psql_drop_materialized_view_statement(
+    drop_token: SyntaxToken,
+    materialized_token: SyntaxToken,
+    view_token: SyntaxToken,
+    views: SqlTableNameList,
+) -> PsqlDropMaterializedViewStatementBuilder {
+    PsqlDropMaterializedViewStatementBuilder {
+        drop_token,
+        materialized_token,
+        view_token,
+        views,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropMaterializedViewStatementBuilder {
+    drop_token: SyntaxToken,
+    materialized_token: SyntaxToken,
+    view_token: SyntaxToken,
+    views: SqlTableNameList,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropMaterializedViewStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropMaterializedViewStatement {
+        PsqlDropMaterializedViewStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DROP_MATERIALIZED_VIEW_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.materialized_token)),
+                Some(SyntaxElement::Token(self.view_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.views.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn psql_drop_policy_statement(
     drop_token: SyntaxToken,
@@ -941,6 +1096,62 @@ pub fn psql_policy_with_check_clause(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
+}
+pub fn psql_refresh_materialized_view_statement(
+    refresh_token: SyntaxToken,
+    materialized_token: SyntaxToken,
+    view_token: SyntaxToken,
+    name: SqlTableName,
+) -> PsqlRefreshMaterializedViewStatementBuilder {
+    PsqlRefreshMaterializedViewStatementBuilder {
+        refresh_token,
+        materialized_token,
+        view_token,
+        name,
+        concurrently_token: None,
+        with_data: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlRefreshMaterializedViewStatementBuilder {
+    refresh_token: SyntaxToken,
+    materialized_token: SyntaxToken,
+    view_token: SyntaxToken,
+    name: SqlTableName,
+    concurrently_token: Option<SyntaxToken>,
+    with_data: Option<PsqlWithDataClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlRefreshMaterializedViewStatementBuilder {
+    pub fn with_concurrently_token(mut self, concurrently_token: SyntaxToken) -> Self {
+        self.concurrently_token = Some(concurrently_token);
+        self
+    }
+    pub fn with_with_data(mut self, with_data: PsqlWithDataClause) -> Self {
+        self.with_data = Some(with_data);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlRefreshMaterializedViewStatement {
+        PsqlRefreshMaterializedViewStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_REFRESH_MATERIALIZED_VIEW_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.refresh_token)),
+                Some(SyntaxElement::Token(self.materialized_token)),
+                Some(SyntaxElement::Token(self.view_token)),
+                self.concurrently_token
+                    .map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.with_data
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn psql_returning_clause(
     returning_token: SyntaxToken,
