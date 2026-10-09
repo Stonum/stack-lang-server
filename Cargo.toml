@@ -80,3 +80,8 @@ biome_parser = "0.5.8"
 biome_formatter = { git = "https://github.com/Stonum/biome_formatter.git" }
 biome_unicode_table = "0.5.9"
 biome_diagnostics = "0.5.8"
+
+# Forks widening `SyntaxKindSet` (1024 kinds) and `TokenSet` (512 token kinds).
+[patch.crates-io]
+biome_rowan = { git = "https://github.com/Stonum/biome_rowan.git" }
+biome_parser = { git = "https://github.com/Stonum/biome_parser.git" }
