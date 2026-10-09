@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::utils::write_bracketed_fill_list;
+
 use biome_formatter::write;
 use sql_syntax::SqlCreateTableStatement;
 use sql_syntax::SqlCreateTableStatementFields;
@@ -39,8 +39,16 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
         }
 
         write!(f, [space(), name.format(), space()])?;
-        // One column or constraint per line once the list wraps.
-        write_bracketed_fill_list(l_paren_token, &elements, r_paren_token, |_| true, f)?;
+        // One column or constraint per line once the list wraps, even
+        // when there is a single element that breaks on its own.
+        write!(
+            f,
+            [
+                l_paren_token.format(),
+                group(&soft_block_indent(&elements.format())),
+                r_paren_token.format()
+            ]
+        )?;
 
         if let Some(on_commit) = on_commit {
             write!(f, [space(), on_commit.format()])?;
