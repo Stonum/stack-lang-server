@@ -23,7 +23,7 @@ use mlang_syntax::{AnyMExpression, MBinaryExpression, MLanguage, MSyntaxKind, MS
 const SQL_KEYWORDS: &[&str] = &[
     "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant",
     "truncate", "vacuum", "analyze", "analyse", "call", "alter", "refresh", "revoke", "begin",
-    "start", "commit", "rollback",
+    "start", "commit", "rollback", "lock",
 ];
 
 /// Strips leading whitespace and `/* ... */`/`-- ...` comments, repeatedly,

@@ -14,6 +14,7 @@ pub(crate) mod delete_using_clause;
 pub(crate) mod expr;
 pub(crate) mod extension;
 pub(crate) mod from;
+pub(crate) mod lock;
 pub(crate) mod maintenance;
 pub(crate) mod materialized_view;
 pub(crate) mod on_conflict_clause;

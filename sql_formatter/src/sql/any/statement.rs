@@ -42,6 +42,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::PsqlDropMaterializedViewStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlDropPolicyStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlDropTriggerStatement(node) => node.format().fmt(f),
+            AnySqlStatement::PsqlLockStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlRefreshMaterializedViewStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlVacuumStatement(node) => node.format().fmt(f),
         }
