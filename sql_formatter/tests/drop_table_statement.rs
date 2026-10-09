@@ -82,3 +82,18 @@ cascade;
 "#
     );
 }
+
+#[test]
+fn format_drop_table_many_tables_fill_several_lines() {
+    assert_fmt_eq!(
+        r#"--
+drop table if exists accounts, payments, invoices, orders, customers, products, suppliers, warehouses, shipments, returns, refunds, discounts, taxes, currencies, regions, countries, cities, streets, buildings, rooms cascade
+"#,
+        r#"--
+drop table if exists
+	accounts, payments, invoices, orders, customers, products, suppliers, warehouses, shipments, returns,
+	refunds, discounts, taxes, currencies, regions, countries, cities, streets, buildings, rooms
+cascade
+"#
+    );
+}

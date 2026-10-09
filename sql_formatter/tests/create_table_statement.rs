@@ -260,3 +260,82 @@ where first_column > 0
 "#
     );
 }
+
+#[test]
+fn format_create_table_many_short_columns_one_per_line() {
+    assert_fmt_eq!(
+        r#"--
+create table accounts (id int, name text, code text, kind int, state int, owner int, created date, updated date, deleted date, note text)
+"#,
+        r#"--
+create table accounts (
+	id int,
+	name text,
+	code text,
+	kind int,
+	state int,
+	owner int,
+	created date,
+	updated date,
+	deleted date,
+	note text
+)
+"#
+    );
+}
+
+#[test]
+fn format_create_table_as_many_columns_fill_several_lines() {
+    assert_fmt_eq!(
+        r#"--
+create table accounts (id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags, extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth) as select * from s
+"#,
+        r#"--
+create table accounts (
+	id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags,
+	extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth
+) as select * from s
+"#
+    );
+}
+
+#[test]
+fn format_create_table_key_constraints_with_many_columns_fill_several_lines() {
+    assert_fmt_eq!(
+        r#"--
+create table accounts (id int, primary key (id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags, extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth), unique (a, b), foreign key (id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags, extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth) references other (id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags, extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth))
+"#,
+        r#"--
+create table accounts (
+	id int,
+	primary key (
+		id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags,
+		extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth
+	),
+	unique (a, b),
+	foreign key (
+		id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags,
+		extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth
+	) references other (
+		id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags,
+		extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth
+	)
+)
+"#
+    );
+}
+
+#[test]
+fn format_create_table_many_short_constraints_on_one_column_fill_several_lines() {
+    assert_fmt_eq!(
+        r#"--
+create table accounts (amount int not null default 0 unique check (amount > 0) references a (id) constraint c1 check (amount < 10) constraint c2 check (amount <> 5) constraint c3 check (amount <> 7))
+"#,
+        r#"--
+create table accounts (
+	amount int not null default 0 unique check (amount > 0) references a (id) constraint c1 check (amount < 10)
+		constraint c2 check (amount <> 5) constraint c3 check (amount <> 7)
+)
+"#
+    );
+}
