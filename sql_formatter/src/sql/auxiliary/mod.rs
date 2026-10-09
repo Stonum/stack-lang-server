@@ -1,6 +1,7 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
 pub(crate) mod add_column_action;
+pub(crate) mod add_constraint_action;
 pub(crate) mod alias;
 pub(crate) mod alias_column_definition;
 pub(crate) mod alias_column_list;
@@ -19,6 +20,7 @@ pub(crate) mod default_constraint;
 pub(crate) mod drop_column_action;
 pub(crate) mod drop_column_default;
 pub(crate) mod drop_column_not_null;
+pub(crate) mod drop_constraint_action;
 pub(crate) mod fetch_only_tail;
 pub(crate) mod fetch_with_ties_tail;
 pub(crate) mod foreign_key_table_constraint;

@@ -3155,6 +3155,46 @@ pub struct SqlAddColumnActionFields {
     pub column: SyntaxResult<SqlColumnDefinition>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlAddConstraintAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlAddConstraintAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlAddConstraintActionFields {
+        SqlAddConstraintActionFields {
+            add_token: self.add_token(),
+            constraint: self.constraint(),
+        }
+    }
+    pub fn add_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn constraint(&self) -> SyntaxResult<SqlTableConstraint> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlAddConstraintAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlAddConstraintActionFields {
+    pub add_token: SyntaxResult<SyntaxToken>,
+    pub constraint: SyntaxResult<SqlTableConstraint>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlAlias {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4861,6 +4901,66 @@ pub struct SqlDropColumnNotNullFields {
     pub drop_token: SyntaxResult<SyntaxToken>,
     pub not_token: SyntaxResult<SyntaxToken>,
     pub null_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlDropConstraintAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlDropConstraintAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlDropConstraintActionFields {
+        SqlDropConstraintActionFields {
+            drop_token: self.drop_token(),
+            constraint_token: self.constraint_token(),
+            if_token: self.if_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            drop_behavior: self.drop_behavior(),
+        }
+    }
+    pub fn drop_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn constraint_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn drop_behavior(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for SqlDropConstraintAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlDropConstraintActionFields {
+    pub drop_token: SyntaxResult<SyntaxToken>,
+    pub constraint_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<SqlName>,
+    pub drop_behavior: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlDropFunctionStatement {
@@ -8610,9 +8710,11 @@ impl AnySqlAlterColumnOperation {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlAlterTableAction {
     SqlAddColumnAction(SqlAddColumnAction),
+    SqlAddConstraintAction(SqlAddConstraintAction),
     SqlAlterColumnAction(SqlAlterColumnAction),
     SqlAlterTriggerAction(SqlAlterTriggerAction),
     SqlDropColumnAction(SqlDropColumnAction),
+    SqlDropConstraintAction(SqlDropConstraintAction),
     SqlRenameColumnAction(SqlRenameColumnAction),
     SqlRenameConstraintAction(SqlRenameConstraintAction),
     SqlRenameTableAction(SqlRenameTableAction),
@@ -8622,6 +8724,12 @@ impl AnySqlAlterTableAction {
     pub fn as_sql_add_column_action(&self) -> Option<&SqlAddColumnAction> {
         match &self {
             Self::SqlAddColumnAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_add_constraint_action(&self) -> Option<&SqlAddConstraintAction> {
+        match &self {
+            Self::SqlAddConstraintAction(item) => Some(item),
             _ => None,
         }
     }
@@ -8640,6 +8748,12 @@ impl AnySqlAlterTableAction {
     pub fn as_sql_drop_column_action(&self) -> Option<&SqlDropColumnAction> {
         match &self {
             Self::SqlDropColumnAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_drop_constraint_action(&self) -> Option<&SqlDropConstraintAction> {
+        match &self {
+            Self::SqlDropConstraintAction(item) => Some(item),
             _ => None,
         }
     }
@@ -13199,6 +13313,54 @@ impl From<SqlAddColumnAction> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlAddConstraintAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ADD_CONSTRAINT_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ADD_CONSTRAINT_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlAddConstraintAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlAddConstraintAction")
+                .field("add_token", &support::DebugSyntaxResult(self.add_token()))
+                .field("constraint", &support::DebugSyntaxResult(self.constraint()))
+                .finish()
+        } else {
+            f.debug_struct("SqlAddConstraintAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlAddConstraintAction> for SyntaxNode {
+    fn from(n: SqlAddConstraintAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlAddConstraintAction> for SyntaxElement {
+    fn from(n: SqlAddConstraintAction) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlAlias {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -15044,6 +15206,67 @@ impl From<SqlDropColumnNotNull> for SyntaxNode {
 }
 impl From<SqlDropColumnNotNull> for SyntaxElement {
     fn from(n: SqlDropColumnNotNull) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlDropConstraintAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_DROP_CONSTRAINT_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_DROP_CONSTRAINT_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlDropConstraintAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlDropConstraintAction")
+                .field("drop_token", &support::DebugSyntaxResult(self.drop_token()))
+                .field(
+                    "constraint_token",
+                    &support::DebugSyntaxResult(self.constraint_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "drop_behavior",
+                    &support::DebugOptionalElement(self.drop_behavior()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlDropConstraintAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlDropConstraintAction> for SyntaxNode {
+    fn from(n: SqlDropConstraintAction) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlDropConstraintAction> for SyntaxElement {
+    fn from(n: SqlDropConstraintAction) -> Self {
         n.syntax.into()
     }
 }
@@ -19462,6 +19685,11 @@ impl From<SqlAddColumnAction> for AnySqlAlterTableAction {
         Self::SqlAddColumnAction(node)
     }
 }
+impl From<SqlAddConstraintAction> for AnySqlAlterTableAction {
+    fn from(node: SqlAddConstraintAction) -> Self {
+        Self::SqlAddConstraintAction(node)
+    }
+}
 impl From<SqlAlterColumnAction> for AnySqlAlterTableAction {
     fn from(node: SqlAlterColumnAction) -> Self {
         Self::SqlAlterColumnAction(node)
@@ -19475,6 +19703,11 @@ impl From<SqlAlterTriggerAction> for AnySqlAlterTableAction {
 impl From<SqlDropColumnAction> for AnySqlAlterTableAction {
     fn from(node: SqlDropColumnAction) -> Self {
         Self::SqlDropColumnAction(node)
+    }
+}
+impl From<SqlDropConstraintAction> for AnySqlAlterTableAction {
+    fn from(node: SqlDropConstraintAction) -> Self {
+        Self::SqlDropConstraintAction(node)
     }
 }
 impl From<SqlRenameColumnAction> for AnySqlAlterTableAction {
@@ -19500,9 +19733,11 @@ impl From<SqlSetSchemaAction> for AnySqlAlterTableAction {
 impl AstNode for AnySqlAlterTableAction {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlAddColumnAction::KIND_SET
+        .union(SqlAddConstraintAction::KIND_SET)
         .union(SqlAlterColumnAction::KIND_SET)
         .union(SqlAlterTriggerAction::KIND_SET)
         .union(SqlDropColumnAction::KIND_SET)
+        .union(SqlDropConstraintAction::KIND_SET)
         .union(SqlRenameColumnAction::KIND_SET)
         .union(SqlRenameConstraintAction::KIND_SET)
         .union(SqlRenameTableAction::KIND_SET)
@@ -19511,9 +19746,11 @@ impl AstNode for AnySqlAlterTableAction {
         matches!(
             kind,
             SQL_ADD_COLUMN_ACTION
+                | SQL_ADD_CONSTRAINT_ACTION
                 | SQL_ALTER_COLUMN_ACTION
                 | SQL_ALTER_TRIGGER_ACTION
                 | SQL_DROP_COLUMN_ACTION
+                | SQL_DROP_CONSTRAINT_ACTION
                 | SQL_RENAME_COLUMN_ACTION
                 | SQL_RENAME_CONSTRAINT_ACTION
                 | SQL_RENAME_TABLE_ACTION
@@ -19523,11 +19760,17 @@ impl AstNode for AnySqlAlterTableAction {
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             SQL_ADD_COLUMN_ACTION => Self::SqlAddColumnAction(SqlAddColumnAction { syntax }),
+            SQL_ADD_CONSTRAINT_ACTION => {
+                Self::SqlAddConstraintAction(SqlAddConstraintAction { syntax })
+            }
             SQL_ALTER_COLUMN_ACTION => Self::SqlAlterColumnAction(SqlAlterColumnAction { syntax }),
             SQL_ALTER_TRIGGER_ACTION => {
                 Self::SqlAlterTriggerAction(SqlAlterTriggerAction { syntax })
             }
             SQL_DROP_COLUMN_ACTION => Self::SqlDropColumnAction(SqlDropColumnAction { syntax }),
+            SQL_DROP_CONSTRAINT_ACTION => {
+                Self::SqlDropConstraintAction(SqlDropConstraintAction { syntax })
+            }
             SQL_RENAME_COLUMN_ACTION => {
                 Self::SqlRenameColumnAction(SqlRenameColumnAction { syntax })
             }
@@ -19543,9 +19786,11 @@ impl AstNode for AnySqlAlterTableAction {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::SqlAddColumnAction(it) => &it.syntax,
+            Self::SqlAddConstraintAction(it) => &it.syntax,
             Self::SqlAlterColumnAction(it) => &it.syntax,
             Self::SqlAlterTriggerAction(it) => &it.syntax,
             Self::SqlDropColumnAction(it) => &it.syntax,
+            Self::SqlDropConstraintAction(it) => &it.syntax,
             Self::SqlRenameColumnAction(it) => &it.syntax,
             Self::SqlRenameConstraintAction(it) => &it.syntax,
             Self::SqlRenameTableAction(it) => &it.syntax,
@@ -19555,9 +19800,11 @@ impl AstNode for AnySqlAlterTableAction {
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::SqlAddColumnAction(it) => it.syntax,
+            Self::SqlAddConstraintAction(it) => it.syntax,
             Self::SqlAlterColumnAction(it) => it.syntax,
             Self::SqlAlterTriggerAction(it) => it.syntax,
             Self::SqlDropColumnAction(it) => it.syntax,
+            Self::SqlDropConstraintAction(it) => it.syntax,
             Self::SqlRenameColumnAction(it) => it.syntax,
             Self::SqlRenameConstraintAction(it) => it.syntax,
             Self::SqlRenameTableAction(it) => it.syntax,
@@ -19569,9 +19816,11 @@ impl std::fmt::Debug for AnySqlAlterTableAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::SqlAddColumnAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlAddConstraintAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlAlterColumnAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlAlterTriggerAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDropColumnAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlDropConstraintAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlRenameColumnAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlRenameConstraintAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlRenameTableAction(it) => std::fmt::Debug::fmt(it, f),
@@ -19583,9 +19832,11 @@ impl From<AnySqlAlterTableAction> for SyntaxNode {
     fn from(n: AnySqlAlterTableAction) -> Self {
         match n {
             AnySqlAlterTableAction::SqlAddColumnAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlAddConstraintAction(it) => it.into(),
             AnySqlAlterTableAction::SqlAlterColumnAction(it) => it.into(),
             AnySqlAlterTableAction::SqlAlterTriggerAction(it) => it.into(),
             AnySqlAlterTableAction::SqlDropColumnAction(it) => it.into(),
+            AnySqlAlterTableAction::SqlDropConstraintAction(it) => it.into(),
             AnySqlAlterTableAction::SqlRenameColumnAction(it) => it.into(),
             AnySqlAlterTableAction::SqlRenameConstraintAction(it) => it.into(),
             AnySqlAlterTableAction::SqlRenameTableAction(it) => it.into(),
@@ -22542,6 +22793,11 @@ impl std::fmt::Display for SqlAddColumnAction {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlAddConstraintAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlAlias {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -22703,6 +22959,11 @@ impl std::fmt::Display for SqlDropColumnDefault {
     }
 }
 impl std::fmt::Display for SqlDropColumnNotNull {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlDropConstraintAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

@@ -1524,6 +1524,18 @@ impl SqlAddColumnActionBuilder {
         ))
     }
 }
+pub fn sql_add_constraint_action(
+    add_token: SyntaxToken,
+    constraint: SqlTableConstraint,
+) -> SqlAddConstraintAction {
+    SqlAddConstraintAction::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_ADD_CONSTRAINT_ACTION,
+        [
+            Some(SyntaxElement::Token(add_token)),
+            Some(SyntaxElement::Node(constraint.into_syntax())),
+        ],
+    ))
+}
 pub fn sql_alias(value: SqlName) -> SqlAliasBuilder {
     SqlAliasBuilder {
         value,
@@ -2529,6 +2541,56 @@ pub fn sql_drop_column_not_null(
             Some(SyntaxElement::Token(null_token)),
         ],
     ))
+}
+pub fn sql_drop_constraint_action(
+    drop_token: SyntaxToken,
+    constraint_token: SyntaxToken,
+    name: SqlName,
+) -> SqlDropConstraintActionBuilder {
+    SqlDropConstraintActionBuilder {
+        drop_token,
+        constraint_token,
+        name,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+    }
+}
+pub struct SqlDropConstraintActionBuilder {
+    drop_token: SyntaxToken,
+    constraint_token: SyntaxToken,
+    name: SqlName,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+}
+impl SqlDropConstraintActionBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn build(self) -> SqlDropConstraintAction {
+        SqlDropConstraintAction::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_DROP_CONSTRAINT_ACTION,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.constraint_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn sql_drop_function_statement(
     drop_token: SyntaxToken,

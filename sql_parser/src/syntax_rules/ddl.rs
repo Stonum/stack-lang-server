@@ -196,7 +196,7 @@ pub(crate) fn parse_column_definition(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_COLUMN_DEFINITION))
 }
 
-fn is_at_table_constraint_start(p: &mut SqlParser) -> bool {
+pub(crate) fn is_at_table_constraint_start(p: &mut SqlParser) -> bool {
     p.at(T![constraint])
         || p.at(T![primary])
         || p.at(T![unique])
@@ -206,7 +206,7 @@ fn is_at_table_constraint_start(p: &mut SqlParser) -> bool {
 
 /// `[CONSTRAINT name] PRIMARY KEY (...) | UNIQUE (...) | CHECK (...) |
 /// FOREIGN KEY (...) REFERENCES ...`
-fn parse_table_constraint(p: &mut SqlParser) -> ParsedSyntax {
+pub(crate) fn parse_table_constraint(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     if p.at(T![constraint]) {
         let name = p.start();
