@@ -4892,7 +4892,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             SQL_CREATE_VIEW_STATEMENT => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<9usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<10usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![create]
@@ -4930,6 +4930,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
+                    && SqlColumnList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
                     && PsqlViewOptions::can_cast(element.kind())
                 {
                     slots.mark_present();
@@ -4944,7 +4951,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlSelectStatement::can_cast(element.kind())
+                    && AnySqlCreateTableAsQuery::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();

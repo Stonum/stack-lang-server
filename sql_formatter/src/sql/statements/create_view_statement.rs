@@ -12,6 +12,7 @@ impl FormatNodeRule<SqlCreateViewStatement> for FormatSqlCreateViewStatement {
             replace_token,
             view_token,
             name,
+            columns,
             options,
             as_token,
             query,
@@ -28,6 +29,10 @@ impl FormatNodeRule<SqlCreateViewStatement> for FormatSqlCreateViewStatement {
         }
 
         write!(f, [space(), view_token.format(), space(), name.format()])?;
+
+        if let Some(columns) = columns {
+            write!(f, [space(), columns.format()])?;
+        }
 
         if let Some(options) = options {
             write!(f, [space(), options.format()])?;

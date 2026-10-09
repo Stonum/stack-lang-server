@@ -26,7 +26,6 @@ use super::postgres::materialized_view::{
 use super::postgres::partition::{
     complete_create_table_partition_of, parse_partition_by_clause, parse_table_like_element,
 };
-use super::select::parse_select_statement;
 use super::stmt::STMT_RECOVERY_SET;
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::SqlParser;
@@ -366,10 +365,11 @@ fn parse_create_view_statement(p: &mut SqlParser) -> ParsedSyntax {
     p.bump(T![view]);
 
     parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
+    let _ = parse_column_name_list(p);
     let _ = parse_view_options(p);
 
     p.expect(T![as]);
-    parse_select_statement(p).or_add_diagnostic(p, expected_statement);
+    parse_create_table_as_query(p).or_add_diagnostic(p, expected_statement);
 
     p.eat(T![;]);
 

@@ -5933,6 +5933,7 @@ impl SqlCreateViewStatement {
             replace_token: self.replace_token(),
             view_token: self.view_token(),
             name: self.name(),
+            columns: self.columns(),
             options: self.options(),
             as_token: self.as_token(),
             query: self.query(),
@@ -5954,17 +5955,20 @@ impl SqlCreateViewStatement {
     pub fn name(&self) -> SyntaxResult<SqlTableName> {
         support::required_node(&self.syntax, 4usize)
     }
-    pub fn options(&self) -> Option<PsqlViewOptions> {
+    pub fn columns(&self) -> Option<SqlColumnList> {
         support::node(&self.syntax, 5usize)
     }
-    pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 6usize)
+    pub fn options(&self) -> Option<PsqlViewOptions> {
+        support::node(&self.syntax, 6usize)
     }
-    pub fn query(&self) -> SyntaxResult<SqlSelectStatement> {
-        support::required_node(&self.syntax, 7usize)
+    pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 7usize)
+    }
+    pub fn query(&self) -> SyntaxResult<AnySqlCreateTableAsQuery> {
+        support::required_node(&self.syntax, 8usize)
     }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 8usize)
+        support::token(&self.syntax, 9usize)
     }
 }
 impl Serialize for SqlCreateViewStatement {
@@ -5982,9 +5986,10 @@ pub struct SqlCreateViewStatementFields {
     pub replace_token: Option<SyntaxToken>,
     pub view_token: SyntaxResult<SyntaxToken>,
     pub name: SyntaxResult<SqlTableName>,
+    pub columns: Option<SqlColumnList>,
     pub options: Option<PsqlViewOptions>,
     pub as_token: SyntaxResult<SyntaxToken>,
-    pub query: SyntaxResult<SqlSelectStatement>,
+    pub query: SyntaxResult<AnySqlCreateTableAsQuery>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -18450,6 +18455,7 @@ impl std::fmt::Debug for SqlCreateViewStatement {
                 )
                 .field("view_token", &support::DebugSyntaxResult(self.view_token()))
                 .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("columns", &support::DebugOptionalElement(self.columns()))
                 .field("options", &support::DebugOptionalElement(self.options()))
                 .field("as_token", &support::DebugSyntaxResult(self.as_token()))
                 .field("query", &support::DebugSyntaxResult(self.query()))
