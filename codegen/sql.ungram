@@ -1447,7 +1447,7 @@ PsqlDropPolicyStatement =
    table: SqlTableName
    ';'?
 
-// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
+// `CREATE TRIGGER name {BEFORE|AFTER|INSTEAD OF} event [OR event]* ON table
 // [REFERENCING ...] [FOR EACH ROW|STATEMENT] EXECUTE FUNCTION|PROCEDURE
 // name(args) [;]` -- the trigger *function* itself is a separate
 // `CREATE FUNCTION ... RETURNS TRIGGER`; this is just the attachment.
@@ -1455,7 +1455,8 @@ PsqlCreateTriggerStatement =
    'create'
    'trigger'
    name: AnySqlName
-   timing: ('before' | 'after')
+   timing: ('before' | 'after' | 'instead')
+   'of'?
    events: PsqlTriggerEventList
    'on'
    table: SqlTableName

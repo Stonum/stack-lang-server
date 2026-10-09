@@ -660,7 +660,7 @@ fn parse_policy_with_check_clause(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_POLICY_WITH_CHECK_CLAUSE))
 }
 
-/// `CREATE TRIGGER name {BEFORE|AFTER} event [OR event]* ON table
+/// `CREATE TRIGGER name {BEFORE|AFTER|INSTEAD OF} event [OR event]* ON table
 /// [REFERENCING ...] [FOR EACH ROW|STATEMENT] EXECUTE FUNCTION|PROCEDURE
 /// name(args) [;]` -- the trigger *function* itself is a separate
 /// `CREATE FUNCTION ... RETURNS TRIGGER`; this is just the attachment.
@@ -688,9 +688,12 @@ fn parse_create_trigger_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     if p.at(T![before]) || p.at(T![after]) {
         p.bump_any();
+    } else if p.at(T![instead]) {
+        p.bump(T![instead]);
+        p.expect(T![of]);
     } else {
         let range = p.cur_range();
-        let err = p.err_builder("Expected `before` or `after`", range);
+        let err = p.err_builder("Expected `before`, `after` or `instead of`", range);
         p.error(err);
     }
     parse_trigger_event_list(p);

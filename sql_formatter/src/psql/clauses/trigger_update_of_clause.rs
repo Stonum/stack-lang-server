@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::write;
+use crate::utils::write_wrapping_fill_clause;
 use sql_syntax::PsqlTriggerUpdateOfClause;
 use sql_syntax::PsqlTriggerUpdateOfClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -12,6 +12,6 @@ impl FormatNodeRule<PsqlTriggerUpdateOfClause> for FormatPsqlTriggerUpdateOfClau
     ) -> FormatResult<()> {
         let PsqlTriggerUpdateOfClauseFields { of_token, columns } = node.as_fields();
 
-        write!(f, [of_token.format(), space(), group(&columns.format())])
+        write_wrapping_fill_clause(of_token.format(), &columns, |_| false, f)
     }
 }

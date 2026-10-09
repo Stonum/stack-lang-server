@@ -357,3 +357,56 @@ execute function ~$some_func~();"#,
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_create_trigger_instead_of_events() {
+    for src in [
+        "create trigger t instead of insert on v for each row execute function f()",
+        "create trigger t INSTEAD OF update on v for each row execute procedure f();",
+        "create trigger t instead of delete or update on v for each row execute function f()",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("INSTEAD_KW"), "{src}");
+        assert!(tree.contains("OF_KW"), "{src}");
+    }
+}
+
+#[test]
+fn test_create_trigger_instead_of_tilde_view_in_mlang_dialect() {
+    let res = parse(
+        "create trigger \"Т_INSTRIG\" instead of insert\non ~Представление~ for each row\nexecute procedure ~Функция~();",
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_instead_is_still_a_valid_column_name() {
+    let res = parse("select instead from t", postgres());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_trigger_instead_without_of_reports_error() {
+    let res = parse(
+        "create trigger t instead insert on v for each row execute function f()",
+        postgres(),
+    );
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_trigger_missing_timing_reports_error() {
+    let res = parse(
+        "create trigger t insert on v for each row execute function f()",
+        postgres(),
+    );
+
+    assert!(res.has_errors());
+}

@@ -229,3 +229,58 @@ drop trigger if exists t on foo cascade;
 "#
     );
 }
+
+#[test]
+fn format_create_trigger_instead_of() {
+    assert_fmt!(
+        r#"--
+create trigger t instead of insert or update on v for each row execute function f();
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_instead_of_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE TRIGGER t INSTEAD   OF   DELETE
+    ON v FOR EACH ROW
+    EXECUTE PROCEDURE f();
+"#,
+        r#"--
+create trigger t instead of delete on v for each row execute procedure f();
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_instead_of_long_header_wraps() {
+    assert_fmt_eq!(
+        r#"--
+create trigger "accounts_summary_instead_of_update_trigger" instead of update on accounts_summary_view for each row execute function accounts_summary_instead_of_update_function();
+"#,
+        r#"--
+create trigger "accounts_summary_instead_of_update_trigger" instead of update
+on accounts_summary_view
+for each row
+execute function accounts_summary_instead_of_update_function();
+"#
+    );
+}
+
+#[test]
+fn format_create_trigger_update_of_many_columns_fill_several_lines() {
+    assert_fmt_eq!(
+        r#"--
+create trigger t after update of id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags, extra, more, first, second, third on foo for each row execute function f()
+"#,
+        r#"--
+create trigger t after update of
+	id, name, code, kind, state, owner, created, updated, deleted,
+	comment, parent, sort, flags, extra, more, first, second, third
+on foo
+for each row
+execute function f()
+"#
+    );
+}

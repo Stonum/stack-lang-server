@@ -15,6 +15,7 @@ impl FormatNodeRule<PsqlCreateTriggerStatement> for FormatPsqlCreateTriggerState
             trigger_token,
             name,
             timing,
+            of_token,
             events,
             on_token,
             table,
@@ -37,10 +38,12 @@ impl FormatNodeRule<PsqlCreateTriggerStatement> for FormatPsqlCreateTriggerState
                 name.format(),
                 space(),
                 timing.format(),
-                space(),
-                events.format(),
             ]
         )?;
+        if let Some(of_token) = of_token {
+            write!(f, [space(), of_token.format()])?;
+        }
+        write!(f, [space()])?;
 
         // `on table [referencing ...] [for each ...] [when (...)] execute
         // ... name(...)` all wrapped in one group, each present clause
@@ -50,13 +53,15 @@ impl FormatNodeRule<PsqlCreateTriggerStatement> for FormatPsqlCreateTriggerState
         // expand) puts each clause on its own line instead of collapsing
         // onto whatever's left of the previous line, the way a flat,
         // ungrouped `write!` chain would. Same shape as
-        // `write_select_body_clauses`.
+        // `write_select_body_clauses`. The events share the group so that a
+        // wrapped `update of` column list also moves `on table` down.
         write!(
             f,
             [group(&format_with(|f: &mut SqlFormatter| {
                 write!(
                     f,
                     [
+                        events.format(),
                         soft_line_break_or_space(),
                         on_token.format(),
                         space(),
