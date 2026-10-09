@@ -767,6 +767,15 @@ impl<'src> SqlLexer<'src> {
                     ERROR_TOKEN
                 }
             }
+            // `E'...'` -- a Postgres escape string constant.
+            IDT if matches!(byte, b'e' | b'E') && self.byte_at(1) == Some(b'\'') => {
+                self.advance(1);
+                if self.consume_quoted_literal() {
+                    SQL_STRING_LITERAL
+                } else {
+                    ERROR_TOKEN
+                }
+            }
             IDT => self.resolve_identifier(),
             // A non-ASCII byte (e.g. the first byte of a Cyrillic letter --
             // common in real mlang table/column names) isn't classified as
