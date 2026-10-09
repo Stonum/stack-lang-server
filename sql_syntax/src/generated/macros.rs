@@ -102,6 +102,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlIdentityConstraint::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_INDEX_METHOD_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlIndexMethodClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_INTERVAL_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlIntervalExpression::new_unchecked(node) };
                     $body
@@ -381,6 +385,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlConstraintName::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_CREATE_INDEX_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlCreateIndexStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_CREATE_TABLE_AS_STATEMENT => {
                     let $pattern =
                         unsafe { $crate::SqlCreateTableAsStatement::new_unchecked(node) };
@@ -493,6 +501,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_IN_VALUE_LIST => {
                     let $pattern = unsafe { $crate::SqlInValueList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_INDEX_INCLUDE_CLAUSE => {
+                    let $pattern = unsafe { $crate::SqlIndexIncludeClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_INSERT_STATEMENT => {
@@ -866,6 +878,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_GROUP_BY_ITEM_LIST => {
                     let $pattern = unsafe { $crate::SqlGroupByItemList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_INDEX_ELEMENT_LIST => {
+                    let $pattern = unsafe { $crate::SqlIndexElementList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_JOIN_CLAUSE_LIST => {

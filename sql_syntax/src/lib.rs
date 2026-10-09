@@ -100,6 +100,7 @@ impl SqlSyntaxKind {
                 | WHERE_KW
                 | WITH_KW
                 // type_func_name
+                | CONCURRENTLY_KW
                 | CROSS_KW
                 | FREEZE_KW
                 | FULL_KW

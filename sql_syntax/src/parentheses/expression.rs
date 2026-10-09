@@ -196,6 +196,10 @@ fn precedence_needs_parens(node: &SqlSyntaxNode, precedence: OperatorPrecedence)
     let Some(parent) = node.parent() else {
         return false;
     };
+    // Already wrapped in literal parentheses that are kept as written.
+    if parent.kind() == SqlSyntaxKind::SQL_PARENTHESIZED_EXPRESSION {
+        return false;
+    }
     let Some(parent_expr) = AnySqlExpression::cast(parent) else {
         return false;
     };
@@ -209,6 +213,10 @@ fn binary_like_needs_parens(node: &SqlSyntaxNode) -> bool {
     let Some(parent) = node.parent() else {
         return false;
     };
+    // Already wrapped in literal parentheses that are kept as written.
+    if parent.kind() == SqlSyntaxKind::SQL_PARENTHESIZED_EXPRESSION {
+        return false;
+    }
     let Some(child) = AnySqlExpression::cast_ref(node) else {
         return false;
     };

@@ -87,6 +87,9 @@ impl SqlFormatSyntaxRewriter {
                         .syntax()
                         .parent()
                         .is_some_and(|parent| parent.kind() == SqlSyntaxKind::SQL_ANY_ALL_EXPRESSION)
+                    // An index element that isn't a column or a call must be
+                    // parenthesized: `create index i on t ((a * 2))`.
+                    || is_index_element(parenthesized.syntax())
                 {
                     return VisitNodeSignal::Traverse(parenthesized.into_syntax());
                 } else {
@@ -361,6 +364,16 @@ impl SyntaxRewriter for SqlFormatSyntaxRewriter {
         self.source_map.push_source_text(token.text());
         token
     }
+}
+
+/// Whether `node` is the expression of a `CREATE INDEX` element.
+fn is_index_element(node: &SqlSyntaxNode) -> bool {
+    node.parent().is_some_and(|element| {
+        element.kind() == SqlSyntaxKind::SQL_ORDER_BY_EXPRESSION
+            && element
+                .parent()
+                .is_some_and(|list| list.kind() == SqlSyntaxKind::SQL_INDEX_ELEMENT_LIST)
+    })
 }
 
 fn has_skipped_comment(trivia: &SqlSyntaxTrivia) -> bool {

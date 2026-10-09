@@ -11,6 +11,7 @@ pub(crate) mod expression_list;
 pub(crate) mod from_item_list;
 pub(crate) mod grantee_list;
 pub(crate) mod group_by_item_list;
+pub(crate) mod index_element_list;
 pub(crate) mod join_clause_list;
 pub(crate) mod order_by_expression_list;
 pub(crate) mod select_item_list;

@@ -714,6 +714,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlIdentityConstraint {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlIndexMethodClause>
+    for crate::psql::clauses::index_method_clause::FormatPsqlIndexMethodClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlIndexMethodClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlIndexMethodClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlIndexMethodClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlIndexMethodClause,
+        crate::psql::clauses::index_method_clause::FormatPsqlIndexMethodClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::index_method_clause::FormatPsqlIndexMethodClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlIndexMethodClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlIndexMethodClause,
+        crate::psql::clauses::index_method_clause::FormatPsqlIndexMethodClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::index_method_clause::FormatPsqlIndexMethodClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlIntervalExpression>
     for crate::psql::expressions::interval_expression::FormatPsqlIntervalExpression
 {
@@ -3145,6 +3183,46 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlConstraintName {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlCreateIndexStatement>
+    for crate::sql::statements::create_index_statement::FormatSqlCreateIndexStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlCreateIndexStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCreateIndexStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCreateIndexStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCreateIndexStatement,
+        crate::sql::statements::create_index_statement::FormatSqlCreateIndexStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::create_index_statement::FormatSqlCreateIndexStatement::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCreateIndexStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCreateIndexStatement,
+        crate::sql::statements::create_index_statement::FormatSqlCreateIndexStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::create_index_statement::FormatSqlCreateIndexStatement::default(
+            ),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlCreateTableAsStatement>
     for crate::sql::statements::create_table_as_statement::FormatSqlCreateTableAsStatement
 {
@@ -4132,6 +4210,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlInValueList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::in_value_list::FormatSqlInValueList::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlIndexIncludeClause>
+    for crate::sql::clauses::index_include_clause::FormatSqlIndexIncludeClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlIndexIncludeClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlIndexIncludeClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlIndexIncludeClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlIndexIncludeClause,
+        crate::sql::clauses::index_include_clause::FormatSqlIndexIncludeClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::clauses::index_include_clause::FormatSqlIndexIncludeClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlIndexIncludeClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlIndexIncludeClause,
+        crate::sql::clauses::index_include_clause::FormatSqlIndexIncludeClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::clauses::index_include_clause::FormatSqlIndexIncludeClause::default(),
         )
     }
 }
@@ -6781,6 +6897,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlGroupByItemList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::lists::group_by_item_list::FormatSqlGroupByItemList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlIndexElementList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlIndexElementList,
+        crate::sql::lists::index_element_list::FormatSqlIndexElementList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::lists::index_element_list::FormatSqlIndexElementList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlIndexElementList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlIndexElementList,
+        crate::sql::lists::index_element_list::FormatSqlIndexElementList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::lists::index_element_list::FormatSqlIndexElementList::default(),
         )
     }
 }

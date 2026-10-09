@@ -2,6 +2,7 @@
 
 pub(crate) mod alter_table_statement;
 pub(crate) mod call_statement;
+pub(crate) mod create_index_statement;
 pub(crate) mod create_table_as_statement;
 pub(crate) mod create_table_statement;
 pub(crate) mod create_view_statement;

@@ -6,6 +6,7 @@ pub(crate) mod fetch_clause;
 pub(crate) mod from_clause;
 pub(crate) mod group_by_clause;
 pub(crate) mod having_clause;
+pub(crate) mod index_include_clause;
 pub(crate) mod join_clause;
 pub(crate) mod offset_clause;
 pub(crate) mod order_by_clause;

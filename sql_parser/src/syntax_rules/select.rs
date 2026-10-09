@@ -229,7 +229,7 @@ impl ParseSeparatedList for SqlOrderByExpressionList {
     }
 }
 
-fn parse_order_by_expression(p: &mut SqlParser) -> ParsedSyntax {
+pub(crate) fn parse_order_by_expression(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     if parse_expression(p).is_present() {
         if p.at(T![asc]) || p.at(T![desc]) {
