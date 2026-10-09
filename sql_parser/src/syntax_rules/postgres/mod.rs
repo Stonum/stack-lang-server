@@ -9,6 +9,7 @@
 //! from `insert.rs`/`update.rs`/`delete.rs`), so callers elsewhere in the
 //! grammar don't need their own per-dialect branches.
 
+pub(crate) mod copy;
 pub(crate) mod ddl;
 pub(crate) mod delete_using_clause;
 pub(crate) mod expr;

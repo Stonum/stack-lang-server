@@ -305,6 +305,271 @@ pub struct PsqlCastExpressionFields {
     pub ty: SyntaxResult<SqlTypeName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCopyFile {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCopyFile {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCopyFileFields {
+        PsqlCopyFileFields {
+            program_token: self.program_token(),
+            file: self.file(),
+        }
+    }
+    pub fn program_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn file(&self) -> SyntaxResult<SqlStringLiteralExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlCopyFile {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCopyFileFields {
+    pub program_token: Option<SyntaxToken>,
+    pub file: SyntaxResult<SqlStringLiteralExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCopyOption {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCopyOption {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCopyOptionFields {
+        PsqlCopyOptionFields {
+            name: self.name(),
+            value: self.value(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn value(&self) -> Option<AnySqlExpression> {
+        support::node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlCopyOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCopyOptionFields {
+    pub name: SyntaxResult<SqlName>,
+    pub value: Option<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCopyOptions {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCopyOptions {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCopyOptionsFields {
+        PsqlCopyOptionsFields {
+            with_token: self.with_token(),
+            l_paren_token: self.l_paren_token(),
+            options: self.options(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn with_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn options(&self) -> PsqlCopyOptionList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlCopyOptions {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCopyOptionsFields {
+    pub with_token: Option<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub options: PsqlCopyOptionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCopyStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCopyStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCopyStatementFields {
+        PsqlCopyStatementFields {
+            copy_token: self.copy_token(),
+            source: self.source(),
+            direction: self.direction(),
+            target: self.target(),
+            options: self.options(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn copy_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn source(&self) -> SyntaxResult<AnyPsqlCopySource> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn direction(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn target(&self) -> SyntaxResult<AnyPsqlCopyTarget> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn options(&self) -> Option<PsqlCopyOptions> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlCopyStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCopyStatementFields {
+    pub copy_token: SyntaxResult<SyntaxToken>,
+    pub source: SyntaxResult<AnyPsqlCopySource>,
+    pub direction: SyntaxResult<SyntaxToken>,
+    pub target: SyntaxResult<AnyPsqlCopyTarget>,
+    pub options: Option<PsqlCopyOptions>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCopyStdio {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCopyStdio {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCopyStdioFields {
+        PsqlCopyStdioFields {
+            value: self.value(),
+        }
+    }
+    pub fn value(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlCopyStdio {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCopyStdioFields {
+    pub value: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCopyTableSource {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCopyTableSource {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCopyTableSourceFields {
+        PsqlCopyTableSourceFields {
+            table: self.table(),
+            columns: self.columns(),
+        }
+    }
+    pub fn table(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn columns(&self) -> Option<SqlColumnList> {
+        support::node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlCopyTableSource {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCopyTableSourceFields {
+    pub table: SyntaxResult<SqlTableName>,
+    pub columns: Option<SqlColumnList>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCreateExtensionStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -10618,6 +10883,44 @@ pub struct SqlWithGrantOptionFields {
     pub option_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlCopySource {
+    SqlSubqueryExpression(SqlSubqueryExpression),
+    PsqlCopyTableSource(PsqlCopyTableSource),
+}
+impl AnyPsqlCopySource {
+    pub fn as_sql_subquery_expression(&self) -> Option<&SqlSubqueryExpression> {
+        match &self {
+            Self::SqlSubqueryExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_copy_table_source(&self) -> Option<&PsqlCopyTableSource> {
+        match &self {
+            Self::PsqlCopyTableSource(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlCopyTarget {
+    PsqlCopyFile(PsqlCopyFile),
+    PsqlCopyStdio(PsqlCopyStdio),
+}
+impl AnyPsqlCopyTarget {
+    pub fn as_psql_copy_file(&self) -> Option<&PsqlCopyFile> {
+        match &self {
+            Self::PsqlCopyFile(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_copy_stdio(&self) -> Option<&PsqlCopyStdio> {
+        match &self {
+            Self::PsqlCopyStdio(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlLanguageName {
     SqlName(SqlName),
     SqlStringLiteralExpression(SqlStringLiteralExpression),
@@ -11521,6 +11824,7 @@ pub enum AnySqlStatement {
     SqlUpdateStatement(SqlUpdateStatement),
     SqlValuesClause(SqlValuesClause),
     PsqlAnalyzeStatement(PsqlAnalyzeStatement),
+    PsqlCopyStatement(PsqlCopyStatement),
     PsqlCreateExtensionStatement(PsqlCreateExtensionStatement),
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
     PsqlCreateMaterializedViewStatement(PsqlCreateMaterializedViewStatement),
@@ -11689,6 +11993,12 @@ impl AnySqlStatement {
     pub fn as_psql_analyze_statement(&self) -> Option<&PsqlAnalyzeStatement> {
         match &self {
             Self::PsqlAnalyzeStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_copy_statement(&self) -> Option<&PsqlCopyStatement> {
+        match &self {
+            Self::PsqlCopyStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -12248,6 +12558,314 @@ impl From<PsqlCastExpression> for SyntaxNode {
 }
 impl From<PsqlCastExpression> for SyntaxElement {
     fn from(n: PsqlCastExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCopyFile {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_FILE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_FILE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCopyFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCopyFile")
+                .field(
+                    "program_token",
+                    &support::DebugOptionalElement(self.program_token()),
+                )
+                .field("file", &support::DebugSyntaxResult(self.file()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCopyFile").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCopyFile> for SyntaxNode {
+    fn from(n: PsqlCopyFile) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCopyFile> for SyntaxElement {
+    fn from(n: PsqlCopyFile) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCopyOption {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_OPTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_OPTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCopyOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCopyOption")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("value", &support::DebugOptionalElement(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCopyOption").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCopyOption> for SyntaxNode {
+    fn from(n: PsqlCopyOption) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCopyOption> for SyntaxElement {
+    fn from(n: PsqlCopyOption) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCopyOptions {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_OPTIONS as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_OPTIONS
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCopyOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCopyOptions")
+                .field(
+                    "with_token",
+                    &support::DebugOptionalElement(self.with_token()),
+                )
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("options", &self.options())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCopyOptions").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCopyOptions> for SyntaxNode {
+    fn from(n: PsqlCopyOptions) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCopyOptions> for SyntaxElement {
+    fn from(n: PsqlCopyOptions) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCopyStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCopyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCopyStatement")
+                .field("copy_token", &support::DebugSyntaxResult(self.copy_token()))
+                .field("source", &support::DebugSyntaxResult(self.source()))
+                .field("direction", &support::DebugSyntaxResult(self.direction()))
+                .field("target", &support::DebugSyntaxResult(self.target()))
+                .field("options", &support::DebugOptionalElement(self.options()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCopyStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCopyStatement> for SyntaxNode {
+    fn from(n: PsqlCopyStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCopyStatement> for SyntaxElement {
+    fn from(n: PsqlCopyStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCopyStdio {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_STDIO as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_STDIO
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCopyStdio {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCopyStdio")
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCopyStdio").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCopyStdio> for SyntaxNode {
+    fn from(n: PsqlCopyStdio) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCopyStdio> for SyntaxElement {
+    fn from(n: PsqlCopyStdio) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCopyTableSource {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_TABLE_SOURCE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_TABLE_SOURCE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCopyTableSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCopyTableSource")
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field("columns", &support::DebugOptionalElement(self.columns()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCopyTableSource").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCopyTableSource> for SyntaxNode {
+    fn from(n: PsqlCopyTableSource) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCopyTableSource> for SyntaxElement {
+    fn from(n: PsqlCopyTableSource) -> Self {
         n.syntax.into()
     }
 }
@@ -23809,6 +24427,127 @@ impl From<SqlWithGrantOption> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl From<SqlSubqueryExpression> for AnyPsqlCopySource {
+    fn from(node: SqlSubqueryExpression) -> Self {
+        Self::SqlSubqueryExpression(node)
+    }
+}
+impl From<PsqlCopyTableSource> for AnyPsqlCopySource {
+    fn from(node: PsqlCopyTableSource) -> Self {
+        Self::PsqlCopyTableSource(node)
+    }
+}
+impl AstNode for AnyPsqlCopySource {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SqlSubqueryExpression::KIND_SET.union(PsqlCopyTableSource::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, SQL_SUBQUERY_EXPRESSION | PSQL_COPY_TABLE_SOURCE)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_SUBQUERY_EXPRESSION => {
+                Self::SqlSubqueryExpression(SqlSubqueryExpression { syntax })
+            }
+            PSQL_COPY_TABLE_SOURCE => Self::PsqlCopyTableSource(PsqlCopyTableSource { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlSubqueryExpression(it) => &it.syntax,
+            Self::PsqlCopyTableSource(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlSubqueryExpression(it) => it.syntax,
+            Self::PsqlCopyTableSource(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlCopySource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCopyTableSource(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlCopySource> for SyntaxNode {
+    fn from(n: AnyPsqlCopySource) -> Self {
+        match n {
+            AnyPsqlCopySource::SqlSubqueryExpression(it) => it.into(),
+            AnyPsqlCopySource::PsqlCopyTableSource(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlCopySource> for SyntaxElement {
+    fn from(n: AnyPsqlCopySource) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
+impl From<PsqlCopyFile> for AnyPsqlCopyTarget {
+    fn from(node: PsqlCopyFile) -> Self {
+        Self::PsqlCopyFile(node)
+    }
+}
+impl From<PsqlCopyStdio> for AnyPsqlCopyTarget {
+    fn from(node: PsqlCopyStdio) -> Self {
+        Self::PsqlCopyStdio(node)
+    }
+}
+impl AstNode for AnyPsqlCopyTarget {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = PsqlCopyFile::KIND_SET.union(PsqlCopyStdio::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, PSQL_COPY_FILE | PSQL_COPY_STDIO)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_COPY_FILE => Self::PsqlCopyFile(PsqlCopyFile { syntax }),
+            PSQL_COPY_STDIO => Self::PsqlCopyStdio(PsqlCopyStdio { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlCopyFile(it) => &it.syntax,
+            Self::PsqlCopyStdio(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlCopyFile(it) => it.syntax,
+            Self::PsqlCopyStdio(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlCopyTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlCopyFile(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCopyStdio(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlCopyTarget> for SyntaxNode {
+    fn from(n: AnyPsqlCopyTarget) -> Self {
+        match n {
+            AnyPsqlCopyTarget::PsqlCopyFile(it) => it.into(),
+            AnyPsqlCopyTarget::PsqlCopyStdio(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlCopyTarget> for SyntaxElement {
+    fn from(n: AnyPsqlCopyTarget) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlName> for AnyPsqlLanguageName {
     fn from(node: SqlName) -> Self {
         Self::SqlName(node)
@@ -26238,6 +26977,11 @@ impl From<PsqlAnalyzeStatement> for AnySqlStatement {
         Self::PsqlAnalyzeStatement(node)
     }
 }
+impl From<PsqlCopyStatement> for AnySqlStatement {
+    fn from(node: PsqlCopyStatement) -> Self {
+        Self::PsqlCopyStatement(node)
+    }
+}
 impl From<PsqlCreateExtensionStatement> for AnySqlStatement {
     fn from(node: PsqlCreateExtensionStatement) -> Self {
         Self::PsqlCreateExtensionStatement(node)
@@ -26331,6 +27075,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlUpdateStatement::KIND_SET)
         .union(SqlValuesClause::KIND_SET)
         .union(PsqlAnalyzeStatement::KIND_SET)
+        .union(PsqlCopyStatement::KIND_SET)
         .union(PsqlCreateExtensionStatement::KIND_SET)
         .union(PsqlCreateFunctionStatement::KIND_SET)
         .union(PsqlCreateMaterializedViewStatement::KIND_SET)
@@ -26373,6 +27118,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_UPDATE_STATEMENT
                 | SQL_VALUES_CLAUSE
                 | PSQL_ANALYZE_STATEMENT
+                | PSQL_COPY_STATEMENT
                 | PSQL_CREATE_EXTENSION_STATEMENT
                 | PSQL_CREATE_FUNCTION_STATEMENT
                 | PSQL_CREATE_MATERIALIZED_VIEW_STATEMENT
@@ -26434,6 +27180,7 @@ impl AstNode for AnySqlStatement {
             SQL_UPDATE_STATEMENT => Self::SqlUpdateStatement(SqlUpdateStatement { syntax }),
             SQL_VALUES_CLAUSE => Self::SqlValuesClause(SqlValuesClause { syntax }),
             PSQL_ANALYZE_STATEMENT => Self::PsqlAnalyzeStatement(PsqlAnalyzeStatement { syntax }),
+            PSQL_COPY_STATEMENT => Self::PsqlCopyStatement(PsqlCopyStatement { syntax }),
             PSQL_CREATE_EXTENSION_STATEMENT => {
                 Self::PsqlCreateExtensionStatement(PsqlCreateExtensionStatement { syntax })
             }
@@ -26509,6 +27256,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlUpdateStatement(it) => &it.syntax,
             Self::SqlValuesClause(it) => &it.syntax,
             Self::PsqlAnalyzeStatement(it) => &it.syntax,
+            Self::PsqlCopyStatement(it) => &it.syntax,
             Self::PsqlCreateExtensionStatement(it) => &it.syntax,
             Self::PsqlCreateFunctionStatement(it) => &it.syntax,
             Self::PsqlCreateMaterializedViewStatement(it) => &it.syntax,
@@ -26552,6 +27300,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlUpdateStatement(it) => it.syntax,
             Self::SqlValuesClause(it) => it.syntax,
             Self::PsqlAnalyzeStatement(it) => it.syntax,
+            Self::PsqlCopyStatement(it) => it.syntax,
             Self::PsqlCreateExtensionStatement(it) => it.syntax,
             Self::PsqlCreateFunctionStatement(it) => it.syntax,
             Self::PsqlCreateMaterializedViewStatement(it) => it.syntax,
@@ -26597,6 +27346,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlUpdateStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlValuesClause(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlAnalyzeStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCopyStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateExtensionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateMaterializedViewStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -26642,6 +27392,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlUpdateStatement(it) => it.into(),
             AnySqlStatement::SqlValuesClause(it) => it.into(),
             AnySqlStatement::PsqlAnalyzeStatement(it) => it.into(),
+            AnySqlStatement::PsqlCopyStatement(it) => it.into(),
             AnySqlStatement::PsqlCreateExtensionStatement(it) => it.into(),
             AnySqlStatement::PsqlCreateFunctionStatement(it) => it.into(),
             AnySqlStatement::PsqlCreateMaterializedViewStatement(it) => it.into(),
@@ -27086,6 +27837,16 @@ impl From<AnySqlTypeModifier> for SyntaxElement {
         node.into()
     }
 }
+impl std::fmt::Display for AnyPsqlCopySource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnyPsqlCopyTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlLanguageName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -27267,6 +28028,36 @@ impl std::fmt::Display for PsqlAttachPartitionAction {
     }
 }
 impl std::fmt::Display for PsqlCastExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCopyFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCopyOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCopyOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCopyStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCopyStdio {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCopyTableSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -28699,6 +29490,88 @@ impl From<SqlBogusStatement> for SyntaxElement {
     }
 }
 biome_rowan::declare_node_union! { pub AnySqlBogusNode = SqlBogus | SqlBogusAssignment | SqlBogusBinding | SqlBogusExpression | SqlBogusMember | SqlBogusParameter | SqlBogusStatement }
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlCopyOptionList {
+    syntax_list: SyntaxList,
+}
+impl PsqlCopyOptionList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlCopyOptionList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_COPY_OPTION_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_COPY_OPTION_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlCopyOptionList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlCopyOptionList {
+    type Language = Language;
+    type Node = PsqlCopyOption;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlCopyOptionList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlCopyOptionList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlCopyOptionList {
+    type Item = SyntaxResult<PsqlCopyOption>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlCopyOption>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlCopyOptionList {
+    type Item = SyntaxResult<PsqlCopyOption>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlCopyOption>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct PsqlFunctionOptionList {
     syntax_list: SyntaxList,

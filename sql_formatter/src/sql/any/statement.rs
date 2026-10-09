@@ -34,6 +34,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlUpdateStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlValuesClause(node) => node.format().fmt(f),
             AnySqlStatement::PsqlAnalyzeStatement(node) => node.format().fmt(f),
+            AnySqlStatement::PsqlCopyStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateExtensionStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateFunctionStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateMaterializedViewStatement(node) => node.format().fmt(f),

@@ -42,6 +42,30 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCastExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_COPY_FILE => {
+                    let $pattern = unsafe { $crate::PsqlCopyFile::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_COPY_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlCopyOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_COPY_OPTIONS => {
+                    let $pattern = unsafe { $crate::PsqlCopyOptions::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_COPY_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlCopyStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_COPY_STDIO => {
+                    let $pattern = unsafe { $crate::PsqlCopyStdio::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_COPY_TABLE_SOURCE => {
+                    let $pattern = unsafe { $crate::PsqlCopyTableSource::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_CREATE_EXTENSION_STATEMENT => {
                     let $pattern =
                         unsafe { $crate::PsqlCreateExtensionStatement::new_unchecked(node) };
@@ -930,6 +954,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_BOGUS_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlBogusStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_COPY_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlCopyOptionList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_FUNCTION_OPTION_LIST => {
