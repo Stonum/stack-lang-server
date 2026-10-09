@@ -63,8 +63,10 @@ fn format_create_table_columns_wrap_when_too_long() {
     assert_fmt!(
         r#"--
 create table foo (
-	really_long_column_name_number_one int, really_long_column_name_number_two text,
-	really_long_column_name_number_three boolean, really_long_column_name_number_four numeric
+	really_long_column_name_number_one int,
+	really_long_column_name_number_two text,
+	really_long_column_name_number_three boolean,
+	really_long_column_name_number_four numeric
 )
 "#
     );
@@ -204,6 +206,57 @@ CREATE TABLE foo (id int GENERATED  ALWAYS AS IDENTITY( START WITH 1 ), b int GE
 "#,
         r#"--
 create table foo (id int generated always as identity (start with 1), b int generated always as (id * 2) stored)
+"#
+    );
+}
+
+#[test]
+fn format_create_table_constraints_one_element_per_line_when_too_long() {
+    assert_fmt_eq!(
+        r#"--
+create table some_table (id int generated always as identity primary key, first_column varchar(256) not null default 'value', second_column numeric(15, 2) default 0, third_column text references other_table (id), constraint some_check check (first_column <> '' and second_column > 0), primary key (id, first_column))
+"#,
+        r#"--
+create table some_table (
+	id int generated always as identity primary key,
+	first_column varchar(256) not null default 'value',
+	second_column numeric(15, 2) default 0,
+	third_column text references other_table (id),
+	constraint some_check check (first_column <> '' and second_column > 0),
+	primary key (id, first_column)
+)
+"#
+    );
+}
+
+#[test]
+fn format_create_table_long_default_expression_wraps() {
+    assert_fmt_eq!(
+        r#"--
+create table t (a int default case when some_function(first_argument, second_argument) > 0 then another_function(third_argument) else yet_another_function(fourth_argument) end)
+"#,
+        r#"--
+create table t (
+	a int default case
+		when some_function(first_argument, second_argument) > 0 then another_function(third_argument)
+		else yet_another_function(fourth_argument)
+	end
+)
+"#
+    );
+}
+
+#[test]
+fn format_create_table_as_long_query_wraps() {
+    assert_fmt_eq!(
+        r#"--
+create temp table some_table on commit drop as select first_column, second_column, third_column from first_long_table_name join second_long_table_name on first_long_table_name.id = second_long_table_name.id where first_column > 0
+"#,
+        r#"--
+create temp table some_table on commit drop as select first_column, second_column, third_column
+from first_long_table_name
+join second_long_table_name on first_long_table_name.id = second_long_table_name.id
+where first_column > 0
 "#
     );
 }

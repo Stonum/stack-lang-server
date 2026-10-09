@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::utils::write_wrapping_fill_clause;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use sql_syntax::SqlDropTableStatement;
 use sql_syntax::SqlDropTableStatementFields;
 #[derive(Debug, Clone, Default)]
@@ -28,10 +28,19 @@ impl FormatNodeRule<SqlDropTableStatement> for FormatSqlDropTableStatement {
             Ok(())
         });
 
-        write_wrapping_fill_clause(keyword, &tables, |_| false, f)?;
+        let list = format_with(|f| write_wrapping_fill_clause(&keyword, &tables, |_| false, f));
 
-        if let Some(drop_behavior) = drop_behavior {
-            write!(f, [space(), drop_behavior.format()])?;
+        match drop_behavior {
+            // Once the table list wraps, `CASCADE`/`RESTRICT` moves to its own line.
+            Some(drop_behavior) => write!(
+                f,
+                [group(&format_args![
+                    list,
+                    soft_line_break_or_space(),
+                    drop_behavior.format()
+                ])]
+            )?,
+            None => write!(f, [list])?,
         }
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
