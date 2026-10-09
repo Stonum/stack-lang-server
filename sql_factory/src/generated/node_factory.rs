@@ -90,6 +90,22 @@ pub fn psql_array_subscript_expression(
         ],
     ))
 }
+pub fn psql_attach_partition_action(
+    attach_token: SyntaxToken,
+    partition_token: SyntaxToken,
+    partition: SqlTableName,
+    bound: AnyPsqlPartitionBound,
+) -> PsqlAttachPartitionAction {
+    PsqlAttachPartitionAction::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ATTACH_PARTITION_ACTION,
+        [
+            Some(SyntaxElement::Token(attach_token)),
+            Some(SyntaxElement::Token(partition_token)),
+            Some(SyntaxElement::Node(partition.into_syntax())),
+            Some(SyntaxElement::Node(bound.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_cast_expression(
     expression: AnySqlExpression,
     double_colon_token: SyntaxToken,
@@ -423,6 +439,95 @@ impl PsqlCreatePolicyStatementBuilder {
         ))
     }
 }
+pub fn psql_create_table_partition_of_statement(
+    create_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: SqlTableName,
+    partition_token: SyntaxToken,
+    of_token: SyntaxToken,
+    parent: SqlTableName,
+    bound: AnyPsqlPartitionBound,
+) -> PsqlCreateTablePartitionOfStatementBuilder {
+    PsqlCreateTablePartitionOfStatementBuilder {
+        create_token,
+        table_token,
+        name,
+        partition_token,
+        of_token,
+        parent,
+        bound,
+        persistence_token: None,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+        partition_by: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateTablePartitionOfStatementBuilder {
+    create_token: SyntaxToken,
+    table_token: SyntaxToken,
+    name: SqlTableName,
+    partition_token: SyntaxToken,
+    of_token: SyntaxToken,
+    parent: SqlTableName,
+    bound: AnyPsqlPartitionBound,
+    persistence_token: Option<SyntaxToken>,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    partition_by: Option<PsqlPartitionByClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateTablePartitionOfStatementBuilder {
+    pub fn with_persistence_token(mut self, persistence_token: SyntaxToken) -> Self {
+        self.persistence_token = Some(persistence_token);
+        self
+    }
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_partition_by(mut self, partition_by: PsqlPartitionByClause) -> Self {
+        self.partition_by = Some(partition_by);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateTablePartitionOfStatement {
+        PsqlCreateTablePartitionOfStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CREATE_TABLE_PARTITION_OF_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                self.persistence_token
+                    .map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.table_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Token(self.partition_token)),
+                Some(SyntaxElement::Token(self.of_token)),
+                Some(SyntaxElement::Node(self.parent.into_syntax())),
+                Some(SyntaxElement::Node(self.bound.into_syntax())),
+                self.partition_by
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_create_trigger_statement(
     create_token: SyntaxToken,
     trigger_token: SyntaxToken,
@@ -559,6 +664,41 @@ pub fn psql_delete_using_clause(
             Some(SyntaxElement::Node(items.into_syntax())),
         ],
     ))
+}
+pub fn psql_detach_partition_action(
+    detach_token: SyntaxToken,
+    partition_token: SyntaxToken,
+    partition: SqlTableName,
+) -> PsqlDetachPartitionActionBuilder {
+    PsqlDetachPartitionActionBuilder {
+        detach_token,
+        partition_token,
+        partition,
+        mode_token: None,
+    }
+}
+pub struct PsqlDetachPartitionActionBuilder {
+    detach_token: SyntaxToken,
+    partition_token: SyntaxToken,
+    partition: SqlTableName,
+    mode_token: Option<SyntaxToken>,
+}
+impl PsqlDetachPartitionActionBuilder {
+    pub fn with_mode_token(mut self, mode_token: SyntaxToken) -> Self {
+        self.mode_token = Some(mode_token);
+        self
+    }
+    pub fn build(self) -> PsqlDetachPartitionAction {
+        PsqlDetachPartitionAction::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DETACH_PARTITION_ACTION,
+            [
+                Some(SyntaxElement::Token(self.detach_token)),
+                Some(SyntaxElement::Token(self.partition_token)),
+                Some(SyntaxElement::Node(self.partition.into_syntax())),
+                self.mode_token.map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn psql_distinct_on_clause(
     on_token: SyntaxToken,
@@ -1325,6 +1465,114 @@ pub fn psql_parameter_default(
         ],
     ))
 }
+pub fn psql_partition_by_clause(
+    partition_by_token: SyntaxToken,
+    strategy_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    keys: SqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlPartitionByClause {
+    PsqlPartitionByClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_BY_CLAUSE,
+        [
+            Some(SyntaxElement::Token(partition_by_token)),
+            Some(SyntaxElement::Token(strategy_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(keys.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_partition_default_bound(default_token: SyntaxToken) -> PsqlPartitionDefaultBound {
+    PsqlPartitionDefaultBound::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_DEFAULT_BOUND,
+        [Some(SyntaxElement::Token(default_token))],
+    ))
+}
+pub fn psql_partition_for_values_bound(
+    for_token: SyntaxToken,
+    values_token: SyntaxToken,
+    values: AnyPsqlPartitionValues,
+) -> PsqlPartitionForValuesBound {
+    PsqlPartitionForValuesBound::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_FOR_VALUES_BOUND,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Token(values_token)),
+            Some(SyntaxElement::Node(values.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_partition_hash_values(
+    with_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    modulus_token: SyntaxToken,
+    modulus: SqlNumberLiteralExpression,
+    comma_token: SyntaxToken,
+    remainder_token: SyntaxToken,
+    remainder: SqlNumberLiteralExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlPartitionHashValues {
+    PsqlPartitionHashValues::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_HASH_VALUES,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Token(modulus_token)),
+            Some(SyntaxElement::Node(modulus.into_syntax())),
+            Some(SyntaxElement::Token(comma_token)),
+            Some(SyntaxElement::Token(remainder_token)),
+            Some(SyntaxElement::Node(remainder.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_partition_in_values(
+    in_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    values: SqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlPartitionInValues {
+    PsqlPartitionInValues::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_IN_VALUES,
+        [
+            Some(SyntaxElement::Token(in_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(values.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_partition_range_values(
+    from_token: SyntaxToken,
+    from: PsqlPartitionValueList,
+    to_token: SyntaxToken,
+    to: PsqlPartitionValueList,
+) -> PsqlPartitionRangeValues {
+    PsqlPartitionRangeValues::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_RANGE_VALUES,
+        [
+            Some(SyntaxElement::Token(from_token)),
+            Some(SyntaxElement::Node(from.into_syntax())),
+            Some(SyntaxElement::Token(to_token)),
+            Some(SyntaxElement::Node(to.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_partition_value_list(
+    l_paren_token: SyntaxToken,
+    values: SqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlPartitionValueList {
+    PsqlPartitionValueList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PARTITION_VALUE_LIST,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(values.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_policy_for_clause(
     for_token: SyntaxToken,
     command_token: SyntaxToken,
@@ -1669,6 +1917,18 @@ impl PsqlTableAndColumnsBuilder {
             ],
         ))
     }
+}
+pub fn psql_table_like_element(
+    like_token: SyntaxToken,
+    source: SqlTableName,
+) -> PsqlTableLikeElement {
+    PsqlTableLikeElement::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TABLE_LIKE_ELEMENT,
+        [
+            Some(SyntaxElement::Token(like_token)),
+            Some(SyntaxElement::Node(source.into_syntax())),
+        ],
+    ))
 }
 pub fn psql_table_query(table_token: SyntaxToken, table: SqlTableName) -> PsqlTableQuery {
     PsqlTableQuery::unwrap_cast(SyntaxNode::new_detached(
@@ -2936,6 +3196,7 @@ pub fn sql_create_table_statement(
         if_token: None,
         not_token: None,
         exists_token: None,
+        partition_by: None,
         on_commit: None,
         semicolon_token: None,
     }
@@ -2951,6 +3212,7 @@ pub struct SqlCreateTableStatementBuilder {
     if_token: Option<SyntaxToken>,
     not_token: Option<SyntaxToken>,
     exists_token: Option<SyntaxToken>,
+    partition_by: Option<PsqlPartitionByClause>,
     on_commit: Option<PsqlOnCommitClause>,
     semicolon_token: Option<SyntaxToken>,
 }
@@ -2969,6 +3231,10 @@ impl SqlCreateTableStatementBuilder {
     }
     pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
         self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_partition_by(mut self, partition_by: PsqlPartitionByClause) -> Self {
+        self.partition_by = Some(partition_by);
         self
     }
     pub fn with_on_commit(mut self, on_commit: PsqlOnCommitClause) -> Self {
@@ -2994,6 +3260,8 @@ impl SqlCreateTableStatementBuilder {
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.elements.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
+                self.partition_by
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.on_commit
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token

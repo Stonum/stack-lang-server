@@ -12,6 +12,7 @@ pub(crate) mod limit_clause;
 pub(crate) mod on_commit_clause;
 pub(crate) mod on_conflict_clause;
 pub(crate) mod on_constraint_clause;
+pub(crate) mod partition_by_clause;
 pub(crate) mod policy_for_clause;
 pub(crate) mod policy_using_clause;
 pub(crate) mod policy_with_check_clause;

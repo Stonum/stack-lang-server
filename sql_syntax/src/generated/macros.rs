@@ -33,6 +33,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlArraySubscriptExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_ATTACH_PARTITION_ACTION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlAttachPartitionAction::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_CAST_EXPRESSION => {
                     let $pattern = unsafe { $crate::PsqlCastExpression::new_unchecked(node) };
                     $body
@@ -57,6 +62,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlCreatePolicyStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_CREATE_TABLE_PARTITION_OF_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreateTablePartitionOfStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_CREATE_TRIGGER_STATEMENT => {
                     let $pattern =
                         unsafe { $crate::PsqlCreateTriggerStatement::new_unchecked(node) };
@@ -68,6 +78,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_DELETE_USING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlDeleteUsingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DETACH_PARTITION_ACTION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlDetachPartitionAction::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_DISTINCT_ON_CLAUSE => {
@@ -175,6 +190,36 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlParameterDefault::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_BY_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPartitionByClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_DEFAULT_BOUND => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPartitionDefaultBound::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_FOR_VALUES_BOUND => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPartitionForValuesBound::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_HASH_VALUES => {
+                    let $pattern = unsafe { $crate::PsqlPartitionHashValues::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_IN_VALUES => {
+                    let $pattern = unsafe { $crate::PsqlPartitionInValues::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_RANGE_VALUES => {
+                    let $pattern = unsafe { $crate::PsqlPartitionRangeValues::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PARTITION_VALUE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlPartitionValueList::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPolicyForClause::new_unchecked(node) };
                     $body
@@ -252,6 +297,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_TABLE_AND_COLUMNS => {
                     let $pattern = unsafe { $crate::PsqlTableAndColumns::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TABLE_LIKE_ELEMENT => {
+                    let $pattern = unsafe { $crate::PsqlTableLikeElement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_TABLE_QUERY => {

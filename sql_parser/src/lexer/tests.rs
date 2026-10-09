@@ -204,7 +204,7 @@ fn two_word_by_keywords_fuse_into_one_token() {
 fn bare_order_group_partition_without_by_are_plain_identifiers() {
     assert_lex! { "order", IDENT:5 }
     assert_lex! { "group", IDENT:5 }
-    assert_lex! { "partition", IDENT:9 }
+    assert_lex! { "partition", PARTITION_KW:9 }
     assert_lex! { "order from", IDENT:5, WHITESPACE:1, FROM_KW:4 }
 }
 

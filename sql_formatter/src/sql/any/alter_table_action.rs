@@ -18,6 +18,8 @@ impl FormatRule<AnySqlAlterTableAction> for FormatAnySqlAlterTableAction {
             AnySqlAlterTableAction::SqlRenameConstraintAction(node) => node.format().fmt(f),
             AnySqlAlterTableAction::SqlRenameTableAction(node) => node.format().fmt(f),
             AnySqlAlterTableAction::SqlSetSchemaAction(node) => node.format().fmt(f),
+            AnySqlAlterTableAction::PsqlAttachPartitionAction(node) => node.format().fmt(f),
+            AnySqlAlterTableAction::PsqlDetachPartitionAction(node) => node.format().fmt(f),
         }
     }
 }

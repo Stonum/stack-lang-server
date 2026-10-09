@@ -15,6 +15,7 @@ use super::parse_error::{
 };
 use super::postgres::ddl::eat_cascade_or_restrict;
 use super::postgres::parse_error::postgres_only_syntax_error;
+use super::postgres::partition::{parse_attach_partition_action, parse_detach_partition_action};
 use super::stmt::STMT_RECOVERY_SET;
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
@@ -63,6 +64,8 @@ impl ParseSeparatedList for SqlAlterTableActionList {
             T![alter] => parse_alter_column_action(p),
             T![rename] => parse_rename_action(p),
             T![set] if p.nth_at(1, T![schema]) => parse_set_schema_action(p),
+            T![attach] => parse_attach_partition_action(p),
+            T![detach] => parse_detach_partition_action(p),
             _ => Absent,
         }
     }

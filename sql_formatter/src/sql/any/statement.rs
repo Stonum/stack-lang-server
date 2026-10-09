@@ -37,6 +37,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::PsqlCreateFunctionStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateMaterializedViewStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreatePolicyStatement(node) => node.format().fmt(f),
+            AnySqlStatement::PsqlCreateTablePartitionOfStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlCreateTriggerStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlDropExtensionStatement(node) => node.format().fmt(f),
             AnySqlStatement::PsqlDropMaterializedViewStatement(node) => node.format().fmt(f),

@@ -127,6 +127,7 @@ AnySqlStatement =
    | SqlCommitStatement
    | SqlRollbackStatement
    | PsqlLockStatement
+   | PsqlCreateTablePartitionOfStatement
    | SqlTruncateStatement
    | SqlCallStatement
    | PsqlVacuumStatement
@@ -508,8 +509,78 @@ SqlCreateTableStatement =
    '('
    elements: SqlTableElementList
    ')'
+   partition_by: PsqlPartitionByClause?
    on_commit: PsqlOnCommitClause?
    ';'?
+
+// `CREATE [TEMP | ...] TABLE [IF NOT EXISTS] name PARTITION OF parent
+// {FOR VALUES ... | DEFAULT} [PARTITION BY ...] [;]`
+PsqlCreateTablePartitionOfStatement =
+   'create'
+   persistence: ('temp' | 'temporary' | 'unlogged')?
+   'table'
+   ('if' 'not' 'exists')?
+   name: SqlTableName
+   'partition'
+   'of'
+   parent: SqlTableName
+   bound: AnyPsqlPartitionBound
+   partition_by: PsqlPartitionByClause?
+   ';'?
+
+// `PARTITION BY RANGE | LIST | HASH (key, ...)`
+PsqlPartitionByClause =
+   'partition_by'
+   strategy: ('range' | 'list' | 'hash')
+   '('
+   keys: SqlExpressionList
+   ')'
+
+AnyPsqlPartitionBound =
+   PsqlPartitionDefaultBound
+   | PsqlPartitionForValuesBound
+
+PsqlPartitionDefaultBound = 'default'
+
+PsqlPartitionForValuesBound =
+   'for'
+   'values'
+   values: AnyPsqlPartitionValues
+
+AnyPsqlPartitionValues =
+   PsqlPartitionInValues
+   | PsqlPartitionRangeValues
+   | PsqlPartitionHashValues
+
+// `IN (value, ...)`
+PsqlPartitionInValues =
+   'in'
+   '('
+   values: SqlExpressionList
+   ')'
+
+// `FROM (value | MINVALUE | MAXVALUE, ...) TO (...)`
+PsqlPartitionRangeValues =
+   'from'
+   from: PsqlPartitionValueList
+   'to'
+   to: PsqlPartitionValueList
+
+PsqlPartitionValueList =
+   '('
+   values: SqlExpressionList
+   ')'
+
+// `WITH (MODULUS n, REMAINDER r)`
+PsqlPartitionHashValues =
+   'with'
+   '('
+   'modulus'
+   modulus: SqlNumberLiteralExpression
+   ','
+   'remainder'
+   remainder: SqlNumberLiteralExpression
+   ')'
 
 // `CREATE [UNIQUE] INDEX [CONCURRENTLY] [[IF NOT EXISTS] name] ON [ONLY] table
 // [USING method] (element, ...) [INCLUDE (column, ...)] [WHERE predicate] [;]`
@@ -588,6 +659,22 @@ AnySqlAlterTableAction =
    | SqlSetSchemaAction
    | SqlAddConstraintAction
    | SqlDropConstraintAction
+   | PsqlAttachPartitionAction
+   | PsqlDetachPartitionAction
+
+// `ATTACH PARTITION name {FOR VALUES ... | DEFAULT}`
+PsqlAttachPartitionAction =
+   'attach'
+   'partition'
+   partition: SqlTableName
+   bound: AnyPsqlPartitionBound
+
+// `DETACH PARTITION name [CONCURRENTLY | FINALIZE]`
+PsqlDetachPartitionAction =
+   'detach'
+   'partition'
+   partition: SqlTableName
+   mode: ('concurrently' | 'finalize')?
 
 // `ADD [CONSTRAINT name] PRIMARY KEY (...) | UNIQUE (...) | CHECK (...) | FOREIGN KEY ...`
 SqlAddConstraintAction =
@@ -825,6 +912,12 @@ SqlTableElementList = (AnySqlTableElement (',' AnySqlTableElement)*)
 AnySqlTableElement =
    SqlColumnDefinition
    | SqlTableConstraint
+   | PsqlTableLikeElement
+
+// `LIKE source_table` -- copies the source table's columns.
+PsqlTableLikeElement =
+   'like'
+   source: SqlTableName
 
 // `[CONSTRAINT name] PRIMARY KEY (...) | UNIQUE (...) | CHECK (...) |
 // FOREIGN KEY (...) REFERENCES ...` inside `CREATE TABLE (...)`.

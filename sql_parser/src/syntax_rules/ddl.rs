@@ -23,6 +23,9 @@ use super::postgres::extension::{
 use super::postgres::materialized_view::{
     parse_create_materialized_view_statement, parse_drop_materialized_view_statement,
 };
+use super::postgres::partition::{
+    complete_create_table_partition_of, parse_partition_by_clause, parse_table_like_element,
+};
 use super::select::parse_select_statement;
 use super::stmt::STMT_RECOVERY_SET;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -94,6 +97,10 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
 
     parse_table_name_for_ddl(p).or_add_diagnostic(p, expected_table_binding);
 
+    if p.at(T![partition]) && p.nth_at(1, T![of]) {
+        return Present(complete_create_table_partition_of(p, m));
+    }
+
     if is_at_create_table_as(p) {
         let _ = parse_column_name_list(p);
         let _ = parse_on_commit_clause(p);
@@ -108,6 +115,7 @@ fn parse_create_table_statement(p: &mut SqlParser) -> ParsedSyntax {
     SqlTableElementList.parse_list(p);
     p.expect(T![')']);
 
+    let _ = parse_partition_by_clause(p);
     let _ = parse_on_commit_clause(p);
 
     p.eat(T![;]);
@@ -170,6 +178,8 @@ impl ParseSeparatedList for SqlTableElementList {
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
         if is_at_table_constraint_start(p) {
             parse_table_constraint(p)
+        } else if p.at(T![like]) {
+            parse_table_like_element(p)
         } else {
             parse_column_definition(p)
         }
