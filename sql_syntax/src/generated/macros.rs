@@ -147,6 +147,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlLimitClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_LOCK_MODE => {
+                    let $pattern = unsafe { $crate::PsqlLockMode::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_LOCK_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlLockStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_NAMED_ARGUMENT => {
                     let $pattern = unsafe { $crate::PsqlNamedArgument::new_unchecked(node) };
                     $body

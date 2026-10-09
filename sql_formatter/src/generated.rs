@@ -1026,6 +1026,74 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLimitClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlLockMode>
+    for crate::psql::auxiliary::lock_mode::FormatPsqlLockMode
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlLockMode, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlLockMode>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlLockMode {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlLockMode,
+        crate::psql::auxiliary::lock_mode::FormatPsqlLockMode,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::lock_mode::FormatPsqlLockMode::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLockMode {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlLockMode,
+        crate::psql::auxiliary::lock_mode::FormatPsqlLockMode,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::lock_mode::FormatPsqlLockMode::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlLockStatement>
+    for crate::psql::statements::lock_statement::FormatPsqlLockStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlLockStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlLockStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlLockStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlLockStatement,
+        crate::psql::statements::lock_statement::FormatPsqlLockStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::lock_statement::FormatPsqlLockStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLockStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlLockStatement,
+        crate::psql::statements::lock_statement::FormatPsqlLockStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::lock_statement::FormatPsqlLockStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlNamedArgument>
     for crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument
 {

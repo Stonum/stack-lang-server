@@ -7,6 +7,7 @@ pub(crate) mod function_parameter;
 pub(crate) mod generated_column_constraint;
 pub(crate) mod identity_constraint;
 pub(crate) mod language_option;
+pub(crate) mod lock_mode;
 pub(crate) mod named_argument;
 pub(crate) mod parameter_default;
 pub(crate) mod returns_null_option;

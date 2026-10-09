@@ -126,6 +126,7 @@ AnySqlStatement =
    | SqlBeginStatement
    | SqlCommitStatement
    | SqlRollbackStatement
+   | PsqlLockStatement
    | SqlTruncateStatement
    | SqlCallStatement
    | PsqlVacuumStatement
@@ -780,6 +781,26 @@ PsqlDropExtensionStatement =
    extensions: SqlTableNameList
    drop_behavior: ('cascade' | 'restrict')?
    ';'?
+
+// `LOCK [TABLE] [ONLY] name, ... [IN lock_mode MODE] [NOWAIT] [;]`
+PsqlLockStatement =
+   'lock'
+   'table'?
+   'only'?
+   tables: SqlTableNameList
+   mode: PsqlLockMode?
+   'nowait'?
+   ';'?
+
+// `IN ACCESS SHARE | ROW SHARE | ROW EXCLUSIVE | SHARE UPDATE EXCLUSIVE
+// | SHARE | SHARE ROW EXCLUSIVE | EXCLUSIVE | ACCESS EXCLUSIVE MODE` --
+// the valid word combinations are checked by the parser.
+PsqlLockMode =
+   'in'
+   lead: ('access' | 'row' | 'share' | 'exclusive')
+   middle: ('row' | 'update')?
+   tail: ('share' | 'exclusive')?
+   'mode'
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =

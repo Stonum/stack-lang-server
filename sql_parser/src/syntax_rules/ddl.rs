@@ -493,6 +493,8 @@ impl ParseSeparatedList for SqlTableNameList {
             || p.at(T![restrict])
             || p.at(T![restart])
             || p.at(T![continue])
+            || p.at(T![in])
+            || p.at(T![nowait])
     }
 
     fn recover(

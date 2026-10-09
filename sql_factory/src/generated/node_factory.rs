@@ -1111,6 +1111,109 @@ pub fn psql_limit_clause(
         ],
     ))
 }
+pub fn psql_lock_mode(
+    in_token: SyntaxToken,
+    lead_token: SyntaxToken,
+    mode_token: SyntaxToken,
+) -> PsqlLockModeBuilder {
+    PsqlLockModeBuilder {
+        in_token,
+        lead_token,
+        mode_token,
+        middle_token: None,
+        tail_token: None,
+    }
+}
+pub struct PsqlLockModeBuilder {
+    in_token: SyntaxToken,
+    lead_token: SyntaxToken,
+    mode_token: SyntaxToken,
+    middle_token: Option<SyntaxToken>,
+    tail_token: Option<SyntaxToken>,
+}
+impl PsqlLockModeBuilder {
+    pub fn with_middle_token(mut self, middle_token: SyntaxToken) -> Self {
+        self.middle_token = Some(middle_token);
+        self
+    }
+    pub fn with_tail_token(mut self, tail_token: SyntaxToken) -> Self {
+        self.tail_token = Some(tail_token);
+        self
+    }
+    pub fn build(self) -> PsqlLockMode {
+        PsqlLockMode::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_LOCK_MODE,
+            [
+                Some(SyntaxElement::Token(self.in_token)),
+                Some(SyntaxElement::Token(self.lead_token)),
+                self.middle_token.map(|token| SyntaxElement::Token(token)),
+                self.tail_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.mode_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_lock_statement(
+    lock_token: SyntaxToken,
+    tables: SqlTableNameList,
+) -> PsqlLockStatementBuilder {
+    PsqlLockStatementBuilder {
+        lock_token,
+        tables,
+        table_token: None,
+        only_token: None,
+        mode: None,
+        nowait_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlLockStatementBuilder {
+    lock_token: SyntaxToken,
+    tables: SqlTableNameList,
+    table_token: Option<SyntaxToken>,
+    only_token: Option<SyntaxToken>,
+    mode: Option<PsqlLockMode>,
+    nowait_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlLockStatementBuilder {
+    pub fn with_table_token(mut self, table_token: SyntaxToken) -> Self {
+        self.table_token = Some(table_token);
+        self
+    }
+    pub fn with_only_token(mut self, only_token: SyntaxToken) -> Self {
+        self.only_token = Some(only_token);
+        self
+    }
+    pub fn with_mode(mut self, mode: PsqlLockMode) -> Self {
+        self.mode = Some(mode);
+        self
+    }
+    pub fn with_nowait_token(mut self, nowait_token: SyntaxToken) -> Self {
+        self.nowait_token = Some(nowait_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlLockStatement {
+        PsqlLockStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_LOCK_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.lock_token)),
+                self.table_token.map(|token| SyntaxElement::Token(token)),
+                self.only_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.tables.into_syntax())),
+                self.mode
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.nowait_token.map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_named_argument(
     name: SqlName,
     fat_arrow_token: SyntaxToken,

@@ -10,6 +10,7 @@ use super::delete::{parse_delete_statement, parse_delete_statement_body};
 use super::grant::{parse_grant_statement, parse_revoke_statement};
 use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
+use super::postgres::lock::parse_lock_statement;
 use super::postgres::maintenance::{parse_analyze_statement, parse_vacuum_statement};
 use super::postgres::materialized_view::parse_refresh_materialized_view_statement;
 use super::select::{parse_select_statement, parse_select_statement_body};
@@ -47,7 +48,8 @@ pub const STMT_RECOVERY_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![begin],
     T![start],
     T![commit],
-    T![rollback]
+    T![rollback],
+    T![lock]
 ];
 
 pub(crate) fn parse_statements(p: &mut SqlParser, statement_list: Marker) {
@@ -108,6 +110,7 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
         T![begin] | T![start] => parse_begin_statement(p),
         T![commit] => parse_commit_statement(p),
         T![rollback] => parse_rollback_statement(p),
+        T![lock] => parse_lock_statement(p),
         _ => Absent,
     }
 }
