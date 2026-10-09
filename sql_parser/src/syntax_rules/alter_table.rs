@@ -53,6 +53,8 @@ impl ParseSeparatedList for SqlAlterTableActionList {
             T![add] => parse_add_column_action(p),
             T![drop] => parse_drop_column_action(p),
             T![alter] => parse_alter_column_action(p),
+            T![rename] => parse_rename_action(p),
+            T![set] if p.nth_at(1, T![schema]) => parse_set_schema_action(p),
             _ => Absent,
         }
     }
@@ -147,6 +149,37 @@ fn parse_alter_column_operation(p: &mut SqlParser) -> ParsedSyntax {
         }
     };
     Present(m.complete(p, kind))
+}
+
+/// `RENAME TO new`, `RENAME CONSTRAINT old TO new` or `RENAME [COLUMN] old TO new`
+fn parse_rename_action(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![rename]);
+
+    if p.eat(T![to]) {
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        return Present(m.complete(p, SQL_RENAME_TABLE_ACTION));
+    }
+
+    let kind = if p.eat(T![constraint]) {
+        SQL_RENAME_CONSTRAINT_ACTION
+    } else {
+        p.eat(T![column]);
+        SQL_RENAME_COLUMN_ACTION
+    };
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    p.expect(T![to]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    Present(m.complete(p, kind))
+}
+
+/// `SET SCHEMA schema`
+fn parse_set_schema_action(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![set]);
+    p.bump(T![schema]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    Present(m.complete(p, SQL_SET_SCHEMA_ACTION))
 }
 
 /// `USING expr` after `ALTER COLUMN ... TYPE ...`; Postgres-only.

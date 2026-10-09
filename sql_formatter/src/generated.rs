@@ -4748,6 +4748,114 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlReferencesConstraint {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlRenameColumnAction>
+    for crate::sql::auxiliary::rename_column_action::FormatSqlRenameColumnAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlRenameColumnAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlRenameColumnAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlRenameColumnAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlRenameColumnAction,
+        crate::sql::auxiliary::rename_column_action::FormatSqlRenameColumnAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::rename_column_action::FormatSqlRenameColumnAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRenameColumnAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlRenameColumnAction,
+        crate::sql::auxiliary::rename_column_action::FormatSqlRenameColumnAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::rename_column_action::FormatSqlRenameColumnAction::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlRenameConstraintAction>
+    for crate::sql::auxiliary::rename_constraint_action::FormatSqlRenameConstraintAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlRenameConstraintAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlRenameConstraintAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlRenameConstraintAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlRenameConstraintAction,
+        crate::sql::auxiliary::rename_constraint_action::FormatSqlRenameConstraintAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: auxiliary :: rename_constraint_action :: FormatSqlRenameConstraintAction :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRenameConstraintAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlRenameConstraintAction,
+        crate::sql::auxiliary::rename_constraint_action::FormatSqlRenameConstraintAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: rename_constraint_action :: FormatSqlRenameConstraintAction :: default ())
+    }
+}
+impl FormatRule<sql_syntax::SqlRenameTableAction>
+    for crate::sql::auxiliary::rename_table_action::FormatSqlRenameTableAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlRenameTableAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlRenameTableAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlRenameTableAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlRenameTableAction,
+        crate::sql::auxiliary::rename_table_action::FormatSqlRenameTableAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::rename_table_action::FormatSqlRenameTableAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRenameTableAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlRenameTableAction,
+        crate::sql::auxiliary::rename_table_action::FormatSqlRenameTableAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::rename_table_action::FormatSqlRenameTableAction::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlRoot> for crate::sql::auxiliary::root::FormatSqlRoot {
     type Context = SqlFormatContext;
     #[inline(always)]
@@ -5116,6 +5224,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSetOperation {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::set_operation::FormatSqlSetOperation::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlSetSchemaAction>
+    for crate::sql::auxiliary::set_schema_action::FormatSqlSetSchemaAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlSetSchemaAction, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlSetSchemaAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlSetSchemaAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlSetSchemaAction,
+        crate::sql::auxiliary::set_schema_action::FormatSqlSetSchemaAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::set_schema_action::FormatSqlSetSchemaAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlSetSchemaAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlSetSchemaAction,
+        crate::sql::auxiliary::set_schema_action::FormatSqlSetSchemaAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::set_schema_action::FormatSqlSetSchemaAction::default(),
         )
     }
 }

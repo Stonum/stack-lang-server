@@ -185,3 +185,50 @@ fn test_alter_column_using_rejected_under_mssql_dialect() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_alter_table_rename_forms() {
+    for (src, kind) in [
+        (
+            "alter table t rename column a to b",
+            "SQL_RENAME_COLUMN_ACTION",
+        ),
+        ("alter table t rename a to b", "SQL_RENAME_COLUMN_ACTION"),
+        ("alter table t rename to u", "SQL_RENAME_TABLE_ACTION"),
+        (
+            "alter table t rename constraint c to d",
+            "SQL_RENAME_CONSTRAINT_ACTION",
+        ),
+        ("alter table t set schema s", "SQL_SET_SCHEMA_ACTION"),
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains(kind), "{src}");
+    }
+}
+
+#[test]
+fn test_alter_table_rename_mlang_names() {
+    let res = parse(
+        r#"alter table ~Таблица~ rename column "Поле" to "Новое поле""#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_rename_is_still_a_valid_column_name() {
+    let res = parse("select rename from t", postgres());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_alter_table_rename_without_to_reports_error() {
+    let res = parse("alter table t rename column a b", postgres());
+
+    assert!(res.has_errors());
+}

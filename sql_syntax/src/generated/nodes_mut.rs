@@ -3343,6 +3343,90 @@ impl SqlReferencesConstraint {
         ))
     }
 }
+impl SqlRenameColumnAction {
+    pub fn with_rename_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_column_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_old_name(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_to_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_new_name(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl SqlRenameConstraintAction {
+    pub fn with_rename_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_constraint_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_old_name(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_to_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_new_name(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl SqlRenameTableAction {
+    pub fn with_rename_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_to_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_new_name(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl SqlRoot {
     pub fn with_bom_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
@@ -3609,6 +3693,26 @@ impl SqlSetOperation {
             6usize..=6usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
+    }
+}
+impl SqlSetSchemaAction {
+    pub fn with_set_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_schema_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_schema(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
     }
 }
 impl SqlShemaName {

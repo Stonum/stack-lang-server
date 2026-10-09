@@ -3435,6 +3435,77 @@ impl SqlReferencesConstraintBuilder {
         ))
     }
 }
+pub fn sql_rename_column_action(
+    rename_token: SyntaxToken,
+    old_name: SqlName,
+    to_token: SyntaxToken,
+    new_name: SqlName,
+) -> SqlRenameColumnActionBuilder {
+    SqlRenameColumnActionBuilder {
+        rename_token,
+        old_name,
+        to_token,
+        new_name,
+        column_token: None,
+    }
+}
+pub struct SqlRenameColumnActionBuilder {
+    rename_token: SyntaxToken,
+    old_name: SqlName,
+    to_token: SyntaxToken,
+    new_name: SqlName,
+    column_token: Option<SyntaxToken>,
+}
+impl SqlRenameColumnActionBuilder {
+    pub fn with_column_token(mut self, column_token: SyntaxToken) -> Self {
+        self.column_token = Some(column_token);
+        self
+    }
+    pub fn build(self) -> SqlRenameColumnAction {
+        SqlRenameColumnAction::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_RENAME_COLUMN_ACTION,
+            [
+                Some(SyntaxElement::Token(self.rename_token)),
+                self.column_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.old_name.into_syntax())),
+                Some(SyntaxElement::Token(self.to_token)),
+                Some(SyntaxElement::Node(self.new_name.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn sql_rename_constraint_action(
+    rename_token: SyntaxToken,
+    constraint_token: SyntaxToken,
+    old_name: SqlName,
+    to_token: SyntaxToken,
+    new_name: SqlName,
+) -> SqlRenameConstraintAction {
+    SqlRenameConstraintAction::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_RENAME_CONSTRAINT_ACTION,
+        [
+            Some(SyntaxElement::Token(rename_token)),
+            Some(SyntaxElement::Token(constraint_token)),
+            Some(SyntaxElement::Node(old_name.into_syntax())),
+            Some(SyntaxElement::Token(to_token)),
+            Some(SyntaxElement::Node(new_name.into_syntax())),
+        ],
+    ))
+}
+pub fn sql_rename_table_action(
+    rename_token: SyntaxToken,
+    to_token: SyntaxToken,
+    new_name: SqlName,
+) -> SqlRenameTableAction {
+    SqlRenameTableAction::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_RENAME_TABLE_ACTION,
+        [
+            Some(SyntaxElement::Token(rename_token)),
+            Some(SyntaxElement::Token(to_token)),
+            Some(SyntaxElement::Node(new_name.into_syntax())),
+        ],
+    ))
+}
 pub fn sql_root(stmt: SqlStatementList, eof_token: SyntaxToken) -> SqlRootBuilder {
     SqlRootBuilder {
         stmt,
@@ -3766,6 +3837,20 @@ impl SqlSetOperationBuilder {
             ],
         ))
     }
+}
+pub fn sql_set_schema_action(
+    set_token: SyntaxToken,
+    schema_token: SyntaxToken,
+    schema: SqlName,
+) -> SqlSetSchemaAction {
+    SqlSetSchemaAction::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_SET_SCHEMA_ACTION,
+        [
+            Some(SyntaxElement::Token(set_token)),
+            Some(SyntaxElement::Token(schema_token)),
+            Some(SyntaxElement::Node(schema.into_syntax())),
+        ],
+    ))
 }
 pub fn sql_shema_name(name: SqlName, dot_token: SyntaxToken) -> SqlShemaNameBuilder {
     SqlShemaNameBuilder {

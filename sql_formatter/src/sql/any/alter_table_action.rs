@@ -12,6 +12,10 @@ impl FormatRule<AnySqlAlterTableAction> for FormatAnySqlAlterTableAction {
             AnySqlAlterTableAction::SqlAlterColumnAction(node) => node.format().fmt(f),
             AnySqlAlterTableAction::SqlAlterTriggerAction(node) => node.format().fmt(f),
             AnySqlAlterTableAction::SqlDropColumnAction(node) => node.format().fmt(f),
+            AnySqlAlterTableAction::SqlRenameColumnAction(node) => node.format().fmt(f),
+            AnySqlAlterTableAction::SqlRenameConstraintAction(node) => node.format().fmt(f),
+            AnySqlAlterTableAction::SqlRenameTableAction(node) => node.format().fmt(f),
+            AnySqlAlterTableAction::SqlSetSchemaAction(node) => node.format().fmt(f),
         }
     }
 }
