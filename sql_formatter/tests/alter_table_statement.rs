@@ -246,3 +246,93 @@ alter table accounts
 "#
     );
 }
+
+#[test]
+fn format_alter_table_add_and_drop_constraints() {
+    assert_fmt!(
+        r#"--
+alter table t add constraint pk_t primary key (id), drop constraint if exists old_check cascade
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_constraints_normalize_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+ALTER TABLE t  ADD  CONSTRAINT c  UNIQUE(a,b) ,DROP  CONSTRAINT  IF  EXISTS  d  RESTRICT
+"#,
+        r#"--
+alter table t add constraint c unique (a, b), drop constraint if exists d restrict
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_long_constraints_one_per_line() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts add constraint accounts_owner_fk foreign key (owner_id) references owners (id), add constraint accounts_code_unique unique (code)
+"#,
+        r#"--
+alter table accounts
+	add constraint accounts_owner_fk foreign key (owner_id) references owners (id),
+	add constraint accounts_code_unique unique (code)
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_add_long_check_wraps_inside_its_parentheses() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts add constraint some_check check (amount > 0 and amount < 100 and amount <> 5 and amount <> 7 and amount <> 9 and amount <> 11)
+"#,
+        r#"--
+alter table accounts
+	add constraint some_check check (
+		amount > 0
+			and amount < 100
+			and amount <> 5
+			and amount <> 7
+			and amount <> 9
+			and amount <> 11
+	)
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_add_primary_key_with_many_columns_fills_several_lines() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts add primary key (id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags, extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth)
+"#,
+        r#"--
+alter table accounts
+	add primary key (
+		id, name, code, kind, state, owner, created, updated, deleted, comment, parent, sort, flags,
+		extra, more, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth
+	)
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_drop_constraints_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts drop constraint a, drop constraint b, drop constraint c, drop constraint d, drop constraint e, drop constraint f, drop constraint g
+"#,
+        r#"--
+alter table accounts
+	drop constraint a,
+	drop constraint b,
+	drop constraint c,
+	drop constraint d,
+	drop constraint e,
+	drop constraint f,
+	drop constraint g
+"#
+    );
+}

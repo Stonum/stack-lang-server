@@ -519,6 +519,21 @@ AnySqlAlterTableAction =
    | SqlRenameTableAction
    | SqlRenameConstraintAction
    | SqlSetSchemaAction
+   | SqlAddConstraintAction
+   | SqlDropConstraintAction
+
+// `ADD [CONSTRAINT name] PRIMARY KEY (...) | UNIQUE (...) | CHECK (...) | FOREIGN KEY ...`
+SqlAddConstraintAction =
+   'add'
+   constraint: SqlTableConstraint
+
+// `DROP CONSTRAINT [IF EXISTS] name [CASCADE | RESTRICT]`
+SqlDropConstraintAction =
+   'drop'
+   'constraint'
+   ('if' 'exists')?
+   name: SqlName
+   drop_behavior: ('cascade' | 'restrict')?
 
 // `RENAME [COLUMN] old TO new`
 SqlRenameColumnAction =

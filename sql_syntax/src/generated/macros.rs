@@ -283,6 +283,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlAddColumnAction::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_ADD_CONSTRAINT_ACTION => {
+                    let $pattern = unsafe { $crate::SqlAddConstraintAction::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ALIAS => {
                     let $pattern = unsafe { $crate::SqlAlias::new_unchecked(node) };
                     $body
@@ -416,6 +420,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_COLUMN_NOT_NULL => {
                     let $pattern = unsafe { $crate::SqlDropColumnNotNull::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_DROP_CONSTRAINT_ACTION => {
+                    let $pattern = unsafe { $crate::SqlDropConstraintAction::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_FUNCTION_STATEMENT => {

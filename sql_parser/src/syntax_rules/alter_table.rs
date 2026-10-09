@@ -3,7 +3,10 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::ddl::{parse_column_definition, parse_table_name_for_ddl};
+use super::ddl::{
+    is_at_table_constraint_start, parse_column_definition, parse_table_constraint,
+    parse_table_name_for_ddl,
+};
 use super::expr::{EXPR_RECOVERY_SET, parse_expression, parse_name, parse_type_name};
 use super::parse_error::{
     expected_alter_column_operation, expected_alter_table_action, expected_column_definition,
@@ -50,7 +53,8 @@ impl ParseSeparatedList for SqlAlterTableActionList {
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
         match p.cur() {
             T![enable] | T![disable] => parse_alter_trigger_action(p),
-            T![add] => parse_add_column_action(p),
+            T![add] => parse_add_action(p),
+            T![drop] if p.nth_at(1, T![constraint]) => parse_drop_constraint_action(p),
             T![drop] => parse_drop_column_action(p),
             T![alter] => parse_alter_column_action(p),
             T![rename] => parse_rename_action(p),
@@ -91,7 +95,12 @@ impl ParseSeparatedList for SqlAlterTableActionList {
 /// `alter table ...` statement.
 fn is_at_column_action(p: &mut SqlParser) -> bool {
     match p.cur() {
-        T![drop] => p.nth_at(1, T![column]) || p.nth_at(1, T![if]) || p.nth_at(1, T![ident]),
+        T![drop] => {
+            p.nth_at(1, T![column])
+                || p.nth_at(1, T![constraint])
+                || p.nth_at(1, T![if])
+                || p.nth_at(1, T![ident])
+        }
         T![alter] => p.nth_at(1, T![column]) || p.nth_at(1, T![ident]),
         _ => false,
     }
@@ -218,6 +227,36 @@ fn parse_alter_trigger_action(p: &mut SqlParser) -> ParsedSyntax {
 }
 
 /// `ADD [COLUMN] [IF NOT EXISTS] column definition`
+/// `ADD <table constraint>` or `ADD [COLUMN] ...`
+fn parse_add_action(p: &mut SqlParser) -> ParsedSyntax {
+    let is_constraint = p.lookahead(|p| {
+        p.bump(T![add]);
+        is_at_table_constraint_start(p)
+    });
+    if !is_constraint {
+        return parse_add_column_action(p);
+    }
+
+    let m = p.start();
+    p.bump(T![add]);
+    parse_table_constraint(p).ok();
+    Present(m.complete(p, SQL_ADD_CONSTRAINT_ACTION))
+}
+
+/// `DROP CONSTRAINT [IF EXISTS] name [CASCADE | RESTRICT]`
+fn parse_drop_constraint_action(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![drop]);
+    p.bump(T![constraint]);
+    if p.at(T![if]) {
+        p.bump(T![if]);
+        p.expect(T![exists]);
+    }
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    eat_cascade_or_restrict(p);
+    Present(m.complete(p, SQL_DROP_CONSTRAINT_ACTION))
+}
+
 fn parse_add_column_action(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![add]);

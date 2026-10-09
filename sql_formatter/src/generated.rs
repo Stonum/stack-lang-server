@@ -2298,6 +2298,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAddColumnAction {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlAddConstraintAction>
+    for crate::sql::auxiliary::add_constraint_action::FormatSqlAddConstraintAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlAddConstraintAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlAddConstraintAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlAddConstraintAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlAddConstraintAction,
+        crate::sql::auxiliary::add_constraint_action::FormatSqlAddConstraintAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::add_constraint_action::FormatSqlAddConstraintAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAddConstraintAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlAddConstraintAction,
+        crate::sql::auxiliary::add_constraint_action::FormatSqlAddConstraintAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::add_constraint_action::FormatSqlAddConstraintAction::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlAlias> for crate::sql::auxiliary::alias::FormatSqlAlias {
     type Context = SqlFormatContext;
     #[inline(always)]
@@ -3468,6 +3506,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropColumnNotNull {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::drop_column_not_null::FormatSqlDropColumnNotNull::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlDropConstraintAction>
+    for crate::sql::auxiliary::drop_constraint_action::FormatSqlDropConstraintAction
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlDropConstraintAction,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlDropConstraintAction>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlDropConstraintAction {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlDropConstraintAction,
+        crate::sql::auxiliary::drop_constraint_action::FormatSqlDropConstraintAction,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::drop_constraint_action::FormatSqlDropConstraintAction::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlDropConstraintAction {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlDropConstraintAction,
+        crate::sql::auxiliary::drop_constraint_action::FormatSqlDropConstraintAction,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::drop_constraint_action::FormatSqlDropConstraintAction::default(),
         )
     }
 }

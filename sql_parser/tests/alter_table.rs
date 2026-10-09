@@ -244,3 +244,74 @@ fn test_alter_table_rename_two_columns() {
     let tree = format!("{:#?}", res.syntax());
     assert_eq!(tree.matches("SQL_RENAME_COLUMN_ACTION").count(), 2);
 }
+
+#[test]
+fn test_alter_table_add_table_constraints() {
+    for (src, kind) in [
+        (
+            "alter table t add constraint pk_t primary key (id)",
+            "SQL_PRIMARY_KEY_TABLE_CONSTRAINT",
+        ),
+        (
+            "alter table t add primary key (id)",
+            "SQL_PRIMARY_KEY_TABLE_CONSTRAINT",
+        ),
+        (
+            "alter table t add unique (a, b)",
+            "SQL_UNIQUE_TABLE_CONSTRAINT",
+        ),
+        (
+            "alter table t add constraint c check (a > 0)",
+            "SQL_CHECK_CONSTRAINT",
+        ),
+        (
+            "alter table t add foreign key (a) references u (id)",
+            "SQL_FOREIGN_KEY_TABLE_CONSTRAINT",
+        ),
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("SQL_ADD_CONSTRAINT_ACTION"), "{src}");
+        assert!(tree.contains(kind), "{src}");
+    }
+}
+
+#[test]
+fn test_alter_table_add_column_named_like_a_keyword_is_still_a_column() {
+    let res = parse("alter table t add key int", postgres());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_ADD_COLUMN_ACTION"));
+}
+
+#[test]
+fn test_alter_table_drop_constraints() {
+    let res = parse(
+        "alter table t drop constraint if exists a cascade, drop constraint b, drop column c",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert_eq!(tree.matches("SQL_DROP_CONSTRAINT_ACTION").count(), 2);
+    assert!(tree.contains("SQL_DROP_COLUMN_ACTION"));
+}
+
+#[test]
+fn test_alter_table_drop_constraint_does_not_swallow_next_statement() {
+    let res = parse("alter table t drop constraint a\ndrop table u", postgres());
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_DROP_TABLE_STATEMENT"));
+}
+
+#[test]
+fn test_alter_table_add_constraint_without_body_reports_error() {
+    let res = parse("alter table t add constraint c;", postgres());
+
+    assert!(res.has_errors());
+}
