@@ -128,6 +128,7 @@ AnySqlStatement =
    | SqlRollbackStatement
    | PsqlLockStatement
    | PsqlCreateTablePartitionOfStatement
+   | SqlGoStatement
    | SqlTruncateStatement
    | SqlCallStatement
    | PsqlVacuumStatement
@@ -1094,6 +1095,12 @@ SqlRevokeStatement =
    'from'
    grantees: SqlGranteeList
    drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+// `GO` on its own line -- a client-side batch separator (MSSQL tools, and
+// Stack `.sql` scripts), not a server statement.
+SqlGoStatement =
+   'go'
    ';'?
 
 // `BEGIN [TRANSACTION | WORK]` / `START TRANSACTION` [;]

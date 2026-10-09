@@ -4019,6 +4019,32 @@ impl SqlFunctionBindingBuilder {
         ))
     }
 }
+pub fn sql_go_statement(go_token: SyntaxToken) -> SqlGoStatementBuilder {
+    SqlGoStatementBuilder {
+        go_token,
+        semicolon_token: None,
+    }
+}
+pub struct SqlGoStatementBuilder {
+    go_token: SyntaxToken,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlGoStatementBuilder {
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlGoStatement {
+        SqlGoStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_GO_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.go_token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn sql_grant_option_for(
     grant_token: SyntaxToken,
     option_token: SyntaxToken,

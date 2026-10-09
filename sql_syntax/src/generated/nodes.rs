@@ -7078,6 +7078,46 @@ pub struct SqlFunctionBindingFields {
     pub alias: Option<SqlAlias>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlGoStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlGoStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlGoStatementFields {
+        SqlGoStatementFields {
+            go_token: self.go_token(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn go_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlGoStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlGoStatementFields {
+    pub go_token: SyntaxResult<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlGrantOptionFor {
     pub(crate) syntax: SyntaxNode,
 }
@@ -11466,6 +11506,7 @@ pub enum AnySqlStatement {
     SqlDropTableStatement(SqlDropTableStatement),
     SqlDropViewStatement(SqlDropViewStatement),
     SqlEmptyStatement(SqlEmptyStatement),
+    SqlGoStatement(SqlGoStatement),
     SqlGrantStatement(SqlGrantStatement),
     SqlInsertStatement(SqlInsertStatement),
     SqlRevokeStatement(SqlRevokeStatement),
@@ -11583,6 +11624,12 @@ impl AnySqlStatement {
     pub fn as_sql_empty_statement(&self) -> Option<&SqlEmptyStatement> {
         match &self {
             Self::SqlEmptyStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_go_statement(&self) -> Option<&SqlGoStatement> {
+        match &self {
+            Self::SqlGoStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -19606,6 +19653,57 @@ impl From<SqlFunctionBinding> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlGoStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_GO_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_GO_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlGoStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlGoStatement")
+                .field("go_token", &support::DebugSyntaxResult(self.go_token()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlGoStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlGoStatement> for SyntaxNode {
+    fn from(n: SqlGoStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlGoStatement> for SyntaxElement {
+    fn from(n: SqlGoStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlGrantOptionFor {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -26084,6 +26182,11 @@ impl From<SqlEmptyStatement> for AnySqlStatement {
         Self::SqlEmptyStatement(node)
     }
 }
+impl From<SqlGoStatement> for AnySqlStatement {
+    fn from(node: SqlGoStatement) -> Self {
+        Self::SqlGoStatement(node)
+    }
+}
 impl From<SqlGrantStatement> for AnySqlStatement {
     fn from(node: SqlGrantStatement) -> Self {
         Self::SqlGrantStatement(node)
@@ -26212,6 +26315,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlDropTableStatement::KIND_SET)
         .union(SqlDropViewStatement::KIND_SET)
         .union(SqlEmptyStatement::KIND_SET)
+        .union(SqlGoStatement::KIND_SET)
         .union(SqlGrantStatement::KIND_SET)
         .union(SqlInsertStatement::KIND_SET)
         .union(SqlRevokeStatement::KIND_SET)
@@ -26253,6 +26357,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_DROP_TABLE_STATEMENT
                 | SQL_DROP_VIEW_STATEMENT
                 | SQL_EMPTY_STATEMENT
+                | SQL_GO_STATEMENT
                 | SQL_GRANT_STATEMENT
                 | SQL_INSERT_STATEMENT
                 | SQL_REVOKE_STATEMENT
@@ -26313,6 +26418,7 @@ impl AstNode for AnySqlStatement {
             }
             SQL_DROP_VIEW_STATEMENT => Self::SqlDropViewStatement(SqlDropViewStatement { syntax }),
             SQL_EMPTY_STATEMENT => Self::SqlEmptyStatement(SqlEmptyStatement { syntax }),
+            SQL_GO_STATEMENT => Self::SqlGoStatement(SqlGoStatement { syntax }),
             SQL_GRANT_STATEMENT => Self::SqlGrantStatement(SqlGrantStatement { syntax }),
             SQL_INSERT_STATEMENT => Self::SqlInsertStatement(SqlInsertStatement { syntax }),
             SQL_REVOKE_STATEMENT => Self::SqlRevokeStatement(SqlRevokeStatement { syntax }),
@@ -26387,6 +26493,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlDropTableStatement(it) => &it.syntax,
             Self::SqlDropViewStatement(it) => &it.syntax,
             Self::SqlEmptyStatement(it) => &it.syntax,
+            Self::SqlGoStatement(it) => &it.syntax,
             Self::SqlGrantStatement(it) => &it.syntax,
             Self::SqlInsertStatement(it) => &it.syntax,
             Self::SqlRevokeStatement(it) => &it.syntax,
@@ -26429,6 +26536,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlDropTableStatement(it) => it.syntax,
             Self::SqlDropViewStatement(it) => it.syntax,
             Self::SqlEmptyStatement(it) => it.syntax,
+            Self::SqlGoStatement(it) => it.syntax,
             Self::SqlGrantStatement(it) => it.syntax,
             Self::SqlInsertStatement(it) => it.syntax,
             Self::SqlRevokeStatement(it) => it.syntax,
@@ -26473,6 +26581,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlDropTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDropViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlEmptyStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlGoStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlGrantStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlRevokeStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -26517,6 +26626,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlDropTableStatement(it) => it.into(),
             AnySqlStatement::SqlDropViewStatement(it) => it.into(),
             AnySqlStatement::SqlEmptyStatement(it) => it.into(),
+            AnySqlStatement::SqlGoStatement(it) => it.into(),
             AnySqlStatement::SqlGrantStatement(it) => it.into(),
             AnySqlStatement::SqlInsertStatement(it) => it.into(),
             AnySqlStatement::SqlRevokeStatement(it) => it.into(),
@@ -27801,6 +27911,11 @@ impl std::fmt::Display for SqlFromItem {
     }
 }
 impl std::fmt::Display for SqlFunctionBinding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlGoStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

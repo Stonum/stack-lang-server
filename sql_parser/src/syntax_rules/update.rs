@@ -7,6 +7,7 @@ use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_expression, parse_n
 use super::from::{SqlFromItemList, parse_table_binding};
 use super::parse_error::*;
 use super::postgres::returning_clause::parse_returning_clause;
+use super::stmt::is_at_go_separator;
 use super::where_clause::parse_where_clause;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T, *};
@@ -69,6 +70,7 @@ impl ParseSeparatedList for SqlSetItemList {
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         p.at(EOF)
+            || is_at_go_separator(p)
             || p.at(T![;])
             || p.at(T![from])
             || p.at(T![where])

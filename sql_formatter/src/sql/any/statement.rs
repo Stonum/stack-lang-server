@@ -24,6 +24,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlDropTableStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlDropViewStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlEmptyStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlGoStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlGrantStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlInsertStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlRevokeStatement(node) => node.format().fmt(f),

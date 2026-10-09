@@ -4769,6 +4769,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlFunctionBinding {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlGoStatement>
+    for crate::sql::statements::go_statement::FormatSqlGoStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlGoStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlGoStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlGoStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlGoStatement,
+        crate::sql::statements::go_statement::FormatSqlGoStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::go_statement::FormatSqlGoStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlGoStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlGoStatement,
+        crate::sql::statements::go_statement::FormatSqlGoStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::go_statement::FormatSqlGoStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlGrantOptionFor>
     for crate::sql::auxiliary::grant_option_for::FormatSqlGrantOptionFor
 {

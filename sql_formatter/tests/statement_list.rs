@@ -22,8 +22,8 @@ create function foo() as 'select 1'
 }
 
 #[test]
-fn format_go_batch_separator_recovers_without_swallowing_the_next_statement() {
-    // `GO` isn't a real grammar node -- it falls into bogus-statement
+fn format_unknown_line_recovers_without_swallowing_the_next_statement() {
+    // An unknown word isn't a real grammar node -- it falls into bogus-statement
     // recovery and is printed verbatim (so `has_errors()` is legitimately
     // true here, unlike `assert_fmt!`'s usual expectation). What matters is
     // that it doesn't also swallow the `CREATE FUNCTION` statement that
@@ -34,7 +34,8 @@ fn format_go_batch_separator_recovers_without_swallowing_the_next_statement() {
     use sql_parser::parse;
     use sql_syntax::{SqlDialect, SqlFileSource};
 
-    let src = "drop function if exists foo;\nGO\ncreate function foo() as 'select 1';\nselect 1;\n";
+    let src =
+        "drop function if exists foo;\nUNKNOWN\ncreate function foo() as 'select 1';\nselect 1;\n";
     let syntax = SqlFileSource::query()
         .with_dialect(SqlDialect::Postgres)
         .with_mlang_extension(true);
@@ -50,7 +51,7 @@ fn format_go_batch_separator_recovers_without_swallowing_the_next_statement() {
 
     assert_eq!(
         result,
-        "drop function if exists foo;\nGO\ncreate function foo() as 'select 1';\nselect 1;\n"
+        "drop function if exists foo;\nUNKNOWN\ncreate function foo() as 'select 1';\nselect 1;\n"
     );
 }
 
