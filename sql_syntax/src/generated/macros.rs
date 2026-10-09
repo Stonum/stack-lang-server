@@ -42,6 +42,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlCreateFunctionStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_CREATE_MATERIALIZED_VIEW_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreateMaterializedViewStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_CREATE_POLICY_STATEMENT => {
                     let $pattern =
                         unsafe { $crate::PsqlCreatePolicyStatement::new_unchecked(node) };
@@ -75,6 +80,11 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::PSQL_DROP_FUNCTION_PARAMETERS => {
                     let $pattern =
                         unsafe { $crate::PsqlDropFunctionParameters::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_DROP_MATERIALIZED_VIEW_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlDropMaterializedViewStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_DROP_POLICY_STATEMENT => {
@@ -153,6 +163,12 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::PSQL_POLICY_WITH_CHECK_CLAUSE => {
                     let $pattern =
                         unsafe { $crate::PsqlPolicyWithCheckClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_REFRESH_MATERIALIZED_VIEW_STATEMENT => {
+                    let $pattern = unsafe {
+                        $crate::PsqlRefreshMaterializedViewStatement::new_unchecked(node)
+                    };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_RETURNING_CLAUSE => {

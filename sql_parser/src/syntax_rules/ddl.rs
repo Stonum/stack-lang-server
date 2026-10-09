@@ -17,6 +17,9 @@ use super::postgres::ddl::{
     parse_on_commit_clause, parse_table_query, parse_truncate_identity_clause, parse_view_options,
     parse_with_data_clause,
 };
+use super::postgres::materialized_view::{
+    parse_create_materialized_view_statement, parse_drop_materialized_view_statement,
+};
 use super::select::parse_select_statement;
 use super::stmt::STMT_RECOVERY_SET;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -38,6 +41,9 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     if p.nth_at(1, T![index]) || (p.nth_at(1, T![unique]) && p.nth_at(2, T![index])) {
         return parse_create_index_statement(p);
+    }
+    if p.nth_at(1, T![materialized]) {
+        return parse_create_materialized_view_statement(p);
     }
     if p.nth_at(1, T![policy]) {
         return parse_create_policy_statement(p);
@@ -135,7 +141,7 @@ fn is_at_create_table_as(p: &mut SqlParser) -> bool {
 }
 
 /// `select ...`, `with ... select ...`, `(select ...)` or `TABLE name`.
-fn parse_create_table_as_query(p: &mut SqlParser) -> ParsedSyntax {
+pub(crate) fn parse_create_table_as_query(p: &mut SqlParser) -> ParsedSyntax {
     match p.cur() {
         T![select] | T![with] => parse_with_prefixed_select_statement(p),
         T!['('] => parse_subquery_expression(p),
@@ -455,6 +461,9 @@ pub(crate) fn parse_drop_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     if p.nth_at(1, T![index]) {
         return parse_drop_index_statement(p);
+    }
+    if p.nth_at(1, T![materialized]) {
+        return parse_drop_materialized_view_statement(p);
     }
     if p.nth_at(1, T![policy]) {
         return parse_drop_policy_statement(p);

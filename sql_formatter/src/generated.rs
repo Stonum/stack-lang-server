@@ -218,6 +218,19 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreateFunctionStatement {
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_function_statement :: FormatPsqlCreateFunctionStatement :: default ())
     }
 }
+impl FormatRule < sql_syntax :: PsqlCreateMaterializedViewStatement > for crate :: psql :: statements :: create_materialized_view_statement :: FormatPsqlCreateMaterializedViewStatement { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlCreateMaterializedViewStatement , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlCreateMaterializedViewStatement > :: fmt (self , node , f) } }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCreateMaterializedViewStatement {
+    type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlCreateMaterializedViewStatement , crate :: psql :: statements :: create_materialized_view_statement :: FormatPsqlCreateMaterializedViewStatement > ;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: create_materialized_view_statement :: FormatPsqlCreateMaterializedViewStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreateMaterializedViewStatement {
+    type Format = FormatOwnedWithRule < sql_syntax :: PsqlCreateMaterializedViewStatement , crate :: psql :: statements :: create_materialized_view_statement :: FormatPsqlCreateMaterializedViewStatement > ;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_materialized_view_statement :: FormatPsqlCreateMaterializedViewStatement :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlCreatePolicyStatement>
     for crate::psql::statements::create_policy_statement::FormatPsqlCreatePolicyStatement
 {
@@ -498,6 +511,19 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropFunctionParameters {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: drop_function_parameters :: FormatPsqlDropFunctionParameters :: default ())
+    }
+}
+impl FormatRule < sql_syntax :: PsqlDropMaterializedViewStatement > for crate :: psql :: statements :: drop_materialized_view_statement :: FormatPsqlDropMaterializedViewStatement { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlDropMaterializedViewStatement , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlDropMaterializedViewStatement > :: fmt (self , node , f) } }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDropMaterializedViewStatement {
+    type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlDropMaterializedViewStatement , crate :: psql :: statements :: drop_materialized_view_statement :: FormatPsqlDropMaterializedViewStatement > ;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: drop_materialized_view_statement :: FormatPsqlDropMaterializedViewStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDropMaterializedViewStatement {
+    type Format = FormatOwnedWithRule < sql_syntax :: PsqlDropMaterializedViewStatement , crate :: psql :: statements :: drop_materialized_view_statement :: FormatPsqlDropMaterializedViewStatement > ;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: drop_materialized_view_statement :: FormatPsqlDropMaterializedViewStatement :: default ())
     }
 }
 impl FormatRule<sql_syntax::PsqlDropPolicyStatement>
@@ -1184,6 +1210,19 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPolicyWithCheckClause {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: policy_with_check_clause :: FormatPsqlPolicyWithCheckClause :: default ())
+    }
+}
+impl FormatRule < sql_syntax :: PsqlRefreshMaterializedViewStatement > for crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlRefreshMaterializedViewStatement , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlRefreshMaterializedViewStatement > :: fmt (self , node , f) } }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlRefreshMaterializedViewStatement {
+    type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlRefreshMaterializedViewStatement , crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement > ;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlRefreshMaterializedViewStatement {
+    type Format = FormatOwnedWithRule < sql_syntax :: PsqlRefreshMaterializedViewStatement , crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement > ;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement :: default ())
     }
 }
 impl FormatRule<sql_syntax::PsqlReturningClause>

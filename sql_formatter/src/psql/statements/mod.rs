@@ -2,8 +2,11 @@
 
 pub(crate) mod analyze_statement;
 pub(crate) mod create_function_statement;
+pub(crate) mod create_materialized_view_statement;
 pub(crate) mod create_policy_statement;
 pub(crate) mod create_trigger_statement;
+pub(crate) mod drop_materialized_view_statement;
 pub(crate) mod drop_policy_statement;
 pub(crate) mod drop_trigger_statement;
+pub(crate) mod refresh_materialized_view_statement;
 pub(crate) mod vacuum_statement;

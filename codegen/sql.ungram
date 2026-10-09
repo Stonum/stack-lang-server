@@ -114,6 +114,9 @@ AnySqlStatement =
    | SqlCreateIndexStatement
    | SqlDropIndexStatement
    | SqlAlterIndexStatement
+   | PsqlCreateMaterializedViewStatement
+   | PsqlDropMaterializedViewStatement
+   | PsqlRefreshMaterializedViewStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
@@ -712,6 +715,41 @@ AnySqlCreateTableAsQuery =
    SqlSelectStatement
    | SqlSubqueryExpression
    | PsqlTableQuery
+
+// `CREATE MATERIALIZED VIEW [IF NOT EXISTS] name [(col, ...)] [WITH (...)]
+// AS query [WITH [NO] DATA] [;]`
+PsqlCreateMaterializedViewStatement =
+   'create'
+   'materialized'
+   'view'
+   ('if' 'not' 'exists')?
+   name: SqlTableName
+   columns: SqlColumnList?
+   options: PsqlViewOptions?
+   'as'
+   query: AnySqlCreateTableAsQuery
+   with_data: PsqlWithDataClause?
+   ';'?
+
+// `DROP MATERIALIZED VIEW [IF EXISTS] name, ... [CASCADE | RESTRICT] [;]`
+PsqlDropMaterializedViewStatement =
+   'drop'
+   'materialized'
+   'view'
+   ('if' 'exists')?
+   views: SqlTableNameList
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+// `REFRESH MATERIALIZED VIEW [CONCURRENTLY] name [WITH [NO] DATA] [;]`
+PsqlRefreshMaterializedViewStatement =
+   'refresh'
+   'materialized'
+   'view'
+   'concurrently'?
+   name: SqlTableName
+   with_data: PsqlWithDataClause?
+   ';'?
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =
