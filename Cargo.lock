@@ -219,8 +219,7 @@ dependencies = [
 [[package]]
 name = "biome_parser"
 version = "0.5.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "811bb6840896a74483426ec61b9727731d6222caa3c09a0440c20d662cd1367e"
+source = "git+https://github.com/Stonum/biome_parser.git#d10fb403f31ab80719ffbe9d07299d5d98212d9d"
 dependencies = [
  "biome_console",
  "biome_diagnostics",
@@ -234,8 +233,7 @@ dependencies = [
 [[package]]
 name = "biome_rowan"
 version = "0.5.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ee4442bc598e3baead7453c4070b8b326f3b54287a583105d6ffd13c28b3ef0"
+source = "git+https://github.com/Stonum/biome_rowan.git#6da0329d808476b9b5888beeb4f6e238e9e27553"
 dependencies = [
  "biome_text_edit",
  "biome_text_size",
