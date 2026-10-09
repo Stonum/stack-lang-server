@@ -18,6 +18,7 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
             l_paren_token,
             elements,
             r_paren_token,
+            partition_by,
             on_commit,
             semicolon_token,
         } = node.as_fields();
@@ -50,6 +51,9 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
             ]
         )?;
 
+        if let Some(partition_by) = partition_by {
+            write!(f, [space(), partition_by.format()])?;
+        }
         if let Some(on_commit) = on_commit {
             write!(f, [space(), on_commit.format()])?;
         }

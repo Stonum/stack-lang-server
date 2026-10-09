@@ -210,6 +210,56 @@ pub struct PsqlArraySubscriptExpressionFields {
     pub r_brack_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlAttachPartitionAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlAttachPartitionAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlAttachPartitionActionFields {
+        PsqlAttachPartitionActionFields {
+            attach_token: self.attach_token(),
+            partition_token: self.partition_token(),
+            partition: self.partition(),
+            bound: self.bound(),
+        }
+    }
+    pub fn attach_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn partition_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn partition(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn bound(&self) -> SyntaxResult<AnyPsqlPartitionBound> {
+        support::required_node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlAttachPartitionAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlAttachPartitionActionFields {
+    pub attach_token: SyntaxResult<SyntaxToken>,
+    pub partition_token: SyntaxResult<SyntaxToken>,
+    pub partition: SyntaxResult<SqlTableName>,
+    pub bound: SyntaxResult<AnyPsqlPartitionBound>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCastExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -600,6 +650,101 @@ pub struct PsqlCreatePolicyStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCreateTablePartitionOfStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCreateTablePartitionOfStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCreateTablePartitionOfStatementFields {
+        PsqlCreateTablePartitionOfStatementFields {
+            create_token: self.create_token(),
+            persistence: self.persistence(),
+            table_token: self.table_token(),
+            if_token: self.if_token(),
+            not_token: self.not_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            partition_token: self.partition_token(),
+            of_token: self.of_token(),
+            parent: self.parent(),
+            bound: self.bound(),
+            partition_by: self.partition_by(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn create_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn persistence(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn table_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 6usize)
+    }
+    pub fn partition_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 7usize)
+    }
+    pub fn of_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 8usize)
+    }
+    pub fn parent(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 9usize)
+    }
+    pub fn bound(&self) -> SyntaxResult<AnyPsqlPartitionBound> {
+        support::required_node(&self.syntax, 10usize)
+    }
+    pub fn partition_by(&self) -> Option<PsqlPartitionByClause> {
+        support::node(&self.syntax, 11usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 12usize)
+    }
+}
+impl Serialize for PsqlCreateTablePartitionOfStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCreateTablePartitionOfStatementFields {
+    pub create_token: SyntaxResult<SyntaxToken>,
+    pub persistence: Option<SyntaxToken>,
+    pub table_token: SyntaxResult<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub not_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: SyntaxResult<SqlTableName>,
+    pub partition_token: SyntaxResult<SyntaxToken>,
+    pub of_token: SyntaxResult<SyntaxToken>,
+    pub parent: SyntaxResult<SqlTableName>,
+    pub bound: SyntaxResult<AnyPsqlPartitionBound>,
+    pub partition_by: Option<PsqlPartitionByClause>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCreateTriggerStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -783,6 +928,56 @@ impl Serialize for PsqlDeleteUsingClause {
 pub struct PsqlDeleteUsingClauseFields {
     pub using_token: SyntaxResult<SyntaxToken>,
     pub items: SqlFromItemList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlDetachPartitionAction {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlDetachPartitionAction {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlDetachPartitionActionFields {
+        PsqlDetachPartitionActionFields {
+            detach_token: self.detach_token(),
+            partition_token: self.partition_token(),
+            partition: self.partition(),
+            mode: self.mode(),
+        }
+    }
+    pub fn detach_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn partition_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn partition(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn mode(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlDetachPartitionAction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlDetachPartitionActionFields {
+    pub detach_token: SyntaxResult<SyntaxToken>,
+    pub partition_token: SyntaxResult<SyntaxToken>,
+    pub partition: SyntaxResult<SqlTableName>,
+    pub mode: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlDistinctOnClause {
@@ -2080,6 +2275,356 @@ pub struct PsqlParameterDefaultFields {
     pub value: SyntaxResult<AnySqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionByClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionByClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionByClauseFields {
+        PsqlPartitionByClauseFields {
+            partition_by_token: self.partition_by_token(),
+            strategy: self.strategy(),
+            l_paren_token: self.l_paren_token(),
+            keys: self.keys(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn partition_by_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn strategy(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn keys(&self) -> SqlExpressionList {
+        support::list(&self.syntax, 3usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlPartitionByClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionByClauseFields {
+    pub partition_by_token: SyntaxResult<SyntaxToken>,
+    pub strategy: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub keys: SqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionDefaultBound {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionDefaultBound {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionDefaultBoundFields {
+        PsqlPartitionDefaultBoundFields {
+            default_token: self.default_token(),
+        }
+    }
+    pub fn default_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlPartitionDefaultBound {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionDefaultBoundFields {
+    pub default_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionForValuesBound {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionForValuesBound {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionForValuesBoundFields {
+        PsqlPartitionForValuesBoundFields {
+            for_token: self.for_token(),
+            values_token: self.values_token(),
+            values: self.values(),
+        }
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn values_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn values(&self) -> SyntaxResult<AnyPsqlPartitionValues> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlPartitionForValuesBound {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionForValuesBoundFields {
+    pub for_token: SyntaxResult<SyntaxToken>,
+    pub values_token: SyntaxResult<SyntaxToken>,
+    pub values: SyntaxResult<AnyPsqlPartitionValues>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionHashValues {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionHashValues {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionHashValuesFields {
+        PsqlPartitionHashValuesFields {
+            with_token: self.with_token(),
+            l_paren_token: self.l_paren_token(),
+            modulus_token: self.modulus_token(),
+            modulus: self.modulus(),
+            comma_token: self.comma_token(),
+            remainder_token: self.remainder_token(),
+            remainder: self.remainder(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn with_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn modulus_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn modulus(&self) -> SyntaxResult<SqlNumberLiteralExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn comma_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn remainder_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn remainder(&self) -> SyntaxResult<SqlNumberLiteralExpression> {
+        support::required_node(&self.syntax, 6usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for PsqlPartitionHashValues {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionHashValuesFields {
+    pub with_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub modulus_token: SyntaxResult<SyntaxToken>,
+    pub modulus: SyntaxResult<SqlNumberLiteralExpression>,
+    pub comma_token: SyntaxResult<SyntaxToken>,
+    pub remainder_token: SyntaxResult<SyntaxToken>,
+    pub remainder: SyntaxResult<SqlNumberLiteralExpression>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionInValues {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionInValues {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionInValuesFields {
+        PsqlPartitionInValuesFields {
+            in_token: self.in_token(),
+            l_paren_token: self.l_paren_token(),
+            values: self.values(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn in_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn values(&self) -> SqlExpressionList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlPartitionInValues {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionInValuesFields {
+    pub in_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub values: SqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionRangeValues {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionRangeValues {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionRangeValuesFields {
+        PsqlPartitionRangeValuesFields {
+            from_token: self.from_token(),
+            from: self.from(),
+            to_token: self.to_token(),
+            to: self.to(),
+        }
+    }
+    pub fn from_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn from(&self) -> SyntaxResult<PsqlPartitionValueList> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn to_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn to(&self) -> SyntaxResult<PsqlPartitionValueList> {
+        support::required_node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlPartitionRangeValues {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionRangeValuesFields {
+    pub from_token: SyntaxResult<SyntaxToken>,
+    pub from: SyntaxResult<PsqlPartitionValueList>,
+    pub to_token: SyntaxResult<SyntaxToken>,
+    pub to: SyntaxResult<PsqlPartitionValueList>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPartitionValueList {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPartitionValueList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPartitionValueListFields {
+        PsqlPartitionValueListFields {
+            l_paren_token: self.l_paren_token(),
+            values: self.values(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn values(&self) -> SqlExpressionList {
+        support::list(&self.syntax, 1usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlPartitionValueList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPartitionValueListFields {
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub values: SqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPolicyForClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2933,6 +3478,46 @@ impl Serialize for PsqlTableAndColumns {
 pub struct PsqlTableAndColumnsFields {
     pub table: SyntaxResult<SqlTableName>,
     pub columns: Option<SqlColumnList>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTableLikeElement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTableLikeElement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTableLikeElementFields {
+        PsqlTableLikeElementFields {
+            like_token: self.like_token(),
+            source: self.source(),
+        }
+    }
+    pub fn like_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn source(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlTableLikeElement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTableLikeElementFields {
+    pub like_token: SyntaxResult<SyntaxToken>,
+    pub source: SyntaxResult<SqlTableName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTableQuery {
@@ -5258,6 +5843,7 @@ impl SqlCreateTableStatement {
             l_paren_token: self.l_paren_token(),
             elements: self.elements(),
             r_paren_token: self.r_paren_token(),
+            partition_by: self.partition_by(),
             on_commit: self.on_commit(),
             semicolon_token: self.semicolon_token(),
         }
@@ -5292,11 +5878,14 @@ impl SqlCreateTableStatement {
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 9usize)
     }
-    pub fn on_commit(&self) -> Option<PsqlOnCommitClause> {
+    pub fn partition_by(&self) -> Option<PsqlPartitionByClause> {
         support::node(&self.syntax, 10usize)
     }
+    pub fn on_commit(&self) -> Option<PsqlOnCommitClause> {
+        support::node(&self.syntax, 11usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 11usize)
+        support::token(&self.syntax, 12usize)
     }
 }
 impl Serialize for SqlCreateTableStatement {
@@ -5319,6 +5908,7 @@ pub struct SqlCreateTableStatementFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub elements: SqlTableElementList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub partition_by: Option<PsqlPartitionByClause>,
     pub on_commit: Option<PsqlOnCommitClause>,
     pub semicolon_token: Option<SyntaxToken>,
 }
@@ -10002,6 +10592,51 @@ impl AnyPsqlLanguageName {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlPartitionBound {
+    PsqlPartitionDefaultBound(PsqlPartitionDefaultBound),
+    PsqlPartitionForValuesBound(PsqlPartitionForValuesBound),
+}
+impl AnyPsqlPartitionBound {
+    pub fn as_psql_partition_default_bound(&self) -> Option<&PsqlPartitionDefaultBound> {
+        match &self {
+            Self::PsqlPartitionDefaultBound(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_partition_for_values_bound(&self) -> Option<&PsqlPartitionForValuesBound> {
+        match &self {
+            Self::PsqlPartitionForValuesBound(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlPartitionValues {
+    PsqlPartitionHashValues(PsqlPartitionHashValues),
+    PsqlPartitionInValues(PsqlPartitionInValues),
+    PsqlPartitionRangeValues(PsqlPartitionRangeValues),
+}
+impl AnyPsqlPartitionValues {
+    pub fn as_psql_partition_hash_values(&self) -> Option<&PsqlPartitionHashValues> {
+        match &self {
+            Self::PsqlPartitionHashValues(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_partition_in_values(&self) -> Option<&PsqlPartitionInValues> {
+        match &self {
+            Self::PsqlPartitionInValues(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_partition_range_values(&self) -> Option<&PsqlPartitionRangeValues> {
+        match &self {
+            Self::PsqlPartitionRangeValues(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlAlterColumnOperation {
     SqlAlterColumnType(SqlAlterColumnType),
     SqlDropColumnDefault(SqlDropColumnDefault),
@@ -10053,6 +10688,8 @@ pub enum AnySqlAlterTableAction {
     SqlRenameConstraintAction(SqlRenameConstraintAction),
     SqlRenameTableAction(SqlRenameTableAction),
     SqlSetSchemaAction(SqlSetSchemaAction),
+    PsqlAttachPartitionAction(PsqlAttachPartitionAction),
+    PsqlDetachPartitionAction(PsqlDetachPartitionAction),
 }
 impl AnySqlAlterTableAction {
     pub fn as_sql_add_column_action(&self) -> Option<&SqlAddColumnAction> {
@@ -10112,6 +10749,18 @@ impl AnySqlAlterTableAction {
     pub fn as_sql_set_schema_action(&self) -> Option<&SqlSetSchemaAction> {
         match &self {
             Self::SqlSetSchemaAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_attach_partition_action(&self) -> Option<&PsqlAttachPartitionAction> {
+        match &self {
+            Self::PsqlAttachPartitionAction(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_detach_partition_action(&self) -> Option<&PsqlDetachPartitionAction> {
+        match &self {
+            Self::PsqlDetachPartitionAction(item) => Some(item),
             _ => None,
         }
     }
@@ -10830,6 +11479,7 @@ pub enum AnySqlStatement {
     PsqlCreateFunctionStatement(PsqlCreateFunctionStatement),
     PsqlCreateMaterializedViewStatement(PsqlCreateMaterializedViewStatement),
     PsqlCreatePolicyStatement(PsqlCreatePolicyStatement),
+    PsqlCreateTablePartitionOfStatement(PsqlCreateTablePartitionOfStatement),
     PsqlCreateTriggerStatement(PsqlCreateTriggerStatement),
     PsqlDropExtensionStatement(PsqlDropExtensionStatement),
     PsqlDropMaterializedViewStatement(PsqlDropMaterializedViewStatement),
@@ -11016,6 +11666,14 @@ impl AnySqlStatement {
             _ => None,
         }
     }
+    pub fn as_psql_create_table_partition_of_statement(
+        &self,
+    ) -> Option<&PsqlCreateTablePartitionOfStatement> {
+        match &self {
+            Self::PsqlCreateTablePartitionOfStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_psql_create_trigger_statement(&self) -> Option<&PsqlCreateTriggerStatement> {
         match &self {
             Self::PsqlCreateTriggerStatement(item) => Some(item),
@@ -11125,6 +11783,7 @@ impl AnySqlTableConstraint {
 pub enum AnySqlTableElement {
     SqlColumnDefinition(SqlColumnDefinition),
     SqlTableConstraint(SqlTableConstraint),
+    PsqlTableLikeElement(PsqlTableLikeElement),
 }
 impl AnySqlTableElement {
     pub fn as_sql_column_definition(&self) -> Option<&SqlColumnDefinition> {
@@ -11136,6 +11795,12 @@ impl AnySqlTableElement {
     pub fn as_sql_table_constraint(&self) -> Option<&SqlTableConstraint> {
         match &self {
             Self::SqlTableConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_table_like_element(&self) -> Option<&PsqlTableLikeElement> {
+        match &self {
+            Self::PsqlTableLikeElement(item) => Some(item),
             _ => None,
         }
     }
@@ -11423,6 +12088,62 @@ impl From<PsqlArraySubscriptExpression> for SyntaxNode {
 }
 impl From<PsqlArraySubscriptExpression> for SyntaxElement {
     fn from(n: PsqlArraySubscriptExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlAttachPartitionAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ATTACH_PARTITION_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ATTACH_PARTITION_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlAttachPartitionAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlAttachPartitionAction")
+                .field(
+                    "attach_token",
+                    &support::DebugSyntaxResult(self.attach_token()),
+                )
+                .field(
+                    "partition_token",
+                    &support::DebugSyntaxResult(self.partition_token()),
+                )
+                .field("partition", &support::DebugSyntaxResult(self.partition()))
+                .field("bound", &support::DebugSyntaxResult(self.bound()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlAttachPartitionAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlAttachPartitionAction> for SyntaxNode {
+    fn from(n: PsqlAttachPartitionAction) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlAttachPartitionAction> for SyntaxElement {
+    fn from(n: PsqlAttachPartitionAction) -> Self {
         n.syntax.into()
     }
 }
@@ -11784,6 +12505,91 @@ impl From<PsqlCreatePolicyStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlCreateTablePartitionOfStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SyntaxKindSet::from_raw(RawSyntaxKind(
+        PSQL_CREATE_TABLE_PARTITION_OF_STATEMENT as u16,
+    ));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CREATE_TABLE_PARTITION_OF_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCreateTablePartitionOfStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCreateTablePartitionOfStatement")
+                .field(
+                    "create_token",
+                    &support::DebugSyntaxResult(self.create_token()),
+                )
+                .field(
+                    "persistence",
+                    &support::DebugOptionalElement(self.persistence()),
+                )
+                .field(
+                    "table_token",
+                    &support::DebugSyntaxResult(self.table_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field(
+                    "partition_token",
+                    &support::DebugSyntaxResult(self.partition_token()),
+                )
+                .field("of_token", &support::DebugSyntaxResult(self.of_token()))
+                .field("parent", &support::DebugSyntaxResult(self.parent()))
+                .field("bound", &support::DebugSyntaxResult(self.bound()))
+                .field(
+                    "partition_by",
+                    &support::DebugOptionalElement(self.partition_by()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlCreateTablePartitionOfStatement")
+                .finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCreateTablePartitionOfStatement> for SyntaxNode {
+    fn from(n: PsqlCreateTablePartitionOfStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCreateTablePartitionOfStatement> for SyntaxElement {
+    fn from(n: PsqlCreateTablePartitionOfStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlCreateTriggerStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -11971,6 +12777,62 @@ impl From<PsqlDeleteUsingClause> for SyntaxNode {
 }
 impl From<PsqlDeleteUsingClause> for SyntaxElement {
     fn from(n: PsqlDeleteUsingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlDetachPartitionAction {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_DETACH_PARTITION_ACTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_DETACH_PARTITION_ACTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlDetachPartitionAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlDetachPartitionAction")
+                .field(
+                    "detach_token",
+                    &support::DebugSyntaxResult(self.detach_token()),
+                )
+                .field(
+                    "partition_token",
+                    &support::DebugSyntaxResult(self.partition_token()),
+                )
+                .field("partition", &support::DebugSyntaxResult(self.partition()))
+                .field("mode", &support::DebugOptionalElement(self.mode()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlDetachPartitionAction").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlDetachPartitionAction> for SyntaxNode {
+    fn from(n: PsqlDetachPartitionAction) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlDetachPartitionAction> for SyntaxElement {
+    fn from(n: PsqlDetachPartitionAction) -> Self {
         n.syntax.into()
     }
 }
@@ -13389,6 +14251,398 @@ impl From<PsqlParameterDefault> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlPartitionByClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_BY_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_BY_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionByClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionByClause")
+                .field(
+                    "partition_by_token",
+                    &support::DebugSyntaxResult(self.partition_by_token()),
+                )
+                .field("strategy", &support::DebugSyntaxResult(self.strategy()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("keys", &self.keys())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionByClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionByClause> for SyntaxNode {
+    fn from(n: PsqlPartitionByClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionByClause> for SyntaxElement {
+    fn from(n: PsqlPartitionByClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPartitionDefaultBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_DEFAULT_BOUND as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_DEFAULT_BOUND
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionDefaultBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionDefaultBound")
+                .field(
+                    "default_token",
+                    &support::DebugSyntaxResult(self.default_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionDefaultBound").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionDefaultBound> for SyntaxNode {
+    fn from(n: PsqlPartitionDefaultBound) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionDefaultBound> for SyntaxElement {
+    fn from(n: PsqlPartitionDefaultBound) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPartitionForValuesBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_FOR_VALUES_BOUND as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_FOR_VALUES_BOUND
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionForValuesBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionForValuesBound")
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field(
+                    "values_token",
+                    &support::DebugSyntaxResult(self.values_token()),
+                )
+                .field("values", &support::DebugSyntaxResult(self.values()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionForValuesBound").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionForValuesBound> for SyntaxNode {
+    fn from(n: PsqlPartitionForValuesBound) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionForValuesBound> for SyntaxElement {
+    fn from(n: PsqlPartitionForValuesBound) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPartitionHashValues {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_HASH_VALUES as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_HASH_VALUES
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionHashValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionHashValues")
+                .field("with_token", &support::DebugSyntaxResult(self.with_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "modulus_token",
+                    &support::DebugSyntaxResult(self.modulus_token()),
+                )
+                .field("modulus", &support::DebugSyntaxResult(self.modulus()))
+                .field(
+                    "comma_token",
+                    &support::DebugSyntaxResult(self.comma_token()),
+                )
+                .field(
+                    "remainder_token",
+                    &support::DebugSyntaxResult(self.remainder_token()),
+                )
+                .field("remainder", &support::DebugSyntaxResult(self.remainder()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionHashValues").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionHashValues> for SyntaxNode {
+    fn from(n: PsqlPartitionHashValues) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionHashValues> for SyntaxElement {
+    fn from(n: PsqlPartitionHashValues) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPartitionInValues {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_IN_VALUES as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_IN_VALUES
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionInValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionInValues")
+                .field("in_token", &support::DebugSyntaxResult(self.in_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("values", &self.values())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionInValues").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionInValues> for SyntaxNode {
+    fn from(n: PsqlPartitionInValues) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionInValues> for SyntaxElement {
+    fn from(n: PsqlPartitionInValues) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPartitionRangeValues {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_RANGE_VALUES as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_RANGE_VALUES
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionRangeValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionRangeValues")
+                .field("from_token", &support::DebugSyntaxResult(self.from_token()))
+                .field("from", &support::DebugSyntaxResult(self.from()))
+                .field("to_token", &support::DebugSyntaxResult(self.to_token()))
+                .field("to", &support::DebugSyntaxResult(self.to()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionRangeValues").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionRangeValues> for SyntaxNode {
+    fn from(n: PsqlPartitionRangeValues) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionRangeValues> for SyntaxElement {
+    fn from(n: PsqlPartitionRangeValues) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPartitionValueList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PARTITION_VALUE_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PARTITION_VALUE_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPartitionValueList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPartitionValueList")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("values", &self.values())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPartitionValueList").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPartitionValueList> for SyntaxNode {
+    fn from(n: PsqlPartitionValueList) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPartitionValueList> for SyntaxElement {
+    fn from(n: PsqlPartitionValueList) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlPolicyForClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -14409,6 +15663,54 @@ impl From<PsqlTableAndColumns> for SyntaxNode {
 }
 impl From<PsqlTableAndColumns> for SyntaxElement {
     fn from(n: PsqlTableAndColumns) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlTableLikeElement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TABLE_LIKE_ELEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TABLE_LIKE_ELEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTableLikeElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTableLikeElement")
+                .field("like_token", &support::DebugSyntaxResult(self.like_token()))
+                .field("source", &support::DebugSyntaxResult(self.source()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlTableLikeElement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTableLikeElement> for SyntaxNode {
+    fn from(n: PsqlTableLikeElement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTableLikeElement> for SyntaxElement {
+    fn from(n: PsqlTableLikeElement) -> Self {
         n.syntax.into()
     }
 }
@@ -17031,6 +18333,10 @@ impl std::fmt::Debug for SqlCreateTableStatement {
                 .field(
                     "r_paren_token",
                     &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field(
+                    "partition_by",
+                    &support::DebugOptionalElement(self.partition_by()),
                 )
                 .field(
                     "on_commit",
@@ -22461,6 +23767,153 @@ impl From<AnyPsqlLanguageName> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlPartitionDefaultBound> for AnyPsqlPartitionBound {
+    fn from(node: PsqlPartitionDefaultBound) -> Self {
+        Self::PsqlPartitionDefaultBound(node)
+    }
+}
+impl From<PsqlPartitionForValuesBound> for AnyPsqlPartitionBound {
+    fn from(node: PsqlPartitionForValuesBound) -> Self {
+        Self::PsqlPartitionForValuesBound(node)
+    }
+}
+impl AstNode for AnyPsqlPartitionBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlPartitionDefaultBound::KIND_SET.union(PsqlPartitionForValuesBound::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_PARTITION_DEFAULT_BOUND | PSQL_PARTITION_FOR_VALUES_BOUND
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_PARTITION_DEFAULT_BOUND => {
+                Self::PsqlPartitionDefaultBound(PsqlPartitionDefaultBound { syntax })
+            }
+            PSQL_PARTITION_FOR_VALUES_BOUND => {
+                Self::PsqlPartitionForValuesBound(PsqlPartitionForValuesBound { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlPartitionDefaultBound(it) => &it.syntax,
+            Self::PsqlPartitionForValuesBound(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlPartitionDefaultBound(it) => it.syntax,
+            Self::PsqlPartitionForValuesBound(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlPartitionBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlPartitionDefaultBound(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPartitionForValuesBound(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlPartitionBound> for SyntaxNode {
+    fn from(n: AnyPsqlPartitionBound) -> Self {
+        match n {
+            AnyPsqlPartitionBound::PsqlPartitionDefaultBound(it) => it.into(),
+            AnyPsqlPartitionBound::PsqlPartitionForValuesBound(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlPartitionBound> for SyntaxElement {
+    fn from(n: AnyPsqlPartitionBound) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
+impl From<PsqlPartitionHashValues> for AnyPsqlPartitionValues {
+    fn from(node: PsqlPartitionHashValues) -> Self {
+        Self::PsqlPartitionHashValues(node)
+    }
+}
+impl From<PsqlPartitionInValues> for AnyPsqlPartitionValues {
+    fn from(node: PsqlPartitionInValues) -> Self {
+        Self::PsqlPartitionInValues(node)
+    }
+}
+impl From<PsqlPartitionRangeValues> for AnyPsqlPartitionValues {
+    fn from(node: PsqlPartitionRangeValues) -> Self {
+        Self::PsqlPartitionRangeValues(node)
+    }
+}
+impl AstNode for AnyPsqlPartitionValues {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = PsqlPartitionHashValues::KIND_SET
+        .union(PsqlPartitionInValues::KIND_SET)
+        .union(PsqlPartitionRangeValues::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_PARTITION_HASH_VALUES | PSQL_PARTITION_IN_VALUES | PSQL_PARTITION_RANGE_VALUES
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_PARTITION_HASH_VALUES => {
+                Self::PsqlPartitionHashValues(PsqlPartitionHashValues { syntax })
+            }
+            PSQL_PARTITION_IN_VALUES => {
+                Self::PsqlPartitionInValues(PsqlPartitionInValues { syntax })
+            }
+            PSQL_PARTITION_RANGE_VALUES => {
+                Self::PsqlPartitionRangeValues(PsqlPartitionRangeValues { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlPartitionHashValues(it) => &it.syntax,
+            Self::PsqlPartitionInValues(it) => &it.syntax,
+            Self::PsqlPartitionRangeValues(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlPartitionHashValues(it) => it.syntax,
+            Self::PsqlPartitionInValues(it) => it.syntax,
+            Self::PsqlPartitionRangeValues(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlPartitionValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlPartitionHashValues(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPartitionInValues(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPartitionRangeValues(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlPartitionValues> for SyntaxNode {
+    fn from(n: AnyPsqlPartitionValues) -> Self {
+        match n {
+            AnyPsqlPartitionValues::PsqlPartitionHashValues(it) => it.into(),
+            AnyPsqlPartitionValues::PsqlPartitionInValues(it) => it.into(),
+            AnyPsqlPartitionValues::PsqlPartitionRangeValues(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlPartitionValues> for SyntaxElement {
+    fn from(n: AnyPsqlPartitionValues) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlAlterColumnType> for AnySqlAlterColumnOperation {
     fn from(node: SqlAlterColumnType) -> Self {
         Self::SqlAlterColumnType(node)
@@ -22611,6 +24064,16 @@ impl From<SqlSetSchemaAction> for AnySqlAlterTableAction {
         Self::SqlSetSchemaAction(node)
     }
 }
+impl From<PsqlAttachPartitionAction> for AnySqlAlterTableAction {
+    fn from(node: PsqlAttachPartitionAction) -> Self {
+        Self::PsqlAttachPartitionAction(node)
+    }
+}
+impl From<PsqlDetachPartitionAction> for AnySqlAlterTableAction {
+    fn from(node: PsqlDetachPartitionAction) -> Self {
+        Self::PsqlDetachPartitionAction(node)
+    }
+}
 impl AstNode for AnySqlAlterTableAction {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlAddColumnAction::KIND_SET
@@ -22622,7 +24085,9 @@ impl AstNode for AnySqlAlterTableAction {
         .union(SqlRenameColumnAction::KIND_SET)
         .union(SqlRenameConstraintAction::KIND_SET)
         .union(SqlRenameTableAction::KIND_SET)
-        .union(SqlSetSchemaAction::KIND_SET);
+        .union(SqlSetSchemaAction::KIND_SET)
+        .union(PsqlAttachPartitionAction::KIND_SET)
+        .union(PsqlDetachPartitionAction::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
@@ -22636,6 +24101,8 @@ impl AstNode for AnySqlAlterTableAction {
                 | SQL_RENAME_CONSTRAINT_ACTION
                 | SQL_RENAME_TABLE_ACTION
                 | SQL_SET_SCHEMA_ACTION
+                | PSQL_ATTACH_PARTITION_ACTION
+                | PSQL_DETACH_PARTITION_ACTION
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
@@ -22660,6 +24127,12 @@ impl AstNode for AnySqlAlterTableAction {
             }
             SQL_RENAME_TABLE_ACTION => Self::SqlRenameTableAction(SqlRenameTableAction { syntax }),
             SQL_SET_SCHEMA_ACTION => Self::SqlSetSchemaAction(SqlSetSchemaAction { syntax }),
+            PSQL_ATTACH_PARTITION_ACTION => {
+                Self::PsqlAttachPartitionAction(PsqlAttachPartitionAction { syntax })
+            }
+            PSQL_DETACH_PARTITION_ACTION => {
+                Self::PsqlDetachPartitionAction(PsqlDetachPartitionAction { syntax })
+            }
             _ => return None,
         };
         Some(res)
@@ -22676,6 +24149,8 @@ impl AstNode for AnySqlAlterTableAction {
             Self::SqlRenameConstraintAction(it) => &it.syntax,
             Self::SqlRenameTableAction(it) => &it.syntax,
             Self::SqlSetSchemaAction(it) => &it.syntax,
+            Self::PsqlAttachPartitionAction(it) => &it.syntax,
+            Self::PsqlDetachPartitionAction(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
@@ -22690,6 +24165,8 @@ impl AstNode for AnySqlAlterTableAction {
             Self::SqlRenameConstraintAction(it) => it.syntax,
             Self::SqlRenameTableAction(it) => it.syntax,
             Self::SqlSetSchemaAction(it) => it.syntax,
+            Self::PsqlAttachPartitionAction(it) => it.syntax,
+            Self::PsqlDetachPartitionAction(it) => it.syntax,
         }
     }
 }
@@ -22706,6 +24183,8 @@ impl std::fmt::Debug for AnySqlAlterTableAction {
             Self::SqlRenameConstraintAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlRenameTableAction(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSetSchemaAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlAttachPartitionAction(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlDetachPartitionAction(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -22722,6 +24201,8 @@ impl From<AnySqlAlterTableAction> for SyntaxNode {
             AnySqlAlterTableAction::SqlRenameConstraintAction(it) => it.into(),
             AnySqlAlterTableAction::SqlRenameTableAction(it) => it.into(),
             AnySqlAlterTableAction::SqlSetSchemaAction(it) => it.into(),
+            AnySqlAlterTableAction::PsqlAttachPartitionAction(it) => it.into(),
+            AnySqlAlterTableAction::PsqlDetachPartitionAction(it) => it.into(),
         }
     }
 }
@@ -24668,6 +26149,11 @@ impl From<PsqlCreatePolicyStatement> for AnySqlStatement {
         Self::PsqlCreatePolicyStatement(node)
     }
 }
+impl From<PsqlCreateTablePartitionOfStatement> for AnySqlStatement {
+    fn from(node: PsqlCreateTablePartitionOfStatement) -> Self {
+        Self::PsqlCreateTablePartitionOfStatement(node)
+    }
+}
 impl From<PsqlCreateTriggerStatement> for AnySqlStatement {
     fn from(node: PsqlCreateTriggerStatement) -> Self {
         Self::PsqlCreateTriggerStatement(node)
@@ -24739,6 +26225,7 @@ impl AstNode for AnySqlStatement {
         .union(PsqlCreateFunctionStatement::KIND_SET)
         .union(PsqlCreateMaterializedViewStatement::KIND_SET)
         .union(PsqlCreatePolicyStatement::KIND_SET)
+        .union(PsqlCreateTablePartitionOfStatement::KIND_SET)
         .union(PsqlCreateTriggerStatement::KIND_SET)
         .union(PsqlDropExtensionStatement::KIND_SET)
         .union(PsqlDropMaterializedViewStatement::KIND_SET)
@@ -24779,6 +26266,7 @@ impl AstNode for AnySqlStatement {
                 | PSQL_CREATE_FUNCTION_STATEMENT
                 | PSQL_CREATE_MATERIALIZED_VIEW_STATEMENT
                 | PSQL_CREATE_POLICY_STATEMENT
+                | PSQL_CREATE_TABLE_PARTITION_OF_STATEMENT
                 | PSQL_CREATE_TRIGGER_STATEMENT
                 | PSQL_DROP_EXTENSION_STATEMENT
                 | PSQL_DROP_MATERIALIZED_VIEW_STATEMENT
@@ -24848,6 +26336,11 @@ impl AstNode for AnySqlStatement {
             PSQL_CREATE_POLICY_STATEMENT => {
                 Self::PsqlCreatePolicyStatement(PsqlCreatePolicyStatement { syntax })
             }
+            PSQL_CREATE_TABLE_PARTITION_OF_STATEMENT => {
+                Self::PsqlCreateTablePartitionOfStatement(PsqlCreateTablePartitionOfStatement {
+                    syntax,
+                })
+            }
             PSQL_CREATE_TRIGGER_STATEMENT => {
                 Self::PsqlCreateTriggerStatement(PsqlCreateTriggerStatement { syntax })
             }
@@ -24907,6 +26400,7 @@ impl AstNode for AnySqlStatement {
             Self::PsqlCreateFunctionStatement(it) => &it.syntax,
             Self::PsqlCreateMaterializedViewStatement(it) => &it.syntax,
             Self::PsqlCreatePolicyStatement(it) => &it.syntax,
+            Self::PsqlCreateTablePartitionOfStatement(it) => &it.syntax,
             Self::PsqlCreateTriggerStatement(it) => &it.syntax,
             Self::PsqlDropExtensionStatement(it) => &it.syntax,
             Self::PsqlDropMaterializedViewStatement(it) => &it.syntax,
@@ -24948,6 +26442,7 @@ impl AstNode for AnySqlStatement {
             Self::PsqlCreateFunctionStatement(it) => it.syntax,
             Self::PsqlCreateMaterializedViewStatement(it) => it.syntax,
             Self::PsqlCreatePolicyStatement(it) => it.syntax,
+            Self::PsqlCreateTablePartitionOfStatement(it) => it.syntax,
             Self::PsqlCreateTriggerStatement(it) => it.syntax,
             Self::PsqlDropExtensionStatement(it) => it.syntax,
             Self::PsqlDropMaterializedViewStatement(it) => it.syntax,
@@ -24991,6 +26486,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::PsqlCreateFunctionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateMaterializedViewStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreatePolicyStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlCreateTablePartitionOfStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCreateTriggerStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropExtensionStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlDropMaterializedViewStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -25034,6 +26530,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::PsqlCreateFunctionStatement(it) => it.into(),
             AnySqlStatement::PsqlCreateMaterializedViewStatement(it) => it.into(),
             AnySqlStatement::PsqlCreatePolicyStatement(it) => it.into(),
+            AnySqlStatement::PsqlCreateTablePartitionOfStatement(it) => it.into(),
             AnySqlStatement::PsqlCreateTriggerStatement(it) => it.into(),
             AnySqlStatement::PsqlDropExtensionStatement(it) => it.into(),
             AnySqlStatement::PsqlDropMaterializedViewStatement(it) => it.into(),
@@ -25215,17 +26712,27 @@ impl From<SqlTableConstraint> for AnySqlTableElement {
         Self::SqlTableConstraint(node)
     }
 }
+impl From<PsqlTableLikeElement> for AnySqlTableElement {
+    fn from(node: PsqlTableLikeElement) -> Self {
+        Self::PsqlTableLikeElement(node)
+    }
+}
 impl AstNode for AnySqlTableElement {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SqlColumnDefinition::KIND_SET.union(SqlTableConstraint::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = SqlColumnDefinition::KIND_SET
+        .union(SqlTableConstraint::KIND_SET)
+        .union(PsqlTableLikeElement::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, SQL_COLUMN_DEFINITION | SQL_TABLE_CONSTRAINT)
+        matches!(
+            kind,
+            SQL_COLUMN_DEFINITION | SQL_TABLE_CONSTRAINT | PSQL_TABLE_LIKE_ELEMENT
+        )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             SQL_COLUMN_DEFINITION => Self::SqlColumnDefinition(SqlColumnDefinition { syntax }),
             SQL_TABLE_CONSTRAINT => Self::SqlTableConstraint(SqlTableConstraint { syntax }),
+            PSQL_TABLE_LIKE_ELEMENT => Self::PsqlTableLikeElement(PsqlTableLikeElement { syntax }),
             _ => return None,
         };
         Some(res)
@@ -25234,12 +26741,14 @@ impl AstNode for AnySqlTableElement {
         match self {
             Self::SqlColumnDefinition(it) => &it.syntax,
             Self::SqlTableConstraint(it) => &it.syntax,
+            Self::PsqlTableLikeElement(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::SqlColumnDefinition(it) => it.syntax,
             Self::SqlTableConstraint(it) => it.syntax,
+            Self::PsqlTableLikeElement(it) => it.syntax,
         }
     }
 }
@@ -25248,6 +26757,7 @@ impl std::fmt::Debug for AnySqlTableElement {
         match self {
             Self::SqlColumnDefinition(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlTableConstraint(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTableLikeElement(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -25256,6 +26766,7 @@ impl From<AnySqlTableElement> for SyntaxNode {
         match n {
             AnySqlTableElement::SqlColumnDefinition(it) => it.into(),
             AnySqlTableElement::SqlTableConstraint(it) => it.into(),
+            AnySqlTableElement::PsqlTableLikeElement(it) => it.into(),
         }
     }
 }
@@ -25464,6 +26975,16 @@ impl std::fmt::Display for AnyPsqlLanguageName {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlPartitionBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnyPsqlPartitionValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnySqlAlterColumnOperation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -25624,6 +27145,11 @@ impl std::fmt::Display for PsqlArraySubscriptExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlAttachPartitionAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlCastExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -25649,6 +27175,11 @@ impl std::fmt::Display for PsqlCreatePolicyStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlCreateTablePartitionOfStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlCreateTriggerStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -25660,6 +27191,11 @@ impl std::fmt::Display for PsqlCteMaterializedHint {
     }
 }
 impl std::fmt::Display for PsqlDeleteUsingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlDetachPartitionAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -25789,6 +27325,41 @@ impl std::fmt::Display for PsqlParameterDefault {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlPartitionByClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPartitionDefaultBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPartitionForValuesBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPartitionHashValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPartitionInValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPartitionRangeValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPartitionValueList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlPolicyForClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -25880,6 +27451,11 @@ impl std::fmt::Display for PsqlSubstringFromClause {
     }
 }
 impl std::fmt::Display for PsqlTableAndColumns {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTableLikeElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

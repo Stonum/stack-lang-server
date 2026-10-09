@@ -10,6 +10,7 @@ impl FormatRule<AnySqlTableElement> for FormatAnySqlTableElement {
         match node {
             AnySqlTableElement::SqlColumnDefinition(node) => node.format().fmt(f),
             AnySqlTableElement::SqlTableConstraint(node) => node.format().fmt(f),
+            AnySqlTableElement::PsqlTableLikeElement(node) => node.format().fmt(f),
         }
     }
 }

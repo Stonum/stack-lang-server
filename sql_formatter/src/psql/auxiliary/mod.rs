@@ -1,7 +1,9 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
 pub(crate) mod alter_column_using;
+pub(crate) mod attach_partition_action;
 pub(crate) mod cte_materialized_hint;
+pub(crate) mod detach_partition_action;
 pub(crate) mod drop_function_parameters;
 pub(crate) mod function_parameter;
 pub(crate) mod generated_column_constraint;
@@ -10,6 +12,12 @@ pub(crate) mod language_option;
 pub(crate) mod lock_mode;
 pub(crate) mod named_argument;
 pub(crate) mod parameter_default;
+pub(crate) mod partition_default_bound;
+pub(crate) mod partition_for_values_bound;
+pub(crate) mod partition_hash_values;
+pub(crate) mod partition_in_values;
+pub(crate) mod partition_range_values;
+pub(crate) mod partition_value_list;
 pub(crate) mod returns_null_option;
 pub(crate) mod returns_table_column;
 pub(crate) mod security_option;
@@ -17,6 +25,7 @@ pub(crate) mod sequence_option;
 pub(crate) mod sequence_options;
 pub(crate) mod strict_option;
 pub(crate) mod table_and_columns;
+pub(crate) mod table_like_element;
 pub(crate) mod table_query;
 pub(crate) mod tilde_array_suffix;
 pub(crate) mod trigger_event;
