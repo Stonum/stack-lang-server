@@ -112,6 +112,8 @@ AnySqlStatement =
    | SqlCreateTableAsStatement
    | SqlAlterTableStatement
    | SqlCreateIndexStatement
+   | SqlDropIndexStatement
+   | SqlAlterIndexStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
@@ -532,6 +534,26 @@ SqlIndexElementList = (SqlOrderByExpression (',' SqlOrderByExpression)*)
 SqlIndexIncludeClause =
    'include'
    columns: SqlColumnList
+
+// `DROP INDEX [CONCURRENTLY] [IF EXISTS] name, ... [CASCADE | RESTRICT] [;]`
+// -- `CONCURRENTLY` is Postgres-only.
+SqlDropIndexStatement =
+   'drop'
+   'index'
+   'concurrently'?
+   ('if' 'exists')?
+   indexes: SqlTableNameList
+   drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+// `ALTER INDEX [IF EXISTS] name RENAME TO new [;]`
+SqlAlterIndexStatement =
+   'alter'
+   'index'
+   ('if' 'exists')?
+   name: SqlTableName
+   action: SqlRenameTableAction
+   ';'?
 
 // `ALTER TABLE [IF EXISTS] [ONLY] name action, ... [;]`
 SqlAlterTableStatement =
