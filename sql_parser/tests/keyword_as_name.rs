@@ -110,3 +110,32 @@ fn test_parenthesized_values_in_from_is_still_a_subquery() {
     let tree = format!("{:#?}", res.syntax());
     assert!(!tree.contains("SQL_PARENTHESIZED_JOIN_BINDING"));
 }
+
+#[test]
+fn test_non_reserved_keywords_as_bare_aliases() {
+    for src in [
+        "select work.a from t work join u lock on lock.id = work.id",
+        "select a key, b text from t",
+        "select a from (select 1 as a) range",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("SQL_ALIAS"), "{src}");
+    }
+}
+
+#[test]
+fn test_bare_alias_stops_at_continuing_keywords() {
+    for src in [
+        "update t set a = 1",
+        "insert into t values (1)",
+        "select count(*) filter (where a > 0) over (partition by b) from t",
+        "select a from t\nGO\nselect b from u",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+    }
+}
