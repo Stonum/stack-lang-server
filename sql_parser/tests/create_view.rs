@@ -162,3 +162,41 @@ join ~other_table~ ot on lf.other_id = ot.row_id"#,
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_create_view_query_forms() {
+    for src in [
+        "create view v as with x as (select 1 as a) select a from x",
+        "create or replace view v as with recursive t(n) as (select 1 union all select n + 1 from t where n < 10) select n from t;",
+        "create view v as (select a from t)",
+        "create view v as (with x as (select 1 as a) select a from x)",
+        "create view v as table t",
+        "create view v (a, b) as select 1, 2",
+        r#"create view ~Представление~ ("Поле", "Ключ") with (security_invoker = true) as with x as (select 1 as a, 2 as b) select a, b from x"#,
+    ] {
+        let res = parse(src, mlang());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("SQL_CREATE_VIEW_STATEMENT"), "{src}");
+    }
+}
+
+#[test]
+fn test_create_view_with_query_followed_by_go_and_grant() {
+    let res = parse(
+        "create view v as with x as (select 1 as a) select a from x\nGO\ngrant all on table v to public\n",
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_GRANT_STATEMENT"));
+}
+
+#[test]
+fn test_create_view_without_query_reports_error() {
+    let res = parse("create view v as;", postgres());
+
+    assert!(res.has_errors());
+}

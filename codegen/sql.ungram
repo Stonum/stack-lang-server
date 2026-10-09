@@ -1055,9 +1055,10 @@ SqlCreateViewStatement =
    ('or' 'replace')?
    'view'
    name: SqlTableName
+   columns: SqlColumnList?
    options: PsqlViewOptions?
    'as'
-   query: SqlSelectStatement
+   query: AnySqlCreateTableAsQuery
    ';'?
 
 // `DROP VIEW [IF EXISTS] name (',' name)* [CASCADE|RESTRICT] [;]`

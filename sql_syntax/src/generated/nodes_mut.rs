@@ -3232,28 +3232,34 @@ impl SqlCreateViewStatement {
                 .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
         )
     }
-    pub fn with_options(self, element: Option<PsqlViewOptions>) -> Self {
+    pub fn with_columns(self, element: Option<SqlColumnList>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             5usize..=5usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_options(self, element: Option<PsqlViewOptions>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            6usize..=6usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
     pub fn with_as_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(6usize..=6usize, once(Some(element.into()))),
+                .splice_slots(7usize..=7usize, once(Some(element.into()))),
         )
     }
-    pub fn with_query(self, element: SqlSelectStatement) -> Self {
+    pub fn with_query(self, element: AnySqlCreateTableAsQuery) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(7usize..=7usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(8usize..=8usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(8usize..=8usize, once(element.map(|element| element.into()))),
+                .splice_slots(9usize..=9usize, once(element.map(|element| element.into()))),
         )
     }
 }

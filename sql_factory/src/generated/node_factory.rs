@@ -3275,7 +3275,7 @@ pub fn sql_create_view_statement(
     view_token: SyntaxToken,
     name: SqlTableName,
     as_token: SyntaxToken,
-    query: SqlSelectStatement,
+    query: AnySqlCreateTableAsQuery,
 ) -> SqlCreateViewStatementBuilder {
     SqlCreateViewStatementBuilder {
         create_token,
@@ -3285,6 +3285,7 @@ pub fn sql_create_view_statement(
         query,
         or_token: None,
         replace_token: None,
+        columns: None,
         options: None,
         semicolon_token: None,
     }
@@ -3294,9 +3295,10 @@ pub struct SqlCreateViewStatementBuilder {
     view_token: SyntaxToken,
     name: SqlTableName,
     as_token: SyntaxToken,
-    query: SqlSelectStatement,
+    query: AnySqlCreateTableAsQuery,
     or_token: Option<SyntaxToken>,
     replace_token: Option<SyntaxToken>,
+    columns: Option<SqlColumnList>,
     options: Option<PsqlViewOptions>,
     semicolon_token: Option<SyntaxToken>,
 }
@@ -3307,6 +3309,10 @@ impl SqlCreateViewStatementBuilder {
     }
     pub fn with_replace_token(mut self, replace_token: SyntaxToken) -> Self {
         self.replace_token = Some(replace_token);
+        self
+    }
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
         self
     }
     pub fn with_options(mut self, options: PsqlViewOptions) -> Self {
@@ -3326,6 +3332,8 @@ impl SqlCreateViewStatementBuilder {
                 self.replace_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.view_token)),
                 Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.options
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.as_token)),
