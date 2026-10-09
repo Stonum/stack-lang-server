@@ -4145,6 +4145,51 @@ pub struct SqlAnyAllExpressionFields {
     pub source: SyntaxResult<AnySqlAnyAllSource>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlBeginStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlBeginStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlBeginStatementFields {
+        SqlBeginStatementFields {
+            kind: self.kind(),
+            transaction_kind: self.transaction_kind(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn transaction_kind(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlBeginStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlBeginStatementFields {
+    pub kind: SyntaxResult<SyntaxToken>,
+    pub transaction_kind: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlBetweenExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4766,6 +4811,51 @@ pub struct SqlColumnListFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub items: SqlColumnNameList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCommitStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCommitStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCommitStatementFields {
+        SqlCommitStatementFields {
+            commit_token: self.commit_token(),
+            transaction_kind: self.transaction_kind(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn commit_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn transaction_kind(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlCommitStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCommitStatementFields {
+    pub commit_token: SyntaxResult<SyntaxToken>,
+    pub transaction_kind: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlConstraintName {
@@ -7868,6 +7958,51 @@ pub struct SqlRevokeStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlRollbackStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlRollbackStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlRollbackStatementFields {
+        SqlRollbackStatementFields {
+            rollback_token: self.rollback_token(),
+            transaction_kind: self.transaction_kind(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn rollback_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn transaction_kind(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlRollbackStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlRollbackStatementFields {
+    pub rollback_token: SyntaxResult<SyntaxToken>,
+    pub transaction_kind: Option<SyntaxToken>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlRoot {
     pub(crate) syntax: SyntaxNode,
 }
@@ -10548,8 +10683,10 @@ impl AnySqlSelectQuantifier {
 pub enum AnySqlStatement {
     SqlAlterIndexStatement(SqlAlterIndexStatement),
     SqlAlterTableStatement(SqlAlterTableStatement),
+    SqlBeginStatement(SqlBeginStatement),
     SqlBogusStatement(SqlBogusStatement),
     SqlCallStatement(SqlCallStatement),
+    SqlCommitStatement(SqlCommitStatement),
     SqlCreateIndexStatement(SqlCreateIndexStatement),
     SqlCreateTableAsStatement(SqlCreateTableAsStatement),
     SqlCreateTableStatement(SqlCreateTableStatement),
@@ -10563,6 +10700,7 @@ pub enum AnySqlStatement {
     SqlGrantStatement(SqlGrantStatement),
     SqlInsertStatement(SqlInsertStatement),
     SqlRevokeStatement(SqlRevokeStatement),
+    SqlRollbackStatement(SqlRollbackStatement),
     SqlSelectStatement(SqlSelectStatement),
     SqlTruncateStatement(SqlTruncateStatement),
     SqlUpdateStatement(SqlUpdateStatement),
@@ -10593,6 +10731,12 @@ impl AnySqlStatement {
             _ => None,
         }
     }
+    pub fn as_sql_begin_statement(&self) -> Option<&SqlBeginStatement> {
+        match &self {
+            Self::SqlBeginStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_sql_bogus_statement(&self) -> Option<&SqlBogusStatement> {
         match &self {
             Self::SqlBogusStatement(item) => Some(item),
@@ -10602,6 +10746,12 @@ impl AnySqlStatement {
     pub fn as_sql_call_statement(&self) -> Option<&SqlCallStatement> {
         match &self {
             Self::SqlCallStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_commit_statement(&self) -> Option<&SqlCommitStatement> {
+        match &self {
+            Self::SqlCommitStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -10680,6 +10830,12 @@ impl AnySqlStatement {
     pub fn as_sql_revoke_statement(&self) -> Option<&SqlRevokeStatement> {
         match &self {
             Self::SqlRevokeStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_rollback_statement(&self) -> Option<&SqlRollbackStatement> {
+        match &self {
+            Self::SqlRollbackStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -15537,6 +15693,61 @@ impl From<SqlAnyAllExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlBeginStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_BEGIN_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_BEGIN_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlBeginStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlBeginStatement")
+                .field("kind", &support::DebugSyntaxResult(self.kind()))
+                .field(
+                    "transaction_kind",
+                    &support::DebugOptionalElement(self.transaction_kind()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlBeginStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlBeginStatement> for SyntaxNode {
+    fn from(n: SqlBeginStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlBeginStatement> for SyntaxElement {
+    fn from(n: SqlBeginStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlBetweenExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -16227,6 +16438,64 @@ impl From<SqlColumnList> for SyntaxNode {
 }
 impl From<SqlColumnList> for SyntaxElement {
     fn from(n: SqlColumnList) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlCommitStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_COMMIT_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_COMMIT_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCommitStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCommitStatement")
+                .field(
+                    "commit_token",
+                    &support::DebugSyntaxResult(self.commit_token()),
+                )
+                .field(
+                    "transaction_kind",
+                    &support::DebugOptionalElement(self.transaction_kind()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlCommitStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCommitStatement> for SyntaxNode {
+    fn from(n: SqlCommitStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCommitStatement> for SyntaxElement {
+    fn from(n: SqlCommitStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -19616,6 +19885,64 @@ impl From<SqlRevokeStatement> for SyntaxNode {
 }
 impl From<SqlRevokeStatement> for SyntaxElement {
     fn from(n: SqlRevokeStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlRollbackStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_ROLLBACK_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_ROLLBACK_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlRollbackStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlRollbackStatement")
+                .field(
+                    "rollback_token",
+                    &support::DebugSyntaxResult(self.rollback_token()),
+                )
+                .field(
+                    "transaction_kind",
+                    &support::DebugOptionalElement(self.transaction_kind()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlRollbackStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlRollbackStatement> for SyntaxNode {
+    fn from(n: SqlRollbackStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlRollbackStatement> for SyntaxElement {
+    fn from(n: SqlRollbackStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -23963,6 +24290,11 @@ impl From<SqlAlterTableStatement> for AnySqlStatement {
         Self::SqlAlterTableStatement(node)
     }
 }
+impl From<SqlBeginStatement> for AnySqlStatement {
+    fn from(node: SqlBeginStatement) -> Self {
+        Self::SqlBeginStatement(node)
+    }
+}
 impl From<SqlBogusStatement> for AnySqlStatement {
     fn from(node: SqlBogusStatement) -> Self {
         Self::SqlBogusStatement(node)
@@ -23971,6 +24303,11 @@ impl From<SqlBogusStatement> for AnySqlStatement {
 impl From<SqlCallStatement> for AnySqlStatement {
     fn from(node: SqlCallStatement) -> Self {
         Self::SqlCallStatement(node)
+    }
+}
+impl From<SqlCommitStatement> for AnySqlStatement {
+    fn from(node: SqlCommitStatement) -> Self {
+        Self::SqlCommitStatement(node)
     }
 }
 impl From<SqlCreateIndexStatement> for AnySqlStatement {
@@ -24036,6 +24373,11 @@ impl From<SqlInsertStatement> for AnySqlStatement {
 impl From<SqlRevokeStatement> for AnySqlStatement {
     fn from(node: SqlRevokeStatement) -> Self {
         Self::SqlRevokeStatement(node)
+    }
+}
+impl From<SqlRollbackStatement> for AnySqlStatement {
+    fn from(node: SqlRollbackStatement) -> Self {
+        Self::SqlRollbackStatement(node)
     }
 }
 impl From<SqlSelectStatement> for AnySqlStatement {
@@ -24122,8 +24464,10 @@ impl AstNode for AnySqlStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlAlterIndexStatement::KIND_SET
         .union(SqlAlterTableStatement::KIND_SET)
+        .union(SqlBeginStatement::KIND_SET)
         .union(SqlBogusStatement::KIND_SET)
         .union(SqlCallStatement::KIND_SET)
+        .union(SqlCommitStatement::KIND_SET)
         .union(SqlCreateIndexStatement::KIND_SET)
         .union(SqlCreateTableAsStatement::KIND_SET)
         .union(SqlCreateTableStatement::KIND_SET)
@@ -24137,6 +24481,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlGrantStatement::KIND_SET)
         .union(SqlInsertStatement::KIND_SET)
         .union(SqlRevokeStatement::KIND_SET)
+        .union(SqlRollbackStatement::KIND_SET)
         .union(SqlSelectStatement::KIND_SET)
         .union(SqlTruncateStatement::KIND_SET)
         .union(SqlUpdateStatement::KIND_SET)
@@ -24158,8 +24503,10 @@ impl AstNode for AnySqlStatement {
             kind,
             SQL_ALTER_INDEX_STATEMENT
                 | SQL_ALTER_TABLE_STATEMENT
+                | SQL_BEGIN_STATEMENT
                 | SQL_BOGUS_STATEMENT
                 | SQL_CALL_STATEMENT
+                | SQL_COMMIT_STATEMENT
                 | SQL_CREATE_INDEX_STATEMENT
                 | SQL_CREATE_TABLE_AS_STATEMENT
                 | SQL_CREATE_TABLE_STATEMENT
@@ -24173,6 +24520,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_GRANT_STATEMENT
                 | SQL_INSERT_STATEMENT
                 | SQL_REVOKE_STATEMENT
+                | SQL_ROLLBACK_STATEMENT
                 | SQL_SELECT_STATEMENT
                 | SQL_TRUNCATE_STATEMENT
                 | SQL_UPDATE_STATEMENT
@@ -24199,8 +24547,10 @@ impl AstNode for AnySqlStatement {
             SQL_ALTER_TABLE_STATEMENT => {
                 Self::SqlAlterTableStatement(SqlAlterTableStatement { syntax })
             }
+            SQL_BEGIN_STATEMENT => Self::SqlBeginStatement(SqlBeginStatement { syntax }),
             SQL_BOGUS_STATEMENT => Self::SqlBogusStatement(SqlBogusStatement { syntax }),
             SQL_CALL_STATEMENT => Self::SqlCallStatement(SqlCallStatement { syntax }),
+            SQL_COMMIT_STATEMENT => Self::SqlCommitStatement(SqlCommitStatement { syntax }),
             SQL_CREATE_INDEX_STATEMENT => {
                 Self::SqlCreateIndexStatement(SqlCreateIndexStatement { syntax })
             }
@@ -24228,6 +24578,7 @@ impl AstNode for AnySqlStatement {
             SQL_GRANT_STATEMENT => Self::SqlGrantStatement(SqlGrantStatement { syntax }),
             SQL_INSERT_STATEMENT => Self::SqlInsertStatement(SqlInsertStatement { syntax }),
             SQL_REVOKE_STATEMENT => Self::SqlRevokeStatement(SqlRevokeStatement { syntax }),
+            SQL_ROLLBACK_STATEMENT => Self::SqlRollbackStatement(SqlRollbackStatement { syntax }),
             SQL_SELECT_STATEMENT => Self::SqlSelectStatement(SqlSelectStatement { syntax }),
             SQL_TRUNCATE_STATEMENT => Self::SqlTruncateStatement(SqlTruncateStatement { syntax }),
             SQL_UPDATE_STATEMENT => Self::SqlUpdateStatement(SqlUpdateStatement { syntax }),
@@ -24278,8 +24629,10 @@ impl AstNode for AnySqlStatement {
         match self {
             Self::SqlAlterIndexStatement(it) => &it.syntax,
             Self::SqlAlterTableStatement(it) => &it.syntax,
+            Self::SqlBeginStatement(it) => &it.syntax,
             Self::SqlBogusStatement(it) => &it.syntax,
             Self::SqlCallStatement(it) => &it.syntax,
+            Self::SqlCommitStatement(it) => &it.syntax,
             Self::SqlCreateIndexStatement(it) => &it.syntax,
             Self::SqlCreateTableAsStatement(it) => &it.syntax,
             Self::SqlCreateTableStatement(it) => &it.syntax,
@@ -24293,6 +24646,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlGrantStatement(it) => &it.syntax,
             Self::SqlInsertStatement(it) => &it.syntax,
             Self::SqlRevokeStatement(it) => &it.syntax,
+            Self::SqlRollbackStatement(it) => &it.syntax,
             Self::SqlSelectStatement(it) => &it.syntax,
             Self::SqlTruncateStatement(it) => &it.syntax,
             Self::SqlUpdateStatement(it) => &it.syntax,
@@ -24315,8 +24669,10 @@ impl AstNode for AnySqlStatement {
         match self {
             Self::SqlAlterIndexStatement(it) => it.syntax,
             Self::SqlAlterTableStatement(it) => it.syntax,
+            Self::SqlBeginStatement(it) => it.syntax,
             Self::SqlBogusStatement(it) => it.syntax,
             Self::SqlCallStatement(it) => it.syntax,
+            Self::SqlCommitStatement(it) => it.syntax,
             Self::SqlCreateIndexStatement(it) => it.syntax,
             Self::SqlCreateTableAsStatement(it) => it.syntax,
             Self::SqlCreateTableStatement(it) => it.syntax,
@@ -24330,6 +24686,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlGrantStatement(it) => it.syntax,
             Self::SqlInsertStatement(it) => it.syntax,
             Self::SqlRevokeStatement(it) => it.syntax,
+            Self::SqlRollbackStatement(it) => it.syntax,
             Self::SqlSelectStatement(it) => it.syntax,
             Self::SqlTruncateStatement(it) => it.syntax,
             Self::SqlUpdateStatement(it) => it.syntax,
@@ -24354,8 +24711,10 @@ impl std::fmt::Debug for AnySqlStatement {
         match self {
             Self::SqlAlterIndexStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlAlterTableStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlBeginStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCallStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlCommitStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateIndexStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableAsStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -24369,6 +24728,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlGrantStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlInsertStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlRevokeStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlRollbackStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlTruncateStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlUpdateStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -24393,8 +24753,10 @@ impl From<AnySqlStatement> for SyntaxNode {
         match n {
             AnySqlStatement::SqlAlterIndexStatement(it) => it.into(),
             AnySqlStatement::SqlAlterTableStatement(it) => it.into(),
+            AnySqlStatement::SqlBeginStatement(it) => it.into(),
             AnySqlStatement::SqlBogusStatement(it) => it.into(),
             AnySqlStatement::SqlCallStatement(it) => it.into(),
+            AnySqlStatement::SqlCommitStatement(it) => it.into(),
             AnySqlStatement::SqlCreateIndexStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableAsStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableStatement(it) => it.into(),
@@ -24408,6 +24770,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlGrantStatement(it) => it.into(),
             AnySqlStatement::SqlInsertStatement(it) => it.into(),
             AnySqlStatement::SqlRevokeStatement(it) => it.into(),
+            AnySqlStatement::SqlRollbackStatement(it) => it.into(),
             AnySqlStatement::SqlSelectStatement(it) => it.into(),
             AnySqlStatement::SqlTruncateStatement(it) => it.into(),
             AnySqlStatement::SqlUpdateStatement(it) => it.into(),
@@ -25396,6 +25759,11 @@ impl std::fmt::Display for SqlAnyAllExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlBeginStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlBetweenExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -25457,6 +25825,11 @@ impl std::fmt::Display for SqlColumnDefinition {
     }
 }
 impl std::fmt::Display for SqlColumnList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlCommitStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -25757,6 +26130,11 @@ impl std::fmt::Display for SqlRenameTableAction {
     }
 }
 impl std::fmt::Display for SqlRevokeStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlRollbackStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

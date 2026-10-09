@@ -362,6 +362,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlAnyAllExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_BEGIN_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlBeginStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_BETWEEN_EXPRESSION => {
                     let $pattern = unsafe { $crate::SqlBetweenExpression::new_unchecked(node) };
                     $body
@@ -414,6 +418,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_COLUMN_LIST => {
                     let $pattern = unsafe { $crate::SqlColumnList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_COMMIT_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlCommitStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_CONSTRAINT_NAME => {
@@ -661,6 +669,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_REVOKE_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlRevokeStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_ROLLBACK_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlRollbackStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_ROOT => {
