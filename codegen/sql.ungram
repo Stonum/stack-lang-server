@@ -123,6 +123,9 @@ AnySqlStatement =
    | SqlDropViewStatement
    | SqlGrantStatement
    | SqlRevokeStatement
+   | SqlBeginStatement
+   | SqlCommitStatement
+   | SqlRollbackStatement
    | SqlTruncateStatement
    | SqlCallStatement
    | PsqlVacuumStatement
@@ -977,6 +980,24 @@ SqlRevokeStatement =
    'from'
    grantees: SqlGranteeList
    drop_behavior: ('cascade' | 'restrict')?
+   ';'?
+
+// `BEGIN [TRANSACTION | WORK]` / `START TRANSACTION` [;]
+SqlBeginStatement =
+   kind: ('begin' | 'start')
+   transaction_kind: ('transaction' | 'work')?
+   ';'?
+
+// `COMMIT [TRANSACTION | WORK]` [;]
+SqlCommitStatement =
+   'commit'
+   transaction_kind: ('transaction' | 'work')?
+   ';'?
+
+// `ROLLBACK [TRANSACTION | WORK]` [;]
+SqlRollbackStatement =
+   'rollback'
+   transaction_kind: ('transaction' | 'work')?
    ';'?
 
 SqlPrivilegeList = (SqlPrivilege (',' SqlPrivilege)*)

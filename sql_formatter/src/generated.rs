@@ -2880,6 +2880,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlAnyAllExpression {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlBeginStatement>
+    for crate::sql::statements::begin_statement::FormatSqlBeginStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlBeginStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlBeginStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlBeginStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlBeginStatement,
+        crate::sql::statements::begin_statement::FormatSqlBeginStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::begin_statement::FormatSqlBeginStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlBeginStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlBeginStatement,
+        crate::sql::statements::begin_statement::FormatSqlBeginStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::begin_statement::FormatSqlBeginStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlBetweenExpression>
     for crate::sql::expressions::between_expression::FormatSqlBetweenExpression
 {
@@ -3327,6 +3361,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlColumnList {
         FormatOwnedWithRule::new(
             self,
             crate::sql::auxiliary::column_list::FormatSqlColumnList::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlCommitStatement>
+    for crate::sql::statements::commit_statement::FormatSqlCommitStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlCommitStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCommitStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCommitStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCommitStatement,
+        crate::sql::statements::commit_statement::FormatSqlCommitStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::commit_statement::FormatSqlCommitStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCommitStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCommitStatement,
+        crate::sql::statements::commit_statement::FormatSqlCommitStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::commit_statement::FormatSqlCommitStatement::default(),
         )
     }
 }
@@ -5442,6 +5510,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRevokeStatement {
         FormatOwnedWithRule::new(
             self,
             crate::sql::statements::revoke_statement::FormatSqlRevokeStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlRollbackStatement>
+    for crate::sql::statements::rollback_statement::FormatSqlRollbackStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlRollbackStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlRollbackStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlRollbackStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlRollbackStatement,
+        crate::sql::statements::rollback_statement::FormatSqlRollbackStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::statements::rollback_statement::FormatSqlRollbackStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlRollbackStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlRollbackStatement,
+        crate::sql::statements::rollback_statement::FormatSqlRollbackStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::statements::rollback_statement::FormatSqlRollbackStatement::default(),
         )
     }
 }

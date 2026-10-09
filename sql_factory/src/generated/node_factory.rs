@@ -2228,6 +2228,40 @@ pub fn sql_any_all_expression(
         ],
     ))
 }
+pub fn sql_begin_statement(kind_token: SyntaxToken) -> SqlBeginStatementBuilder {
+    SqlBeginStatementBuilder {
+        kind_token,
+        transaction_kind_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlBeginStatementBuilder {
+    kind_token: SyntaxToken,
+    transaction_kind_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlBeginStatementBuilder {
+    pub fn with_transaction_kind_token(mut self, transaction_kind_token: SyntaxToken) -> Self {
+        self.transaction_kind_token = Some(transaction_kind_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlBeginStatement {
+        SqlBeginStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_BEGIN_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.kind_token)),
+                self.transaction_kind_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn sql_between_expression(
     expression: AnySqlExpression,
     between_token: SyntaxToken,
@@ -2512,6 +2546,40 @@ pub fn sql_column_list(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
+}
+pub fn sql_commit_statement(commit_token: SyntaxToken) -> SqlCommitStatementBuilder {
+    SqlCommitStatementBuilder {
+        commit_token,
+        transaction_kind_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlCommitStatementBuilder {
+    commit_token: SyntaxToken,
+    transaction_kind_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlCommitStatementBuilder {
+    pub fn with_transaction_kind_token(mut self, transaction_kind_token: SyntaxToken) -> Self {
+        self.transaction_kind_token = Some(transaction_kind_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlCommitStatement {
+        SqlCommitStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_COMMIT_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.commit_token)),
+                self.transaction_kind_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn sql_constraint_name(constraint_token: SyntaxToken, name: SqlName) -> SqlConstraintName {
     SqlConstraintName::unwrap_cast(SyntaxNode::new_detached(
@@ -4379,6 +4447,40 @@ impl SqlRevokeStatementBuilder {
                 Some(SyntaxElement::Token(self.from_token)),
                 Some(SyntaxElement::Node(self.grantees.into_syntax())),
                 self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn sql_rollback_statement(rollback_token: SyntaxToken) -> SqlRollbackStatementBuilder {
+    SqlRollbackStatementBuilder {
+        rollback_token,
+        transaction_kind_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlRollbackStatementBuilder {
+    rollback_token: SyntaxToken,
+    transaction_kind_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlRollbackStatementBuilder {
+    pub fn with_transaction_kind_token(mut self, transaction_kind_token: SyntaxToken) -> Self {
+        self.transaction_kind_token = Some(transaction_kind_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlRollbackStatement {
+        SqlRollbackStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_ROLLBACK_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.rollback_token)),
+                self.transaction_kind_token
                     .map(|token| SyntaxElement::Token(token)),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),

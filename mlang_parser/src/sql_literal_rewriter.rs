@@ -22,7 +22,8 @@ use mlang_syntax::{AnyMExpression, MBinaryExpression, MLanguage, MSyntaxKind, MS
 /// actually dispatches on, not just a handful of the most common ones.
 const SQL_KEYWORDS: &[&str] = &[
     "select", "insert", "update", "delete", "with", "values", "drop", "create", "grant",
-    "truncate", "vacuum", "analyze", "analyse", "call", "alter", "refresh", "revoke",
+    "truncate", "vacuum", "analyze", "analyse", "call", "alter", "refresh", "revoke", "begin",
+    "start", "commit", "rollback",
 ];
 
 /// Strips leading whitespace and `/* ... */`/`-- ...` comments, repeatedly,
@@ -60,7 +61,13 @@ fn looks_like_sql(raw: &str) -> bool {
         if !prefix.eq_ignore_ascii_case(keyword) {
             return false;
         }
-        match trimmed[keyword.len()..].chars().next() {
+        let rest = &trimmed[keyword.len()..];
+        // A lone word (`"begin"`, `"commit"`) is far more often a label,
+        // map key or command name than a SQL statement.
+        if rest.trim().is_empty() {
+            return false;
+        }
+        match rest.chars().next() {
             Some(c) => !c.is_alphanumeric() && c != '_',
             None => true,
         }
@@ -255,6 +262,15 @@ mod tests {
         assert!(!looks_like_sql("selection of items"));
         assert!(!looks_like_sql("withdraw the request"));
         assert!(!looks_like_sql("insertable rows"));
+    }
+
+    #[test]
+    fn rejects_a_lone_keyword() {
+        for raw in ["begin", "COMMIT", " vacuum ", "/* c */ rollback"] {
+            assert!(!looks_like_sql(raw), "{raw}");
+        }
+        assert!(looks_like_sql("commit;"));
+        assert!(looks_like_sql("begin transaction"));
     }
 
     #[test]

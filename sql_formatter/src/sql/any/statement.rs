@@ -10,8 +10,10 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
         match node {
             AnySqlStatement::SqlAlterIndexStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlAlterTableStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlBeginStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlBogusStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCallStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlCommitStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateIndexStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateTableAsStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateTableStatement(node) => node.format().fmt(f),
@@ -25,6 +27,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlGrantStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlInsertStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlRevokeStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlRollbackStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlSelectStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlTruncateStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlUpdateStatement(node) => node.format().fmt(f),

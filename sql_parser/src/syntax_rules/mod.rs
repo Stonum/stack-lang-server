@@ -12,6 +12,7 @@ mod postgres;
 pub mod program;
 mod select;
 mod stmt;
+mod transaction;
 mod update;
 mod values;
 mod where_clause;
