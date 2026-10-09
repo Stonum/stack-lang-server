@@ -434,7 +434,11 @@ fn parse_language_option(p: &mut SqlParser) -> ParsedSyntax {
 
     let m = p.start();
     p.bump(T![language]);
-    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    if p.at(SQL_STRING_LITERAL) {
+        let _ = parse_string_literal_expression(p);
+    } else {
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+    }
     Present(m.complete(p, PSQL_LANGUAGE_OPTION))
 }
 

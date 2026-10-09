@@ -350,3 +350,38 @@ create function foo(
 "#
     );
 }
+
+#[test]
+fn format_create_function_quoted_language_is_preserved() {
+    assert_fmt!(
+        r#"--
+create function foo() returns int as 'select 1' language 'sql';
+"#
+    );
+}
+
+#[test]
+fn format_create_function_quoted_language_normalizes_keyword_case() {
+    assert_fmt_eq!(
+        r#"--
+CREATE FUNCTION foo() RETURNS int AS 'select 1' LANGUAGE   'SQL' IMMUTABLE;
+"#,
+        r#"--
+create function foo() returns int as 'select 1' language 'SQL' immutable;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_quoted_language_with_long_parameters_wraps() {
+    assert_fmt_eq!(
+        r#"--
+create or replace function accounts_summary_recalculate(first_parameter integer, second_parameter text, third_parameter boolean) returns integer language 'plpgsql' security definer as $$ begin return 1; end $$;
+"#,
+        r#"--
+create or replace function accounts_summary_recalculate(
+	first_parameter integer, second_parameter text, third_parameter boolean
+) returns integer language 'plpgsql' security definer as $$ begin return 1; end $$;
+"#
+    );
+}

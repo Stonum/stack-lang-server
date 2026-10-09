@@ -1530,7 +1530,12 @@ PsqlDropTriggerStatement =
 
 PsqlLanguageOption =
    'language'
-   name: SqlName
+   name: AnyPsqlLanguageName
+
+// `LANGUAGE plpgsql` or the older quoted spelling `LANGUAGE 'plpgsql'`.
+AnyPsqlLanguageName =
+   SqlName
+   | SqlStringLiteralExpression
 
 // `substring(string from start [for count])` / `substring(string from
 // pattern)` -- the SQL-standard substring syntax. `substring` isn't a
