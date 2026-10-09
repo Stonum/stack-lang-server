@@ -544,6 +544,7 @@ impl PsqlCreateTriggerStatement {
             trigger_token: self.trigger_token(),
             name: self.name(),
             timing: self.timing(),
+            of_token: self.of_token(),
             events: self.events(),
             on_token: self.on_token(),
             table: self.table(),
@@ -568,35 +569,38 @@ impl PsqlCreateTriggerStatement {
     pub fn timing(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 3usize)
     }
+    pub fn of_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
     pub fn events(&self) -> PsqlTriggerEventList {
-        support::list(&self.syntax, 4usize)
+        support::list(&self.syntax, 5usize)
     }
     pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 5usize)
+        support::required_token(&self.syntax, 6usize)
     }
     pub fn table(&self) -> SyntaxResult<SqlTableName> {
-        support::required_node(&self.syntax, 6usize)
+        support::required_node(&self.syntax, 7usize)
     }
     pub fn referencing_clause(&self) -> Option<PsqlTriggerReferencingClause> {
-        support::node(&self.syntax, 7usize)
-    }
-    pub fn for_each_clause(&self) -> Option<PsqlTriggerForEachClause> {
         support::node(&self.syntax, 8usize)
     }
-    pub fn when_clause(&self) -> Option<PsqlTriggerWhenClause> {
+    pub fn for_each_clause(&self) -> Option<PsqlTriggerForEachClause> {
         support::node(&self.syntax, 9usize)
     }
-    pub fn execute_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 10usize)
+    pub fn when_clause(&self) -> Option<PsqlTriggerWhenClause> {
+        support::node(&self.syntax, 10usize)
     }
-    pub fn function_kind(&self) -> SyntaxResult<SyntaxToken> {
+    pub fn execute_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 11usize)
     }
+    pub fn function_kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 12usize)
+    }
     pub fn function(&self) -> SyntaxResult<SqlCallExpression> {
-        support::required_node(&self.syntax, 12usize)
+        support::required_node(&self.syntax, 13usize)
     }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 13usize)
+        support::token(&self.syntax, 14usize)
     }
 }
 impl Serialize for PsqlCreateTriggerStatement {
@@ -613,6 +617,7 @@ pub struct PsqlCreateTriggerStatementFields {
     pub trigger_token: SyntaxResult<SyntaxToken>,
     pub name: SyntaxResult<AnySqlName>,
     pub timing: SyntaxResult<SyntaxToken>,
+    pub of_token: Option<SyntaxToken>,
     pub events: PsqlTriggerEventList,
     pub on_token: SyntaxResult<SyntaxToken>,
     pub table: SyntaxResult<SqlTableName>,
@@ -10909,6 +10914,7 @@ impl std::fmt::Debug for PsqlCreateTriggerStatement {
                 )
                 .field("name", &support::DebugSyntaxResult(self.name()))
                 .field("timing", &support::DebugSyntaxResult(self.timing()))
+                .field("of_token", &support::DebugOptionalElement(self.of_token()))
                 .field("events", &self.events())
                 .field("on_token", &support::DebugSyntaxResult(self.on_token()))
                 .field("table", &support::DebugSyntaxResult(self.table()))

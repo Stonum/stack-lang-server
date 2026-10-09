@@ -374,6 +374,7 @@ pub fn psql_create_trigger_statement(
         execute_token,
         function_kind_token,
         function,
+        of_token: None,
         referencing_clause: None,
         for_each_clause: None,
         when_clause: None,
@@ -391,12 +392,17 @@ pub struct PsqlCreateTriggerStatementBuilder {
     execute_token: SyntaxToken,
     function_kind_token: SyntaxToken,
     function: SqlCallExpression,
+    of_token: Option<SyntaxToken>,
     referencing_clause: Option<PsqlTriggerReferencingClause>,
     for_each_clause: Option<PsqlTriggerForEachClause>,
     when_clause: Option<PsqlTriggerWhenClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlCreateTriggerStatementBuilder {
+    pub fn with_of_token(mut self, of_token: SyntaxToken) -> Self {
+        self.of_token = Some(of_token);
+        self
+    }
     pub fn with_referencing_clause(
         mut self,
         referencing_clause: PsqlTriggerReferencingClause,
@@ -424,6 +430,7 @@ impl PsqlCreateTriggerStatementBuilder {
                 Some(SyntaxElement::Token(self.trigger_token)),
                 Some(SyntaxElement::Node(self.name.into_syntax())),
                 Some(SyntaxElement::Token(self.timing_token)),
+                self.of_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.events.into_syntax())),
                 Some(SyntaxElement::Token(self.on_token)),
                 Some(SyntaxElement::Node(self.table.into_syntax())),

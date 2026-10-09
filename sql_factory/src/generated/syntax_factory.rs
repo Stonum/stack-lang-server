@@ -487,7 +487,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             PSQL_CREATE_TRIGGER_STATEMENT => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<14usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<15usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && element.kind() == T![create]
@@ -511,7 +511,14 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && matches!(element.kind(), T![before] | T![after])
+                    && matches!(element.kind(), T![before] | T![after] | T![instead])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![of]
                 {
                     slots.mark_present();
                     current_element = elements.next();

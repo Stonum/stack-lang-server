@@ -362,63 +362,69 @@ impl PsqlCreateTriggerStatement {
                 .splice_slots(3usize..=3usize, once(Some(element.into()))),
         )
     }
+    pub fn with_of_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(element.map(|element| element.into()))),
+        )
+    }
     pub fn with_events(self, element: PsqlTriggerEventList) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(5usize..=5usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_on_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(5usize..=5usize, once(Some(element.into()))),
+                .splice_slots(6usize..=6usize, once(Some(element.into()))),
         )
     }
     pub fn with_table(self, element: SqlTableName) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(6usize..=6usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(7usize..=7usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_referencing_clause(self, element: Option<PsqlTriggerReferencingClause>) -> Self {
-        Self::unwrap_cast(self.syntax.splice_slots(
-            7usize..=7usize,
-            once(element.map(|element| element.into_syntax().into())),
-        ))
-    }
-    pub fn with_for_each_clause(self, element: Option<PsqlTriggerForEachClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             8usize..=8usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
-    pub fn with_when_clause(self, element: Option<PsqlTriggerWhenClause>) -> Self {
+    pub fn with_for_each_clause(self, element: Option<PsqlTriggerForEachClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             9usize..=9usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_when_clause(self, element: Option<PsqlTriggerWhenClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            10usize..=10usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
     pub fn with_execute_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(10usize..=10usize, once(Some(element.into()))),
+                .splice_slots(11usize..=11usize, once(Some(element.into()))),
         )
     }
     pub fn with_function_kind_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(11usize..=11usize, once(Some(element.into()))),
+                .splice_slots(12usize..=12usize, once(Some(element.into()))),
         )
     }
     pub fn with_function(self, element: SqlCallExpression) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(12usize..=12usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(13usize..=13usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
-            13usize..=13usize,
+            14usize..=14usize,
             once(element.map(|element| element.into())),
         ))
     }
