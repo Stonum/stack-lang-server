@@ -15,6 +15,7 @@ pub(crate) mod drop_index_statement;
 pub(crate) mod drop_table_statement;
 pub(crate) mod drop_view_statement;
 pub(crate) mod empty_statement;
+pub(crate) mod go_statement;
 pub(crate) mod grant_statement;
 pub(crate) mod insert_statement;
 pub(crate) mod revoke_statement;

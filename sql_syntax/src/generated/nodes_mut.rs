@@ -3851,6 +3851,20 @@ impl SqlFunctionBinding {
         ))
     }
 }
+impl SqlGoStatement {
+    pub fn with_go_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
 impl SqlGrantOptionFor {
     pub fn with_grant_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(

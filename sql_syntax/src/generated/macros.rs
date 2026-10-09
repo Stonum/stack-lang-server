@@ -587,6 +587,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlFunctionBinding::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_GO_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlGoStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_GRANT_OPTION_FOR => {
                     let $pattern = unsafe { $crate::SqlGrantOptionFor::new_unchecked(node) };
                     $body

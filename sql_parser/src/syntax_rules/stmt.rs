@@ -18,7 +18,7 @@ use super::transaction::{parse_begin_statement, parse_commit_statement, parse_ro
 use super::update::{parse_update_statement, parse_update_statement_body};
 use super::values::{parse_values_clause, parse_values_clause_body};
 use super::with_clause::parse_with_clause;
-use crate::SqlParser;
+use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind::*, T, *};
 
 // Recovery stops not just at `;` but at the start of any real statement --
@@ -49,7 +49,8 @@ pub const STMT_RECOVERY_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![start],
     T![commit],
     T![rollback],
-    T![lock]
+    T![lock],
+    T![go]
 ];
 
 pub(crate) fn parse_statements(p: &mut SqlParser, statement_list: Marker) {
@@ -111,8 +112,49 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
         T![commit] => parse_commit_statement(p),
         T![rollback] => parse_rollback_statement(p),
         T![lock] => parse_lock_statement(p),
+        T![go] => parse_go_statement(p),
         _ => Absent,
     }
+}
+
+/// A `GO` batch separator starting a new line ends the preceding
+/// statement's lists even without a `;`.
+pub(crate) fn is_at_go_separator(p: &mut SqlParser) -> bool {
+    p.at(T![go]) && p.has_preceding_line_break()
+}
+
+/// `GO` on its own line: a client-side batch separator, accepted in mlang
+/// scripts and MSSQL. Always parsed as one at a statement start (it ends the
+/// preceding statement's lists), with a diagnostic where it is not allowed.
+fn parse_go_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![go]) {
+        return Absent;
+    }
+
+    let range = p.cur_range();
+    let starts_line = p.has_preceding_line_break() || range.start() == 0.into();
+    let ends_line = p.lookahead(|p| {
+        p.bump(T![go]);
+        p.eat(T![;]);
+        p.at(EOF) || p.has_preceding_line_break()
+    });
+
+    let m = p.start();
+    p.bump(T![go]);
+    p.eat(T![;]);
+
+    if !(SqlSyntaxFeature::Mlang.is_supported(p) || SqlSyntaxFeature::Mssql.is_supported(p)) {
+        let err = p.err_builder(
+            "`GO` batch separators are only supported in mlang scripts and MSSQL",
+            range,
+        );
+        p.error(err);
+    } else if !(starts_line && ends_line) {
+        let err = p.err_builder("`GO` must be on its own line", range);
+        p.error(err);
+    }
+
+    Present(m.complete(p, SQL_GO_STATEMENT))
 }
 
 /// Parses a leading `with [recursive] cte as (...), ...` clause once, then
