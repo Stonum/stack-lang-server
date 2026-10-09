@@ -16,7 +16,7 @@ impl FormatNodeRule<PsqlSequenceOptions> for FormatPsqlSequenceOptions {
             f,
             [
                 l_paren_token.format(),
-                items.format(),
+                group(&soft_block_indent(&items.format())),
                 r_paren_token.format()
             ]
         )

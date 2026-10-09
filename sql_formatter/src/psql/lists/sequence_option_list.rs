@@ -5,8 +5,10 @@ pub(crate) struct FormatPsqlSequenceOptionList;
 impl FormatRule<PsqlSequenceOptionList> for FormatPsqlSequenceOptionList {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &PsqlSequenceOptionList, f: &mut SqlFormatter) -> FormatResult<()> {
-        f.join_with(space())
-            .entries(node.iter().formatted())
-            .finish()
+        let mut filler = f.fill();
+        for option in node.iter() {
+            filler.entry(&soft_line_break_or_space(), &option.format());
+        }
+        filler.finish()
     }
 }

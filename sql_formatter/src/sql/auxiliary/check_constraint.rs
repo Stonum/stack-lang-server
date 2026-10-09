@@ -19,7 +19,7 @@ impl FormatNodeRule<SqlCheckConstraint> for FormatSqlCheckConstraint {
                 check_token.format(),
                 space(),
                 l_paren_token.format(),
-                condition.format(),
+                group(&soft_block_indent(&condition.format())),
                 r_paren_token.format()
             ]
         )
