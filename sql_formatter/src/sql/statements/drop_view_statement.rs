@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use sql_syntax::SqlDropViewStatement;
 use sql_syntax::SqlDropViewStatementFields;
 #[derive(Debug, Clone, Default)]
@@ -25,14 +25,25 @@ impl FormatNodeRule<SqlDropViewStatement> for FormatSqlDropViewStatement {
             write!(f, [space(), exists_token.format()])?;
         }
 
-        if views.len() <= 1 {
-            write!(f, [space(), views.format()])?;
-        } else {
-            write!(f, [group(&soft_line_indent_or_space(&views.format()))])?;
-        }
+        let list = format_with(|f| {
+            if views.len() <= 1 {
+                write!(f, [space(), views.format()])
+            } else {
+                write!(f, [group(&soft_line_indent_or_space(&views.format()))])
+            }
+        });
 
-        if let Some(drop_behavior) = drop_behavior {
-            write!(f, [space(), drop_behavior.format()])?;
+        match drop_behavior {
+            // Once the view list wraps, `CASCADE`/`RESTRICT` moves to its own line.
+            Some(drop_behavior) => write!(
+                f,
+                [group(&format_args![
+                    list,
+                    soft_line_break_or_space(),
+                    drop_behavior.format()
+                ])]
+            )?,
+            None => write!(f, [list])?,
         }
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;

@@ -39,7 +39,8 @@ impl FormatNodeRule<SqlCreateTableStatement> for FormatSqlCreateTableStatement {
         }
 
         write!(f, [space(), name.format(), space()])?;
-        write_bracketed_fill_list(l_paren_token, &elements, r_paren_token, |_| false, f)?;
+        // One column or constraint per line once the list wraps.
+        write_bracketed_fill_list(l_paren_token, &elements, r_paren_token, |_| true, f)?;
 
         if let Some(on_commit) = on_commit {
             write!(f, [space(), on_commit.format()])?;

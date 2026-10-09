@@ -63,3 +63,34 @@ alter table t alter column a set data type text, alter b drop default
 "#
     );
 }
+
+#[test]
+fn format_alter_table_actions_one_per_line_when_too_long() {
+    assert_fmt_eq!(
+        r#"--
+alter table some_long_table_name add column if not exists first_new_column varchar(256) not null default 'x', drop column if exists old_column cascade, alter column third_column type numeric(15, 2) using third_column::numeric(15, 2), disable trigger user
+"#,
+        r#"--
+alter table some_long_table_name
+	add column if not exists first_new_column varchar(256) not null default 'x',
+	drop column if exists old_column cascade,
+	alter column third_column type numeric(15, 2) using third_column::numeric(15, 2),
+	disable trigger user
+"#
+    );
+}
+
+#[test]
+fn format_alter_column_long_using_expression_wraps() {
+    assert_fmt_eq!(
+        r#"--
+alter table t alter column a type numeric using case when some_function(first_argument, second_argument) > 0 then another_function(third_argument) else 0 end
+"#,
+        r#"--
+alter table t alter column a type numeric using case
+	when some_function(first_argument, second_argument) > 0 then another_function(third_argument)
+	else 0
+end
+"#
+    );
+}

@@ -53,3 +53,31 @@ truncate table
 "#
     );
 }
+
+#[test]
+fn format_truncate_options_move_to_their_own_line_when_too_long() {
+    assert_fmt_eq!(
+        r#"--
+truncate table first_long_table_name, second_long_table_name, third_long_table_name, fourth_long_table_name restart identity cascade
+"#,
+        r#"--
+truncate table first_long_table_name, second_long_table_name, third_long_table_name, fourth_long_table_name
+restart identity cascade
+"#
+    );
+}
+
+#[test]
+fn format_truncate_wrapped_names_and_options() {
+    assert_fmt_eq!(
+        r#"--
+truncate table really_long_table_name_number_one, really_long_table_name_number_two, really_long_table_name_number_three, really_long_table_name_number_four cascade;
+"#,
+        r#"--
+truncate table
+	really_long_table_name_number_one, really_long_table_name_number_two,
+	really_long_table_name_number_three, really_long_table_name_number_four
+cascade;
+"#
+    );
+}

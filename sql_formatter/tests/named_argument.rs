@@ -21,3 +21,17 @@ select make_interval(hours => 1, mins => x * 2)
 "#
     );
 }
+
+#[test]
+fn format_named_arguments_wrap_when_too_long() {
+    assert_fmt_eq!(
+        r#"--
+select make_interval(years => :years_value, months => :months_value, days => :days_value, hours => :hours_value, mins => :minutes)
+"#,
+        r#"--
+select make_interval(
+	years => :years_value, months => :months_value, days => :days_value, hours => :hours_value, mins => :minutes
+)
+"#
+    );
+}

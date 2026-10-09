@@ -33,3 +33,18 @@ call s.p(1, 'a')
 "#
     );
 }
+
+#[test]
+fn format_call_arguments_wrap_when_too_long() {
+    assert_fmt_eq!(
+        r#"--
+call some_schema.some_long_procedure_name(:first_parameter, :second_parameter, 'a long string literal value', :third_parameter::date)
+"#,
+        r#"--
+call some_schema.some_long_procedure_name(
+	:first_parameter, :second_parameter, 'a long string literal value',
+	:third_parameter::date
+)
+"#
+    );
+}

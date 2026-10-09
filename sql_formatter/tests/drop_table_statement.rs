@@ -68,3 +68,17 @@ drop table
 "#
     );
 }
+
+#[test]
+fn format_drop_table_cascade_moves_to_its_own_line_when_too_long() {
+    assert_fmt_eq!(
+        r#"--
+drop table if exists really_long_table_name_number_one, really_long_table_name_number_two, really_long_table_name_number_three cascade;
+"#,
+        r#"--
+drop table if exists
+	really_long_table_name_number_one, really_long_table_name_number_two, really_long_table_name_number_three
+cascade;
+"#
+    );
+}
