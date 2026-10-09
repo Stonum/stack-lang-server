@@ -551,3 +551,39 @@ $$;"#,
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_create_function_quoted_language() {
+    for src in [
+        "create function foo() returns int as 'select 1' language 'sql';",
+        "create function foo() returns int language 'plpgsql' as $$ begin return 1; end $$",
+        "create function foo() returns int as $$ select 1 $$ LANGUAGE 'SQL' immutable",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        let language = tree.find("PSQL_LANGUAGE_OPTION").expect(src);
+        assert!(
+            tree[language..].contains("SQL_STRING_LITERAL_EXPRESSION"),
+            "{src}"
+        );
+    }
+}
+
+#[test]
+fn test_create_function_quoted_language_in_mlang_dialect() {
+    let res = parse(
+        "create or replace function ~Функция~() returns trigger as $$ begin return new; end $$ language 'plpgsql';",
+        mlang(),
+    );
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_create_function_language_without_name_reports_error() {
+    let res = parse("create function foo() as 'select 1' language;", postgres());
+
+    assert!(res.has_errors());
+}

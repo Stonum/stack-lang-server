@@ -1303,7 +1303,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlName::can_cast(element.kind())
+                    && AnyPsqlLanguageName::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();

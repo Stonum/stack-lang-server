@@ -1487,7 +1487,7 @@ impl PsqlLanguageOption {
     pub fn language_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 0usize)
     }
-    pub fn name(&self) -> SyntaxResult<SqlName> {
+    pub fn name(&self) -> SyntaxResult<AnyPsqlLanguageName> {
         support::required_node(&self.syntax, 1usize)
     }
 }
@@ -1502,7 +1502,7 @@ impl Serialize for PsqlLanguageOption {
 #[derive(Serialize)]
 pub struct PsqlLanguageOptionFields {
     pub language_token: SyntaxResult<SyntaxToken>,
-    pub name: SyntaxResult<SqlName>,
+    pub name: SyntaxResult<AnyPsqlLanguageName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlLimitClause {
@@ -9236,6 +9236,25 @@ pub struct SqlWithClauseFields {
     pub with_token: SyntaxResult<SyntaxToken>,
     pub recursive_token: Option<SyntaxToken>,
     pub ctes: SqlCteDefinitionList,
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlLanguageName {
+    SqlName(SqlName),
+    SqlStringLiteralExpression(SqlStringLiteralExpression),
+}
+impl AnyPsqlLanguageName {
+    pub fn as_sql_name(&self) -> Option<&SqlName> {
+        match &self {
+            Self::SqlName(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_string_literal_expression(&self) -> Option<&SqlStringLiteralExpression> {
+        match &self {
+            Self::SqlStringLiteralExpression(item) => Some(item),
+            _ => None,
+        }
+    }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlAlterColumnOperation {
@@ -20747,6 +20766,68 @@ impl From<SqlWithClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl From<SqlName> for AnyPsqlLanguageName {
+    fn from(node: SqlName) -> Self {
+        Self::SqlName(node)
+    }
+}
+impl From<SqlStringLiteralExpression> for AnyPsqlLanguageName {
+    fn from(node: SqlStringLiteralExpression) -> Self {
+        Self::SqlStringLiteralExpression(node)
+    }
+}
+impl AstNode for AnyPsqlLanguageName {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SqlName::KIND_SET.union(SqlStringLiteralExpression::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, SQL_NAME | SQL_STRING_LITERAL_EXPRESSION)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_NAME => Self::SqlName(SqlName { syntax }),
+            SQL_STRING_LITERAL_EXPRESSION => {
+                Self::SqlStringLiteralExpression(SqlStringLiteralExpression { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlName(it) => &it.syntax,
+            Self::SqlStringLiteralExpression(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlName(it) => it.syntax,
+            Self::SqlStringLiteralExpression(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlLanguageName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlName(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlLanguageName> for SyntaxNode {
+    fn from(n: AnyPsqlLanguageName) -> Self {
+        match n {
+            AnyPsqlLanguageName::SqlName(it) => it.into(),
+            AnyPsqlLanguageName::SqlStringLiteralExpression(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlLanguageName> for SyntaxElement {
+    fn from(n: AnyPsqlLanguageName) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlAlterColumnType> for AnySqlAlterColumnOperation {
     fn from(node: SqlAlterColumnType) -> Self {
         Self::SqlAlterColumnType(node)
@@ -23593,6 +23674,11 @@ impl From<AnySqlTypeModifier> for SyntaxElement {
     fn from(n: AnySqlTypeModifier) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
+    }
+}
+impl std::fmt::Display for AnyPsqlLanguageName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
     }
 }
 impl std::fmt::Display for AnySqlAlterColumnOperation {

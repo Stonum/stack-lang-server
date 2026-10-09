@@ -926,7 +926,10 @@ pub fn psql_join_using_clause(
         ],
     ))
 }
-pub fn psql_language_option(language_token: SyntaxToken, name: SqlName) -> PsqlLanguageOption {
+pub fn psql_language_option(
+    language_token: SyntaxToken,
+    name: AnyPsqlLanguageName,
+) -> PsqlLanguageOption {
     PsqlLanguageOption::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::PSQL_LANGUAGE_OPTION,
         [

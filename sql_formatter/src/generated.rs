@@ -7534,6 +7534,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlBogusStatement {
         )
     }
 }
+impl AsFormat<SqlFormatContext> for sql_syntax::AnyPsqlLanguageName {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnyPsqlLanguageName,
+        crate::psql::any::language_name::FormatAnyPsqlLanguageName,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::language_name::FormatAnyPsqlLanguageName::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlLanguageName {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnyPsqlLanguageName,
+        crate::psql::any::language_name::FormatAnyPsqlLanguageName,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::language_name::FormatAnyPsqlLanguageName::default(),
+        )
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlAlterColumnOperation {
     type Format<'a> = FormatRefWithRule<
         'a,
