@@ -22,3 +22,15 @@ fn format_reserved_keyword_alias_keeps_its_spelling() {
 "#
     );
 }
+
+#[test]
+fn format_keyword_named_bare_aliases_keep_their_spelling() {
+    assert_fmt_eq!(
+        r#"SELECT Work.a FROM t Work JOIN u LOCK ON LOCK.id=Work.id
+"#,
+        r#"select Work.a
+from t Work
+join u LOCK on LOCK.id = Work.id
+"#
+    );
+}

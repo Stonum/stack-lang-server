@@ -1091,7 +1091,7 @@ pub(crate) fn parse_any_name(p: &mut SqlParser) -> ParsedSyntax {
 }
 
 pub(crate) fn parse_alias(p: &mut SqlParser) {
-    if !p.at(T![as]) && !p.at(T![ident]) {
+    if !p.at(T![as]) && !p.at(T![ident]) && !is_at_bare_alias_keyword(p) {
         return;
     }
 
@@ -1104,6 +1104,15 @@ pub(crate) fn parse_alias(p: &mut SqlParser) {
     }
     let _ = parse_alias_column_list(p);
     m.complete(p, SQL_ALIAS);
+}
+
+/// A non-reserved keyword used as an alias without `AS` (`from t work`),
+/// except the ones that continue the construct instead (`over`, `filter`,
+/// `update t set`, `insert into t values`) or end the batch (`go`).
+fn is_at_bare_alias_keyword(p: &mut SqlParser) -> bool {
+    let kind = p.cur();
+    kind.is_non_reserved_keyword()
+        && !matches!(kind, T![over] | T![filter] | T![set] | T![values] | T![go])
 }
 
 /// `(col1 [type1], col2 [type2], ...)` -- an explicit column definition
