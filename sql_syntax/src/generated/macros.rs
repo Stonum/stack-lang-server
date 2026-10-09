@@ -37,6 +37,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlCastExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_CREATE_EXTENSION_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlCreateExtensionStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_CREATE_FUNCTION_STATEMENT => {
                     let $pattern =
                         unsafe { $crate::PsqlCreateFunctionStatement::new_unchecked(node) };
@@ -77,6 +82,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlDoUpdateClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_DROP_EXTENSION_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlDropExtensionStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_DROP_FUNCTION_PARAMETERS => {
                     let $pattern =
                         unsafe { $crate::PsqlDropFunctionParameters::new_unchecked(node) };
@@ -93,6 +103,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_DROP_TRIGGER_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlDropTriggerStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_EXTENSION_SCHEMA_CLAUSE => {
+                    let $pattern =
+                        unsafe { $crate::PsqlExtensionSchemaClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_FILTER_CLAUSE => {

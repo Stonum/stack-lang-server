@@ -17,6 +17,9 @@ use super::postgres::ddl::{
     parse_on_commit_clause, parse_table_query, parse_truncate_identity_clause, parse_view_options,
     parse_with_data_clause,
 };
+use super::postgres::extension::{
+    parse_create_extension_statement, parse_drop_extension_statement,
+};
 use super::postgres::materialized_view::{
     parse_create_materialized_view_statement, parse_drop_materialized_view_statement,
 };
@@ -44,6 +47,9 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     if p.nth_at(1, T![materialized]) {
         return parse_create_materialized_view_statement(p);
+    }
+    if p.nth_at(1, T![extension]) {
+        return parse_create_extension_statement(p);
     }
     if p.nth_at(1, T![policy]) {
         return parse_create_policy_statement(p);
@@ -464,6 +470,9 @@ pub(crate) fn parse_drop_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     if p.nth_at(1, T![materialized]) {
         return parse_drop_materialized_view_statement(p);
+    }
+    if p.nth_at(1, T![extension]) {
+        return parse_drop_extension_statement(p);
     }
     if p.nth_at(1, T![policy]) {
         return parse_drop_policy_statement(p);

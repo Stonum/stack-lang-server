@@ -104,6 +104,78 @@ pub fn psql_cast_expression(
         ],
     ))
 }
+pub fn psql_create_extension_statement(
+    create_token: SyntaxToken,
+    extension_token: SyntaxToken,
+    name: SqlName,
+) -> PsqlCreateExtensionStatementBuilder {
+    PsqlCreateExtensionStatementBuilder {
+        create_token,
+        extension_token,
+        name,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+        schema_clause: None,
+        cascade_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlCreateExtensionStatementBuilder {
+    create_token: SyntaxToken,
+    extension_token: SyntaxToken,
+    name: SqlName,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    schema_clause: Option<PsqlExtensionSchemaClause>,
+    cascade_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlCreateExtensionStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_schema_clause(mut self, schema_clause: PsqlExtensionSchemaClause) -> Self {
+        self.schema_clause = Some(schema_clause);
+        self
+    }
+    pub fn with_cascade_token(mut self, cascade_token: SyntaxToken) -> Self {
+        self.cascade_token = Some(cascade_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlCreateExtensionStatement {
+        PsqlCreateExtensionStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CREATE_EXTENSION_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                Some(SyntaxElement::Token(self.extension_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.schema_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.cascade_token.map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_create_function_statement(
     create_token: SyntaxToken,
     kind_token: SyntaxToken,
@@ -552,6 +624,64 @@ impl PsqlDoUpdateClauseBuilder {
         ))
     }
 }
+pub fn psql_drop_extension_statement(
+    drop_token: SyntaxToken,
+    extension_token: SyntaxToken,
+    extensions: SqlTableNameList,
+) -> PsqlDropExtensionStatementBuilder {
+    PsqlDropExtensionStatementBuilder {
+        drop_token,
+        extension_token,
+        extensions,
+        if_token: None,
+        exists_token: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDropExtensionStatementBuilder {
+    drop_token: SyntaxToken,
+    extension_token: SyntaxToken,
+    extensions: SqlTableNameList,
+    if_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDropExtensionStatementBuilder {
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDropExtensionStatement {
+        PsqlDropExtensionStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DROP_EXTENSION_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.drop_token)),
+                Some(SyntaxElement::Token(self.extension_token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.extensions.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_drop_function_parameters(
     l_paren_token: SyntaxToken,
     items: PsqlTypeNameList,
@@ -748,6 +878,37 @@ impl PsqlDropTriggerStatementBuilder {
                     .map(|token| SyntaxElement::Token(token)),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_extension_schema_clause(
+    schema_token: SyntaxToken,
+    schema: SqlName,
+) -> PsqlExtensionSchemaClauseBuilder {
+    PsqlExtensionSchemaClauseBuilder {
+        schema_token,
+        schema,
+        with_token: None,
+    }
+}
+pub struct PsqlExtensionSchemaClauseBuilder {
+    schema_token: SyntaxToken,
+    schema: SqlName,
+    with_token: Option<SyntaxToken>,
+}
+impl PsqlExtensionSchemaClauseBuilder {
+    pub fn with_with_token(mut self, with_token: SyntaxToken) -> Self {
+        self.with_token = Some(with_token);
+        self
+    }
+    pub fn build(self) -> PsqlExtensionSchemaClause {
+        PsqlExtensionSchemaClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_EXTENSION_SCHEMA_CLAUSE,
+            [
+                self.with_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.schema_token)),
+                Some(SyntaxElement::Node(self.schema.into_syntax())),
             ],
         ))
     }
