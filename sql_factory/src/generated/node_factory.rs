@@ -3580,38 +3580,52 @@ impl SqlFunctionBindingBuilder {
         ))
     }
 }
+pub fn sql_grant_option_for(
+    grant_token: SyntaxToken,
+    option_token: SyntaxToken,
+    for_token: SyntaxToken,
+) -> SqlGrantOptionFor {
+    SqlGrantOptionFor::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_GRANT_OPTION_FOR,
+        [
+            Some(SyntaxElement::Token(grant_token)),
+            Some(SyntaxElement::Token(option_token)),
+            Some(SyntaxElement::Token(for_token)),
+        ],
+    ))
+}
 pub fn sql_grant_statement(
     grant_token: SyntaxToken,
-    all_token: SyntaxToken,
-    on_token: SyntaxToken,
-    objects: SqlTableNameList,
+    privileges: SqlPrivilegeList,
     to_token: SyntaxToken,
     grantees: SqlGranteeList,
 ) -> SqlGrantStatementBuilder {
     SqlGrantStatementBuilder {
         grant_token,
-        all_token,
-        on_token,
-        objects,
+        privileges,
         to_token,
         grantees,
-        table_token: None,
+        target: None,
+        grant_option: None,
         semicolon_token: None,
     }
 }
 pub struct SqlGrantStatementBuilder {
     grant_token: SyntaxToken,
-    all_token: SyntaxToken,
-    on_token: SyntaxToken,
-    objects: SqlTableNameList,
+    privileges: SqlPrivilegeList,
     to_token: SyntaxToken,
     grantees: SqlGranteeList,
-    table_token: Option<SyntaxToken>,
+    target: Option<AnySqlPrivilegeTarget>,
+    grant_option: Option<SqlWithGrantOption>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlGrantStatementBuilder {
-    pub fn with_table_token(mut self, table_token: SyntaxToken) -> Self {
-        self.table_token = Some(table_token);
+    pub fn with_target(mut self, target: AnySqlPrivilegeTarget) -> Self {
+        self.target = Some(target);
+        self
+    }
+    pub fn with_grant_option(mut self, grant_option: SqlWithGrantOption) -> Self {
+        self.grant_option = Some(grant_option);
         self
     }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
@@ -3623,12 +3637,13 @@ impl SqlGrantStatementBuilder {
             SqlSyntaxKind::SQL_GRANT_STATEMENT,
             [
                 Some(SyntaxElement::Token(self.grant_token)),
-                Some(SyntaxElement::Token(self.all_token)),
-                Some(SyntaxElement::Token(self.on_token)),
-                self.table_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Node(self.objects.into_syntax())),
+                Some(SyntaxElement::Node(self.privileges.into_syntax())),
+                self.target
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.to_token)),
                 Some(SyntaxElement::Node(self.grantees.into_syntax())),
+                self.grant_option
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
             ],
@@ -4118,6 +4133,92 @@ pub fn sql_primary_key_table_constraint(
         ],
     ))
 }
+pub fn sql_privilege(kind_token: SyntaxToken) -> SqlPrivilegeBuilder {
+    SqlPrivilegeBuilder {
+        kind_token,
+        privileges_token: None,
+        columns: None,
+    }
+}
+pub struct SqlPrivilegeBuilder {
+    kind_token: SyntaxToken,
+    privileges_token: Option<SyntaxToken>,
+    columns: Option<SqlColumnList>,
+}
+impl SqlPrivilegeBuilder {
+    pub fn with_privileges_token(mut self, privileges_token: SyntaxToken) -> Self {
+        self.privileges_token = Some(privileges_token);
+        self
+    }
+    pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
+        self.columns = Some(columns);
+        self
+    }
+    pub fn build(self) -> SqlPrivilege {
+        SqlPrivilege::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_PRIVILEGE,
+            [
+                Some(SyntaxElement::Token(self.kind_token)),
+                self.privileges_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn sql_privilege_all_in_schema(
+    on_token: SyntaxToken,
+    all_token: SyntaxToken,
+    object_kind_token: SyntaxToken,
+    in_token: SyntaxToken,
+    schema_token: SyntaxToken,
+    schemas: SqlTableNameList,
+) -> SqlPrivilegeAllInSchema {
+    SqlPrivilegeAllInSchema::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_PRIVILEGE_ALL_IN_SCHEMA,
+        [
+            Some(SyntaxElement::Token(on_token)),
+            Some(SyntaxElement::Token(all_token)),
+            Some(SyntaxElement::Token(object_kind_token)),
+            Some(SyntaxElement::Token(in_token)),
+            Some(SyntaxElement::Token(schema_token)),
+            Some(SyntaxElement::Node(schemas.into_syntax())),
+        ],
+    ))
+}
+pub fn sql_privilege_objects(
+    on_token: SyntaxToken,
+    objects: SqlTableNameList,
+) -> SqlPrivilegeObjectsBuilder {
+    SqlPrivilegeObjectsBuilder {
+        on_token,
+        objects,
+        object_kind_token: None,
+    }
+}
+pub struct SqlPrivilegeObjectsBuilder {
+    on_token: SyntaxToken,
+    objects: SqlTableNameList,
+    object_kind_token: Option<SyntaxToken>,
+}
+impl SqlPrivilegeObjectsBuilder {
+    pub fn with_object_kind_token(mut self, object_kind_token: SyntaxToken) -> Self {
+        self.object_kind_token = Some(object_kind_token);
+        self
+    }
+    pub fn build(self) -> SqlPrivilegeObjects {
+        SqlPrivilegeObjects::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_PRIVILEGE_OBJECTS,
+            [
+                Some(SyntaxElement::Token(self.on_token)),
+                self.object_kind_token
+                    .map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.objects.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn sql_references_constraint(
     references_token: SyntaxToken,
     table: SqlTableName,
@@ -4220,6 +4321,70 @@ pub fn sql_rename_table_action(
             Some(SyntaxElement::Node(new_name.into_syntax())),
         ],
     ))
+}
+pub fn sql_revoke_statement(
+    revoke_token: SyntaxToken,
+    privileges: SqlPrivilegeList,
+    from_token: SyntaxToken,
+    grantees: SqlGranteeList,
+) -> SqlRevokeStatementBuilder {
+    SqlRevokeStatementBuilder {
+        revoke_token,
+        privileges,
+        from_token,
+        grantees,
+        grant_option_for: None,
+        target: None,
+        drop_behavior_token: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlRevokeStatementBuilder {
+    revoke_token: SyntaxToken,
+    privileges: SqlPrivilegeList,
+    from_token: SyntaxToken,
+    grantees: SqlGranteeList,
+    grant_option_for: Option<SqlGrantOptionFor>,
+    target: Option<AnySqlPrivilegeTarget>,
+    drop_behavior_token: Option<SyntaxToken>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlRevokeStatementBuilder {
+    pub fn with_grant_option_for(mut self, grant_option_for: SqlGrantOptionFor) -> Self {
+        self.grant_option_for = Some(grant_option_for);
+        self
+    }
+    pub fn with_target(mut self, target: AnySqlPrivilegeTarget) -> Self {
+        self.target = Some(target);
+        self
+    }
+    pub fn with_drop_behavior_token(mut self, drop_behavior_token: SyntaxToken) -> Self {
+        self.drop_behavior_token = Some(drop_behavior_token);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlRevokeStatement {
+        SqlRevokeStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_REVOKE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.revoke_token)),
+                self.grant_option_for
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.privileges.into_syntax())),
+                self.target
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.from_token)),
+                Some(SyntaxElement::Node(self.grantees.into_syntax())),
+                self.drop_behavior_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
 }
 pub fn sql_root(stmt: SqlStatementList, eof_token: SyntaxToken) -> SqlRootBuilder {
     SqlRootBuilder {
@@ -5172,6 +5337,20 @@ impl SqlWithClauseBuilder {
         ))
     }
 }
+pub fn sql_with_grant_option(
+    with_token: SyntaxToken,
+    grant_token: SyntaxToken,
+    option_token: SyntaxToken,
+) -> SqlWithGrantOption {
+    SqlWithGrantOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_WITH_GRANT_OPTION,
+        [
+            Some(SyntaxElement::Token(with_token)),
+            Some(SyntaxElement::Token(grant_token)),
+            Some(SyntaxElement::Token(option_token)),
+        ],
+    ))
+}
 pub fn psql_function_option_list<I>(items: I) -> PsqlFunctionOptionList
 where
     I: IntoIterator<Item = AnySqlFunctionOption>,
@@ -5586,6 +5765,27 @@ where
     let length = items.len() + separators.len();
     SqlOrderByExpressionList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_ORDER_BY_EXPRESSION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn sql_privilege_list<I, S>(items: I, separators: S) -> SqlPrivilegeList
+where
+    I: IntoIterator<Item = SqlPrivilege>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    SqlPrivilegeList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_PRIVILEGE_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

@@ -5,10 +5,9 @@ use biome_parser::prelude::*;
 
 use super::alter_table::parse_alter_statement;
 use super::call::parse_call_statement;
-use super::ddl::{
-    parse_create_statement, parse_drop_statement, parse_grant_statement, parse_truncate_statement,
-};
+use super::ddl::{parse_create_statement, parse_drop_statement, parse_truncate_statement};
 use super::delete::{parse_delete_statement, parse_delete_statement_body};
+use super::grant::{parse_grant_statement, parse_revoke_statement};
 use super::insert::{parse_insert_statement, parse_insert_statement_body};
 use super::parse_error::*;
 use super::postgres::maintenance::{parse_analyze_statement, parse_vacuum_statement};
@@ -42,7 +41,8 @@ pub const STMT_RECOVERY_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![analyse],
     T![call],
     T![alter],
-    T![refresh]
+    T![refresh],
+    T![revoke]
 ];
 
 pub(crate) fn parse_statements(p: &mut SqlParser, statement_list: Marker) {
@@ -93,6 +93,7 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
         T![drop] => parse_drop_statement(p),
         T![create] => parse_create_statement(p),
         T![grant] => parse_grant_statement(p),
+        T![revoke] => parse_revoke_statement(p),
         T![truncate] => parse_truncate_statement(p),
         T![vacuum] => parse_vacuum_statement(p),
         T![analyze] | T![analyse] => parse_analyze_statement(p),

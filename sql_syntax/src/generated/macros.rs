@@ -522,6 +522,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlFunctionBinding::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_GRANT_OPTION_FOR => {
+                    let $pattern = unsafe { $crate::SqlGrantOptionFor::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_GRANT_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlGrantStatement::new_unchecked(node) };
                     $body
@@ -626,6 +630,18 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::SqlPrimaryKeyTableConstraint::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_PRIVILEGE => {
+                    let $pattern = unsafe { $crate::SqlPrivilege::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_PRIVILEGE_ALL_IN_SCHEMA => {
+                    let $pattern = unsafe { $crate::SqlPrivilegeAllInSchema::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_PRIVILEGE_OBJECTS => {
+                    let $pattern = unsafe { $crate::SqlPrivilegeObjects::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_REFERENCES_CONSTRAINT => {
                     let $pattern = unsafe { $crate::SqlReferencesConstraint::new_unchecked(node) };
                     $body
@@ -641,6 +657,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_RENAME_TABLE_ACTION => {
                     let $pattern = unsafe { $crate::SqlRenameTableAction::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_REVOKE_STATEMENT => {
+                    let $pattern = unsafe { $crate::SqlRevokeStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_ROOT => {
@@ -807,6 +827,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlWithClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_WITH_GRANT_OPTION => {
+                    let $pattern = unsafe { $crate::SqlWithGrantOption::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_BOGUS => {
                     let $pattern = unsafe { $crate::SqlBogus::new_unchecked(node) };
                     $body
@@ -929,6 +953,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_ORDER_BY_EXPRESSION_LIST => {
                     let $pattern = unsafe { $crate::SqlOrderByExpressionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_PRIVILEGE_LIST => {
+                    let $pattern = unsafe { $crate::SqlPrivilegeList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_SELECT_ITEM_LIST => {
