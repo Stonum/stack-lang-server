@@ -5,6 +5,7 @@ pub(crate) mod distinct_on_clause;
 pub(crate) mod do_nothing_clause;
 pub(crate) mod do_update_clause;
 pub(crate) mod filter_clause;
+pub(crate) mod index_method_clause;
 pub(crate) mod join_using_clause;
 pub(crate) mod limit_clause;
 pub(crate) mod on_commit_clause;

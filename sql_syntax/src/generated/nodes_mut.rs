@@ -709,6 +709,20 @@ impl PsqlIdentityConstraint {
         ))
     }
 }
+impl PsqlIndexMethodClause {
+    pub fn with_using_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_method(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl PsqlIntervalExpression {
     pub fn with_interval_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -2129,6 +2143,116 @@ impl SqlConstraintName {
         )
     }
 }
+impl SqlCreateIndexStatement {
+    pub fn with_create_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_unique_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_index_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_concurrently_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_if_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_not_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(5usize..=5usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_exists_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(6usize..=6usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_name(self, element: Option<SqlName>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            7usize..=7usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_on_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(8usize..=8usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_only_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(9usize..=9usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_table(self, element: SqlTableName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(10usize..=10usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_method(self, element: Option<PsqlIndexMethodClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            11usize..=11usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_l_paren_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(12usize..=12usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_elements(self, element: SqlIndexElementList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(13usize..=13usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_r_paren_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(14usize..=14usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_include(self, element: Option<SqlIndexIncludeClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            15usize..=15usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_where_clause(self, element: Option<SqlWhereClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            16usize..=16usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            17usize..=17usize,
+            once(element.map(|element| element.into())),
+        ))
+    }
+}
 impl SqlCreateTableAsStatement {
     pub fn with_create_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -3004,6 +3128,20 @@ impl SqlInValueList {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlIndexIncludeClause {
+    pub fn with_include_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_columns(self, element: SqlColumnList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
         )
     }
 }

@@ -1175,6 +1175,46 @@ pub struct PsqlIdentityConstraintFields {
     pub options: Option<PsqlSequenceOptions>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlIndexMethodClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlIndexMethodClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlIndexMethodClauseFields {
+        PsqlIndexMethodClauseFields {
+            using_token: self.using_token(),
+            method: self.method(),
+        }
+    }
+    pub fn using_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn method(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlIndexMethodClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlIndexMethodClauseFields {
+    pub using_token: SyntaxResult<SyntaxToken>,
+    pub method: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlIntervalExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4283,6 +4323,126 @@ pub struct SqlConstraintNameFields {
     pub name: SyntaxResult<SqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCreateIndexStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCreateIndexStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCreateIndexStatementFields {
+        SqlCreateIndexStatementFields {
+            create_token: self.create_token(),
+            unique_token: self.unique_token(),
+            index_token: self.index_token(),
+            concurrently_token: self.concurrently_token(),
+            if_token: self.if_token(),
+            not_token: self.not_token(),
+            exists_token: self.exists_token(),
+            name: self.name(),
+            on_token: self.on_token(),
+            only_token: self.only_token(),
+            table: self.table(),
+            method: self.method(),
+            l_paren_token: self.l_paren_token(),
+            elements: self.elements(),
+            r_paren_token: self.r_paren_token(),
+            include: self.include(),
+            where_clause: self.where_clause(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn create_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn unique_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn index_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn concurrently_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 4usize)
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+    pub fn exists_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 6usize)
+    }
+    pub fn name(&self) -> Option<SqlName> {
+        support::node(&self.syntax, 7usize)
+    }
+    pub fn on_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 8usize)
+    }
+    pub fn only_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 9usize)
+    }
+    pub fn table(&self) -> SyntaxResult<SqlTableName> {
+        support::required_node(&self.syntax, 10usize)
+    }
+    pub fn method(&self) -> Option<PsqlIndexMethodClause> {
+        support::node(&self.syntax, 11usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 12usize)
+    }
+    pub fn elements(&self) -> SqlIndexElementList {
+        support::list(&self.syntax, 13usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 14usize)
+    }
+    pub fn include(&self) -> Option<SqlIndexIncludeClause> {
+        support::node(&self.syntax, 15usize)
+    }
+    pub fn where_clause(&self) -> Option<SqlWhereClause> {
+        support::node(&self.syntax, 16usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 17usize)
+    }
+}
+impl Serialize for SqlCreateIndexStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCreateIndexStatementFields {
+    pub create_token: SyntaxResult<SyntaxToken>,
+    pub unique_token: Option<SyntaxToken>,
+    pub index_token: SyntaxResult<SyntaxToken>,
+    pub concurrently_token: Option<SyntaxToken>,
+    pub if_token: Option<SyntaxToken>,
+    pub not_token: Option<SyntaxToken>,
+    pub exists_token: Option<SyntaxToken>,
+    pub name: Option<SqlName>,
+    pub on_token: SyntaxResult<SyntaxToken>,
+    pub only_token: Option<SyntaxToken>,
+    pub table: SyntaxResult<SqlTableName>,
+    pub method: Option<PsqlIndexMethodClause>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub elements: SqlIndexElementList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub include: Option<SqlIndexIncludeClause>,
+    pub where_clause: Option<SqlWhereClause>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlCreateTableAsStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -5806,6 +5966,46 @@ pub struct SqlInValueListFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub items: SqlExpressionList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlIndexIncludeClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlIndexIncludeClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlIndexIncludeClauseFields {
+        SqlIndexIncludeClauseFields {
+            include_token: self.include_token(),
+            columns: self.columns(),
+        }
+    }
+    pub fn include_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn columns(&self) -> SyntaxResult<SqlColumnList> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlIndexIncludeClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlIndexIncludeClauseFields {
+    pub include_token: SyntaxResult<SyntaxToken>,
+    pub columns: SyntaxResult<SqlColumnList>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlInsertStatement {
@@ -9451,6 +9651,7 @@ pub enum AnySqlStatement {
     SqlAlterTableStatement(SqlAlterTableStatement),
     SqlBogusStatement(SqlBogusStatement),
     SqlCallStatement(SqlCallStatement),
+    SqlCreateIndexStatement(SqlCreateIndexStatement),
     SqlCreateTableAsStatement(SqlCreateTableAsStatement),
     SqlCreateTableStatement(SqlCreateTableStatement),
     SqlCreateViewStatement(SqlCreateViewStatement),
@@ -9489,6 +9690,12 @@ impl AnySqlStatement {
     pub fn as_sql_call_statement(&self) -> Option<&SqlCallStatement> {
         match &self {
             Self::SqlCallStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_create_index_statement(&self) -> Option<&SqlCreateIndexStatement> {
+        match &self {
+            Self::SqlCreateIndexStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -10959,6 +11166,57 @@ impl From<PsqlIdentityConstraint> for SyntaxNode {
 }
 impl From<PsqlIdentityConstraint> for SyntaxElement {
     fn from(n: PsqlIdentityConstraint) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlIndexMethodClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_INDEX_METHOD_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_INDEX_METHOD_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlIndexMethodClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlIndexMethodClause")
+                .field(
+                    "using_token",
+                    &support::DebugSyntaxResult(self.using_token()),
+                )
+                .field("method", &support::DebugSyntaxResult(self.method()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlIndexMethodClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlIndexMethodClause> for SyntaxNode {
+    fn from(n: PsqlIndexMethodClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlIndexMethodClause> for SyntaxElement {
+    fn from(n: PsqlIndexMethodClause) -> Self {
         n.syntax.into()
     }
 }
@@ -14586,6 +14844,103 @@ impl From<SqlConstraintName> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlCreateIndexStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_CREATE_INDEX_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_CREATE_INDEX_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCreateIndexStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCreateIndexStatement")
+                .field(
+                    "create_token",
+                    &support::DebugSyntaxResult(self.create_token()),
+                )
+                .field(
+                    "unique_token",
+                    &support::DebugOptionalElement(self.unique_token()),
+                )
+                .field(
+                    "index_token",
+                    &support::DebugSyntaxResult(self.index_token()),
+                )
+                .field(
+                    "concurrently_token",
+                    &support::DebugOptionalElement(self.concurrently_token()),
+                )
+                .field("if_token", &support::DebugOptionalElement(self.if_token()))
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field(
+                    "exists_token",
+                    &support::DebugOptionalElement(self.exists_token()),
+                )
+                .field("name", &support::DebugOptionalElement(self.name()))
+                .field("on_token", &support::DebugSyntaxResult(self.on_token()))
+                .field(
+                    "only_token",
+                    &support::DebugOptionalElement(self.only_token()),
+                )
+                .field("table", &support::DebugSyntaxResult(self.table()))
+                .field("method", &support::DebugOptionalElement(self.method()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("elements", &self.elements())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("include", &support::DebugOptionalElement(self.include()))
+                .field(
+                    "where_clause",
+                    &support::DebugOptionalElement(self.where_clause()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlCreateIndexStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCreateIndexStatement> for SyntaxNode {
+    fn from(n: SqlCreateIndexStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCreateIndexStatement> for SyntaxElement {
+    fn from(n: SqlCreateIndexStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlCreateTableAsStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -16197,6 +16552,57 @@ impl From<SqlInValueList> for SyntaxNode {
 }
 impl From<SqlInValueList> for SyntaxElement {
     fn from(n: SqlInValueList) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlIndexIncludeClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_INDEX_INCLUDE_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_INDEX_INCLUDE_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlIndexIncludeClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlIndexIncludeClause")
+                .field(
+                    "include_token",
+                    &support::DebugSyntaxResult(self.include_token()),
+                )
+                .field("columns", &support::DebugSyntaxResult(self.columns()))
+                .finish()
+        } else {
+            f.debug_struct("SqlIndexIncludeClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlIndexIncludeClause> for SyntaxNode {
+    fn from(n: SqlIndexIncludeClause) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlIndexIncludeClause> for SyntaxElement {
+    fn from(n: SqlIndexIncludeClause) -> Self {
         n.syntax.into()
     }
 }
@@ -21595,6 +22001,11 @@ impl From<SqlCallStatement> for AnySqlStatement {
         Self::SqlCallStatement(node)
     }
 }
+impl From<SqlCreateIndexStatement> for AnySqlStatement {
+    fn from(node: SqlCreateIndexStatement) -> Self {
+        Self::SqlCreateIndexStatement(node)
+    }
+}
 impl From<SqlCreateTableAsStatement> for AnySqlStatement {
     fn from(node: SqlCreateTableAsStatement) -> Self {
         Self::SqlCreateTableAsStatement(node)
@@ -21705,6 +22116,7 @@ impl AstNode for AnySqlStatement {
     const KIND_SET: SyntaxKindSet<Language> = SqlAlterTableStatement::KIND_SET
         .union(SqlBogusStatement::KIND_SET)
         .union(SqlCallStatement::KIND_SET)
+        .union(SqlCreateIndexStatement::KIND_SET)
         .union(SqlCreateTableAsStatement::KIND_SET)
         .union(SqlCreateTableStatement::KIND_SET)
         .union(SqlCreateViewStatement::KIND_SET)
@@ -21732,6 +22144,7 @@ impl AstNode for AnySqlStatement {
             SQL_ALTER_TABLE_STATEMENT
                 | SQL_BOGUS_STATEMENT
                 | SQL_CALL_STATEMENT
+                | SQL_CREATE_INDEX_STATEMENT
                 | SQL_CREATE_TABLE_AS_STATEMENT
                 | SQL_CREATE_TABLE_STATEMENT
                 | SQL_CREATE_VIEW_STATEMENT
@@ -21762,6 +22175,9 @@ impl AstNode for AnySqlStatement {
             }
             SQL_BOGUS_STATEMENT => Self::SqlBogusStatement(SqlBogusStatement { syntax }),
             SQL_CALL_STATEMENT => Self::SqlCallStatement(SqlCallStatement { syntax }),
+            SQL_CREATE_INDEX_STATEMENT => {
+                Self::SqlCreateIndexStatement(SqlCreateIndexStatement { syntax })
+            }
             SQL_CREATE_TABLE_AS_STATEMENT => {
                 Self::SqlCreateTableAsStatement(SqlCreateTableAsStatement { syntax })
             }
@@ -21812,6 +22228,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlAlterTableStatement(it) => &it.syntax,
             Self::SqlBogusStatement(it) => &it.syntax,
             Self::SqlCallStatement(it) => &it.syntax,
+            Self::SqlCreateIndexStatement(it) => &it.syntax,
             Self::SqlCreateTableAsStatement(it) => &it.syntax,
             Self::SqlCreateTableStatement(it) => &it.syntax,
             Self::SqlCreateViewStatement(it) => &it.syntax,
@@ -21840,6 +22257,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlAlterTableStatement(it) => it.syntax,
             Self::SqlBogusStatement(it) => it.syntax,
             Self::SqlCallStatement(it) => it.syntax,
+            Self::SqlCreateIndexStatement(it) => it.syntax,
             Self::SqlCreateTableAsStatement(it) => it.syntax,
             Self::SqlCreateTableStatement(it) => it.syntax,
             Self::SqlCreateViewStatement(it) => it.syntax,
@@ -21870,6 +22288,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlAlterTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCallStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlCreateIndexStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableAsStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateViewStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -21900,6 +22319,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlAlterTableStatement(it) => it.into(),
             AnySqlStatement::SqlBogusStatement(it) => it.into(),
             AnySqlStatement::SqlCallStatement(it) => it.into(),
+            AnySqlStatement::SqlCreateIndexStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableAsStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableStatement(it) => it.into(),
             AnySqlStatement::SqlCreateViewStatement(it) => it.into(),
@@ -22573,6 +22993,11 @@ impl std::fmt::Display for PsqlIdentityConstraint {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlIndexMethodClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlIntervalExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -22913,6 +23338,11 @@ impl std::fmt::Display for SqlConstraintName {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for SqlCreateIndexStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for SqlCreateTableAsStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -23049,6 +23479,11 @@ impl std::fmt::Display for SqlInExpression {
     }
 }
 impl std::fmt::Display for SqlInValueList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlIndexIncludeClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -25397,6 +25832,88 @@ impl IntoIterator for SqlGroupByItemList {
 impl IntoIterator for &SqlGroupByItemList {
     type Item = SyntaxResult<AnySqlExpression>;
     type IntoIter = AstSeparatedListNodesIterator<Language, AnySqlExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct SqlIndexElementList {
+    syntax_list: SyntaxList,
+}
+impl SqlIndexElementList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for SqlIndexElementList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_INDEX_ELEMENT_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_INDEX_ELEMENT_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for SqlIndexElementList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for SqlIndexElementList {
+    type Language = Language;
+    type Node = SqlOrderByExpression;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for SqlIndexElementList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SqlIndexElementList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for SqlIndexElementList {
+    type Item = SyntaxResult<SqlOrderByExpression>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, SqlOrderByExpression>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &SqlIndexElementList {
+    type Item = SyntaxResult<SqlOrderByExpression>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, SqlOrderByExpression>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

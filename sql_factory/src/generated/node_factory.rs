@@ -728,6 +728,18 @@ impl PsqlIdentityConstraintBuilder {
         ))
     }
 }
+pub fn psql_index_method_clause(
+    using_token: SyntaxToken,
+    method: SqlName,
+) -> PsqlIndexMethodClause {
+    PsqlIndexMethodClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_INDEX_METHOD_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(method.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_interval_expression(
     interval_token: SyntaxToken,
     value: SqlStringLiteralExpression,
@@ -2074,6 +2086,133 @@ pub fn sql_constraint_name(constraint_token: SyntaxToken, name: SqlName) -> SqlC
         ],
     ))
 }
+pub fn sql_create_index_statement(
+    create_token: SyntaxToken,
+    index_token: SyntaxToken,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    l_paren_token: SyntaxToken,
+    elements: SqlIndexElementList,
+    r_paren_token: SyntaxToken,
+) -> SqlCreateIndexStatementBuilder {
+    SqlCreateIndexStatementBuilder {
+        create_token,
+        index_token,
+        on_token,
+        table,
+        l_paren_token,
+        elements,
+        r_paren_token,
+        unique_token: None,
+        concurrently_token: None,
+        if_token: None,
+        not_token: None,
+        exists_token: None,
+        name: None,
+        only_token: None,
+        method: None,
+        include: None,
+        where_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlCreateIndexStatementBuilder {
+    create_token: SyntaxToken,
+    index_token: SyntaxToken,
+    on_token: SyntaxToken,
+    table: SqlTableName,
+    l_paren_token: SyntaxToken,
+    elements: SqlIndexElementList,
+    r_paren_token: SyntaxToken,
+    unique_token: Option<SyntaxToken>,
+    concurrently_token: Option<SyntaxToken>,
+    if_token: Option<SyntaxToken>,
+    not_token: Option<SyntaxToken>,
+    exists_token: Option<SyntaxToken>,
+    name: Option<SqlName>,
+    only_token: Option<SyntaxToken>,
+    method: Option<PsqlIndexMethodClause>,
+    include: Option<SqlIndexIncludeClause>,
+    where_clause: Option<SqlWhereClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlCreateIndexStatementBuilder {
+    pub fn with_unique_token(mut self, unique_token: SyntaxToken) -> Self {
+        self.unique_token = Some(unique_token);
+        self
+    }
+    pub fn with_concurrently_token(mut self, concurrently_token: SyntaxToken) -> Self {
+        self.concurrently_token = Some(concurrently_token);
+        self
+    }
+    pub fn with_if_token(mut self, if_token: SyntaxToken) -> Self {
+        self.if_token = Some(if_token);
+        self
+    }
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_exists_token(mut self, exists_token: SyntaxToken) -> Self {
+        self.exists_token = Some(exists_token);
+        self
+    }
+    pub fn with_name(mut self, name: SqlName) -> Self {
+        self.name = Some(name);
+        self
+    }
+    pub fn with_only_token(mut self, only_token: SyntaxToken) -> Self {
+        self.only_token = Some(only_token);
+        self
+    }
+    pub fn with_method(mut self, method: PsqlIndexMethodClause) -> Self {
+        self.method = Some(method);
+        self
+    }
+    pub fn with_include(mut self, include: SqlIndexIncludeClause) -> Self {
+        self.include = Some(include);
+        self
+    }
+    pub fn with_where_clause(mut self, where_clause: SqlWhereClause) -> Self {
+        self.where_clause = Some(where_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlCreateIndexStatement {
+        SqlCreateIndexStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_CREATE_INDEX_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.create_token)),
+                self.unique_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.index_token)),
+                self.concurrently_token
+                    .map(|token| SyntaxElement::Token(token)),
+                self.if_token.map(|token| SyntaxElement::Token(token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                self.exists_token.map(|token| SyntaxElement::Token(token)),
+                self.name
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.on_token)),
+                self.only_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.table.into_syntax())),
+                self.method
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                Some(SyntaxElement::Node(self.elements.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.include
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.where_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn sql_create_table_as_statement(
     create_token: SyntaxToken,
     table_token: SyntaxToken,
@@ -3064,6 +3203,18 @@ pub fn sql_in_value_list(
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(items.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn sql_index_include_clause(
+    include_token: SyntaxToken,
+    columns: SqlColumnList,
+) -> SqlIndexIncludeClause {
+    SqlIndexIncludeClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_INDEX_INCLUDE_CLAUSE,
+        [
+            Some(SyntaxElement::Token(include_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
         ],
     ))
 }
@@ -4879,6 +5030,27 @@ where
     let length = items.len() + separators.len();
     SqlGroupByItemList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_GROUP_BY_ITEM_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn sql_index_element_list<I, S>(items: I, separators: S) -> SqlIndexElementList
+where
+    I: IntoIterator<Item = SqlOrderByExpression>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    SqlIndexElementList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_INDEX_ELEMENT_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

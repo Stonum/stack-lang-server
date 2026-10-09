@@ -111,6 +111,7 @@ AnySqlStatement =
    | SqlCreateTableStatement
    | SqlCreateTableAsStatement
    | SqlAlterTableStatement
+   | SqlCreateIndexStatement
    | SqlCreateViewStatement
    | SqlDropViewStatement
    | SqlGrantStatement
@@ -497,6 +498,40 @@ SqlCreateTableStatement =
    ')'
    on_commit: PsqlOnCommitClause?
    ';'?
+
+// `CREATE [UNIQUE] INDEX [CONCURRENTLY] [[IF NOT EXISTS] name] ON [ONLY] table
+// [USING method] (element, ...) [INCLUDE (column, ...)] [WHERE predicate] [;]`
+// -- `CONCURRENTLY`, `IF NOT EXISTS`, an omitted name and `USING` are Postgres-only.
+SqlCreateIndexStatement =
+   'create'
+   'unique'?
+   'index'
+   'concurrently'?
+   ('if' 'not' 'exists')?
+   name: SqlName?
+   'on'
+   'only'?
+   table: SqlTableName
+   method: PsqlIndexMethodClause?
+   '('
+   elements: SqlIndexElementList
+   ')'
+   include: SqlIndexIncludeClause?
+   where_clause: SqlWhereClause?
+   ';'?
+
+// `USING btree`
+PsqlIndexMethodClause =
+   'using'
+   method: SqlName
+
+// An indexed column or expression with an optional `ASC`/`DESC`.
+SqlIndexElementList = (SqlOrderByExpression (',' SqlOrderByExpression)*)
+
+// `INCLUDE (column, ...)`
+SqlIndexIncludeClause =
+   'include'
+   columns: SqlColumnList
 
 // `ALTER TABLE [IF EXISTS] [ONLY] name action, ... [;]`
 SqlAlterTableStatement =

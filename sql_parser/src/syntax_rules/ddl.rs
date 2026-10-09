@@ -8,6 +8,7 @@ use super::expr::{
     is_at_tilde_name_start, parse_any_name, parse_column_name_list, parse_expression, parse_name,
     parse_subquery_expression, parse_table_name, parse_type_name,
 };
+use super::index::parse_create_index_statement;
 use super::parse_error::*;
 use super::postgres::ddl::{
     eat_cascade_or_restrict, eat_table_persistence, parse_create_function_statement,
@@ -34,6 +35,9 @@ pub(crate) fn parse_create_statement(p: &mut SqlParser) -> ParsedSyntax {
 
     if p.nth_at(1, T![table]) || (is_at_table_persistence(p, 1) && p.nth_at(2, T![table])) {
         return parse_create_table_statement(p);
+    }
+    if p.nth_at(1, T![index]) || (p.nth_at(1, T![unique]) && p.nth_at(2, T![index])) {
+        return parse_create_index_statement(p);
     }
     if p.nth_at(1, T![policy]) {
         return parse_create_policy_statement(p);
