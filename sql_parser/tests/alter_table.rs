@@ -232,3 +232,15 @@ fn test_alter_table_rename_without_to_reports_error() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_alter_table_rename_two_columns() {
+    let res = parse(
+        "alter table accounts rename column a to b, rename column c to d",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert_eq!(tree.matches("SQL_RENAME_COLUMN_ACTION").count(), 2);
+}

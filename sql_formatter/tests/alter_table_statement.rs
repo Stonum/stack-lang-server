@@ -132,3 +132,117 @@ alter table some_long_schema_name.some_long_table_name
 "#
     );
 }
+
+#[test]
+fn format_alter_table_rename_two_columns() {
+    assert_fmt!(
+        r#"--
+alter table accounts rename column a to b, rename column c to d
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_renames_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts rename column first_name to given_name, rename column last_name to family_name, rename column phone to phone_number
+"#,
+        r#"--
+alter table accounts
+	rename column first_name to given_name,
+	rename column last_name to family_name,
+	rename column phone to phone_number
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_drop_columns_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts drop column a, drop column b, drop column c, drop column d, drop column e, drop column f, drop column g, drop column h
+"#,
+        r#"--
+alter table accounts
+	drop column a,
+	drop column b,
+	drop column c,
+	drop column d,
+	drop column e,
+	drop column f,
+	drop column g,
+	drop column h
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_add_columns_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts add column a int, add column b int, add column c int, add column d int, add column e int, add column f int, add g int
+"#,
+        r#"--
+alter table accounts
+	add column a int,
+	add column b int,
+	add column c int,
+	add column d int,
+	add column e int,
+	add column f int,
+	add g int
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_trigger_actions_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts disable trigger a, disable trigger b, disable trigger c, disable trigger d, enable trigger e, enable trigger f
+"#,
+        r#"--
+alter table accounts
+	disable trigger a,
+	disable trigger b,
+	disable trigger c,
+	disable trigger d,
+	enable trigger e,
+	enable trigger f
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_alter_column_actions_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts alter column a drop default, alter column b drop not null, alter column c set not null, alter d set default 0
+"#,
+        r#"--
+alter table accounts
+	alter column a drop default,
+	alter column b drop not null,
+	alter column c set not null,
+	alter d set default 0
+"#
+    );
+}
+
+#[test]
+fn format_alter_table_many_rename_constraints_wrap() {
+    assert_fmt_eq!(
+        r#"--
+alter table accounts rename constraint a to b, rename constraint c to d, rename constraint e to f, rename constraint g to h, rename constraint i to j
+"#,
+        r#"--
+alter table accounts
+	rename constraint a to b,
+	rename constraint c to d,
+	rename constraint e to f,
+	rename constraint g to h,
+	rename constraint i to j
+"#
+    );
+}
