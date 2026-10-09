@@ -120,3 +120,68 @@ fn test_column_is_reserved() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_alter_column_type_using() {
+    let res = parse(
+        r#"alter table ~Таблица~ alter column "Поле" type int2 using "Поле"::int2"#,
+        mlang(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_ALTER_COLUMN_TYPE"));
+    assert!(tree.contains("PSQL_ALTER_COLUMN_USING"));
+}
+
+#[test]
+fn test_alter_column_default_and_not_null_operations() {
+    let res = parse(
+        "alter table t alter column a set default 0, alter b drop default, alter column c set not null, alter column d drop not null, alter e set data type text",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("SQL_SET_COLUMN_DEFAULT"));
+    assert!(tree.contains("SQL_DROP_COLUMN_DEFAULT"));
+    assert!(tree.contains("SQL_SET_COLUMN_NOT_NULL"));
+    assert!(tree.contains("SQL_DROP_COLUMN_NOT_NULL"));
+    assert_eq!(tree.matches("SQL_ALTER_COLUMN_ACTION").count(), 5);
+}
+
+#[test]
+fn test_alter_column_does_not_swallow_next_alter_table_statement() {
+    let res = parse(
+        "alter table t alter column a drop default\nalter table u disable trigger all",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert_eq!(tree.matches("SQL_ALTER_TABLE_STATEMENT").count(), 2);
+}
+
+#[test]
+fn test_type_is_still_a_valid_column_name() {
+    let res = parse("select type from t where type = 1", postgres());
+
+    assert_parser!(res);
+}
+
+#[test]
+fn test_alter_column_without_operation_reports_error() {
+    let res = parse("alter table t alter column a;", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_alter_column_using_rejected_under_mssql_dialect() {
+    let res = parse(
+        "alter table t alter column a type int using a",
+        SqlFileSource::script().with_dialect(SqlDialect::Mssql),
+    );
+
+    assert!(res.has_errors());
+}

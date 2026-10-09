@@ -3,6 +3,20 @@
 use crate::{SqlSyntaxToken as SyntaxToken, generated::nodes::*};
 use biome_rowan::AstNode;
 use std::iter::once;
+impl PsqlAlterColumnUsing {
+    pub fn with_using_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_expression(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl PsqlAnalyzeStatement {
     pub fn with_analyze_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -1637,6 +1651,64 @@ impl SqlAllTriggersTarget {
         )
     }
 }
+impl SqlAlterColumnAction {
+    pub fn with_alter_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_column_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_name(self, element: SqlName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_operation(self, element: AnySqlAlterColumnOperation) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl SqlAlterColumnType {
+    pub fn with_set_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_data_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_type_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_ty(self, element: SqlTypeName) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_using(self, element: Option<PsqlAlterColumnUsing>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            4usize..=4usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+}
 impl SqlAlterTableStatement {
     pub fn with_alter_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -2410,6 +2482,40 @@ impl SqlDropColumnAction {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(5usize..=5usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
+impl SqlDropColumnDefault {
+    pub fn with_drop_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_default_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+}
+impl SqlDropColumnNotNull {
+    pub fn with_drop_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_not_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_null_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
         )
     }
 }
@@ -3398,6 +3504,46 @@ impl SqlSetClause {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl SqlSetColumnDefault {
+    pub fn with_set_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_default_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_value(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl SqlSetColumnNotNull {
+    pub fn with_set_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_not_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_null_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into()))),
         )
     }
 }

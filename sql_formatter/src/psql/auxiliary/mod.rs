@@ -1,5 +1,6 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
+pub(crate) mod alter_column_using;
 pub(crate) mod cte_materialized_hint;
 pub(crate) mod drop_function_parameters;
 pub(crate) mod function_parameter;

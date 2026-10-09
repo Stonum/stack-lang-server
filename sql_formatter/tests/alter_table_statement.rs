@@ -42,3 +42,24 @@ alter table t add column a varchar(10) null, drop b
 "#
     );
 }
+
+#[test]
+fn format_alter_column_operations() {
+    assert_fmt!(
+        r#"--
+alter table t alter column a type int using a::int, alter b set default 0, alter c drop not null;
+"#
+    );
+}
+
+#[test]
+fn format_alter_column_normalizes_spacing_and_case() {
+    assert_fmt_eq!(
+        r#"--
+ALTER TABLE t ALTER  COLUMN a  SET  DATA  TYPE  text ,ALTER b  DROP   DEFAULT
+"#,
+        r#"--
+alter table t alter column a set data type text, alter b drop default
+"#
+    );
+}

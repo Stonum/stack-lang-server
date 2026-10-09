@@ -16,6 +16,10 @@ macro_rules! map_syntax_node {
     ($ node : expr , $ pattern : pat => $ body : expr) => {
         match $node {
             node => match $crate::SqlSyntaxNode::kind(&node) {
+                $crate::SqlSyntaxKind::PSQL_ALTER_COLUMN_USING => {
+                    let $pattern = unsafe { $crate::PsqlAlterColumnUsing::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_ANALYZE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlAnalyzeStatement::new_unchecked(node) };
                     $body
@@ -295,6 +299,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlAllTriggersTarget::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_ALTER_COLUMN_ACTION => {
+                    let $pattern = unsafe { $crate::SqlAlterColumnAction::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_ALTER_COLUMN_TYPE => {
+                    let $pattern = unsafe { $crate::SqlAlterColumnType::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ALTER_TABLE_STATEMENT => {
                     let $pattern = unsafe { $crate::SqlAlterTableStatement::new_unchecked(node) };
                     $body
@@ -396,6 +408,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_COLUMN_ACTION => {
                     let $pattern = unsafe { $crate::SqlDropColumnAction::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_DROP_COLUMN_DEFAULT => {
+                    let $pattern = unsafe { $crate::SqlDropColumnDefault::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_DROP_COLUMN_NOT_NULL => {
+                    let $pattern = unsafe { $crate::SqlDropColumnNotNull::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_DROP_FUNCTION_STATEMENT => {
@@ -578,6 +598,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::SQL_SET_CLAUSE => {
                     let $pattern = unsafe { $crate::SqlSetClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_SET_COLUMN_DEFAULT => {
+                    let $pattern = unsafe { $crate::SqlSetColumnDefault::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_SET_COLUMN_NOT_NULL => {
+                    let $pattern = unsafe { $crate::SqlSetColumnNotNull::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_SET_ITEM => {

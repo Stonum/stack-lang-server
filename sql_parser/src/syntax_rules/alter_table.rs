@@ -4,14 +4,15 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::ddl::{parse_column_definition, parse_table_name_for_ddl};
-use super::expr::{EXPR_RECOVERY_SET, parse_name};
+use super::expr::{EXPR_RECOVERY_SET, parse_expression, parse_name, parse_type_name};
 use super::parse_error::{
-    expected_alter_table_action, expected_column_definition, expected_identifier,
-    expected_table_binding,
+    expected_alter_column_operation, expected_alter_table_action, expected_column_definition,
+    expected_expression, expected_identifier, expected_table_binding, expected_type_name,
 };
 use super::postgres::ddl::eat_cascade_or_restrict;
+use super::postgres::parse_error::postgres_only_syntax_error;
 use super::stmt::STMT_RECOVERY_SET;
-use crate::SqlParser;
+use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
 
 /// `ALTER TABLE [IF EXISTS] [ONLY] name action, ... [;]`
@@ -51,14 +52,15 @@ impl ParseSeparatedList for SqlAlterTableActionList {
             T![enable] | T![disable] => parse_alter_trigger_action(p),
             T![add] => parse_add_column_action(p),
             T![drop] => parse_drop_column_action(p),
+            T![alter] => parse_alter_column_action(p),
             _ => Absent,
         }
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         // The next statement may follow without a `;` in mlang command
-        // batches; `drop` starts both a statement and an action.
-        p.at(EOF) || (p.at_ts(STMT_RECOVERY_SET) && !is_at_drop_action(p))
+        // batches; `drop`/`alter` start both a statement and an action.
+        p.at(EOF) || (p.at_ts(STMT_RECOVERY_SET) && !is_at_column_action(p))
     }
 
     fn recover(
@@ -82,10 +84,87 @@ impl ParseSeparatedList for SqlAlterTableActionList {
     }
 }
 
-/// `drop column ...` / `drop if exists ...` / `drop name`, as opposed to a
-/// following `drop table ...` statement.
-fn is_at_drop_action(p: &mut SqlParser) -> bool {
-    p.at(T![drop]) && (p.nth_at(1, T![column]) || p.nth_at(1, T![if]) || p.nth_at(1, T![ident]))
+/// `drop column ...` / `drop if exists ...` / `drop name` or `alter
+/// [column] name ...`, as opposed to a following `drop table ...` /
+/// `alter table ...` statement.
+fn is_at_column_action(p: &mut SqlParser) -> bool {
+    match p.cur() {
+        T![drop] => p.nth_at(1, T![column]) || p.nth_at(1, T![if]) || p.nth_at(1, T![ident]),
+        T![alter] => p.nth_at(1, T![column]) || p.nth_at(1, T![ident]),
+        _ => false,
+    }
+}
+
+/// `ALTER [COLUMN] name {[SET DATA] TYPE ... | SET/DROP DEFAULT | SET/DROP NOT NULL}`
+fn parse_alter_column_action(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.bump(T![alter]);
+    p.eat(T![column]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    parse_alter_column_operation(p).or_add_diagnostic(p, expected_alter_column_operation);
+    Present(m.complete(p, SQL_ALTER_COLUMN_ACTION))
+}
+
+fn parse_alter_column_operation(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    let kind = match (p.cur(), p.nth(1)) {
+        (T![type], _) | (T![set], T![data]) => {
+            if p.at(T![set]) {
+                p.bump(T![set]);
+                p.bump(T![data]);
+            }
+            p.expect(T![type]);
+            parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+            let _ = parse_alter_column_using(p);
+            SQL_ALTER_COLUMN_TYPE
+        }
+        (T![set], T![default]) => {
+            p.bump(T![set]);
+            p.bump(T![default]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            SQL_SET_COLUMN_DEFAULT
+        }
+        (T![drop], T![default]) => {
+            p.bump(T![drop]);
+            p.bump(T![default]);
+            SQL_DROP_COLUMN_DEFAULT
+        }
+        (T![set], T![not]) => {
+            p.bump(T![set]);
+            p.bump(T![not]);
+            p.expect(T![null]);
+            SQL_SET_COLUMN_NOT_NULL
+        }
+        (T![drop], T![not]) => {
+            p.bump(T![drop]);
+            p.bump(T![not]);
+            p.expect(T![null]);
+            SQL_DROP_COLUMN_NOT_NULL
+        }
+        _ => {
+            m.abandon(p);
+            return Absent;
+        }
+    };
+    Present(m.complete(p, kind))
+}
+
+/// `USING expr` after `ALTER COLUMN ... TYPE ...`; Postgres-only.
+fn parse_alter_column_using(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![using]) {
+        return Absent;
+    }
+
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![using]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            Present(m.complete(p, PSQL_ALTER_COLUMN_USING))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`USING` in `ALTER COLUMN`", marker.range(p)),
+    )
 }
 
 /// `ENABLE | DISABLE TRIGGER name | ALL | USER`
