@@ -19,5 +19,7 @@ pub(crate) mod pl_execute_statement;
 pub(crate) mod pl_if_statement;
 pub(crate) mod pl_perform_statement;
 pub(crate) mod pl_raise_statement;
+pub(crate) mod pl_return_query_statement;
+pub(crate) mod pl_return_statement;
 pub(crate) mod refresh_materialized_view_statement;
 pub(crate) mod vacuum_statement;

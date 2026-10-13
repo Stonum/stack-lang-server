@@ -310,6 +310,15 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlRaiseUsingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_RETURN_QUERY_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPlReturnQueryStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_RETURN_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlReturnStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_USING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPlUsingClause::new_unchecked(node) };
                     $body
