@@ -2468,6 +2468,42 @@ pub fn psql_pl_variable_default(
         ],
     ))
 }
+pub fn psql_pl_while_statement(
+    while_token: SyntaxToken,
+    condition: AnySqlExpression,
+    body: PsqlPlLoopBody,
+) -> PsqlPlWhileStatementBuilder {
+    PsqlPlWhileStatementBuilder {
+        while_token,
+        condition,
+        body,
+        label: None,
+    }
+}
+pub struct PsqlPlWhileStatementBuilder {
+    while_token: SyntaxToken,
+    condition: AnySqlExpression,
+    body: PsqlPlLoopBody,
+    label: Option<PsqlPlLabel>,
+}
+impl PsqlPlWhileStatementBuilder {
+    pub fn with_label(mut self, label: PsqlPlLabel) -> Self {
+        self.label = Some(label);
+        self
+    }
+    pub fn build(self) -> PsqlPlWhileStatement {
+        PsqlPlWhileStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_WHILE_STATEMENT,
+            [
+                self.label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.while_token)),
+                Some(SyntaxElement::Node(self.condition.into_syntax())),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_policy_for_clause(
     for_token: SyntaxToken,
     command_token: SyntaxToken,

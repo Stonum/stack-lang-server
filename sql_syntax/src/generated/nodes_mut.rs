@@ -2321,6 +2321,32 @@ impl PsqlPlVariableDefault {
         )
     }
 }
+impl PsqlPlWhileStatement {
+    pub fn with_label(self, element: Option<PsqlPlLabel>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            0usize..=0usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_while_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_condition(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_body(self, element: PsqlPlLoopBody) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
 impl PsqlPolicyForClause {
     pub fn with_for_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(

@@ -19,6 +19,7 @@ impl FormatRule<AnyPsqlPlStatement> for FormatAnyPsqlPlStatement {
             AnyPsqlPlStatement::PsqlPlRaiseStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlReturnQueryStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlReturnStatement(node) => node.format().fmt(f),
+            AnyPsqlPlStatement::PsqlPlWhileStatement(node) => node.format().fmt(f),
         }
     }
 }

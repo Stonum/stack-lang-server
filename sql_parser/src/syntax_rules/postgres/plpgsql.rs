@@ -148,7 +148,19 @@ fn parse_pl_labelled_statement(p: &mut SqlParser) -> ParsedSyntax {
         parse_pl_loop_body(p, label.as_deref()).ok();
         return Present(m.complete(p, PSQL_PL_LOOP_STATEMENT));
     }
+    if p.at(T![while]) {
+        return parse_pl_while_rest(p, m, label.as_deref());
+    }
     parse_pl_block_rest(p, m, label.as_deref())
+}
+
+/// `WHILE cond LOOP ... END LOOP [label];` after its optional `label`,
+/// which `m` already holds.
+fn parse_pl_while_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> ParsedSyntax {
+    p.expect(T![while]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    parse_pl_loop_body(p, label).or_add_diagnostic(p, expected_loop_body);
+    Present(m.complete(p, PSQL_PL_WHILE_STATEMENT))
 }
 
 /// `LOOP statement; ... END LOOP [label];`
@@ -285,6 +297,10 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
         let m = p.start();
         parse_pl_loop_body(p, None).ok();
         return Present(m.complete(p, PSQL_PL_LOOP_STATEMENT));
+    }
+    if p.at(T![while]) {
+        let m = p.start();
+        return parse_pl_while_rest(p, m, None);
     }
     if p.at(T![exit]) || p.at(T![continue]) {
         return parse_pl_exit_statement(p);
@@ -549,6 +565,10 @@ fn expected_declaration(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
 
 fn expected_raise_option(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     p.err_builder("Expected a `name = value` option", range)
+}
+
+fn expected_loop_body(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    p.err_builder("Expected `loop ... end loop`", range)
 }
 
 fn expected_pl_block(p: &SqlParser, range: TextRange) -> ParseDiagnostic {

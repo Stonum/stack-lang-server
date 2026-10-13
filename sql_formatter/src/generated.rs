@@ -2731,6 +2731,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlVariableDefault {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlWhileStatement>
+    for crate::psql::statements::pl_while_statement::FormatPsqlPlWhileStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlWhileStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlWhileStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlWhileStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlWhileStatement,
+        crate::psql::statements::pl_while_statement::FormatPsqlPlWhileStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_while_statement::FormatPsqlPlWhileStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlWhileStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlWhileStatement,
+        crate::psql::statements::pl_while_statement::FormatPsqlPlWhileStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_while_statement::FormatPsqlPlWhileStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPolicyForClause>
     for crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause
 {
