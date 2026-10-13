@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use crate::utils::write_select_body_clauses;
 use biome_formatter::write;
+use biome_rowan::SyntaxError;
 use sql_syntax::SqlSetOperation;
 use sql_syntax::SqlSetOperationFields;
 #[derive(Debug, Clone, Default)]
@@ -15,6 +16,7 @@ impl FormatNodeRule<SqlSetOperation> for FormatSqlSetOperation {
             where_clause,
             group_by_clause,
             having_clause,
+            subquery,
         } = node.as_fields();
 
         // The operator (`union`/`intersect`/`except`) sits on its own line,
@@ -40,11 +42,14 @@ impl FormatNodeRule<SqlSetOperation> for FormatSqlSetOperation {
         )?;
 
         write!(f, [hard_line_break()])?;
+        if let Some(subquery) = subquery {
+            return write!(f, [subquery.format()]);
+        }
         write!(
             f,
             [group(&format_once(|f| {
                 write_select_body_clauses(
-                    select_clause,
+                    select_clause.ok_or(SyntaxError::MissingRequiredChild),
                     from_clause,
                     where_clause,
                     group_by_clause,

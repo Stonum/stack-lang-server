@@ -6153,6 +6153,76 @@ pub struct SqlCommitStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCompoundSelectStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCompoundSelectStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCompoundSelectStatementFields {
+        SqlCompoundSelectStatementFields {
+            with_clause: self.with_clause(),
+            first: self.first(),
+            set_operations: self.set_operations(),
+            order_by_clause: self.order_by_clause(),
+            limit_clause: self.limit_clause(),
+            offset_clause: self.offset_clause(),
+            fetch_clause: self.fetch_clause(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn with_clause(&self) -> Option<SqlWithClause> {
+        support::node(&self.syntax, 0usize)
+    }
+    pub fn first(&self) -> SyntaxResult<SqlSubqueryExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn set_operations(&self) -> SqlSetOperationList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn order_by_clause(&self) -> Option<SqlOrderByClause> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn limit_clause(&self) -> Option<PsqlLimitClause> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn offset_clause(&self) -> Option<SqlOffsetClause> {
+        support::node(&self.syntax, 5usize)
+    }
+    pub fn fetch_clause(&self) -> Option<SqlFetchClause> {
+        support::node(&self.syntax, 6usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 7usize)
+    }
+}
+impl Serialize for SqlCompoundSelectStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCompoundSelectStatementFields {
+    pub with_clause: Option<SqlWithClause>,
+    pub first: SyntaxResult<SqlSubqueryExpression>,
+    pub set_operations: SqlSetOperationList,
+    pub order_by_clause: Option<SqlOrderByClause>,
+    pub limit_clause: Option<PsqlLimitClause>,
+    pub offset_clause: Option<SqlOffsetClause>,
+    pub fetch_clause: Option<SqlFetchClause>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlConstraintName {
     pub(crate) syntax: SyntaxNode,
 }
@@ -9985,6 +10055,7 @@ impl SqlSetOperation {
             where_clause: self.where_clause(),
             group_by_clause: self.group_by_clause(),
             having_clause: self.having_clause(),
+            subquery: self.subquery(),
         }
     }
     pub fn operator_token(&self) -> SyntaxResult<SyntaxToken> {
@@ -9993,8 +10064,8 @@ impl SqlSetOperation {
     pub fn quantifier(&self) -> Option<SyntaxToken> {
         support::token(&self.syntax, 1usize)
     }
-    pub fn select_clause(&self) -> SyntaxResult<SqlSelectClause> {
-        support::required_node(&self.syntax, 2usize)
+    pub fn select_clause(&self) -> Option<SqlSelectClause> {
+        support::node(&self.syntax, 2usize)
     }
     pub fn from_clause(&self) -> Option<SqlFromClause> {
         support::node(&self.syntax, 3usize)
@@ -10007,6 +10078,9 @@ impl SqlSetOperation {
     }
     pub fn having_clause(&self) -> Option<SqlHavingClause> {
         support::node(&self.syntax, 6usize)
+    }
+    pub fn subquery(&self) -> Option<SqlSubqueryExpression> {
+        support::node(&self.syntax, 7usize)
     }
 }
 impl Serialize for SqlSetOperation {
@@ -10021,11 +10095,12 @@ impl Serialize for SqlSetOperation {
 pub struct SqlSetOperationFields {
     pub operator_token: SyntaxResult<SyntaxToken>,
     pub quantifier: Option<SyntaxToken>,
-    pub select_clause: SyntaxResult<SqlSelectClause>,
+    pub select_clause: Option<SqlSelectClause>,
     pub from_clause: Option<SqlFromClause>,
     pub where_clause: Option<SqlWhereClause>,
     pub group_by_clause: Option<SqlGroupByClause>,
     pub having_clause: Option<SqlHavingClause>,
+    pub subquery: Option<SqlSubqueryExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlSetSchemaAction {
@@ -12510,6 +12585,7 @@ pub enum AnySqlStatement {
     SqlBogusStatement(SqlBogusStatement),
     SqlCallStatement(SqlCallStatement),
     SqlCommitStatement(SqlCommitStatement),
+    SqlCompoundSelectStatement(SqlCompoundSelectStatement),
     SqlCreateIndexStatement(SqlCreateIndexStatement),
     SqlCreateTableAsStatement(SqlCreateTableAsStatement),
     SqlCreateTableStatement(SqlCreateTableStatement),
@@ -12579,6 +12655,12 @@ impl AnySqlStatement {
     pub fn as_sql_commit_statement(&self) -> Option<&SqlCommitStatement> {
         match &self {
             Self::SqlCommitStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_compound_select_statement(&self) -> Option<&SqlCompoundSelectStatement> {
+        match &self {
+            Self::SqlCompoundSelectStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -12797,10 +12879,17 @@ impl AnySqlStatement {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlSubqueryBody {
+    SqlCompoundSelectStatement(SqlCompoundSelectStatement),
     SqlSelectStatement(SqlSelectStatement),
     SqlValuesClause(SqlValuesClause),
 }
 impl AnySqlSubqueryBody {
+    pub fn as_sql_compound_select_statement(&self) -> Option<&SqlCompoundSelectStatement> {
+        match &self {
+            Self::SqlCompoundSelectStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_sql_select_statement(&self) -> Option<&SqlSelectStatement> {
         match &self {
             Self::SqlSelectStatement(item) => Some(item),
@@ -19781,6 +19870,78 @@ impl From<SqlCommitStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlCompoundSelectStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_COMPOUND_SELECT_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_COMPOUND_SELECT_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCompoundSelectStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCompoundSelectStatement")
+                .field(
+                    "with_clause",
+                    &support::DebugOptionalElement(self.with_clause()),
+                )
+                .field("first", &support::DebugSyntaxResult(self.first()))
+                .field("set_operations", &self.set_operations())
+                .field(
+                    "order_by_clause",
+                    &support::DebugOptionalElement(self.order_by_clause()),
+                )
+                .field(
+                    "limit_clause",
+                    &support::DebugOptionalElement(self.limit_clause()),
+                )
+                .field(
+                    "offset_clause",
+                    &support::DebugOptionalElement(self.offset_clause()),
+                )
+                .field(
+                    "fetch_clause",
+                    &support::DebugOptionalElement(self.fetch_clause()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("SqlCompoundSelectStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCompoundSelectStatement> for SyntaxNode {
+    fn from(n: SqlCompoundSelectStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCompoundSelectStatement> for SyntaxElement {
+    fn from(n: SqlCompoundSelectStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlConstraintName {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -24028,7 +24189,7 @@ impl std::fmt::Debug for SqlSetOperation {
                 )
                 .field(
                     "select_clause",
-                    &support::DebugSyntaxResult(self.select_clause()),
+                    &support::DebugOptionalElement(self.select_clause()),
                 )
                 .field(
                     "from_clause",
@@ -24046,6 +24207,7 @@ impl std::fmt::Debug for SqlSetOperation {
                     "having_clause",
                     &support::DebugOptionalElement(self.having_clause()),
                 )
+                .field("subquery", &support::DebugOptionalElement(self.subquery()))
                 .finish()
         } else {
             f.debug_struct("SqlSetOperation").finish()
@@ -28422,6 +28584,11 @@ impl From<SqlCommitStatement> for AnySqlStatement {
         Self::SqlCommitStatement(node)
     }
 }
+impl From<SqlCompoundSelectStatement> for AnySqlStatement {
+    fn from(node: SqlCompoundSelectStatement) -> Self {
+        Self::SqlCompoundSelectStatement(node)
+    }
+}
 impl From<SqlCreateIndexStatement> for AnySqlStatement {
     fn from(node: SqlCreateIndexStatement) -> Self {
         Self::SqlCreateIndexStatement(node)
@@ -28600,6 +28767,7 @@ impl AstNode for AnySqlStatement {
         .union(SqlBogusStatement::KIND_SET)
         .union(SqlCallStatement::KIND_SET)
         .union(SqlCommitStatement::KIND_SET)
+        .union(SqlCompoundSelectStatement::KIND_SET)
         .union(SqlCreateIndexStatement::KIND_SET)
         .union(SqlCreateTableAsStatement::KIND_SET)
         .union(SqlCreateTableStatement::KIND_SET)
@@ -28643,6 +28811,7 @@ impl AstNode for AnySqlStatement {
                 | SQL_BOGUS_STATEMENT
                 | SQL_CALL_STATEMENT
                 | SQL_COMMIT_STATEMENT
+                | SQL_COMPOUND_SELECT_STATEMENT
                 | SQL_CREATE_INDEX_STATEMENT
                 | SQL_CREATE_TABLE_AS_STATEMENT
                 | SQL_CREATE_TABLE_STATEMENT
@@ -28691,6 +28860,9 @@ impl AstNode for AnySqlStatement {
             SQL_BOGUS_STATEMENT => Self::SqlBogusStatement(SqlBogusStatement { syntax }),
             SQL_CALL_STATEMENT => Self::SqlCallStatement(SqlCallStatement { syntax }),
             SQL_COMMIT_STATEMENT => Self::SqlCommitStatement(SqlCommitStatement { syntax }),
+            SQL_COMPOUND_SELECT_STATEMENT => {
+                Self::SqlCompoundSelectStatement(SqlCompoundSelectStatement { syntax })
+            }
             SQL_CREATE_INDEX_STATEMENT => {
                 Self::SqlCreateIndexStatement(SqlCreateIndexStatement { syntax })
             }
@@ -28781,6 +28953,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlBogusStatement(it) => &it.syntax,
             Self::SqlCallStatement(it) => &it.syntax,
             Self::SqlCommitStatement(it) => &it.syntax,
+            Self::SqlCompoundSelectStatement(it) => &it.syntax,
             Self::SqlCreateIndexStatement(it) => &it.syntax,
             Self::SqlCreateTableAsStatement(it) => &it.syntax,
             Self::SqlCreateTableStatement(it) => &it.syntax,
@@ -28825,6 +28998,7 @@ impl AstNode for AnySqlStatement {
             Self::SqlBogusStatement(it) => it.syntax,
             Self::SqlCallStatement(it) => it.syntax,
             Self::SqlCommitStatement(it) => it.syntax,
+            Self::SqlCompoundSelectStatement(it) => it.syntax,
             Self::SqlCreateIndexStatement(it) => it.syntax,
             Self::SqlCreateTableAsStatement(it) => it.syntax,
             Self::SqlCreateTableStatement(it) => it.syntax,
@@ -28871,6 +29045,7 @@ impl std::fmt::Debug for AnySqlStatement {
             Self::SqlBogusStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCallStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCommitStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlCompoundSelectStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateIndexStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableAsStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCreateTableStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -28917,6 +29092,7 @@ impl From<AnySqlStatement> for SyntaxNode {
             AnySqlStatement::SqlBogusStatement(it) => it.into(),
             AnySqlStatement::SqlCallStatement(it) => it.into(),
             AnySqlStatement::SqlCommitStatement(it) => it.into(),
+            AnySqlStatement::SqlCompoundSelectStatement(it) => it.into(),
             AnySqlStatement::SqlCreateIndexStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableAsStatement(it) => it.into(),
             AnySqlStatement::SqlCreateTableStatement(it) => it.into(),
@@ -28960,6 +29136,11 @@ impl From<AnySqlStatement> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlCompoundSelectStatement> for AnySqlSubqueryBody {
+    fn from(node: SqlCompoundSelectStatement) -> Self {
+        Self::SqlCompoundSelectStatement(node)
+    }
+}
 impl From<SqlSelectStatement> for AnySqlSubqueryBody {
     fn from(node: SqlSelectStatement) -> Self {
         Self::SqlSelectStatement(node)
@@ -28972,13 +29153,20 @@ impl From<SqlValuesClause> for AnySqlSubqueryBody {
 }
 impl AstNode for AnySqlSubqueryBody {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SqlSelectStatement::KIND_SET.union(SqlValuesClause::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = SqlCompoundSelectStatement::KIND_SET
+        .union(SqlSelectStatement::KIND_SET)
+        .union(SqlValuesClause::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, SQL_SELECT_STATEMENT | SQL_VALUES_CLAUSE)
+        matches!(
+            kind,
+            SQL_COMPOUND_SELECT_STATEMENT | SQL_SELECT_STATEMENT | SQL_VALUES_CLAUSE
+        )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            SQL_COMPOUND_SELECT_STATEMENT => {
+                Self::SqlCompoundSelectStatement(SqlCompoundSelectStatement { syntax })
+            }
             SQL_SELECT_STATEMENT => Self::SqlSelectStatement(SqlSelectStatement { syntax }),
             SQL_VALUES_CLAUSE => Self::SqlValuesClause(SqlValuesClause { syntax }),
             _ => return None,
@@ -28987,12 +29175,14 @@ impl AstNode for AnySqlSubqueryBody {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::SqlCompoundSelectStatement(it) => &it.syntax,
             Self::SqlSelectStatement(it) => &it.syntax,
             Self::SqlValuesClause(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::SqlCompoundSelectStatement(it) => it.syntax,
             Self::SqlSelectStatement(it) => it.syntax,
             Self::SqlValuesClause(it) => it.syntax,
         }
@@ -29001,6 +29191,7 @@ impl AstNode for AnySqlSubqueryBody {
 impl std::fmt::Debug for AnySqlSubqueryBody {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::SqlCompoundSelectStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSelectStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlValuesClause(it) => std::fmt::Debug::fmt(it, f),
         }
@@ -29009,6 +29200,7 @@ impl std::fmt::Debug for AnySqlSubqueryBody {
 impl From<AnySqlSubqueryBody> for SyntaxNode {
     fn from(n: AnySqlSubqueryBody) -> Self {
         match n {
+            AnySqlSubqueryBody::SqlCompoundSelectStatement(it) => it.into(),
             AnySqlSubqueryBody::SqlSelectStatement(it) => it.into(),
             AnySqlSubqueryBody::SqlValuesClause(it) => it.into(),
         }
@@ -30240,6 +30432,11 @@ impl std::fmt::Display for SqlColumnList {
     }
 }
 impl std::fmt::Display for SqlCommitStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlCompoundSelectStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

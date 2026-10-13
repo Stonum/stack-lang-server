@@ -14,11 +14,14 @@ use super::postgres::copy::parse_copy_statement;
 use super::postgres::lock::parse_lock_statement;
 use super::postgres::maintenance::{parse_analyze_statement, parse_vacuum_statement};
 use super::postgres::materialized_view::parse_refresh_materialized_view_statement;
-use super::select::{parse_select_statement, parse_select_statement_body};
+use super::select::{
+    is_at_parenthesized_set_operand, parse_compound_select_statement_body, parse_select_statement,
+    parse_select_statement_body,
+};
 use super::transaction::{parse_begin_statement, parse_commit_statement, parse_rollback_statement};
 use super::update::{parse_update_statement, parse_update_statement_body};
 use super::values::{parse_values_clause, parse_values_clause_body};
-use super::with_clause::parse_with_clause;
+use super::with_clause::{parse_with_clause, parse_with_prefixed_select_statement};
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind::*, T, *};
 
@@ -96,6 +99,7 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
 
     match p.cur() {
         T![select] => parse_select_statement(p),
+        T!['('] if is_at_parenthesized_set_operand(p) => parse_with_prefixed_select_statement(p),
         T![values] => parse_values_clause(p),
         T![delete] => parse_delete_statement(p),
         T![update] => parse_update_statement(p),
@@ -172,6 +176,7 @@ fn parse_with_prefixed_statement(p: &mut SqlParser) -> ParsedSyntax {
 
     match p.cur() {
         T![select] => parse_select_statement_body(p, m),
+        T!['('] if is_at_parenthesized_set_operand(p) => parse_compound_select_statement_body(p, m),
         T![values] => parse_values_clause_body(p, m),
         T![insert] => parse_insert_statement_body(p, m),
         T![update] => parse_update_statement_body(p, m),

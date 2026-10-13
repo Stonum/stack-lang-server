@@ -129,6 +129,7 @@ AnySqlStatement =
    | PsqlLockStatement
    | PsqlCreateTablePartitionOfStatement
    | SqlGoStatement
+   | SqlCompoundSelectStatement
    | PsqlCopyStatement
    | SqlTruncateStatement
    | SqlCallStatement
@@ -182,14 +183,29 @@ SqlSelectStatement =
 
 SqlSetOperationList = SqlSetOperation*
 
+// The right operand is either a bare `select ...` core or a parenthesized
+// query (`union all (select ... limit 1)`).
 SqlSetOperation =
    operator_token: ('union' | 'intersect' | 'except')
    quantifier: ('all' | 'distinct')?
-   select_clause: SqlSelectClause
+   select_clause: SqlSelectClause?
    from_clause: SqlFromClause?
    where_clause: SqlWhereClause?
    group_by_clause: SqlGroupByClause?
    having_clause: SqlHavingClause?
+   subquery: SqlSubqueryExpression?
+
+// `[WITH ...] (query) {UNION | INTERSECT | EXCEPT} ... [ORDER BY ...] [LIMIT ...]`
+// -- a set operation whose first operand is parenthesized.
+SqlCompoundSelectStatement =
+   with_clause: SqlWithClause?
+   first: SqlSubqueryExpression
+   set_operations: SqlSetOperationList
+   order_by_clause: SqlOrderByClause?
+   limit_clause: PsqlLimitClause?
+   offset_clause: SqlOffsetClause?
+   fetch_clause: SqlFetchClause?
+   ';'?
 
 SqlSelectClause =
    'select'
@@ -281,6 +297,7 @@ SqlSubqueryBinding =
 // expected (e.g. `FROM (VALUES (1, 2), (3, 4)) AS v(a, b)`).
 AnySqlSubqueryBody =
    SqlSelectStatement
+   | SqlCompoundSelectStatement
    | SqlValuesClause
 
 SqlWhereClause =

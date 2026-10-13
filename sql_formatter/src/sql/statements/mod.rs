@@ -5,6 +5,7 @@ pub(crate) mod alter_table_statement;
 pub(crate) mod begin_statement;
 pub(crate) mod call_statement;
 pub(crate) mod commit_statement;
+pub(crate) mod compound_select_statement;
 pub(crate) mod create_index_statement;
 pub(crate) mod create_table_as_statement;
 pub(crate) mod create_table_statement;

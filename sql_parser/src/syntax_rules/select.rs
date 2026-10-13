@@ -3,9 +3,10 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
+use super::expr::at_subquery;
 use super::expr::{
     EXPR_RECOVERY_SET, is_at_table_star, parse_alias, parse_expression, parse_limit_offset_value,
-    parse_table_star,
+    parse_subquery_expression, parse_table_star,
 };
 use super::from::parse_from_clause;
 use super::parse_error::*;
@@ -37,6 +38,58 @@ pub(crate) fn parse_select_statement_body(p: &mut SqlParser, select_stmt: Marker
     p.eat(T![;]);
 
     Present(select_stmt.complete(p, SQL_SELECT_STATEMENT))
+}
+
+/// `(query) union ... [order by ...] [limit ...]` with the marker started
+/// before an optional `with` clause.
+pub(crate) fn parse_compound_select_statement_body(
+    p: &mut SqlParser,
+    select_stmt: Marker,
+) -> ParsedSyntax {
+    parse_subquery_expression(p).or_add_diagnostic(p, expected_statement);
+    parse_set_operation_list(p);
+    let _ = parse_order_by_clause(p);
+    let _ = parse_limit_clause(p);
+    let _ = parse_offset_clause(p);
+    let _ = parse_fetch_clause(p);
+    p.eat(T![;]);
+
+    Present(select_stmt.complete(p, SQL_COMPOUND_SELECT_STATEMENT))
+}
+
+/// At `(query)` immediately followed by `union`/`intersect`/`except` -- a
+/// parenthesized first operand of a set operation, as opposed to a
+/// parenthesized expression such as `((select 1) + 1)`.
+pub(crate) fn is_at_parenthesized_set_operand(p: &mut SqlParser) -> bool {
+    p.at(T!['('])
+        && p.lookahead(|p| {
+            // The parentheses must hold a query: `(select ...)`, `((select ...) ...)`.
+            let mut leading = 0usize;
+            while p.at(T!['(']) {
+                p.bump(T!['(']);
+                leading += 1;
+            }
+            if !(p.at(T![select]) || p.at(T![with]) || p.at(T![values])) {
+                return false;
+            }
+
+            let mut depth = leading;
+            loop {
+                match p.cur() {
+                    T!['('] => depth += 1,
+                    T![')'] => {
+                        depth -= 1;
+                        if depth == 0 {
+                            p.bump_any();
+                            return is_at_set_operator(p);
+                        }
+                    }
+                    EOF => return false,
+                    _ => {}
+                }
+                p.bump_any();
+            }
+        })
 }
 
 /// `select ...` plus its `from`/`where`/`group by`/`having` clauses, i.e.
@@ -98,7 +151,11 @@ fn parse_set_operation(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![all]) || p.at(T![distinct]) {
         p.bump_any();
     }
-    parse_select_core(p);
+    if at_subquery(p) {
+        parse_subquery_expression(p).or_add_diagnostic(p, expected_statement);
+    } else {
+        parse_select_core(p);
+    }
     Present(m.complete(p, SQL_SET_OPERATION))
 }
 

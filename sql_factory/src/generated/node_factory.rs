@@ -3254,6 +3254,78 @@ impl SqlCommitStatementBuilder {
         ))
     }
 }
+pub fn sql_compound_select_statement(
+    first: SqlSubqueryExpression,
+    set_operations: SqlSetOperationList,
+) -> SqlCompoundSelectStatementBuilder {
+    SqlCompoundSelectStatementBuilder {
+        first,
+        set_operations,
+        with_clause: None,
+        order_by_clause: None,
+        limit_clause: None,
+        offset_clause: None,
+        fetch_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct SqlCompoundSelectStatementBuilder {
+    first: SqlSubqueryExpression,
+    set_operations: SqlSetOperationList,
+    with_clause: Option<SqlWithClause>,
+    order_by_clause: Option<SqlOrderByClause>,
+    limit_clause: Option<PsqlLimitClause>,
+    offset_clause: Option<SqlOffsetClause>,
+    fetch_clause: Option<SqlFetchClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl SqlCompoundSelectStatementBuilder {
+    pub fn with_with_clause(mut self, with_clause: SqlWithClause) -> Self {
+        self.with_clause = Some(with_clause);
+        self
+    }
+    pub fn with_order_by_clause(mut self, order_by_clause: SqlOrderByClause) -> Self {
+        self.order_by_clause = Some(order_by_clause);
+        self
+    }
+    pub fn with_limit_clause(mut self, limit_clause: PsqlLimitClause) -> Self {
+        self.limit_clause = Some(limit_clause);
+        self
+    }
+    pub fn with_offset_clause(mut self, offset_clause: SqlOffsetClause) -> Self {
+        self.offset_clause = Some(offset_clause);
+        self
+    }
+    pub fn with_fetch_clause(mut self, fetch_clause: SqlFetchClause) -> Self {
+        self.fetch_clause = Some(fetch_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> SqlCompoundSelectStatement {
+        SqlCompoundSelectStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_COMPOUND_SELECT_STATEMENT,
+            [
+                self.with_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.first.into_syntax())),
+                Some(SyntaxElement::Node(self.set_operations.into_syntax())),
+                self.order_by_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.limit_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.offset_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.fetch_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn sql_constraint_name(constraint_token: SyntaxToken, name: SqlName) -> SqlConstraintName {
     SqlConstraintName::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_CONSTRAINT_NAME,
@@ -5543,32 +5615,35 @@ pub fn sql_set_item(column: SqlName, eq_token: SyntaxToken, expr: AnySqlExpressi
         ],
     ))
 }
-pub fn sql_set_operation(
-    operator_token_token: SyntaxToken,
-    select_clause: SqlSelectClause,
-) -> SqlSetOperationBuilder {
+pub fn sql_set_operation(operator_token_token: SyntaxToken) -> SqlSetOperationBuilder {
     SqlSetOperationBuilder {
         operator_token_token,
-        select_clause,
         quantifier_token: None,
+        select_clause: None,
         from_clause: None,
         where_clause: None,
         group_by_clause: None,
         having_clause: None,
+        subquery: None,
     }
 }
 pub struct SqlSetOperationBuilder {
     operator_token_token: SyntaxToken,
-    select_clause: SqlSelectClause,
     quantifier_token: Option<SyntaxToken>,
+    select_clause: Option<SqlSelectClause>,
     from_clause: Option<SqlFromClause>,
     where_clause: Option<SqlWhereClause>,
     group_by_clause: Option<SqlGroupByClause>,
     having_clause: Option<SqlHavingClause>,
+    subquery: Option<SqlSubqueryExpression>,
 }
 impl SqlSetOperationBuilder {
     pub fn with_quantifier_token(mut self, quantifier_token: SyntaxToken) -> Self {
         self.quantifier_token = Some(quantifier_token);
+        self
+    }
+    pub fn with_select_clause(mut self, select_clause: SqlSelectClause) -> Self {
+        self.select_clause = Some(select_clause);
         self
     }
     pub fn with_from_clause(mut self, from_clause: SqlFromClause) -> Self {
@@ -5587,6 +5662,10 @@ impl SqlSetOperationBuilder {
         self.having_clause = Some(having_clause);
         self
     }
+    pub fn with_subquery(mut self, subquery: SqlSubqueryExpression) -> Self {
+        self.subquery = Some(subquery);
+        self
+    }
     pub fn build(self) -> SqlSetOperation {
         SqlSetOperation::unwrap_cast(SyntaxNode::new_detached(
             SqlSyntaxKind::SQL_SET_OPERATION,
@@ -5594,7 +5673,8 @@ impl SqlSetOperationBuilder {
                 Some(SyntaxElement::Token(self.operator_token_token)),
                 self.quantifier_token
                     .map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Node(self.select_clause.into_syntax())),
+                self.select_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.from_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.where_clause
@@ -5602,6 +5682,8 @@ impl SqlSetOperationBuilder {
                 self.group_by_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.having_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.subquery
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))

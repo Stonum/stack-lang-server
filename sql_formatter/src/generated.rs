@@ -4263,6 +4263,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCommitStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlCompoundSelectStatement>
+    for crate::sql::statements::compound_select_statement::FormatSqlCompoundSelectStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlCompoundSelectStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCompoundSelectStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCompoundSelectStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCompoundSelectStatement,
+        crate::sql::statements::compound_select_statement::FormatSqlCompoundSelectStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: statements :: compound_select_statement :: FormatSqlCompoundSelectStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCompoundSelectStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCompoundSelectStatement,
+        crate::sql::statements::compound_select_statement::FormatSqlCompoundSelectStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: statements :: compound_select_statement :: FormatSqlCompoundSelectStatement :: default ())
+    }
+}
 impl FormatRule<sql_syntax::SqlConstraintName>
     for crate::sql::auxiliary::constraint_name::FormatSqlConstraintName
 {

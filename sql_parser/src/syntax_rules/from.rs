@@ -1,3 +1,4 @@
+use super::select::is_at_parenthesized_set_operand;
 use super::stmt::is_at_next_statement;
 use biome_parser::parse_lists::ParseSeparatedList;
 use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
@@ -304,6 +305,7 @@ fn is_at_parenthesized_join_start(p: &mut SqlParser) -> bool {
             !p.at(T![select])
                 && !p.at(T![with])
                 && !p.at(T![values])
+                && !is_at_parenthesized_set_operand(p)
                 && is_at_from_expression_start(p)
         })
     }

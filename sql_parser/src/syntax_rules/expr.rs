@@ -10,7 +10,7 @@ use super::postgres::expr::{
     parse_named_argument, parse_position_expression, parse_substring_expression,
     parse_trim_expression, parse_type_array_suffix,
 };
-use super::select::parse_order_by_clause;
+use super::select::{is_at_parenthesized_set_operand, parse_order_by_clause};
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{
     SqlParser,
@@ -870,7 +870,10 @@ pub(crate) fn at_subquery(p: &mut SqlParser) -> bool {
     p.at(T!['('])
         && p.lookahead(|p| {
             p.bump(T!['(']);
-            p.at(T![select]) || p.at(T![with]) || p.at(T![values])
+            p.at(T![select])
+                || p.at(T![with])
+                || p.at(T![values])
+                || is_at_parenthesized_set_operand(p)
         })
 }
 
