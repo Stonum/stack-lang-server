@@ -4,6 +4,7 @@ pub(crate) mod copy_option_list;
 pub(crate) mod function_option_list;
 pub(crate) mod function_parameter_list;
 pub(crate) mod pl_declaration_list;
+pub(crate) mod pl_diagnostics_item_list;
 pub(crate) mod pl_elsif_clause_list;
 pub(crate) mod pl_for_target_list;
 pub(crate) mod pl_raise_option_list;

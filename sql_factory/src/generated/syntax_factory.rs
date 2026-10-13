@@ -2802,6 +2802,39 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_PL_DECLARE_SECTION, children)
             }
+            PSQL_PL_DIAGNOSTICS_ITEM => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && SqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T ! [=] | T ! [:=])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_DIAGNOSTICS_ITEM.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_DIAGNOSTICS_ITEM, children)
+            }
             PSQL_PL_ELSE_CLAUSE => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
@@ -3234,6 +3267,53 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_PL_FOREACH_STATEMENT, children)
+            }
+            PSQL_PL_GET_DIAGNOSTICS_STATEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<5usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![get]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![current] | T![stacked])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![diagnostics]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlDiagnosticsItemList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_GET_DIAGNOSTICS_STATEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_GET_DIAGNOSTICS_STATEMENT, children)
             }
             PSQL_PL_IF_STATEMENT => {
                 let mut elements = (&children).into_iter();
@@ -10661,6 +10741,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
             PSQL_PL_DECLARATION_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlPlVariableDeclaration::can_cast)
             }
+            PSQL_PL_DIAGNOSTICS_ITEM_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                PsqlPlDiagnosticsItem::can_cast,
+                T ! [,],
+                false,
+            ),
             PSQL_PL_ELSIF_CLAUSE_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlPlElsifClause::can_cast)
             }

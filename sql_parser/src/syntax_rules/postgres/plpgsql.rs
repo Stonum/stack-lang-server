@@ -426,6 +426,11 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![exit]) || p.at(T![continue]) {
         return parse_pl_exit_statement(p);
     }
+    if p.at(T![get])
+        && (p.nth_at(1, T![diagnostics]) || p.nth_at(1, T![current]) || p.nth_at(1, T![stacked]))
+    {
+        return parse_pl_get_diagnostics_statement(p);
+    }
     if p.at(T![if]) {
         return parse_pl_if_statement(p);
     }
@@ -567,6 +572,42 @@ fn parse_pl_return_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     p.expect(T![;]);
     Present(m.complete(p, PSQL_PL_RETURN_STATEMENT))
+}
+
+/// `GET [CURRENT | STACKED] DIAGNOSTICS target = item, ...;`
+fn parse_pl_get_diagnostics_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![get]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![get]);
+    if p.at(T![current]) || p.at(T![stacked]) {
+        p.bump_any();
+    }
+    p.expect(T![diagnostics]);
+
+    let items = p.start();
+    loop {
+        let item = p.start();
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        if p.at(T![=]) || p.at(T![:=]) {
+            p.bump_any();
+        } else {
+            let range = p.cur_range();
+            let err = p.err_builder("Expected `=` or `:=`", range);
+            p.error(err);
+        }
+        parse_label(p).or_add_diagnostic(p, expected_identifier);
+        item.complete(p, PSQL_PL_DIAGNOSTICS_ITEM);
+        if !p.eat(T![,]) {
+            break;
+        }
+    }
+    items.complete(p, PSQL_PL_DIAGNOSTICS_ITEM_LIST);
+
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_GET_DIAGNOSTICS_STATEMENT))
 }
 
 /// `PERFORM items [FROM ...] [WHERE ...];`
