@@ -80,3 +80,30 @@ fn format_statements_around_a_broken_one_are_still_formatted() {
 
     assert_eq!(result, "select 1;\nselect a,   ? from t;\nselect 2;\n");
 }
+
+#[test]
+fn format_statements_around_missing_operands_are_still_formatted() {
+    use biome_formatter::LineWidth;
+    use sql_formatter::{SqlFormatOptions, format_node};
+    use sql_parser::parse;
+    use sql_syntax::{SqlDialect, SqlFileSource};
+
+    let src = "SELECT   1;\nselect a,   = 1 from t;\nselect a =   from t;\nSELECT   2;\n";
+    let syntax = SqlFileSource::query()
+        .with_dialect(SqlDialect::Postgres)
+        .with_mlang_extension(true);
+    let tree = parse(src, syntax);
+    assert!(tree.has_errors());
+
+    let options = SqlFormatOptions::new(syntax).with_line_width(LineWidth::try_from(120).unwrap());
+    let result = format_node(options, &tree.syntax())
+        .unwrap()
+        .print()
+        .unwrap()
+        .into_code();
+
+    assert_eq!(
+        result,
+        "select 1;\nselect a,   = 1 from t;\nselect a =   from t;\nselect 2;\n"
+    );
+}

@@ -49,7 +49,8 @@ fn parse_binary_or_logical_expression_recursive(
                 break;
             }
 
-            if left.is_absent() {
+            let missing_left = left.is_absent();
+            if missing_left {
                 report_missing_left_operand(p);
             }
 
@@ -61,7 +62,8 @@ fn parse_binary_or_logical_expression_recursive(
                 p.expect(T![from]);
                 parse_binary_or_logical_expression(p, OperatorPrecedence::IsNull)
                     .or_add_diagnostic(p, expected_expression);
-                left = Present(m.complete(p, SQL_IS_DISTINCT_FROM_EXPRESSION));
+                left =
+                    Present(m.complete(p, or_bogus(SQL_IS_DISTINCT_FROM_EXPRESSION, missing_left)));
                 continue;
             }
             if p.at(T![null]) || p.at(T![true]) || p.at(T![false]) || p.at(T![unknown]) {
@@ -74,7 +76,7 @@ fn parse_binary_or_logical_expression_recursive(
                 );
                 p.error(err);
             }
-            left = Present(m.complete(p, SQL_IS_EXPRESSION));
+            left = Present(m.complete(p, or_bogus(SQL_IS_EXPRESSION, missing_left)));
             continue;
         }
 
@@ -83,13 +85,14 @@ fn parse_binary_or_logical_expression_recursive(
                 break;
             }
 
-            if left.is_absent() {
+            let missing_left = left.is_absent();
+            if missing_left {
                 report_missing_left_operand(p);
             }
 
             let m = left.precede(p);
             p.bump_any();
-            left = Present(m.complete(p, SQL_POSTFIX_NULL_EXPRESSION));
+            left = Present(m.complete(p, or_bogus(SQL_POSTFIX_NULL_EXPRESSION, missing_left)));
             continue;
         }
 
@@ -98,7 +101,8 @@ fn parse_binary_or_logical_expression_recursive(
                 break;
             }
 
-            if left.is_absent() {
+            let missing_left = left.is_absent();
+            if missing_left {
                 report_missing_left_operand(p);
             }
 
@@ -112,7 +116,7 @@ fn parse_binary_or_logical_expression_recursive(
             p.expect(T![and]);
             parse_binary_or_logical_expression(p, OperatorPrecedence::LogicalAnd)
                 .or_add_diagnostic(p, expected_expression);
-            left = Present(m.complete(p, SQL_BETWEEN_EXPRESSION));
+            left = Present(m.complete(p, or_bogus(SQL_BETWEEN_EXPRESSION, missing_left)));
             continue;
         }
 
@@ -121,7 +125,8 @@ fn parse_binary_or_logical_expression_recursive(
                 break;
             }
 
-            if left.is_absent() {
+            let missing_left = left.is_absent();
+            if missing_left {
                 report_missing_left_operand(p);
             }
 
@@ -129,7 +134,7 @@ fn parse_binary_or_logical_expression_recursive(
             p.eat(T![not]);
             p.bump(T![in]);
             parse_in_source(p).or_add_diagnostic(p, expected_expression);
-            left = Present(m.complete(p, SQL_IN_EXPRESSION));
+            left = Present(m.complete(p, or_bogus(SQL_IN_EXPRESSION, missing_left)));
             continue;
         }
 
@@ -146,7 +151,8 @@ fn parse_binary_or_logical_expression_recursive(
                 break;
             }
 
-            if left.is_absent() {
+            let missing_left = left.is_absent();
+            if missing_left {
                 report_missing_left_operand(p);
             }
 
@@ -155,7 +161,7 @@ fn parse_binary_or_logical_expression_recursive(
             p.bump(like_op);
             parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
                 .or_add_diagnostic(p, expected_expression);
-            left = Present(m.complete(p, SQL_LIKE_EXPRESSION));
+            left = Present(m.complete(p, or_bogus(SQL_LIKE_EXPRESSION, missing_left)));
             continue;
         }
 
@@ -171,7 +177,8 @@ fn parse_binary_or_logical_expression_recursive(
             break;
         }
 
-        if left.is_absent() {
+        let missing_left = left.is_absent();
+        if missing_left {
             report_missing_left_operand(p);
         }
 
@@ -180,19 +187,30 @@ fn parse_binary_or_logical_expression_recursive(
         let m = left.precede(p);
         p.bump(op);
 
-        parse_binary_or_logical_expression(p, new_precedence)
-            .or_add_diagnostic(p, expected_expression);
+        let missing_right = parse_binary_or_logical_expression(p, new_precedence)
+            .or_add_diagnostic(p, expected_expression)
+            .is_none();
 
         let expression_kind = match op {
             T![and] | T![or] => SQL_LOGICAL_EXPRESSION,
             _ => SQL_BINARY_EXPRESSION,
         };
 
-        let completed = m.complete(p, expression_kind);
+        let completed = m.complete(p, or_bogus(expression_kind, missing_left || missing_right));
         left = gate_binary_expression(p, completed, is_postgres_only_operator);
     }
 
     left
+}
+
+/// An operator expression with a missing operand is kept as a bogus node, so
+/// it is printed verbatim instead of failing the whole file's formatting.
+fn or_bogus(kind: SqlSyntaxKind, missing_operand: bool) -> SqlSyntaxKind {
+    if missing_operand {
+        SQL_BOGUS_EXPRESSION
+    } else {
+        kind
+    }
 }
 
 /// Checks whether the parser is at `keyword` or at `not` immediately

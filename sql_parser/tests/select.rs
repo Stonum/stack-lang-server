@@ -408,3 +408,34 @@ fn test_multiple_select_statements_without_trailing_semicolon() {
 
     assert_parser!(res);
 }
+
+#[test]
+fn test_select_jsonb_key_exists_operator() {
+    for src in [
+        "select a from t where data -> 'old' ? 'key'",
+        "select case when data?'key' then 1 end from t",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("QUESTION"), "{src}");
+    }
+}
+
+#[test]
+fn test_operator_with_missing_operand_is_a_bogus_expression() {
+    for src in [
+        "select a, = 1 from t",
+        "select a, ? from t",
+        "select a = from t",
+        "select a from t where in (1)",
+        "select a from t where is null",
+    ] {
+        let res = parse(src, postgres());
+
+        assert!(res.has_errors(), "{src}");
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("SQL_BOGUS_EXPRESSION"), "{src}");
+    }
+}

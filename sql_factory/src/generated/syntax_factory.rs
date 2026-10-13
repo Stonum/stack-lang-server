@@ -4259,6 +4259,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                             | T ! [||]
                             | T ! [->]
                             | T ! [->>]
+                            | T ! [?]
                     )
                 {
                     slots.mark_present();
