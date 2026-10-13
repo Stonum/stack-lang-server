@@ -427,7 +427,7 @@ fn parse_returns_table_column(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_RETURNS_TABLE_COLUMN))
 }
 
-fn parse_language_option(p: &mut SqlParser) -> ParsedSyntax {
+pub(crate) fn parse_language_option(p: &mut SqlParser) -> ParsedSyntax {
     if !p.at(T![language]) {
         return Absent;
     }

@@ -117,6 +117,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlDoNothingClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_DO_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlDoStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_DO_UPDATE_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlDoUpdateClause::new_unchecked(node) };
                     $body

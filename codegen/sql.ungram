@@ -130,6 +130,7 @@ AnySqlStatement =
    | PsqlCreateTablePartitionOfStatement
    | SqlGoStatement
    | SqlCompoundSelectStatement
+   | PsqlDoStatement
    | PsqlCopyStatement
    | SqlTruncateStatement
    | SqlCallStatement
@@ -955,6 +956,15 @@ PsqlCopyOptionList = (PsqlCopyOption (',' PsqlCopyOption)*)
 PsqlCopyOption =
    name: SqlName
    value: AnySqlExpression?
+
+// `DO [LANGUAGE lang] body [LANGUAGE lang] [;]` -- an anonymous code block;
+// the language may come before or after the body.
+PsqlDoStatement =
+   'do'
+   leading_language: PsqlLanguageOption?
+   body: SqlStringLiteralExpression
+   trailing_language: PsqlLanguageOption?
+   ';'?
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =

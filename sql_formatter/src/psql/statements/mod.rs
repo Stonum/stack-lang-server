@@ -8,6 +8,7 @@ pub(crate) mod create_materialized_view_statement;
 pub(crate) mod create_policy_statement;
 pub(crate) mod create_table_partition_of_statement;
 pub(crate) mod create_trigger_statement;
+pub(crate) mod do_statement;
 pub(crate) mod drop_extension_statement;
 pub(crate) mod drop_materialized_view_statement;
 pub(crate) mod drop_policy_statement;
