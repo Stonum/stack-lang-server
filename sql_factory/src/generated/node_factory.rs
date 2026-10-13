@@ -891,6 +891,54 @@ pub fn psql_do_nothing_clause(
         ],
     ))
 }
+pub fn psql_do_statement(
+    do_token: SyntaxToken,
+    body: SqlStringLiteralExpression,
+) -> PsqlDoStatementBuilder {
+    PsqlDoStatementBuilder {
+        do_token,
+        body,
+        leading_language: None,
+        trailing_language: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlDoStatementBuilder {
+    do_token: SyntaxToken,
+    body: SqlStringLiteralExpression,
+    leading_language: Option<PsqlLanguageOption>,
+    trailing_language: Option<PsqlLanguageOption>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlDoStatementBuilder {
+    pub fn with_leading_language(mut self, leading_language: PsqlLanguageOption) -> Self {
+        self.leading_language = Some(leading_language);
+        self
+    }
+    pub fn with_trailing_language(mut self, trailing_language: PsqlLanguageOption) -> Self {
+        self.trailing_language = Some(trailing_language);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlDoStatement {
+        PsqlDoStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_DO_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.do_token)),
+                self.leading_language
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
+                self.trailing_language
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_do_update_clause(
     do_token: SyntaxToken,
     update_token: SyntaxToken,

@@ -764,6 +764,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDoNothingClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlDoStatement>
+    for crate::psql::statements::do_statement::FormatPsqlDoStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlDoStatement, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlDoStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlDoStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlDoStatement,
+        crate::psql::statements::do_statement::FormatPsqlDoStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::do_statement::FormatPsqlDoStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlDoStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlDoStatement,
+        crate::psql::statements::do_statement::FormatPsqlDoStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::do_statement::FormatPsqlDoStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlDoUpdateClause>
     for crate::psql::clauses::do_update_clause::FormatPsqlDoUpdateClause
 {
