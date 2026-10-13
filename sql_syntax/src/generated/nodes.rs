@@ -4515,6 +4515,46 @@ pub struct PsqlPlLoopStatementFields {
     pub body: SyntaxResult<PsqlPlLoopBody>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlNullStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlNullStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlNullStatementFields {
+        PsqlPlNullStatementFields {
+            null_token: self.null_token(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn null_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn semicolon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlNullStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlNullStatementFields {
+    pub null_token: SyntaxResult<SyntaxToken>,
+    pub semicolon_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlOpenArguments {
     pub(crate) syntax: SyntaxNode,
 }
@@ -14000,6 +14040,7 @@ pub enum AnyPsqlPlStatement {
     PsqlPlGetDiagnosticsStatement(PsqlPlGetDiagnosticsStatement),
     PsqlPlIfStatement(PsqlPlIfStatement),
     PsqlPlLoopStatement(PsqlPlLoopStatement),
+    PsqlPlNullStatement(PsqlPlNullStatement),
     PsqlPlOpenStatement(PsqlPlOpenStatement),
     PsqlPlPerformStatement(PsqlPlPerformStatement),
     PsqlPlRaiseStatement(PsqlPlRaiseStatement),
@@ -14083,6 +14124,12 @@ impl AnyPsqlPlStatement {
     pub fn as_psql_pl_loop_statement(&self) -> Option<&PsqlPlLoopStatement> {
         match &self {
             Self::PsqlPlLoopStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_null_statement(&self) -> Option<&PsqlPlNullStatement> {
+        match &self {
+            Self::PsqlPlNullStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -20327,6 +20374,57 @@ impl From<PsqlPlLoopStatement> for SyntaxNode {
 }
 impl From<PsqlPlLoopStatement> for SyntaxElement {
     fn from(n: PsqlPlLoopStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlNullStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_NULL_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_NULL_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlNullStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlNullStatement")
+                .field("null_token", &support::DebugSyntaxResult(self.null_token()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugSyntaxResult(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlNullStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlNullStatement> for SyntaxNode {
+    fn from(n: PsqlPlNullStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlNullStatement> for SyntaxElement {
+    fn from(n: PsqlPlNullStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -31506,6 +31604,11 @@ impl From<PsqlPlLoopStatement> for AnyPsqlPlStatement {
         Self::PsqlPlLoopStatement(node)
     }
 }
+impl From<PsqlPlNullStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlNullStatement) -> Self {
+        Self::PsqlPlNullStatement(node)
+    }
+}
 impl From<PsqlPlOpenStatement> for AnyPsqlPlStatement {
     fn from(node: PsqlPlOpenStatement) -> Self {
         Self::PsqlPlOpenStatement(node)
@@ -31551,6 +31654,7 @@ impl AstNode for AnyPsqlPlStatement {
         .union(PsqlPlGetDiagnosticsStatement::KIND_SET)
         .union(PsqlPlIfStatement::KIND_SET)
         .union(PsqlPlLoopStatement::KIND_SET)
+        .union(PsqlPlNullStatement::KIND_SET)
         .union(PsqlPlOpenStatement::KIND_SET)
         .union(PsqlPlPerformStatement::KIND_SET)
         .union(PsqlPlRaiseStatement::KIND_SET)
@@ -31571,6 +31675,7 @@ impl AstNode for AnyPsqlPlStatement {
             | PSQL_PL_GET_DIAGNOSTICS_STATEMENT
             | PSQL_PL_IF_STATEMENT
             | PSQL_PL_LOOP_STATEMENT
+            | PSQL_PL_NULL_STATEMENT
             | PSQL_PL_OPEN_STATEMENT
             | PSQL_PL_PERFORM_STATEMENT
             | PSQL_PL_RAISE_STATEMENT
@@ -31603,6 +31708,7 @@ impl AstNode for AnyPsqlPlStatement {
             }
             PSQL_PL_IF_STATEMENT => Self::PsqlPlIfStatement(PsqlPlIfStatement { syntax }),
             PSQL_PL_LOOP_STATEMENT => Self::PsqlPlLoopStatement(PsqlPlLoopStatement { syntax }),
+            PSQL_PL_NULL_STATEMENT => Self::PsqlPlNullStatement(PsqlPlNullStatement { syntax }),
             PSQL_PL_OPEN_STATEMENT => Self::PsqlPlOpenStatement(PsqlPlOpenStatement { syntax }),
             PSQL_PL_PERFORM_STATEMENT => {
                 Self::PsqlPlPerformStatement(PsqlPlPerformStatement { syntax })
@@ -31638,6 +31744,7 @@ impl AstNode for AnyPsqlPlStatement {
             Self::PsqlPlGetDiagnosticsStatement(it) => &it.syntax,
             Self::PsqlPlIfStatement(it) => &it.syntax,
             Self::PsqlPlLoopStatement(it) => &it.syntax,
+            Self::PsqlPlNullStatement(it) => &it.syntax,
             Self::PsqlPlOpenStatement(it) => &it.syntax,
             Self::PsqlPlPerformStatement(it) => &it.syntax,
             Self::PsqlPlRaiseStatement(it) => &it.syntax,
@@ -31661,6 +31768,7 @@ impl AstNode for AnyPsqlPlStatement {
             Self::PsqlPlGetDiagnosticsStatement(it) => it.syntax,
             Self::PsqlPlIfStatement(it) => it.syntax,
             Self::PsqlPlLoopStatement(it) => it.syntax,
+            Self::PsqlPlNullStatement(it) => it.syntax,
             Self::PsqlPlOpenStatement(it) => it.syntax,
             Self::PsqlPlPerformStatement(it) => it.syntax,
             Self::PsqlPlRaiseStatement(it) => it.syntax,
@@ -31687,6 +31795,7 @@ impl std::fmt::Debug for AnyPsqlPlStatement {
             Self::PsqlPlGetDiagnosticsStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlIfStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlLoopStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlNullStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlOpenStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlPerformStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlRaiseStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -31712,6 +31821,7 @@ impl From<AnyPsqlPlStatement> for SyntaxNode {
             AnyPsqlPlStatement::PsqlPlGetDiagnosticsStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlIfStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlLoopStatement(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlNullStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlOpenStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlPerformStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlRaiseStatement(it) => it.into(),
@@ -35729,6 +35839,11 @@ impl std::fmt::Display for PsqlPlLoopBody {
     }
 }
 impl std::fmt::Display for PsqlPlLoopStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlNullStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

@@ -25,6 +25,7 @@ pub(crate) mod pl_foreach_statement;
 pub(crate) mod pl_get_diagnostics_statement;
 pub(crate) mod pl_if_statement;
 pub(crate) mod pl_loop_statement;
+pub(crate) mod pl_null_statement;
 pub(crate) mod pl_open_statement;
 pub(crate) mod pl_perform_statement;
 pub(crate) mod pl_raise_statement;

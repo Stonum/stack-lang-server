@@ -376,6 +376,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlLoopStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_NULL_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlNullStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_OPEN_ARGUMENTS => {
                     let $pattern = unsafe { $crate::PsqlPlOpenArguments::new_unchecked(node) };
                     $body
