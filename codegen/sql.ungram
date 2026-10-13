@@ -977,14 +977,35 @@ PsqlPlBody =
    block: PsqlPlBlock
    r_quote: 'dollar_quote'
 
-// `BEGIN statement; ... END [;]`
+// `[DECLARE declaration; ...] BEGIN statement; ... END [;]`
 PsqlPlBlock =
+   declare_section: PsqlPlDeclareSection?
    'begin'
    statements: PsqlPlStatementList
    'end'
    ';'?
 
 PsqlPlStatementList = AnyPsqlPlStatement*
+
+PsqlPlDeclareSection =
+   'declare'
+   declarations: PsqlPlDeclarationList
+
+PsqlPlDeclarationList = PsqlPlVariableDeclaration*
+
+// `name [CONSTANT] type [COLLATE c] [NOT NULL] [{DEFAULT | := | =} value];`
+PsqlPlVariableDeclaration =
+   name: SqlName
+   'constant'?
+   type: SqlTypeName
+   collation: SqlCollateConstraint?
+   not_null: SqlNotNullConstraint?
+   default: PsqlPlVariableDefault?
+   ';'
+
+PsqlPlVariableDefault =
+   operator: ('default' | ':=' | '=')
+   value: AnySqlExpression
 
 AnyPsqlPlStatement =
    AnySqlStatement
