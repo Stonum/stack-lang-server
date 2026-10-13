@@ -597,7 +597,7 @@ fn re_lexed_dollar_quoted_body_lexes_as_code() {
             DO_KW,
             DOLLAR_QUOTE,
             BEGIN_KW,
-            IDENT,
+            PERFORM_KW,
             SQL_NUMBER_LITERAL,
             SEMICOLON,
             END_KW,

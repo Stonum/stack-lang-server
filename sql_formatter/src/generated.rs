@@ -2191,6 +2191,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlIfStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlPerformStatement>
+    for crate::psql::statements::pl_perform_statement::FormatPsqlPlPerformStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlPerformStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlPerformStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlPerformStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlPerformStatement,
+        crate::psql::statements::pl_perform_statement::FormatPsqlPlPerformStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_perform_statement::FormatPsqlPlPerformStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlPerformStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlPerformStatement,
+        crate::psql::statements::pl_perform_statement::FormatPsqlPlPerformStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_perform_statement::FormatPsqlPlPerformStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlVariableDeclaration>
     for crate::psql::auxiliary::pl_variable_declaration::FormatPsqlPlVariableDeclaration
 {
