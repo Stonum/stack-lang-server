@@ -1,7 +1,7 @@
 use sql_parser::parse;
 use sql_syntax::{
     AstNode, NeedsParentheses, SqlBinaryExpression, SqlFileSource, SqlInExpression,
-    SqlIsNullExpression, SqlLanguage, SqlLogicalExpression, SqlUnaryExpression,
+    SqlIsExpression, SqlLanguage, SqlLogicalExpression, SqlUnaryExpression,
 };
 
 /// Finds the (single, expected-unique) node of kind `T` whose trimmed
@@ -89,10 +89,10 @@ fn unary_not_nested_does_not_need_parens() {
 #[test]
 fn is_null_expression_as_child_of_tighter_binary_needs_parens() {
     // `a is null + b` -- `is null` binds looser than `+`, so the
-    // `IsNullExpression` ends up as the (left) child of the `+`
+    // `IsExpression` ends up as the (left) child of the `+`
     // `BinaryExpression`; parentheses are required to preserve the
     // original grouping.
-    let inner = find_by_text::<SqlIsNullExpression>("select a is null + b", "a is null");
+    let inner = find_by_text::<SqlIsExpression>("select a is null + b", "a is null");
     assert!(inner.needs_parentheses());
 }
 
@@ -100,7 +100,7 @@ fn is_null_expression_as_child_of_tighter_binary_needs_parens() {
 fn is_null_expression_as_child_of_looser_logical_does_not_need_parens() {
     // `a is null and b` -- `is null` already binds tighter than `and`, so
     // no parentheses are needed to keep `a is null` grouped together.
-    let inner = find_by_text::<SqlIsNullExpression>("select a is null and b", "a is null");
+    let inner = find_by_text::<SqlIsExpression>("select a is null and b", "a is null");
     assert!(!inner.needs_parentheses());
 }
 

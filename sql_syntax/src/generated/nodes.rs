@@ -7788,10 +7788,10 @@ pub struct SqlInsertStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct SqlIsNullExpression {
+pub struct SqlIsDistinctFromExpression {
     pub(crate) syntax: SyntaxNode,
 }
-impl SqlIsNullExpression {
+impl SqlIsDistinctFromExpression {
     #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
     #[doc = r""]
     #[doc = r" # Safety"]
@@ -7801,12 +7801,72 @@ impl SqlIsNullExpression {
     pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
         Self { syntax }
     }
-    pub fn as_fields(&self) -> SqlIsNullExpressionFields {
-        SqlIsNullExpressionFields {
+    pub fn as_fields(&self) -> SqlIsDistinctFromExpressionFields {
+        SqlIsDistinctFromExpressionFields {
+            left: self.left(),
+            is_token: self.is_token(),
+            not_token: self.not_token(),
+            distinct_token: self.distinct_token(),
+            from_token: self.from_token(),
+            right: self.right(),
+        }
+    }
+    pub fn left(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn is_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn not_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn distinct_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn from_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn right(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 5usize)
+    }
+}
+impl Serialize for SqlIsDistinctFromExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlIsDistinctFromExpressionFields {
+    pub left: SyntaxResult<AnySqlExpression>,
+    pub is_token: SyntaxResult<SyntaxToken>,
+    pub not_token: Option<SyntaxToken>,
+    pub distinct_token: SyntaxResult<SyntaxToken>,
+    pub from_token: SyntaxResult<SyntaxToken>,
+    pub right: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlIsExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlIsExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlIsExpressionFields {
+        SqlIsExpressionFields {
             expression: self.expression(),
             is_token: self.is_token(),
             not_token: self.not_token(),
-            null_token: self.null_token(),
+            value: self.value(),
         }
     }
     pub fn expression(&self) -> SyntaxResult<AnySqlExpression> {
@@ -7818,11 +7878,11 @@ impl SqlIsNullExpression {
     pub fn not_token(&self) -> Option<SyntaxToken> {
         support::token(&self.syntax, 2usize)
     }
-    pub fn null_token(&self) -> SyntaxResult<SyntaxToken> {
+    pub fn value(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 3usize)
     }
 }
-impl Serialize for SqlIsNullExpression {
+impl Serialize for SqlIsExpression {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -7831,11 +7891,11 @@ impl Serialize for SqlIsNullExpression {
     }
 }
 #[derive(Serialize)]
-pub struct SqlIsNullExpressionFields {
+pub struct SqlIsExpressionFields {
     pub expression: SyntaxResult<AnySqlExpression>,
     pub is_token: SyntaxResult<SyntaxToken>,
     pub not_token: Option<SyntaxToken>,
-    pub null_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlJoinClause {
@@ -8436,6 +8496,46 @@ pub struct SqlParenthesizedJoinBindingFields {
     pub joins: SqlJoinClauseList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
     pub alias: Option<SqlAlias>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlPostfixNullExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlPostfixNullExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlPostfixNullExpressionFields {
+        SqlPostfixNullExpressionFields {
+            expression: self.expression(),
+            operator: self.operator(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn operator(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlPostfixNullExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlPostfixNullExpressionFields {
+    pub expression: SyntaxResult<AnySqlExpression>,
+    pub operator: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlPrecisionModifier {
@@ -11302,12 +11402,14 @@ pub enum AnySqlExpression {
     SqlColReference(SqlColReference),
     SqlExistsExpression(SqlExistsExpression),
     SqlInExpression(SqlInExpression),
-    SqlIsNullExpression(SqlIsNullExpression),
+    SqlIsDistinctFromExpression(SqlIsDistinctFromExpression),
+    SqlIsExpression(SqlIsExpression),
     SqlLikeExpression(SqlLikeExpression),
     SqlLogicalExpression(SqlLogicalExpression),
     SqlName(SqlName),
     SqlParameterExpression(SqlParameterExpression),
     SqlParenthesizedExpression(SqlParenthesizedExpression),
+    SqlPostfixNullExpression(SqlPostfixNullExpression),
     SqlStar(SqlStar),
     SqlSubqueryExpression(SqlSubqueryExpression),
     SqlTableColReference(SqlTableColReference),
@@ -11382,9 +11484,15 @@ impl AnySqlExpression {
             _ => None,
         }
     }
-    pub fn as_sql_is_null_expression(&self) -> Option<&SqlIsNullExpression> {
+    pub fn as_sql_is_distinct_from_expression(&self) -> Option<&SqlIsDistinctFromExpression> {
         match &self {
-            Self::SqlIsNullExpression(item) => Some(item),
+            Self::SqlIsDistinctFromExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_is_expression(&self) -> Option<&SqlIsExpression> {
+        match &self {
+            Self::SqlIsExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -11415,6 +11523,12 @@ impl AnySqlExpression {
     pub fn as_sql_parenthesized_expression(&self) -> Option<&SqlParenthesizedExpression> {
         match &self {
             Self::SqlParenthesizedExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_postfix_null_expression(&self) -> Option<&SqlPostfixNullExpression> {
+        match &self {
+            Self::SqlPostfixNullExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -20776,12 +20890,12 @@ impl From<SqlInsertStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
-impl AstNode for SqlIsNullExpression {
+impl AstNode for SqlIsDistinctFromExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
-        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_IS_NULL_EXPRESSION as u16));
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_IS_DISTINCT_FROM_EXPRESSION as u16));
     fn can_cast(kind: SyntaxKind) -> bool {
-        kind == SQL_IS_NULL_EXPRESSION
+        kind == SQL_IS_DISTINCT_FROM_EXPRESSION
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
@@ -20797,35 +20911,93 @@ impl AstNode for SqlIsNullExpression {
         self.syntax
     }
 }
-impl std::fmt::Debug for SqlIsNullExpression {
+impl std::fmt::Debug for SqlIsDistinctFromExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
         let current_depth = DEPTH.get();
         let result = if current_depth < 16 {
             DEPTH.set(current_depth + 1);
-            f.debug_struct("SqlIsNullExpression")
+            f.debug_struct("SqlIsDistinctFromExpression")
+                .field("left", &support::DebugSyntaxResult(self.left()))
+                .field("is_token", &support::DebugSyntaxResult(self.is_token()))
+                .field(
+                    "not_token",
+                    &support::DebugOptionalElement(self.not_token()),
+                )
+                .field(
+                    "distinct_token",
+                    &support::DebugSyntaxResult(self.distinct_token()),
+                )
+                .field("from_token", &support::DebugSyntaxResult(self.from_token()))
+                .field("right", &support::DebugSyntaxResult(self.right()))
+                .finish()
+        } else {
+            f.debug_struct("SqlIsDistinctFromExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlIsDistinctFromExpression> for SyntaxNode {
+    fn from(n: SqlIsDistinctFromExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlIsDistinctFromExpression> for SyntaxElement {
+    fn from(n: SqlIsDistinctFromExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlIsExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_IS_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_IS_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlIsExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlIsExpression")
                 .field("expression", &support::DebugSyntaxResult(self.expression()))
                 .field("is_token", &support::DebugSyntaxResult(self.is_token()))
                 .field(
                     "not_token",
                     &support::DebugOptionalElement(self.not_token()),
                 )
-                .field("null_token", &support::DebugSyntaxResult(self.null_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
                 .finish()
         } else {
-            f.debug_struct("SqlIsNullExpression").finish()
+            f.debug_struct("SqlIsExpression").finish()
         };
         DEPTH.set(current_depth);
         result
     }
 }
-impl From<SqlIsNullExpression> for SyntaxNode {
-    fn from(n: SqlIsNullExpression) -> Self {
+impl From<SqlIsExpression> for SyntaxNode {
+    fn from(n: SqlIsExpression) -> Self {
         n.syntax
     }
 }
-impl From<SqlIsNullExpression> for SyntaxElement {
-    fn from(n: SqlIsNullExpression) -> Self {
+impl From<SqlIsExpression> for SyntaxElement {
+    fn from(n: SqlIsExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -21557,6 +21729,54 @@ impl From<SqlParenthesizedJoinBinding> for SyntaxNode {
 }
 impl From<SqlParenthesizedJoinBinding> for SyntaxElement {
     fn from(n: SqlParenthesizedJoinBinding) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlPostfixNullExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_POSTFIX_NULL_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_POSTFIX_NULL_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlPostfixNullExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlPostfixNullExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field("operator", &support::DebugSyntaxResult(self.operator()))
+                .finish()
+        } else {
+            f.debug_struct("SqlPostfixNullExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlPostfixNullExpression> for SyntaxNode {
+    fn from(n: SqlPostfixNullExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlPostfixNullExpression> for SyntaxElement {
+    fn from(n: SqlPostfixNullExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -25593,9 +25813,14 @@ impl From<SqlInExpression> for AnySqlExpression {
         Self::SqlInExpression(node)
     }
 }
-impl From<SqlIsNullExpression> for AnySqlExpression {
-    fn from(node: SqlIsNullExpression) -> Self {
-        Self::SqlIsNullExpression(node)
+impl From<SqlIsDistinctFromExpression> for AnySqlExpression {
+    fn from(node: SqlIsDistinctFromExpression) -> Self {
+        Self::SqlIsDistinctFromExpression(node)
+    }
+}
+impl From<SqlIsExpression> for AnySqlExpression {
+    fn from(node: SqlIsExpression) -> Self {
+        Self::SqlIsExpression(node)
     }
 }
 impl From<SqlLikeExpression> for AnySqlExpression {
@@ -25621,6 +25846,11 @@ impl From<SqlParameterExpression> for AnySqlExpression {
 impl From<SqlParenthesizedExpression> for AnySqlExpression {
     fn from(node: SqlParenthesizedExpression) -> Self {
         Self::SqlParenthesizedExpression(node)
+    }
+}
+impl From<SqlPostfixNullExpression> for AnySqlExpression {
+    fn from(node: SqlPostfixNullExpression) -> Self {
+        Self::SqlPostfixNullExpression(node)
     }
 }
 impl From<SqlStar> for AnySqlExpression {
@@ -25695,12 +25925,14 @@ impl AstNode for AnySqlExpression {
         .union(SqlColReference::KIND_SET)
         .union(SqlExistsExpression::KIND_SET)
         .union(SqlInExpression::KIND_SET)
-        .union(SqlIsNullExpression::KIND_SET)
+        .union(SqlIsDistinctFromExpression::KIND_SET)
+        .union(SqlIsExpression::KIND_SET)
         .union(SqlLikeExpression::KIND_SET)
         .union(SqlLogicalExpression::KIND_SET)
         .union(SqlName::KIND_SET)
         .union(SqlParameterExpression::KIND_SET)
         .union(SqlParenthesizedExpression::KIND_SET)
+        .union(SqlPostfixNullExpression::KIND_SET)
         .union(SqlStar::KIND_SET)
         .union(SqlSubqueryExpression::KIND_SET)
         .union(SqlTableColReference::KIND_SET)
@@ -25724,12 +25956,14 @@ impl AstNode for AnySqlExpression {
             | SQL_COL_REFERENCE
             | SQL_EXISTS_EXPRESSION
             | SQL_IN_EXPRESSION
-            | SQL_IS_NULL_EXPRESSION
+            | SQL_IS_DISTINCT_FROM_EXPRESSION
+            | SQL_IS_EXPRESSION
             | SQL_LIKE_EXPRESSION
             | SQL_LOGICAL_EXPRESSION
             | SQL_NAME
             | SQL_PARAMETER_EXPRESSION
             | SQL_PARENTHESIZED_EXPRESSION
+            | SQL_POSTFIX_NULL_EXPRESSION
             | SQL_STAR
             | SQL_SUBQUERY_EXPRESSION
             | SQL_TABLE_COL_REFERENCE
@@ -25759,7 +25993,10 @@ impl AstNode for AnySqlExpression {
             SQL_COL_REFERENCE => Self::SqlColReference(SqlColReference { syntax }),
             SQL_EXISTS_EXPRESSION => Self::SqlExistsExpression(SqlExistsExpression { syntax }),
             SQL_IN_EXPRESSION => Self::SqlInExpression(SqlInExpression { syntax }),
-            SQL_IS_NULL_EXPRESSION => Self::SqlIsNullExpression(SqlIsNullExpression { syntax }),
+            SQL_IS_DISTINCT_FROM_EXPRESSION => {
+                Self::SqlIsDistinctFromExpression(SqlIsDistinctFromExpression { syntax })
+            }
+            SQL_IS_EXPRESSION => Self::SqlIsExpression(SqlIsExpression { syntax }),
             SQL_LIKE_EXPRESSION => Self::SqlLikeExpression(SqlLikeExpression { syntax }),
             SQL_LOGICAL_EXPRESSION => Self::SqlLogicalExpression(SqlLogicalExpression { syntax }),
             SQL_NAME => Self::SqlName(SqlName { syntax }),
@@ -25768,6 +26005,9 @@ impl AstNode for AnySqlExpression {
             }
             SQL_PARENTHESIZED_EXPRESSION => {
                 Self::SqlParenthesizedExpression(SqlParenthesizedExpression { syntax })
+            }
+            SQL_POSTFIX_NULL_EXPRESSION => {
+                Self::SqlPostfixNullExpression(SqlPostfixNullExpression { syntax })
             }
             SQL_STAR => Self::SqlStar(SqlStar { syntax }),
             SQL_SUBQUERY_EXPRESSION => {
@@ -25813,12 +26053,14 @@ impl AstNode for AnySqlExpression {
             Self::SqlColReference(it) => &it.syntax,
             Self::SqlExistsExpression(it) => &it.syntax,
             Self::SqlInExpression(it) => &it.syntax,
-            Self::SqlIsNullExpression(it) => &it.syntax,
+            Self::SqlIsDistinctFromExpression(it) => &it.syntax,
+            Self::SqlIsExpression(it) => &it.syntax,
             Self::SqlLikeExpression(it) => &it.syntax,
             Self::SqlLogicalExpression(it) => &it.syntax,
             Self::SqlName(it) => &it.syntax,
             Self::SqlParameterExpression(it) => &it.syntax,
             Self::SqlParenthesizedExpression(it) => &it.syntax,
+            Self::SqlPostfixNullExpression(it) => &it.syntax,
             Self::SqlStar(it) => &it.syntax,
             Self::SqlSubqueryExpression(it) => &it.syntax,
             Self::SqlTableColReference(it) => &it.syntax,
@@ -25845,12 +26087,14 @@ impl AstNode for AnySqlExpression {
             Self::SqlColReference(it) => it.syntax,
             Self::SqlExistsExpression(it) => it.syntax,
             Self::SqlInExpression(it) => it.syntax,
-            Self::SqlIsNullExpression(it) => it.syntax,
+            Self::SqlIsDistinctFromExpression(it) => it.syntax,
+            Self::SqlIsExpression(it) => it.syntax,
             Self::SqlLikeExpression(it) => it.syntax,
             Self::SqlLogicalExpression(it) => it.syntax,
             Self::SqlName(it) => it.syntax,
             Self::SqlParameterExpression(it) => it.syntax,
             Self::SqlParenthesizedExpression(it) => it.syntax,
+            Self::SqlPostfixNullExpression(it) => it.syntax,
             Self::SqlStar(it) => it.syntax,
             Self::SqlSubqueryExpression(it) => it.syntax,
             Self::SqlTableColReference(it) => it.syntax,
@@ -25880,12 +26124,14 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::SqlColReference(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlExistsExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlInExpression(it) => std::fmt::Debug::fmt(it, f),
-            Self::SqlIsNullExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlIsDistinctFromExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlIsExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlLikeExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlLogicalExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlName(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlParameterExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlParenthesizedExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlPostfixNullExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlStar(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlTableColReference(it) => std::fmt::Debug::fmt(it, f),
@@ -25914,12 +26160,14 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::SqlColReference(it) => it.into(),
             AnySqlExpression::SqlExistsExpression(it) => it.into(),
             AnySqlExpression::SqlInExpression(it) => it.into(),
-            AnySqlExpression::SqlIsNullExpression(it) => it.into(),
+            AnySqlExpression::SqlIsDistinctFromExpression(it) => it.into(),
+            AnySqlExpression::SqlIsExpression(it) => it.into(),
             AnySqlExpression::SqlLikeExpression(it) => it.into(),
             AnySqlExpression::SqlLogicalExpression(it) => it.into(),
             AnySqlExpression::SqlName(it) => it.into(),
             AnySqlExpression::SqlParameterExpression(it) => it.into(),
             AnySqlExpression::SqlParenthesizedExpression(it) => it.into(),
+            AnySqlExpression::SqlPostfixNullExpression(it) => it.into(),
             AnySqlExpression::SqlStar(it) => it.into(),
             AnySqlExpression::SqlSubqueryExpression(it) => it.into(),
             AnySqlExpression::SqlTableColReference(it) => it.into(),
@@ -28757,7 +29005,12 @@ impl std::fmt::Display for SqlInsertStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
-impl std::fmt::Display for SqlIsNullExpression {
+impl std::fmt::Display for SqlIsDistinctFromExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlIsExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -28828,6 +29081,11 @@ impl std::fmt::Display for SqlParenthesizedExpression {
     }
 }
 impl std::fmt::Display for SqlParenthesizedJoinBinding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlPostfixNullExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

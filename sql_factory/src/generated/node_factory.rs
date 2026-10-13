@@ -4443,37 +4443,80 @@ impl SqlInsertStatementBuilder {
         ))
     }
 }
-pub fn sql_is_null_expression(
-    expression: AnySqlExpression,
+pub fn sql_is_distinct_from_expression(
+    left: AnySqlExpression,
     is_token: SyntaxToken,
-    null_token: SyntaxToken,
-) -> SqlIsNullExpressionBuilder {
-    SqlIsNullExpressionBuilder {
-        expression,
+    distinct_token: SyntaxToken,
+    from_token: SyntaxToken,
+    right: AnySqlExpression,
+) -> SqlIsDistinctFromExpressionBuilder {
+    SqlIsDistinctFromExpressionBuilder {
+        left,
         is_token,
-        null_token,
+        distinct_token,
+        from_token,
+        right,
         not_token: None,
     }
 }
-pub struct SqlIsNullExpressionBuilder {
-    expression: AnySqlExpression,
+pub struct SqlIsDistinctFromExpressionBuilder {
+    left: AnySqlExpression,
     is_token: SyntaxToken,
-    null_token: SyntaxToken,
+    distinct_token: SyntaxToken,
+    from_token: SyntaxToken,
+    right: AnySqlExpression,
     not_token: Option<SyntaxToken>,
 }
-impl SqlIsNullExpressionBuilder {
+impl SqlIsDistinctFromExpressionBuilder {
     pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
         self.not_token = Some(not_token);
         self
     }
-    pub fn build(self) -> SqlIsNullExpression {
-        SqlIsNullExpression::unwrap_cast(SyntaxNode::new_detached(
-            SqlSyntaxKind::SQL_IS_NULL_EXPRESSION,
+    pub fn build(self) -> SqlIsDistinctFromExpression {
+        SqlIsDistinctFromExpression::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_IS_DISTINCT_FROM_EXPRESSION,
+            [
+                Some(SyntaxElement::Node(self.left.into_syntax())),
+                Some(SyntaxElement::Token(self.is_token)),
+                self.not_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.distinct_token)),
+                Some(SyntaxElement::Token(self.from_token)),
+                Some(SyntaxElement::Node(self.right.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn sql_is_expression(
+    expression: AnySqlExpression,
+    is_token: SyntaxToken,
+    value_token: SyntaxToken,
+) -> SqlIsExpressionBuilder {
+    SqlIsExpressionBuilder {
+        expression,
+        is_token,
+        value_token,
+        not_token: None,
+    }
+}
+pub struct SqlIsExpressionBuilder {
+    expression: AnySqlExpression,
+    is_token: SyntaxToken,
+    value_token: SyntaxToken,
+    not_token: Option<SyntaxToken>,
+}
+impl SqlIsExpressionBuilder {
+    pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
+        self.not_token = Some(not_token);
+        self
+    }
+    pub fn build(self) -> SqlIsExpression {
+        SqlIsExpression::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_IS_EXPRESSION,
             [
                 Some(SyntaxElement::Node(self.expression.into_syntax())),
                 Some(SyntaxElement::Token(self.is_token)),
                 self.not_token.map(|token| SyntaxElement::Token(token)),
-                Some(SyntaxElement::Token(self.null_token)),
+                Some(SyntaxElement::Token(self.value_token)),
             ],
         ))
     }
@@ -4736,6 +4779,18 @@ impl SqlParenthesizedJoinBindingBuilder {
             ],
         ))
     }
+}
+pub fn sql_postfix_null_expression(
+    expression: AnySqlExpression,
+    operator_token: SyntaxToken,
+) -> SqlPostfixNullExpression {
+    SqlPostfixNullExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_POSTFIX_NULL_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(operator_token)),
+        ],
+    ))
 }
 pub fn sql_precision_modifier(precision_token: SyntaxToken) -> SqlPrecisionModifier {
     SqlPrecisionModifier::unwrap_cast(SyntaxNode::new_detached(

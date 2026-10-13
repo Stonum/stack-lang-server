@@ -56,8 +56,40 @@ fn parse_binary_or_logical_expression_recursive(
             let m = left.precede(p);
             p.bump(T![is]);
             p.eat(T![not]);
-            p.expect(T![null]);
-            left = Present(m.complete(p, SQL_IS_NULL_EXPRESSION));
+            if p.at(T![distinct]) {
+                p.bump(T![distinct]);
+                p.expect(T![from]);
+                parse_binary_or_logical_expression(p, OperatorPrecedence::IsNull)
+                    .or_add_diagnostic(p, expected_expression);
+                left = Present(m.complete(p, SQL_IS_DISTINCT_FROM_EXPRESSION));
+                continue;
+            }
+            if p.at(T![null]) || p.at(T![true]) || p.at(T![false]) || p.at(T![unknown]) {
+                p.bump_any();
+            } else {
+                let range = p.cur_range();
+                let err = p.err_builder(
+                    "Expected `null`, `true`, `false`, `unknown` or `distinct from` after `is`",
+                    range,
+                );
+                p.error(err);
+            }
+            left = Present(m.complete(p, SQL_IS_EXPRESSION));
+            continue;
+        }
+
+        if p.at(T![isnull]) || p.at(T![notnull]) {
+            if OperatorPrecedence::IsNull <= left_precedence {
+                break;
+            }
+
+            if left.is_absent() {
+                report_missing_left_operand(p);
+            }
+
+            let m = left.precede(p);
+            p.bump_any();
+            left = Present(m.complete(p, SQL_POSTFIX_NULL_EXPRESSION));
             continue;
         }
 
@@ -251,7 +283,7 @@ fn parse_primary_expression(p: &mut SqlParser) -> ParsedSyntax {
         T![any] | T![all] | T![some] => parse_any_all_expression(p),
         T![exists] => parse_exists_expression(p),
         T![interval] => parse_interval_expression(p),
-        T![right] | T![left] | T![replace] if p.nth_at(1, T!['(']) => {
+        T![right] | T![left] | T![replace] | T![isnull] | T![notnull] if p.nth_at(1, T!['(']) => {
             parse_keyword_as_call_expression(p)
         }
         // Checked last, after every keyword that starts its own construct.

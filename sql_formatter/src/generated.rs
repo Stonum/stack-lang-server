@@ -5287,41 +5287,69 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlInsertStatement {
         )
     }
 }
-impl FormatRule<sql_syntax::SqlIsNullExpression>
-    for crate::sql::expressions::is_null_expression::FormatSqlIsNullExpression
+impl FormatRule<sql_syntax::SqlIsDistinctFromExpression>
+    for crate::sql::expressions::is_distinct_from_expression::FormatSqlIsDistinctFromExpression
 {
     type Context = SqlFormatContext;
     #[inline(always)]
     fn fmt(
         &self,
-        node: &sql_syntax::SqlIsNullExpression,
+        node: &sql_syntax::SqlIsDistinctFromExpression,
         f: &mut SqlFormatter,
     ) -> FormatResult<()> {
-        FormatNodeRule::<sql_syntax::SqlIsNullExpression>::fmt(self, node, f)
+        FormatNodeRule::<sql_syntax::SqlIsDistinctFromExpression>::fmt(self, node, f)
     }
 }
-impl AsFormat<SqlFormatContext> for sql_syntax::SqlIsNullExpression {
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlIsDistinctFromExpression {
     type Format<'a> = FormatRefWithRule<
         'a,
-        sql_syntax::SqlIsNullExpression,
-        crate::sql::expressions::is_null_expression::FormatSqlIsNullExpression,
+        sql_syntax::SqlIsDistinctFromExpression,
+        crate::sql::expressions::is_distinct_from_expression::FormatSqlIsDistinctFromExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: expressions :: is_distinct_from_expression :: FormatSqlIsDistinctFromExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlIsDistinctFromExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlIsDistinctFromExpression,
+        crate::sql::expressions::is_distinct_from_expression::FormatSqlIsDistinctFromExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: expressions :: is_distinct_from_expression :: FormatSqlIsDistinctFromExpression :: default ())
+    }
+}
+impl FormatRule<sql_syntax::SqlIsExpression>
+    for crate::sql::expressions::is_expression::FormatSqlIsExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlIsExpression, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlIsExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlIsExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlIsExpression,
+        crate::sql::expressions::is_expression::FormatSqlIsExpression,
     >;
     fn format(&self) -> Self::Format<'_> {
         FormatRefWithRule::new(
             self,
-            crate::sql::expressions::is_null_expression::FormatSqlIsNullExpression::default(),
+            crate::sql::expressions::is_expression::FormatSqlIsExpression::default(),
         )
     }
 }
-impl IntoFormat<SqlFormatContext> for sql_syntax::SqlIsNullExpression {
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlIsExpression {
     type Format = FormatOwnedWithRule<
-        sql_syntax::SqlIsNullExpression,
-        crate::sql::expressions::is_null_expression::FormatSqlIsNullExpression,
+        sql_syntax::SqlIsExpression,
+        crate::sql::expressions::is_expression::FormatSqlIsExpression,
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule::new(
             self,
-            crate::sql::expressions::is_null_expression::FormatSqlIsNullExpression::default(),
+            crate::sql::expressions::is_expression::FormatSqlIsExpression::default(),
         )
     }
 }
@@ -5794,6 +5822,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlParenthesizedJoinBinding {
     >;
     fn into_format(self) -> Self::Format {
         FormatOwnedWithRule :: new (self , crate :: sql :: bindings :: parenthesized_join_binding :: FormatSqlParenthesizedJoinBinding :: default ())
+    }
+}
+impl FormatRule<sql_syntax::SqlPostfixNullExpression>
+    for crate::sql::expressions::postfix_null_expression::FormatSqlPostfixNullExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlPostfixNullExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlPostfixNullExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlPostfixNullExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlPostfixNullExpression,
+        crate::sql::expressions::postfix_null_expression::FormatSqlPostfixNullExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: expressions :: postfix_null_expression :: FormatSqlPostfixNullExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlPostfixNullExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlPostfixNullExpression,
+        crate::sql::expressions::postfix_null_expression::FormatSqlPostfixNullExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: expressions :: postfix_null_expression :: FormatSqlPostfixNullExpression :: default ())
     }
 }
 impl FormatRule<sql_syntax::SqlPrecisionModifier>
