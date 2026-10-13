@@ -352,6 +352,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlVariableDefault::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_WHILE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlWhileStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPolicyForClause::new_unchecked(node) };
                     $body

@@ -4190,6 +4190,56 @@ pub struct PsqlPlVariableDefaultFields {
     pub value: SyntaxResult<AnySqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlWhileStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlWhileStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlWhileStatementFields {
+        PsqlPlWhileStatementFields {
+            label: self.label(),
+            while_token: self.while_token(),
+            condition: self.condition(),
+            body: self.body(),
+        }
+    }
+    pub fn label(&self) -> Option<PsqlPlLabel> {
+        support::node(&self.syntax, 0usize)
+    }
+    pub fn while_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn body(&self) -> SyntaxResult<PsqlPlLoopBody> {
+        support::required_node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlPlWhileStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlWhileStatementFields {
+    pub label: Option<PsqlPlLabel>,
+    pub while_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnySqlExpression>,
+    pub body: SyntaxResult<PsqlPlLoopBody>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPolicyForClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -12927,6 +12977,7 @@ pub enum AnyPsqlPlStatement {
     PsqlPlRaiseStatement(PsqlPlRaiseStatement),
     PsqlPlReturnQueryStatement(PsqlPlReturnQueryStatement),
     PsqlPlReturnStatement(PsqlPlReturnStatement),
+    PsqlPlWhileStatement(PsqlPlWhileStatement),
 }
 impl AnyPsqlPlStatement {
     pub fn as_any_sql_statement(&self) -> Option<&AnySqlStatement> {
@@ -12992,6 +13043,12 @@ impl AnyPsqlPlStatement {
     pub fn as_psql_pl_return_statement(&self) -> Option<&PsqlPlReturnStatement> {
         match &self {
             Self::PsqlPlReturnStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_while_statement(&self) -> Option<&PsqlPlWhileStatement> {
+        match &self {
+            Self::PsqlPlWhileStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -18885,6 +18942,59 @@ impl From<PsqlPlVariableDefault> for SyntaxNode {
 }
 impl From<PsqlPlVariableDefault> for SyntaxElement {
     fn from(n: PsqlPlVariableDefault) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlWhileStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_WHILE_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_WHILE_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlWhileStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlWhileStatement")
+                .field("label", &support::DebugOptionalElement(self.label()))
+                .field(
+                    "while_token",
+                    &support::DebugSyntaxResult(self.while_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlWhileStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlWhileStatement> for SyntaxNode {
+    fn from(n: PsqlPlWhileStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlWhileStatement> for SyntaxElement {
+    fn from(n: PsqlPlWhileStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -29063,6 +29173,11 @@ impl From<PsqlPlReturnStatement> for AnyPsqlPlStatement {
         Self::PsqlPlReturnStatement(node)
     }
 }
+impl From<PsqlPlWhileStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlWhileStatement) -> Self {
+        Self::PsqlPlWhileStatement(node)
+    }
+}
 impl AstNode for AnyPsqlPlStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnySqlStatement::KIND_SET
@@ -29075,7 +29190,8 @@ impl AstNode for AnyPsqlPlStatement {
         .union(PsqlPlPerformStatement::KIND_SET)
         .union(PsqlPlRaiseStatement::KIND_SET)
         .union(PsqlPlReturnQueryStatement::KIND_SET)
-        .union(PsqlPlReturnStatement::KIND_SET);
+        .union(PsqlPlReturnStatement::KIND_SET)
+        .union(PsqlPlWhileStatement::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
             PSQL_PL_ASSIGNMENT_STATEMENT
@@ -29087,7 +29203,8 @@ impl AstNode for AnyPsqlPlStatement {
             | PSQL_PL_PERFORM_STATEMENT
             | PSQL_PL_RAISE_STATEMENT
             | PSQL_PL_RETURN_QUERY_STATEMENT
-            | PSQL_PL_RETURN_STATEMENT => true,
+            | PSQL_PL_RETURN_STATEMENT
+            | PSQL_PL_WHILE_STATEMENT => true,
             k if AnySqlStatement::can_cast(k) => true,
             _ => false,
         }
@@ -29114,6 +29231,7 @@ impl AstNode for AnyPsqlPlStatement {
             PSQL_PL_RETURN_STATEMENT => {
                 Self::PsqlPlReturnStatement(PsqlPlReturnStatement { syntax })
             }
+            PSQL_PL_WHILE_STATEMENT => Self::PsqlPlWhileStatement(PsqlPlWhileStatement { syntax }),
             _ => {
                 if let Some(any_sql_statement) = AnySqlStatement::cast(syntax) {
                     return Some(Self::AnySqlStatement(any_sql_statement));
@@ -29135,6 +29253,7 @@ impl AstNode for AnyPsqlPlStatement {
             Self::PsqlPlRaiseStatement(it) => &it.syntax,
             Self::PsqlPlReturnQueryStatement(it) => &it.syntax,
             Self::PsqlPlReturnStatement(it) => &it.syntax,
+            Self::PsqlPlWhileStatement(it) => &it.syntax,
             Self::AnySqlStatement(it) => it.syntax(),
         }
     }
@@ -29150,6 +29269,7 @@ impl AstNode for AnyPsqlPlStatement {
             Self::PsqlPlRaiseStatement(it) => it.syntax,
             Self::PsqlPlReturnQueryStatement(it) => it.syntax,
             Self::PsqlPlReturnStatement(it) => it.syntax,
+            Self::PsqlPlWhileStatement(it) => it.syntax,
             Self::AnySqlStatement(it) => it.into_syntax(),
         }
     }
@@ -29168,6 +29288,7 @@ impl std::fmt::Debug for AnyPsqlPlStatement {
             Self::PsqlPlRaiseStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlReturnQueryStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlReturnStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlWhileStatement(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -29185,6 +29306,7 @@ impl From<AnyPsqlPlStatement> for SyntaxNode {
             AnyPsqlPlStatement::PsqlPlRaiseStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlReturnQueryStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlReturnStatement(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlWhileStatement(it) => it.into(),
         }
     }
 }
@@ -33137,6 +33259,11 @@ impl std::fmt::Display for PsqlPlVariableDeclaration {
     }
 }
 impl std::fmt::Display for PsqlPlVariableDefault {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlWhileStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

@@ -1034,6 +1034,7 @@ AnyPsqlPlStatement =
    | PsqlPlReturnStatement
    | PsqlPlReturnQueryStatement
    | PsqlPlLoopStatement
+   | PsqlPlWhileStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1109,6 +1110,13 @@ PsqlPlReturnQueryStatement =
 // `[<<label>>] LOOP ... END LOOP [label];`
 PsqlPlLoopStatement =
    label: PsqlPlLabel?
+   body: PsqlPlLoopBody
+
+// `[<<label>>] WHILE cond LOOP ... END LOOP [label];`
+PsqlPlWhileStatement =
+   label: PsqlPlLabel?
+   'while'
+   condition: AnySqlExpression
    body: PsqlPlLoopBody
 
 // `LOOP statement; ... END LOOP [label];` -- shared by every loop kind.
