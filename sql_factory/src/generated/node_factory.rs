@@ -1827,6 +1827,7 @@ pub fn psql_pl_block(
         begin_token,
         statements,
         end_token,
+        declare_section: None,
         semicolon_token: None,
     }
 }
@@ -1834,9 +1835,14 @@ pub struct PsqlPlBlockBuilder {
     begin_token: SyntaxToken,
     statements: PsqlPlStatementList,
     end_token: SyntaxToken,
+    declare_section: Option<PsqlPlDeclareSection>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlPlBlockBuilder {
+    pub fn with_declare_section(mut self, declare_section: PsqlPlDeclareSection) -> Self {
+        self.declare_section = Some(declare_section);
+        self
+    }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
         self.semicolon_token = Some(semicolon_token);
         self
@@ -1845,6 +1851,8 @@ impl PsqlPlBlockBuilder {
         PsqlPlBlock::unwrap_cast(SyntaxNode::new_detached(
             SqlSyntaxKind::PSQL_PL_BLOCK,
             [
+                self.declare_section
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.begin_token)),
                 Some(SyntaxElement::Node(self.statements.into_syntax())),
                 Some(SyntaxElement::Token(self.end_token)),
@@ -1865,6 +1873,89 @@ pub fn psql_pl_body(
             Some(SyntaxElement::Token(l_quote_token)),
             Some(SyntaxElement::Node(block.into_syntax())),
             Some(SyntaxElement::Token(r_quote_token)),
+        ],
+    ))
+}
+pub fn psql_pl_declare_section(
+    declare_token: SyntaxToken,
+    declarations: PsqlPlDeclarationList,
+) -> PsqlPlDeclareSection {
+    PsqlPlDeclareSection::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_DECLARE_SECTION,
+        [
+            Some(SyntaxElement::Token(declare_token)),
+            Some(SyntaxElement::Node(declarations.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_variable_declaration(
+    name: SqlName,
+    ty: SqlTypeName,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlVariableDeclarationBuilder {
+    PsqlPlVariableDeclarationBuilder {
+        name,
+        ty,
+        semicolon_token,
+        constant_token: None,
+        collation: None,
+        not_null: None,
+        default: None,
+    }
+}
+pub struct PsqlPlVariableDeclarationBuilder {
+    name: SqlName,
+    ty: SqlTypeName,
+    semicolon_token: SyntaxToken,
+    constant_token: Option<SyntaxToken>,
+    collation: Option<SqlCollateConstraint>,
+    not_null: Option<SqlNotNullConstraint>,
+    default: Option<PsqlPlVariableDefault>,
+}
+impl PsqlPlVariableDeclarationBuilder {
+    pub fn with_constant_token(mut self, constant_token: SyntaxToken) -> Self {
+        self.constant_token = Some(constant_token);
+        self
+    }
+    pub fn with_collation(mut self, collation: SqlCollateConstraint) -> Self {
+        self.collation = Some(collation);
+        self
+    }
+    pub fn with_not_null(mut self, not_null: SqlNotNullConstraint) -> Self {
+        self.not_null = Some(not_null);
+        self
+    }
+    pub fn with_default(mut self, default: PsqlPlVariableDefault) -> Self {
+        self.default = Some(default);
+        self
+    }
+    pub fn build(self) -> PsqlPlVariableDeclaration {
+        PsqlPlVariableDeclaration::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_VARIABLE_DECLARATION,
+            [
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.constant_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.ty.into_syntax())),
+                self.collation
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.not_null
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.default
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_variable_default(
+    operator_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlPlVariableDefault {
+    PsqlPlVariableDefault::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_VARIABLE_DEFAULT,
+        [
+            Some(SyntaxElement::Token(operator_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
         ],
     ))
 }
@@ -6562,6 +6653,18 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_pl_declaration_list<I>(items: I) -> PsqlPlDeclarationList
+where
+    I: IntoIterator<Item = PsqlPlVariableDeclaration>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlPlDeclarationList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_DECLARATION_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_pl_statement_list<I>(items: I) -> PsqlPlStatementList

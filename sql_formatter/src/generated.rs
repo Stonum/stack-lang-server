@@ -1985,6 +1985,114 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlBody {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlDeclareSection>
+    for crate::psql::auxiliary::pl_declare_section::FormatPsqlPlDeclareSection
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlDeclareSection,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlDeclareSection>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlDeclareSection {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlDeclareSection,
+        crate::psql::auxiliary::pl_declare_section::FormatPsqlPlDeclareSection,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_declare_section::FormatPsqlPlDeclareSection::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlDeclareSection {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlDeclareSection,
+        crate::psql::auxiliary::pl_declare_section::FormatPsqlPlDeclareSection,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_declare_section::FormatPsqlPlDeclareSection::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlVariableDeclaration>
+    for crate::psql::auxiliary::pl_variable_declaration::FormatPsqlPlVariableDeclaration
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlVariableDeclaration,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlVariableDeclaration>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlVariableDeclaration {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlVariableDeclaration,
+        crate::psql::auxiliary::pl_variable_declaration::FormatPsqlPlVariableDeclaration,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: pl_variable_declaration :: FormatPsqlPlVariableDeclaration :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlVariableDeclaration {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlVariableDeclaration,
+        crate::psql::auxiliary::pl_variable_declaration::FormatPsqlPlVariableDeclaration,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: pl_variable_declaration :: FormatPsqlPlVariableDeclaration :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlVariableDefault>
+    for crate::psql::auxiliary::pl_variable_default::FormatPsqlPlVariableDefault
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlVariableDefault,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlVariableDefault>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlVariableDefault {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlVariableDefault,
+        crate::psql::auxiliary::pl_variable_default::FormatPsqlPlVariableDefault,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_variable_default::FormatPsqlPlVariableDefault::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlVariableDefault {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlVariableDefault,
+        crate::psql::auxiliary::pl_variable_default::FormatPsqlPlVariableDefault,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_variable_default::FormatPsqlPlVariableDefault::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPolicyForClause>
     for crate::psql::clauses::policy_for_clause::FormatPsqlPolicyForClause
 {
@@ -8284,6 +8392,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameterList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlDeclarationList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlDeclarationList,
+        crate::psql::lists::pl_declaration_list::FormatPsqlPlDeclarationList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::pl_declaration_list::FormatPsqlPlDeclarationList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlDeclarationList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlDeclarationList,
+        crate::psql::lists::pl_declaration_list::FormatPsqlPlDeclarationList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::pl_declaration_list::FormatPsqlPlDeclarationList::default(),
         )
     }
 }

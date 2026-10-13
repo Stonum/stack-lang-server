@@ -639,6 +639,11 @@ impl<'src> SqlLexer<'src> {
                 self.next_byte();
                 T![::]
             }
+            // `:=` -- PL/pgSQL assignment and variable default.
+            Some(b'=') => {
+                self.next_byte();
+                T![:=]
+            }
             _ => T![:],
         }
     }

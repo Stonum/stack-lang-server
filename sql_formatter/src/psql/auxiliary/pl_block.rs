@@ -7,12 +7,16 @@ pub(crate) struct FormatPsqlPlBlock;
 impl FormatNodeRule<PsqlPlBlock> for FormatPsqlPlBlock {
     fn fmt_fields(&self, node: &PsqlPlBlock, f: &mut SqlFormatter) -> FormatResult<()> {
         let PsqlPlBlockFields {
+            declare_section,
             begin_token,
             statements,
             end_token,
             semicolon_token,
         } = node.as_fields();
 
+        if let Some(declare_section) = declare_section {
+            write!(f, [declare_section.format(), hard_line_break()])?;
+        }
         write!(f, [begin_token.format()])?;
         if !statements.is_empty() {
             write!(f, [block_indent(&statements.format())])?;
