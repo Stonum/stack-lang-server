@@ -64,5 +64,8 @@ pub(crate) mod unique_constraint;
 pub(crate) mod unique_table_constraint;
 pub(crate) mod values_row;
 pub(crate) mod varying_modifier;
+pub(crate) mod window_frame_current_row_bound;
+pub(crate) mod window_frame_offset_bound;
+pub(crate) mod window_frame_unbounded_bound;
 pub(crate) mod window_specification;
 pub(crate) mod with_grant_option;

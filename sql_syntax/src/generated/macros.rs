@@ -927,6 +927,25 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlWhereClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_WINDOW_FRAME_CLAUSE => {
+                    let $pattern = unsafe { $crate::SqlWindowFrameClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_WINDOW_FRAME_CURRENT_ROW_BOUND => {
+                    let $pattern =
+                        unsafe { $crate::SqlWindowFrameCurrentRowBound::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_WINDOW_FRAME_OFFSET_BOUND => {
+                    let $pattern =
+                        unsafe { $crate::SqlWindowFrameOffsetBound::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_WINDOW_FRAME_UNBOUNDED_BOUND => {
+                    let $pattern =
+                        unsafe { $crate::SqlWindowFrameUnboundedBound::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_WINDOW_FUNCTION_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::SqlWindowFunctionExpression::new_unchecked(node) };

@@ -80,9 +80,11 @@ select row_number() over (partition by dept, region, team) from t
 fn format_window_function_partition_by_wraps_when_too_long() {
     assert_fmt!(
         r#"--
-select row_number() over (partition by
-	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
-	really_long_column_name_four, really_long_column_name_five)
+select row_number() over (
+	partition by
+		really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
+		really_long_column_name_four, really_long_column_name_five
+)
 from t
 "#
     );

@@ -10898,6 +10898,181 @@ pub struct SqlWhereClauseFields {
     pub condition: SyntaxResult<AnySqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlWindowFrameClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlWindowFrameClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlWindowFrameClauseFields {
+        SqlWindowFrameClauseFields {
+            unit: self.unit(),
+            between_token: self.between_token(),
+            start: self.start(),
+            and_token: self.and_token(),
+            end: self.end(),
+        }
+    }
+    pub fn unit(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn between_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn start(&self) -> SyntaxResult<AnySqlWindowFrameBound> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn and_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
+    pub fn end(&self) -> Option<AnySqlWindowFrameBound> {
+        support::node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for SqlWindowFrameClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlWindowFrameClauseFields {
+    pub unit: SyntaxResult<SyntaxToken>,
+    pub between_token: Option<SyntaxToken>,
+    pub start: SyntaxResult<AnySqlWindowFrameBound>,
+    pub and_token: Option<SyntaxToken>,
+    pub end: Option<AnySqlWindowFrameBound>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlWindowFrameCurrentRowBound {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlWindowFrameCurrentRowBound {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlWindowFrameCurrentRowBoundFields {
+        SqlWindowFrameCurrentRowBoundFields {
+            current_token: self.current_token(),
+            row_token: self.row_token(),
+        }
+    }
+    pub fn current_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn row_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlWindowFrameCurrentRowBound {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlWindowFrameCurrentRowBoundFields {
+    pub current_token: SyntaxResult<SyntaxToken>,
+    pub row_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlWindowFrameOffsetBound {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlWindowFrameOffsetBound {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlWindowFrameOffsetBoundFields {
+        SqlWindowFrameOffsetBoundFields {
+            offset: self.offset(),
+            direction: self.direction(),
+        }
+    }
+    pub fn offset(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn direction(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlWindowFrameOffsetBound {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlWindowFrameOffsetBoundFields {
+    pub offset: SyntaxResult<AnySqlExpression>,
+    pub direction: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlWindowFrameUnboundedBound {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlWindowFrameUnboundedBound {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlWindowFrameUnboundedBoundFields {
+        SqlWindowFrameUnboundedBoundFields {
+            unbounded_token: self.unbounded_token(),
+            direction: self.direction(),
+        }
+    }
+    pub fn unbounded_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn direction(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlWindowFrameUnboundedBound {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlWindowFrameUnboundedBoundFields {
+    pub unbounded_token: SyntaxResult<SyntaxToken>,
+    pub direction: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlWindowFunctionExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -11001,6 +11176,7 @@ impl SqlWindowSpecification {
             l_paren_token: self.l_paren_token(),
             partition_by_clause: self.partition_by_clause(),
             order_by_clause: self.order_by_clause(),
+            frame_clause: self.frame_clause(),
             r_paren_token: self.r_paren_token(),
         }
     }
@@ -11013,8 +11189,11 @@ impl SqlWindowSpecification {
     pub fn order_by_clause(&self) -> Option<SqlOrderByClause> {
         support::node(&self.syntax, 2usize)
     }
+    pub fn frame_clause(&self) -> Option<SqlWindowFrameClause> {
+        support::node(&self.syntax, 3usize)
+    }
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 3usize)
+        support::required_token(&self.syntax, 4usize)
     }
 }
 impl Serialize for SqlWindowSpecification {
@@ -11030,6 +11209,7 @@ pub struct SqlWindowSpecificationFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub partition_by_clause: Option<SqlWindowPartitionByClause>,
     pub order_by_clause: Option<SqlOrderByClause>,
+    pub frame_clause: Option<SqlWindowFrameClause>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -12495,6 +12675,32 @@ impl AnySqlTypeModifier {
     pub fn as_sql_varying_modifier(&self) -> Option<&SqlVaryingModifier> {
         match &self {
             Self::SqlVaryingModifier(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnySqlWindowFrameBound {
+    SqlWindowFrameCurrentRowBound(SqlWindowFrameCurrentRowBound),
+    SqlWindowFrameOffsetBound(SqlWindowFrameOffsetBound),
+    SqlWindowFrameUnboundedBound(SqlWindowFrameUnboundedBound),
+}
+impl AnySqlWindowFrameBound {
+    pub fn as_sql_window_frame_current_row_bound(&self) -> Option<&SqlWindowFrameCurrentRowBound> {
+        match &self {
+            Self::SqlWindowFrameCurrentRowBound(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_window_frame_offset_bound(&self) -> Option<&SqlWindowFrameOffsetBound> {
+        match &self {
+            Self::SqlWindowFrameOffsetBound(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_window_frame_unbounded_bound(&self) -> Option<&SqlWindowFrameUnboundedBound> {
+        match &self {
+            Self::SqlWindowFrameUnboundedBound(item) => Some(item),
             _ => None,
         }
     }
@@ -24695,6 +24901,213 @@ impl From<SqlWhereClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlWindowFrameClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_WINDOW_FRAME_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_WINDOW_FRAME_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlWindowFrameClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlWindowFrameClause")
+                .field("unit", &support::DebugSyntaxResult(self.unit()))
+                .field(
+                    "between_token",
+                    &support::DebugOptionalElement(self.between_token()),
+                )
+                .field("start", &support::DebugSyntaxResult(self.start()))
+                .field(
+                    "and_token",
+                    &support::DebugOptionalElement(self.and_token()),
+                )
+                .field("end", &support::DebugOptionalElement(self.end()))
+                .finish()
+        } else {
+            f.debug_struct("SqlWindowFrameClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlWindowFrameClause> for SyntaxNode {
+    fn from(n: SqlWindowFrameClause) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlWindowFrameClause> for SyntaxElement {
+    fn from(n: SqlWindowFrameClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlWindowFrameCurrentRowBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_WINDOW_FRAME_CURRENT_ROW_BOUND as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_WINDOW_FRAME_CURRENT_ROW_BOUND
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlWindowFrameCurrentRowBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlWindowFrameCurrentRowBound")
+                .field(
+                    "current_token",
+                    &support::DebugSyntaxResult(self.current_token()),
+                )
+                .field("row_token", &support::DebugSyntaxResult(self.row_token()))
+                .finish()
+        } else {
+            f.debug_struct("SqlWindowFrameCurrentRowBound").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlWindowFrameCurrentRowBound> for SyntaxNode {
+    fn from(n: SqlWindowFrameCurrentRowBound) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlWindowFrameCurrentRowBound> for SyntaxElement {
+    fn from(n: SqlWindowFrameCurrentRowBound) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlWindowFrameOffsetBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_WINDOW_FRAME_OFFSET_BOUND as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_WINDOW_FRAME_OFFSET_BOUND
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlWindowFrameOffsetBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlWindowFrameOffsetBound")
+                .field("offset", &support::DebugSyntaxResult(self.offset()))
+                .field("direction", &support::DebugSyntaxResult(self.direction()))
+                .finish()
+        } else {
+            f.debug_struct("SqlWindowFrameOffsetBound").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlWindowFrameOffsetBound> for SyntaxNode {
+    fn from(n: SqlWindowFrameOffsetBound) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlWindowFrameOffsetBound> for SyntaxElement {
+    fn from(n: SqlWindowFrameOffsetBound) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlWindowFrameUnboundedBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_WINDOW_FRAME_UNBOUNDED_BOUND as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_WINDOW_FRAME_UNBOUNDED_BOUND
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlWindowFrameUnboundedBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlWindowFrameUnboundedBound")
+                .field(
+                    "unbounded_token",
+                    &support::DebugSyntaxResult(self.unbounded_token()),
+                )
+                .field("direction", &support::DebugSyntaxResult(self.direction()))
+                .finish()
+        } else {
+            f.debug_struct("SqlWindowFrameUnboundedBound").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlWindowFrameUnboundedBound> for SyntaxNode {
+    fn from(n: SqlWindowFrameUnboundedBound) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlWindowFrameUnboundedBound> for SyntaxElement {
+    fn from(n: SqlWindowFrameUnboundedBound) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlWindowFunctionExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -24834,6 +25247,10 @@ impl std::fmt::Debug for SqlWindowSpecification {
                 .field(
                     "order_by_clause",
                     &support::DebugOptionalElement(self.order_by_clause()),
+                )
+                .field(
+                    "frame_clause",
+                    &support::DebugOptionalElement(self.frame_clause()),
                 )
                 .field(
                     "r_paren_token",
@@ -28426,6 +28843,88 @@ impl From<AnySqlTypeModifier> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlWindowFrameCurrentRowBound> for AnySqlWindowFrameBound {
+    fn from(node: SqlWindowFrameCurrentRowBound) -> Self {
+        Self::SqlWindowFrameCurrentRowBound(node)
+    }
+}
+impl From<SqlWindowFrameOffsetBound> for AnySqlWindowFrameBound {
+    fn from(node: SqlWindowFrameOffsetBound) -> Self {
+        Self::SqlWindowFrameOffsetBound(node)
+    }
+}
+impl From<SqlWindowFrameUnboundedBound> for AnySqlWindowFrameBound {
+    fn from(node: SqlWindowFrameUnboundedBound) -> Self {
+        Self::SqlWindowFrameUnboundedBound(node)
+    }
+}
+impl AstNode for AnySqlWindowFrameBound {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> = SqlWindowFrameCurrentRowBound::KIND_SET
+        .union(SqlWindowFrameOffsetBound::KIND_SET)
+        .union(SqlWindowFrameUnboundedBound::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            SQL_WINDOW_FRAME_CURRENT_ROW_BOUND
+                | SQL_WINDOW_FRAME_OFFSET_BOUND
+                | SQL_WINDOW_FRAME_UNBOUNDED_BOUND
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_WINDOW_FRAME_CURRENT_ROW_BOUND => {
+                Self::SqlWindowFrameCurrentRowBound(SqlWindowFrameCurrentRowBound { syntax })
+            }
+            SQL_WINDOW_FRAME_OFFSET_BOUND => {
+                Self::SqlWindowFrameOffsetBound(SqlWindowFrameOffsetBound { syntax })
+            }
+            SQL_WINDOW_FRAME_UNBOUNDED_BOUND => {
+                Self::SqlWindowFrameUnboundedBound(SqlWindowFrameUnboundedBound { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlWindowFrameCurrentRowBound(it) => &it.syntax,
+            Self::SqlWindowFrameOffsetBound(it) => &it.syntax,
+            Self::SqlWindowFrameUnboundedBound(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlWindowFrameCurrentRowBound(it) => it.syntax,
+            Self::SqlWindowFrameOffsetBound(it) => it.syntax,
+            Self::SqlWindowFrameUnboundedBound(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnySqlWindowFrameBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlWindowFrameCurrentRowBound(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlWindowFrameOffsetBound(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlWindowFrameUnboundedBound(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnySqlWindowFrameBound> for SyntaxNode {
+    fn from(n: AnySqlWindowFrameBound) -> Self {
+        match n {
+            AnySqlWindowFrameBound::SqlWindowFrameCurrentRowBound(it) => it.into(),
+            AnySqlWindowFrameBound::SqlWindowFrameOffsetBound(it) => it.into(),
+            AnySqlWindowFrameBound::SqlWindowFrameUnboundedBound(it) => it.into(),
+        }
+    }
+}
+impl From<AnySqlWindowFrameBound> for SyntaxElement {
+    fn from(n: AnySqlWindowFrameBound) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl std::fmt::Display for AnyPsqlCopySource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -28587,6 +29086,11 @@ impl std::fmt::Display for AnySqlTypeArraySuffix {
     }
 }
 impl std::fmt::Display for AnySqlTypeModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnySqlWindowFrameBound {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -29682,6 +30186,26 @@ impl std::fmt::Display for SqlVaryingModifier {
     }
 }
 impl std::fmt::Display for SqlWhereClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlWindowFrameClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlWindowFrameCurrentRowBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlWindowFrameOffsetBound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlWindowFrameUnboundedBound {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

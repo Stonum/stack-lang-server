@@ -7636,6 +7636,140 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWhereClause {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlWindowFrameClause>
+    for crate::sql::clauses::window_frame_clause::FormatSqlWindowFrameClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlWindowFrameClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlWindowFrameClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlWindowFrameClause,
+        crate::sql::clauses::window_frame_clause::FormatSqlWindowFrameClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::clauses::window_frame_clause::FormatSqlWindowFrameClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlWindowFrameClause,
+        crate::sql::clauses::window_frame_clause::FormatSqlWindowFrameClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::clauses::window_frame_clause::FormatSqlWindowFrameClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlWindowFrameCurrentRowBound>
+    for crate::sql::auxiliary::window_frame_current_row_bound::FormatSqlWindowFrameCurrentRowBound
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlWindowFrameCurrentRowBound,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlWindowFrameCurrentRowBound>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameCurrentRowBound {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlWindowFrameCurrentRowBound,
+        crate::sql::auxiliary::window_frame_current_row_bound::FormatSqlWindowFrameCurrentRowBound,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: auxiliary :: window_frame_current_row_bound :: FormatSqlWindowFrameCurrentRowBound :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameCurrentRowBound {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlWindowFrameCurrentRowBound,
+        crate::sql::auxiliary::window_frame_current_row_bound::FormatSqlWindowFrameCurrentRowBound,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: window_frame_current_row_bound :: FormatSqlWindowFrameCurrentRowBound :: default ())
+    }
+}
+impl FormatRule<sql_syntax::SqlWindowFrameOffsetBound>
+    for crate::sql::auxiliary::window_frame_offset_bound::FormatSqlWindowFrameOffsetBound
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlWindowFrameOffsetBound,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlWindowFrameOffsetBound>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameOffsetBound {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlWindowFrameOffsetBound,
+        crate::sql::auxiliary::window_frame_offset_bound::FormatSqlWindowFrameOffsetBound,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: auxiliary :: window_frame_offset_bound :: FormatSqlWindowFrameOffsetBound :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameOffsetBound {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlWindowFrameOffsetBound,
+        crate::sql::auxiliary::window_frame_offset_bound::FormatSqlWindowFrameOffsetBound,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: window_frame_offset_bound :: FormatSqlWindowFrameOffsetBound :: default ())
+    }
+}
+impl FormatRule<sql_syntax::SqlWindowFrameUnboundedBound>
+    for crate::sql::auxiliary::window_frame_unbounded_bound::FormatSqlWindowFrameUnboundedBound
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlWindowFrameUnboundedBound,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlWindowFrameUnboundedBound>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameUnboundedBound {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlWindowFrameUnboundedBound,
+        crate::sql::auxiliary::window_frame_unbounded_bound::FormatSqlWindowFrameUnboundedBound,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: sql :: auxiliary :: window_frame_unbounded_bound :: FormatSqlWindowFrameUnboundedBound :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlWindowFrameUnboundedBound {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlWindowFrameUnboundedBound,
+        crate::sql::auxiliary::window_frame_unbounded_bound::FormatSqlWindowFrameUnboundedBound,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: sql :: auxiliary :: window_frame_unbounded_bound :: FormatSqlWindowFrameUnboundedBound :: default ())
+    }
+}
 impl FormatRule<sql_syntax::SqlWindowFunctionExpression>
     for crate::sql::expressions::window_function_expression::FormatSqlWindowFunctionExpression
 {
@@ -9668,6 +9802,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlTypeModifier {
         FormatOwnedWithRule::new(
             self,
             crate::sql::any::type_modifier::FormatAnySqlTypeModifier::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlWindowFrameBound {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlWindowFrameBound,
+        crate::sql::any::window_frame_bound::FormatAnySqlWindowFrameBound,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::window_frame_bound::FormatAnySqlWindowFrameBound::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlWindowFrameBound {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlWindowFrameBound,
+        crate::sql::any::window_frame_bound::FormatAnySqlWindowFrameBound,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::window_frame_bound::FormatAnySqlWindowFrameBound::default(),
         )
     }
 }

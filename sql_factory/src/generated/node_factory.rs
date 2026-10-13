@@ -6020,6 +6020,88 @@ pub fn sql_where_clause(where_token: SyntaxToken, condition: AnySqlExpression) -
         ],
     ))
 }
+pub fn sql_window_frame_clause(
+    unit_token: SyntaxToken,
+    start: AnySqlWindowFrameBound,
+) -> SqlWindowFrameClauseBuilder {
+    SqlWindowFrameClauseBuilder {
+        unit_token,
+        start,
+        between_token: None,
+        and_token: None,
+        end: None,
+    }
+}
+pub struct SqlWindowFrameClauseBuilder {
+    unit_token: SyntaxToken,
+    start: AnySqlWindowFrameBound,
+    between_token: Option<SyntaxToken>,
+    and_token: Option<SyntaxToken>,
+    end: Option<AnySqlWindowFrameBound>,
+}
+impl SqlWindowFrameClauseBuilder {
+    pub fn with_between_token(mut self, between_token: SyntaxToken) -> Self {
+        self.between_token = Some(between_token);
+        self
+    }
+    pub fn with_and_token(mut self, and_token: SyntaxToken) -> Self {
+        self.and_token = Some(and_token);
+        self
+    }
+    pub fn with_end(mut self, end: AnySqlWindowFrameBound) -> Self {
+        self.end = Some(end);
+        self
+    }
+    pub fn build(self) -> SqlWindowFrameClause {
+        SqlWindowFrameClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::SQL_WINDOW_FRAME_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.unit_token)),
+                self.between_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.start.into_syntax())),
+                self.and_token.map(|token| SyntaxElement::Token(token)),
+                self.end
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn sql_window_frame_current_row_bound(
+    current_token: SyntaxToken,
+    row_token: SyntaxToken,
+) -> SqlWindowFrameCurrentRowBound {
+    SqlWindowFrameCurrentRowBound::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_WINDOW_FRAME_CURRENT_ROW_BOUND,
+        [
+            Some(SyntaxElement::Token(current_token)),
+            Some(SyntaxElement::Token(row_token)),
+        ],
+    ))
+}
+pub fn sql_window_frame_offset_bound(
+    offset: AnySqlExpression,
+    direction_token: SyntaxToken,
+) -> SqlWindowFrameOffsetBound {
+    SqlWindowFrameOffsetBound::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_WINDOW_FRAME_OFFSET_BOUND,
+        [
+            Some(SyntaxElement::Node(offset.into_syntax())),
+            Some(SyntaxElement::Token(direction_token)),
+        ],
+    ))
+}
+pub fn sql_window_frame_unbounded_bound(
+    unbounded_token: SyntaxToken,
+    direction_token: SyntaxToken,
+) -> SqlWindowFrameUnboundedBound {
+    SqlWindowFrameUnboundedBound::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_WINDOW_FRAME_UNBOUNDED_BOUND,
+        [
+            Some(SyntaxElement::Token(unbounded_token)),
+            Some(SyntaxElement::Token(direction_token)),
+        ],
+    ))
+}
 pub fn sql_window_function_expression(
     call: SqlCallExpression,
     over_token: SyntaxToken,
@@ -6055,6 +6137,7 @@ pub fn sql_window_specification(
         r_paren_token,
         partition_by_clause: None,
         order_by_clause: None,
+        frame_clause: None,
     }
 }
 pub struct SqlWindowSpecificationBuilder {
@@ -6062,6 +6145,7 @@ pub struct SqlWindowSpecificationBuilder {
     r_paren_token: SyntaxToken,
     partition_by_clause: Option<SqlWindowPartitionByClause>,
     order_by_clause: Option<SqlOrderByClause>,
+    frame_clause: Option<SqlWindowFrameClause>,
 }
 impl SqlWindowSpecificationBuilder {
     pub fn with_partition_by_clause(
@@ -6075,6 +6159,10 @@ impl SqlWindowSpecificationBuilder {
         self.order_by_clause = Some(order_by_clause);
         self
     }
+    pub fn with_frame_clause(mut self, frame_clause: SqlWindowFrameClause) -> Self {
+        self.frame_clause = Some(frame_clause);
+        self
+    }
     pub fn build(self) -> SqlWindowSpecification {
         SqlWindowSpecification::unwrap_cast(SyntaxNode::new_detached(
             SqlSyntaxKind::SQL_WINDOW_SPECIFICATION,
@@ -6083,6 +6171,8 @@ impl SqlWindowSpecificationBuilder {
                 self.partition_by_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.order_by_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.frame_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
             ],

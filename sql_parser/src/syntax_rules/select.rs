@@ -209,6 +209,10 @@ impl ParseSeparatedList for SqlOrderByExpressionList {
             || p.at(T![fetch])
             || p.at(T![returning])
             || p.at(T![')'])
+            // a window frame after a window's `ORDER BY`
+            || p.at(T![rows])
+            || p.at(T![range])
+            || p.at(T![groups])
     }
 
     fn recover(
