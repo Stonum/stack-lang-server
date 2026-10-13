@@ -2183,6 +2183,59 @@ pub fn psql_pl_raise_using_clause(
         ],
     ))
 }
+pub fn psql_pl_return_query_statement(
+    return_token: SyntaxToken,
+    query_token: SyntaxToken,
+    query: AnyPsqlPlStatement,
+) -> PsqlPlReturnQueryStatement {
+    PsqlPlReturnQueryStatement::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_RETURN_QUERY_STATEMENT,
+        [
+            Some(SyntaxElement::Token(return_token)),
+            Some(SyntaxElement::Token(query_token)),
+            Some(SyntaxElement::Node(query.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_return_statement(
+    return_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlReturnStatementBuilder {
+    PsqlPlReturnStatementBuilder {
+        return_token,
+        semicolon_token,
+        next_token: None,
+        value: None,
+    }
+}
+pub struct PsqlPlReturnStatementBuilder {
+    return_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+    next_token: Option<SyntaxToken>,
+    value: Option<AnySqlExpression>,
+}
+impl PsqlPlReturnStatementBuilder {
+    pub fn with_next_token(mut self, next_token: SyntaxToken) -> Self {
+        self.next_token = Some(next_token);
+        self
+    }
+    pub fn with_value(mut self, value: AnySqlExpression) -> Self {
+        self.value = Some(value);
+        self
+    }
+    pub fn build(self) -> PsqlPlReturnStatement {
+        PsqlPlReturnStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_RETURN_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.return_token)),
+                self.next_token.map(|token| SyntaxElement::Token(token)),
+                self.value
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_using_clause(
     using_token: SyntaxToken,
     arguments: SqlExpressionList,

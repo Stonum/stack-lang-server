@@ -185,6 +185,9 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![raise]) {
         return parse_pl_raise_statement(p);
     }
+    if p.at(T![return]) {
+        return parse_pl_return_statement(p);
+    }
     if is_at_pl_assignment(p) {
         return parse_pl_assignment_statement(p);
     }
@@ -282,6 +285,35 @@ fn parse_pl_raise_option(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![=]);
     parse_expression(p).or_add_diagnostic(p, expected_expression);
     Present(m.complete(p, PSQL_PL_RAISE_OPTION))
+}
+
+/// `RETURN [NEXT] [expr];` or `RETURN QUERY {query | EXECUTE ...};`
+fn parse_pl_return_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![return]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![return]);
+    if p.eat(T![query]) {
+        if p.at(T![;]) {
+            let range = p.cur_range();
+            p.error(expected_statement(p, range));
+            p.bump(T![;]);
+        } else if p.at(T![execute]) {
+            parse_pl_execute_statement(p).or_add_diagnostic(p, expected_statement);
+        } else {
+            parse_statement(p).or_add_diagnostic(p, expected_statement);
+        }
+        return Present(m.complete(p, PSQL_PL_RETURN_QUERY_STATEMENT));
+    }
+
+    p.eat(T![next]);
+    if !p.at(T![;]) {
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+    }
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_RETURN_STATEMENT))
 }
 
 /// `PERFORM items [FROM ...] [WHERE ...];`

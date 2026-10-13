@@ -2377,6 +2377,76 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseUsingClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlReturnQueryStatement>
+    for crate::psql::statements::pl_return_query_statement::FormatPsqlPlReturnQueryStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlReturnQueryStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlReturnQueryStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlReturnQueryStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlReturnQueryStatement,
+        crate::psql::statements::pl_return_query_statement::FormatPsqlPlReturnQueryStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: pl_return_query_statement :: FormatPsqlPlReturnQueryStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlReturnQueryStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlReturnQueryStatement,
+        crate::psql::statements::pl_return_query_statement::FormatPsqlPlReturnQueryStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: pl_return_query_statement :: FormatPsqlPlReturnQueryStatement :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlReturnStatement>
+    for crate::psql::statements::pl_return_statement::FormatPsqlPlReturnStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlReturnStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlReturnStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlReturnStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlReturnStatement,
+        crate::psql::statements::pl_return_statement::FormatPsqlPlReturnStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_return_statement::FormatPsqlPlReturnStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlReturnStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlReturnStatement,
+        crate::psql::statements::pl_return_statement::FormatPsqlPlReturnStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_return_statement::FormatPsqlPlReturnStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlUsingClause>
     for crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause
 {
