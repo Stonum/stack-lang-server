@@ -22,6 +22,7 @@ pub(crate) mod materialized_view;
 pub(crate) mod on_conflict_clause;
 pub(crate) mod parse_error;
 pub(crate) mod partition;
+pub(crate) mod plpgsql;
 pub(crate) mod returning_clause;
 pub(crate) mod select;
 pub(crate) mod with_clause;
