@@ -149,6 +149,11 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlExtensionSchemaClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_FIELD_SELECTION_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlFieldSelectionExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_FILTER_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlFilterClause::new_unchecked(node) };
                     $body

@@ -3,6 +3,7 @@
 pub(crate) mod array_expression;
 pub(crate) mod array_subscript_expression;
 pub(crate) mod cast_expression;
+pub(crate) mod field_selection_expression;
 pub(crate) mod interval_expression;
 pub(crate) mod substring_expression;
 pub(crate) mod tilde_array_expression;

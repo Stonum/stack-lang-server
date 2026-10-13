@@ -1320,6 +1320,7 @@ AnySqlExpression =
    | PsqlTildeArrayExpression
    | PsqlArraySubscriptExpression
    | PsqlCastExpression
+   | PsqlFieldSelectionExpression
    | PsqlSubstringExpression
    | PsqlIntervalExpression
    | AnySqlLiteralExpression
@@ -1931,6 +1932,13 @@ PsqlCastExpression =
    type: SqlTypeName
 
 PsqlTypeArraySuffix = '[' ']'
+
+// `(expr).field` -- field selection from a composite value; only valid
+// after a parenthesized expression, a subscript or another selection.
+PsqlFieldSelectionExpression =
+   expression: AnySqlExpression
+   '.'
+   field: SqlName
 
 // `int~[]~` -- mlang-dialect escaping of the array-type-suffix brackets, not
 // real Postgres syntax. Unlike `~name~`, this needs no re-lex: `~`, `[`, `]`

@@ -1755,6 +1755,51 @@ pub struct PsqlExtensionSchemaClauseFields {
     pub schema: SyntaxResult<SqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlFieldSelectionExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlFieldSelectionExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlFieldSelectionExpressionFields {
+        PsqlFieldSelectionExpressionFields {
+            expression: self.expression(),
+            dot_token: self.dot_token(),
+            field: self.field(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn dot_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn field(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlFieldSelectionExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlFieldSelectionExpressionFields {
+    pub expression: SyntaxResult<AnySqlExpression>,
+    pub dot_token: SyntaxResult<SyntaxToken>,
+    pub field: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlFilterClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -11747,6 +11792,7 @@ pub enum AnySqlExpression {
     PsqlArrayExpression(PsqlArrayExpression),
     PsqlArraySubscriptExpression(PsqlArraySubscriptExpression),
     PsqlCastExpression(PsqlCastExpression),
+    PsqlFieldSelectionExpression(PsqlFieldSelectionExpression),
     PsqlIntervalExpression(PsqlIntervalExpression),
     PsqlSubstringExpression(PsqlSubstringExpression),
     PsqlTildeArrayExpression(PsqlTildeArrayExpression),
@@ -11917,6 +11963,12 @@ impl AnySqlExpression {
     pub fn as_psql_cast_expression(&self) -> Option<&PsqlCastExpression> {
         match &self {
             Self::PsqlCastExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_field_selection_expression(&self) -> Option<&PsqlFieldSelectionExpression> {
+        match &self {
+            Self::PsqlFieldSelectionExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -14511,6 +14563,55 @@ impl From<PsqlExtensionSchemaClause> for SyntaxNode {
 }
 impl From<PsqlExtensionSchemaClause> for SyntaxElement {
     fn from(n: PsqlExtensionSchemaClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlFieldSelectionExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_FIELD_SELECTION_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_FIELD_SELECTION_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlFieldSelectionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlFieldSelectionExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field("dot_token", &support::DebugSyntaxResult(self.dot_token()))
+                .field("field", &support::DebugSyntaxResult(self.field()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlFieldSelectionExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlFieldSelectionExpression> for SyntaxNode {
+    fn from(n: PsqlFieldSelectionExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlFieldSelectionExpression> for SyntaxElement {
+    fn from(n: PsqlFieldSelectionExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -26649,6 +26750,11 @@ impl From<PsqlCastExpression> for AnySqlExpression {
         Self::PsqlCastExpression(node)
     }
 }
+impl From<PsqlFieldSelectionExpression> for AnySqlExpression {
+    fn from(node: PsqlFieldSelectionExpression) -> Self {
+        Self::PsqlFieldSelectionExpression(node)
+    }
+}
 impl From<PsqlIntervalExpression> for AnySqlExpression {
     fn from(node: PsqlIntervalExpression) -> Self {
         Self::PsqlIntervalExpression(node)
@@ -26694,6 +26800,7 @@ impl AstNode for AnySqlExpression {
         .union(PsqlArrayExpression::KIND_SET)
         .union(PsqlArraySubscriptExpression::KIND_SET)
         .union(PsqlCastExpression::KIND_SET)
+        .union(PsqlFieldSelectionExpression::KIND_SET)
         .union(PsqlIntervalExpression::KIND_SET)
         .union(PsqlSubstringExpression::KIND_SET)
         .union(PsqlTildeArrayExpression::KIND_SET);
@@ -26726,6 +26833,7 @@ impl AstNode for AnySqlExpression {
             | PSQL_ARRAY_EXPRESSION
             | PSQL_ARRAY_SUBSCRIPT_EXPRESSION
             | PSQL_CAST_EXPRESSION
+            | PSQL_FIELD_SELECTION_EXPRESSION
             | PSQL_INTERVAL_EXPRESSION
             | PSQL_SUBSTRING_EXPRESSION
             | PSQL_TILDE_ARRAY_EXPRESSION => true,
@@ -26778,6 +26886,9 @@ impl AstNode for AnySqlExpression {
                 Self::PsqlArraySubscriptExpression(PsqlArraySubscriptExpression { syntax })
             }
             PSQL_CAST_EXPRESSION => Self::PsqlCastExpression(PsqlCastExpression { syntax }),
+            PSQL_FIELD_SELECTION_EXPRESSION => {
+                Self::PsqlFieldSelectionExpression(PsqlFieldSelectionExpression { syntax })
+            }
             PSQL_INTERVAL_EXPRESSION => {
                 Self::PsqlIntervalExpression(PsqlIntervalExpression { syntax })
             }
@@ -26825,6 +26936,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlArrayExpression(it) => &it.syntax,
             Self::PsqlArraySubscriptExpression(it) => &it.syntax,
             Self::PsqlCastExpression(it) => &it.syntax,
+            Self::PsqlFieldSelectionExpression(it) => &it.syntax,
             Self::PsqlIntervalExpression(it) => &it.syntax,
             Self::PsqlSubstringExpression(it) => &it.syntax,
             Self::PsqlTildeArrayExpression(it) => &it.syntax,
@@ -26860,6 +26972,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlArrayExpression(it) => it.syntax,
             Self::PsqlArraySubscriptExpression(it) => it.syntax,
             Self::PsqlCastExpression(it) => it.syntax,
+            Self::PsqlFieldSelectionExpression(it) => it.syntax,
             Self::PsqlIntervalExpression(it) => it.syntax,
             Self::PsqlSubstringExpression(it) => it.syntax,
             Self::PsqlTildeArrayExpression(it) => it.syntax,
@@ -26898,6 +27011,7 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::PsqlArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlArraySubscriptExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCastExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlFieldSelectionExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlIntervalExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSubstringExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArrayExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -26935,6 +27049,7 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::PsqlArrayExpression(it) => it.into(),
             AnySqlExpression::PsqlArraySubscriptExpression(it) => it.into(),
             AnySqlExpression::PsqlCastExpression(it) => it.into(),
+            AnySqlExpression::PsqlFieldSelectionExpression(it) => it.into(),
             AnySqlExpression::PsqlIntervalExpression(it) => it.into(),
             AnySqlExpression::PsqlSubstringExpression(it) => it.into(),
             AnySqlExpression::PsqlTildeArrayExpression(it) => it.into(),
@@ -29241,6 +29356,11 @@ impl std::fmt::Display for PsqlDropTriggerStatement {
     }
 }
 impl std::fmt::Display for PsqlExtensionSchemaClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlFieldSelectionExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
