@@ -297,6 +297,7 @@ pub enum SqlSyntaxKind {
     NEWLINE,
     WHITESPACE,
     COMMENT,
+    DOLLAR_QUOTE,
     SQL_ROOT,
     SQL_STATEMENT_LIST,
     SQL_EMPTY_STATEMENT,

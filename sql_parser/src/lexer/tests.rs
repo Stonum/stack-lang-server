@@ -549,3 +549,77 @@ fn jsonb_operators() {
     assert_lex! { "#>>", HASH_R_ANGLE2:3 }
     assert_lex! { "#-", HASH_MINUS:2 }
 }
+
+fn non_trivia_kinds_after_re_lexed_body(src: &str) -> Vec<SqlSyntaxKind> {
+    use super::SqlReLexContext;
+    use biome_parser::lexer::{LexerWithCheckpoint, ReLexer};
+    use biome_rowan::SyntaxKind;
+
+    let mut lexer = SqlLexer::from_str(src, SqlFileSource::query());
+    let mut kinds = vec![];
+    loop {
+        let kind = lexer.next_token(SqlLexContext);
+        if kind == EOF {
+            break;
+        }
+        if kind == SqlSyntaxKind::SQL_STRING_LITERAL && kinds.last() == Some(&T![do]) {
+            kinds.push(lexer.re_lex(SqlReLexContext::DollarQuotedBody));
+            // Rewinding to a checkpoint inside the body must not change how the
+            // rest of it lexes.
+            let checkpoint = lexer.checkpoint();
+            let mut first_pass = vec![];
+            while lexer.next_token(SqlLexContext) != EOF {
+                first_pass.push(lexer.current());
+            }
+            lexer.rewind(checkpoint);
+            let mut second_pass = vec![];
+            while lexer.next_token(SqlLexContext) != EOF {
+                second_pass.push(lexer.current());
+            }
+            assert_eq!(first_pass, second_pass);
+            kinds.extend(second_pass.into_iter().filter(|kind| !kind.is_trivia()));
+            break;
+        }
+        if !kind.is_trivia() {
+            kinds.push(kind);
+        }
+    }
+    kinds
+}
+
+#[test]
+fn re_lexed_dollar_quoted_body_lexes_as_code() {
+    use SqlSyntaxKind::*;
+
+    assert_eq!(
+        non_trivia_kinds_after_re_lexed_body("do $$ begin perform 1; end $$;"),
+        [
+            DO_KW,
+            DOLLAR_QUOTE,
+            BEGIN_KW,
+            IDENT,
+            SQL_NUMBER_LITERAL,
+            SEMICOLON,
+            END_KW,
+            DOLLAR_QUOTE,
+            SEMICOLON
+        ]
+    );
+}
+
+#[test]
+fn re_lexed_body_keeps_strings_with_another_tag() {
+    use SqlSyntaxKind::*;
+
+    assert_eq!(
+        non_trivia_kinds_after_re_lexed_body("do $body$ execute $q$ select 1 $q$; $body$"),
+        [
+            DO_KW,
+            DOLLAR_QUOTE,
+            EXECUTE_KW,
+            SQL_STRING_LITERAL,
+            SEMICOLON,
+            DOLLAR_QUOTE
+        ]
+    );
+}

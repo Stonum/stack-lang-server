@@ -48,6 +48,22 @@ pub enum SqlReLexContext {
     /// `ARRAY[...]` literal), so the default lexing (`L_BRACK`) stays
     /// authoritative there.
     BracketName,
+    /// Reinterprets the current `$tag$...$tag$` string token as the opening
+    /// `$tag$` delimiter of a code body (`DO`/function bodies), so the body
+    /// lexes as ordinary tokens and the matching closing delimiter comes out
+    /// as another `DOLLAR_QUOTE`.
+    DollarQuotedBody,
+}
+
+/// The delimiter positions of a re-lexed `$tag$...$tag$` body. Stored as
+/// positions rather than an "inside a body" flag so rewinding the lexer to
+/// any checkpoint still lexes the delimiters the same way.
+#[derive(Debug, Copy, Clone)]
+struct DollarQuotedBody {
+    open_start: usize,
+    open_end: usize,
+    close_start: usize,
+    close_end: usize,
 }
 
 /// Лексер для PostgreSQL SQL
@@ -62,6 +78,7 @@ pub struct SqlLexer<'src> {
     current_flags: TokenFlags,
     diagnostics: Vec<ParseDiagnostic>,
     source_type: SqlFileSource,
+    dollar_quoted_bodies: Vec<DollarQuotedBody>,
 }
 
 impl<'src> Lexer<'src> for SqlLexer<'src> {
@@ -177,6 +194,7 @@ impl<'src> ReLexer<'src> for SqlLexer<'src> {
         let re_lexed_kind = match context {
             SqlReLexContext::TildeName => self.re_lex_tilde_name(),
             SqlReLexContext::BracketName => self.re_lex_bracket_name(),
+            SqlReLexContext::DollarQuotedBody => self.re_lex_dollar_quoted_body(),
         };
 
         if self.current() == re_lexed_kind {
@@ -216,7 +234,49 @@ impl<'src> SqlLexer<'src> {
             current_flags: TokenFlags::empty(),
             diagnostics: vec![],
             source_type,
+            dollar_quoted_bodies: vec![],
         }
+    }
+
+    /// `$tag$...$tag$` at the current token start: lexes just the opening
+    /// delimiter and remembers where the closing one is.
+    fn re_lex_dollar_quoted_body(&mut self) -> SqlSyntaxKind {
+        let start = self.position;
+        if self.current_kind != SQL_STRING_LITERAL || self.current_byte() != Some(b'$') {
+            return self.current_kind;
+        }
+        let rest = &self.source[start..];
+        let Some(tag_len) = rest[1..].find('$').map(|index| index + 2) else {
+            return self.current_kind;
+        };
+        let tag = &rest[..tag_len];
+        let Some(close_offset) = rest[tag_len..].find(tag) else {
+            return self.current_kind;
+        };
+        let close_start = start + tag_len + close_offset;
+
+        self.dollar_quoted_bodies.push(DollarQuotedBody {
+            open_start: start,
+            open_end: start + tag_len,
+            close_start,
+            close_end: close_start + tag_len,
+        });
+        self.position = start + tag_len;
+        DOLLAR_QUOTE
+    }
+
+    /// A delimiter of a re-lexed `$tag$...$tag$` body starting at the current
+    /// position, if any.
+    fn dollar_quote_end_at_position(&self) -> Option<usize> {
+        self.dollar_quoted_bodies.iter().find_map(|body| {
+            if body.open_start == self.position {
+                Some(body.open_end)
+            } else if body.close_start == self.position {
+                Some(body.close_end)
+            } else {
+                None
+            }
+        })
     }
 
     fn eat_byte(&mut self, kind: SqlSyntaxKind) -> SqlSyntaxKind {
@@ -767,6 +827,11 @@ impl<'src> SqlLexer<'src> {
     }
 
     fn lex_token(&mut self) -> SqlSyntaxKind {
+        if let Some(end) = self.dollar_quote_end_at_position() {
+            self.position = end;
+            return DOLLAR_QUOTE;
+        }
+
         let byte = self.current_byte().unwrap_or(0);
         let dispatched = lookup_byte(byte);
 
