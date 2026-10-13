@@ -5,7 +5,7 @@ use biome_parser::prelude::*;
 use super::parse_error::postgres_only_syntax_error;
 use crate::syntax_rules::expr::{
     SqlExpressionList, parse_binary_or_logical_expression, parse_expression, parse_name,
-    parse_string_literal_expression, parse_type_name,
+    parse_string_literal_expression, parse_subquery_expression, parse_type_name,
 };
 use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_string_literal, expected_type_name,
@@ -59,6 +59,11 @@ fn parse_array_expression_body(p: &mut SqlParser) -> ParsedSyntax {
         p.expect(T![']']);
         p.expect(T![~]);
         return Present(m.complete(p, PSQL_TILDE_ARRAY_EXPRESSION));
+    }
+
+    if p.at(T!['(']) {
+        parse_subquery_expression(p).or_add_diagnostic(p, expected_expression);
+        return Present(m.complete(p, PSQL_ARRAY_SUBQUERY_EXPRESSION));
     }
 
     p.expect(T!['[']);

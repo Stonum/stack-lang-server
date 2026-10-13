@@ -1,6 +1,7 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
 pub(crate) mod array_expression;
+pub(crate) mod array_subquery_expression;
 pub(crate) mod array_subscript_expression;
 pub(crate) mod cast_expression;
 pub(crate) mod extract_expression;

@@ -74,6 +74,18 @@ pub fn psql_array_expression(
         ],
     ))
 }
+pub fn psql_array_subquery_expression(
+    array_token: SyntaxToken,
+    query: SqlSubqueryExpression,
+) -> PsqlArraySubqueryExpression {
+    PsqlArraySubqueryExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ARRAY_SUBQUERY_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(array_token)),
+            Some(SyntaxElement::Node(query.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_array_subscript_expression(
     expression: AnySqlExpression,
     l_brack_token: SyntaxToken,
@@ -2201,6 +2213,74 @@ impl PsqlPlForStatementBuilder {
                 Some(SyntaxElement::Node(self.targets.into_syntax())),
                 Some(SyntaxElement::Token(self.in_token)),
                 Some(SyntaxElement::Node(self.source.into_syntax())),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_foreach_slice(
+    slice_token: SyntaxToken,
+    dimension: AnySqlExpression,
+) -> PsqlPlForeachSlice {
+    PsqlPlForeachSlice::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_FOREACH_SLICE,
+        [
+            Some(SyntaxElement::Token(slice_token)),
+            Some(SyntaxElement::Node(dimension.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_foreach_statement(
+    foreach_token: SyntaxToken,
+    targets: PsqlPlForTargetList,
+    in_token: SyntaxToken,
+    array_token: SyntaxToken,
+    array: AnySqlExpression,
+    body: PsqlPlLoopBody,
+) -> PsqlPlForeachStatementBuilder {
+    PsqlPlForeachStatementBuilder {
+        foreach_token,
+        targets,
+        in_token,
+        array_token,
+        array,
+        body,
+        label: None,
+        slice: None,
+    }
+}
+pub struct PsqlPlForeachStatementBuilder {
+    foreach_token: SyntaxToken,
+    targets: PsqlPlForTargetList,
+    in_token: SyntaxToken,
+    array_token: SyntaxToken,
+    array: AnySqlExpression,
+    body: PsqlPlLoopBody,
+    label: Option<PsqlPlLabel>,
+    slice: Option<PsqlPlForeachSlice>,
+}
+impl PsqlPlForeachStatementBuilder {
+    pub fn with_label(mut self, label: PsqlPlLabel) -> Self {
+        self.label = Some(label);
+        self
+    }
+    pub fn with_slice(mut self, slice: PsqlPlForeachSlice) -> Self {
+        self.slice = Some(slice);
+        self
+    }
+    pub fn build(self) -> PsqlPlForeachStatement {
+        PsqlPlForeachStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_FOREACH_STATEMENT,
+            [
+                self.label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.foreach_token)),
+                Some(SyntaxElement::Node(self.targets.into_syntax())),
+                self.slice
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.in_token)),
+                Some(SyntaxElement::Token(self.array_token)),
+                Some(SyntaxElement::Node(self.array.into_syntax())),
                 Some(SyntaxElement::Node(self.body.into_syntax())),
             ],
         ))

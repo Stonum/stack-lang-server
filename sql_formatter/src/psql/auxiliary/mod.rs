@@ -29,6 +29,7 @@ pub(crate) mod pl_declare_section;
 pub(crate) mod pl_for_execute_source;
 pub(crate) mod pl_for_range_source;
 pub(crate) mod pl_for_range_step;
+pub(crate) mod pl_foreach_slice;
 pub(crate) mod pl_label;
 pub(crate) mod pl_loop_body;
 pub(crate) mod pl_raise_option;

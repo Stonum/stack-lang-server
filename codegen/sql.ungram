@@ -1036,6 +1036,7 @@ AnyPsqlPlStatement =
    | PsqlPlLoopStatement
    | PsqlPlWhileStatement
    | PsqlPlForStatement
+   | PsqlPlForeachStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1155,6 +1156,21 @@ PsqlPlForExecuteSource =
    'execute'
    command: AnySqlExpression
    using_clause: PsqlPlUsingClause?
+
+// `[<<label>>] FOREACH target, ... [SLICE n] IN ARRAY expr LOOP ... END LOOP [label];`
+PsqlPlForeachStatement =
+   label: PsqlPlLabel?
+   'foreach'
+   targets: PsqlPlForTargetList
+   slice: PsqlPlForeachSlice?
+   'in'
+   'array'
+   array: AnySqlExpression
+   body: PsqlPlLoopBody
+
+PsqlPlForeachSlice =
+   'slice'
+   dimension: AnySqlExpression
 
 // `LOOP statement; ... END LOOP [label];` -- shared by every loop kind.
 PsqlPlLoopBody =
@@ -1574,6 +1590,7 @@ AnySqlExpression =
    | SqlAnyAllExpression
    | SqlExistsExpression
    | PsqlArrayExpression
+   | PsqlArraySubqueryExpression
    | PsqlTildeArrayExpression
    | PsqlArraySubscriptExpression
    | PsqlCastExpression
@@ -2198,6 +2215,11 @@ PsqlArrayExpression =
    '['
    items: SqlExpressionList
    ']'
+
+// `array(select ...)` -- an array built from a one-column query.
+PsqlArraySubqueryExpression =
+   'array'
+   query: SqlSubqueryExpression
 
 // `array~[...]~` -- mlang-dialect escaping of an array literal's brackets,
 // the same convention `PsqlTildeArraySuffix` already uses for array *type*
