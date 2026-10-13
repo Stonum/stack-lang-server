@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use crate::utils::{is_simple_expression, write_wrapping_fill_clause};
+use biome_formatter::write;
 use sql_syntax::AnySqlSelectItem;
 use sql_syntax::PsqlReturningClause;
 use sql_syntax::PsqlReturningClauseFields;
@@ -10,6 +11,7 @@ impl FormatNodeRule<PsqlReturningClause> for FormatPsqlReturningClause {
         let PsqlReturningClauseFields {
             returning_token,
             items,
+            into_clause,
         } = node.as_fields();
 
         write_wrapping_fill_clause(
@@ -25,6 +27,10 @@ impl FormatNodeRule<PsqlReturningClause> for FormatPsqlReturningClause {
                 AnySqlSelectItem::SqlTableStar(_) => false,
             },
             f,
-        )
+        )?;
+        if let Some(into_clause) = into_clause {
+            write!(f, [soft_line_break_or_space(), into_clause.format()])?;
+        }
+        Ok(())
     }
 }

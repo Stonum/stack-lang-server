@@ -12,6 +12,7 @@ impl FormatNodeRule<SqlSelectClause> for FormatSqlSelectClause {
             select_token,
             quantifier,
             list,
+            into_clause,
         } = node.as_fields();
 
         let keyword = format_with(move |f| {
@@ -33,6 +34,10 @@ impl FormatNodeRule<SqlSelectClause> for FormatSqlSelectClause {
                 AnySqlSelectItem::SqlTableStar(_) => false,
             },
             f,
-        )
+        )?;
+        if let Some(into_clause) = into_clause {
+            write!(f, [soft_line_break_or_space(), into_clause.format()])?;
+        }
+        Ok(())
     }
 }

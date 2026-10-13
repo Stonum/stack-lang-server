@@ -6,7 +6,7 @@ use biome_parser::prelude::*;
 use super::parse_error::postgres_only_syntax_error;
 use crate::syntax_rules::expr::EXPR_RECOVERY_SET;
 use crate::syntax_rules::parse_error::expected_expression;
-use crate::syntax_rules::select::parse_select_item;
+use crate::syntax_rules::select::{parse_into_clause, parse_select_item};
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{SqlSyntaxKind::*, T, *};
 
@@ -36,6 +36,7 @@ fn parse_returning_clause_body(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![returning]);
     SqlReturningItemList.parse_list(p);
+    let _ = parse_into_clause(p);
     Present(m.complete(p, PSQL_RETURNING_CLAUSE))
 }
 
@@ -54,7 +55,7 @@ impl ParseSeparatedList for SqlReturningItemList {
         // A `returning` clause used inside a data-modifying CTE
         // (`with cte as (insert ... returning id) ...`) is followed by the
         // CTE's closing `)` rather than `;`/EOF, so both must be handled.
-        p.at(EOF) || p.at(T![;]) || p.at(T![')'])
+        p.at(EOF) || p.at(T![;]) || p.at(T![')']) || p.at(T![into])
     }
 
     fn recover(

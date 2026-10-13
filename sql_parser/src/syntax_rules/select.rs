@@ -101,12 +101,78 @@ fn parse_select_core(p: &mut SqlParser) {
     p.expect(T![select]);
     let _ = parse_select_quantifier(p);
     SqlSelectItemList.parse_list(p);
+    let _ = parse_into_clause(p);
     select_clause.complete(p, SQL_SELECT_CLAUSE);
 
     let _ = parse_from_clause(p);
     let _ = parse_where_clause(p);
     let _ = parse_group_by_clause(p);
     let _ = parse_having_clause(p);
+}
+
+/// `INTO [STRICT] target, ...` after a select list or `RETURNING` items.
+pub(crate) fn parse_into_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![into]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![into]);
+    p.eat(T![strict]);
+    let targets = IntoTargetList.parse_list(p);
+    if targets.range(p).is_empty() {
+        let range = p.cur_range();
+        p.error(expected_expression(p, range));
+    }
+    Present(m.complete(p, PSQL_INTO_CLAUSE))
+}
+
+struct IntoTargetList;
+
+impl ParseSeparatedList for IntoTargetList {
+    type Kind = SqlSyntaxKind;
+    type Parser<'source> = SqlParser<'source>;
+    const LIST_KIND: Self::Kind = SQL_EXPRESSION_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        parse_expression(p)
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at_ts(token_set![
+            EOF,
+            T![;],
+            T![')'],
+            T![from],
+            T![where],
+            T![group_by],
+            T![having],
+            T![union],
+            T![intersect],
+            T![except],
+            T![order_by],
+            T![limit],
+            T![offset],
+            T![fetch],
+            DOLLAR_QUOTE
+        ]) || is_at_next_statement(p)
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(SQL_BOGUS_EXPRESSION, EXPR_RECOVERY_SET),
+            expected_expression,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
+    }
 }
 
 /// `all` or `distinct [on (expr, ...)]` right after `select`.
@@ -394,6 +460,7 @@ impl ParseSeparatedList for SqlSelectItemList {
         p.at(EOF)
             || is_at_next_statement(p)
             || p.at(T![;])
+            || p.at(T![into])
             || p.at(T![from])
             || p.at(T![where])
             || p.at(T![group_by])

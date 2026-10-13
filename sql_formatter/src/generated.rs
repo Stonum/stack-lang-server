@@ -1309,6 +1309,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlIntervalExpression {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlIntoClause>
+    for crate::psql::clauses::into_clause::FormatPsqlIntoClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlIntoClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlIntoClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlIntoClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlIntoClause,
+        crate::psql::clauses::into_clause::FormatPsqlIntoClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::into_clause::FormatPsqlIntoClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlIntoClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlIntoClause,
+        crate::psql::clauses::into_clause::FormatPsqlIntoClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::into_clause::FormatPsqlIntoClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlJoinUsingClause>
     for crate::psql::clauses::join_using_clause::FormatPsqlJoinUsingClause
 {
