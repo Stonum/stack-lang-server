@@ -2,9 +2,9 @@ use biome_rowan::AstNode;
 
 use crate::{
     AnySqlExpression, AnySqlLiteralExpression, OperatorPrecedence, SqlBetweenExpression,
-    SqlBinaryExpression, SqlInExpression, SqlIsNullExpression, SqlLikeExpression,
-    SqlLogicalExpression, SqlParenthesizedExpression, SqlSyntaxKind, SqlSyntaxNode,
-    SqlUnaryExpression,
+    SqlBinaryExpression, SqlInExpression, SqlIsDistinctFromExpression, SqlIsExpression,
+    SqlLikeExpression, SqlLogicalExpression, SqlParenthesizedExpression, SqlPostfixNullExpression,
+    SqlSyntaxKind, SqlSyntaxNode, SqlUnaryExpression,
 };
 
 use super::NeedsParentheses;
@@ -17,7 +17,9 @@ impl NeedsParentheses for AnySqlExpression {
             Self::SqlBinaryExpression(expr) => expr.needs_parentheses(),
             Self::SqlLogicalExpression(expr) => expr.needs_parentheses(),
             Self::SqlUnaryExpression(expr) => expr.needs_parentheses(),
-            Self::SqlIsNullExpression(expr) => expr.needs_parentheses(),
+            Self::SqlIsExpression(expr) => expr.needs_parentheses(),
+            Self::SqlIsDistinctFromExpression(expr) => expr.needs_parentheses(),
+            Self::SqlPostfixNullExpression(expr) => expr.needs_parentheses(),
             Self::SqlBetweenExpression(expr) => expr.needs_parentheses(),
             Self::SqlInExpression(expr) => expr.needs_parentheses(),
             Self::SqlLikeExpression(expr) => expr.needs_parentheses(),
@@ -115,7 +117,21 @@ impl NeedsParentheses for SqlUnaryExpression {
     }
 }
 
-impl NeedsParentheses for SqlIsNullExpression {
+impl NeedsParentheses for SqlIsExpression {
+    #[inline]
+    fn needs_parentheses(&self) -> bool {
+        precedence_needs_parens(self.syntax(), OperatorPrecedence::IsNull)
+    }
+}
+
+impl NeedsParentheses for SqlIsDistinctFromExpression {
+    #[inline]
+    fn needs_parentheses(&self) -> bool {
+        precedence_needs_parens(self.syntax(), OperatorPrecedence::IsNull)
+    }
+}
+
+impl NeedsParentheses for SqlPostfixNullExpression {
     #[inline]
     fn needs_parentheses(&self) -> bool {
         precedence_needs_parens(self.syntax(), OperatorPrecedence::IsNull)
@@ -180,7 +196,9 @@ fn expression_precedence(expr: &AnySqlExpression) -> OperatorPrecedence {
                 OperatorPrecedence::Unary
             }
         }
-        AnySqlExpression::SqlIsNullExpression(_) => OperatorPrecedence::IsNull,
+        AnySqlExpression::SqlIsExpression(_)
+        | AnySqlExpression::SqlIsDistinctFromExpression(_)
+        | AnySqlExpression::SqlPostfixNullExpression(_) => OperatorPrecedence::IsNull,
         AnySqlExpression::SqlBetweenExpression(_)
         | AnySqlExpression::SqlInExpression(_)
         | AnySqlExpression::SqlLikeExpression(_) => OperatorPrecedence::Predicate,
@@ -189,7 +207,7 @@ fn expression_precedence(expr: &AnySqlExpression) -> OperatorPrecedence {
 }
 
 /// Returns `true` if a precedence-bearing node (fixed at `precedence`, e.g.
-/// [OperatorPrecedence::IsNull] for [SqlIsNullExpression]) needs
+/// [OperatorPrecedence::IsNull] for [SqlIsExpression]) needs
 /// parentheses given its parent: whenever the parent binds *tighter* than
 /// `precedence`, wrapping is required to preserve the original grouping.
 fn precedence_needs_parens(node: &SqlSyntaxNode, precedence: OperatorPrecedence) -> bool {

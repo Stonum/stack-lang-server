@@ -647,8 +647,13 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlInsertStatement::new_unchecked(node) };
                     $body
                 }
-                $crate::SqlSyntaxKind::SQL_IS_NULL_EXPRESSION => {
-                    let $pattern = unsafe { $crate::SqlIsNullExpression::new_unchecked(node) };
+                $crate::SqlSyntaxKind::SQL_IS_DISTINCT_FROM_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::SqlIsDistinctFromExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_IS_EXPRESSION => {
+                    let $pattern = unsafe { $crate::SqlIsExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_JOIN_CLAUSE => {
@@ -708,6 +713,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::SQL_PARENTHESIZED_JOIN_BINDING => {
                     let $pattern =
                         unsafe { $crate::SqlParenthesizedJoinBinding::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_POSTFIX_NULL_EXPRESSION => {
+                    let $pattern = unsafe { $crate::SqlPostfixNullExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_PRECISION_MODIFIER => {

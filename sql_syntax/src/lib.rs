@@ -107,9 +107,11 @@ impl SqlSyntaxKind {
                 | ILIKE_KW
                 | INNER_KW
                 | IS_KW
+                | ISNULL_KW
                 | JOIN_KW
                 | LEFT_KW
                 | LIKE_KW
+                | NOTNULL_KW
                 | OUTER_KW
                 | RIGHT_KW
                 | VERBOSE_KW

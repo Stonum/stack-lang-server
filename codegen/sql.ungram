@@ -1289,7 +1289,9 @@ AnySqlExpression =
    | SqlBinaryExpression
    | SqlLogicalExpression
    | SqlUnaryExpression
-   | SqlIsNullExpression
+   | SqlIsExpression
+   | SqlIsDistinctFromExpression
+   | SqlPostfixNullExpression
    | SqlBetweenExpression
    | SqlInExpression
    | SqlLikeExpression
@@ -1380,11 +1382,26 @@ SqlUnaryExpression =
    operator_token: ('not' | '-' | '+')
    expression: AnySqlExpression
 
-SqlIsNullExpression =
+// `x IS [NOT] NULL | TRUE | FALSE | UNKNOWN`
+SqlIsExpression =
    expression: AnySqlExpression
    'is'
    'not'?
-   'null'
+   value: ('null' | 'true' | 'false' | 'unknown')
+
+// `x IS [NOT] DISTINCT FROM y`
+SqlIsDistinctFromExpression =
+   left: AnySqlExpression
+   'is'
+   'not'?
+   'distinct'
+   'from'
+   right: AnySqlExpression
+
+// `x ISNULL` / `x NOTNULL` -- Postgres postfix spellings of `IS [NOT] NULL`.
+SqlPostfixNullExpression =
+   expression: AnySqlExpression
+   operator: ('isnull' | 'notnull')
 
 SqlBetweenExpression =
    expression: AnySqlExpression

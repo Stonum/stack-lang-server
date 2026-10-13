@@ -108,3 +108,17 @@ fn test_bare_right_without_parens_is_still_an_error() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_isnull_as_function_name() {
+    let res = parse(
+        "select isnull(a, 0), isNull(t.b, '') from t where isnull(c, 1) > 0",
+        SqlFileSource::script()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(!tree.contains("SQL_POSTFIX_NULL_EXPRESSION"));
+}

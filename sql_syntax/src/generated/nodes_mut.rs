@@ -4193,7 +4193,45 @@ impl SqlInsertStatement {
         )
     }
 }
-impl SqlIsNullExpression {
+impl SqlIsDistinctFromExpression {
+    pub fn with_left(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_is_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_not_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(element.map(|element| element.into()))),
+        )
+    }
+    pub fn with_distinct_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_from_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(4usize..=4usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_right(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(5usize..=5usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+}
+impl SqlIsExpression {
     pub fn with_expression(self, element: AnySqlExpression) -> Self {
         Self::unwrap_cast(
             self.syntax
@@ -4212,7 +4250,7 @@ impl SqlIsNullExpression {
                 .splice_slots(2usize..=2usize, once(element.map(|element| element.into()))),
         )
     }
-    pub fn with_null_token(self, element: SyntaxToken) -> Self {
+    pub fn with_value_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(3usize..=3usize, once(Some(element.into()))),
@@ -4461,6 +4499,20 @@ impl SqlParenthesizedJoinBinding {
             4usize..=4usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
+    }
+}
+impl SqlPostfixNullExpression {
+    pub fn with_expression(self, element: AnySqlExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_operator_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
     }
 }
 impl SqlPrecisionModifier {
