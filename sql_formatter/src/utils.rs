@@ -266,9 +266,54 @@ where
     L: FormatAstSeparatedListExtension + AsFormat<SqlFormatContext>,
     L::Node: AsFormat<SqlFormatContext> + 'static,
 {
-    if list.len() == 0 {
+    write_bracketed_fill_list_with_affixes(
+        l_paren,
+        None::<&dyn Format<SqlFormatContext>>,
+        list,
+        None::<&dyn Format<SqlFormatContext>>,
+        r_paren,
+        is_complex,
+        f,
+    )
+}
+
+/// [write_bracketed_fill_list] with an optional `prefix` glued before the
+/// first item (`distinct `) and a `suffix` after the last one (`order by
+/// ...`), which moves to its own line once the list expands.
+pub(crate) fn write_bracketed_fill_list_with_affixes<L, P, S>(
+    l_paren: SyntaxResult<SqlSyntaxToken>,
+    prefix: Option<P>,
+    list: &L,
+    suffix: Option<S>,
+    r_paren: SyntaxResult<SqlSyntaxToken>,
+    is_complex: impl Fn(&L::Node) -> bool,
+    f: &mut SqlFormatter,
+) -> FormatResult<()>
+where
+    L: FormatAstSeparatedListExtension + AsFormat<SqlFormatContext>,
+    L::Node: AsFormat<SqlFormatContext> + 'static,
+    P: Format<SqlFormatContext>,
+    S: Format<SqlFormatContext>,
+{
+    if list.len() == 0 && prefix.is_none() && suffix.is_none() {
         return write!(f, [l_paren.format(), r_paren.format()]);
     }
+
+    let prefix = prefix.map(|prefix| prefix.memoized());
+    let suffix = suffix.map(|suffix| suffix.memoized());
+    let write_prefix = |f: &mut SqlFormatter| -> FormatResult<()> {
+        if let Some(prefix) = &prefix {
+            write!(f, [prefix, space()])?;
+        }
+        Ok(())
+    };
+    let write_suffix =
+        |f: &mut SqlFormatter, separator: &dyn Format<SqlFormatContext>| -> FormatResult<()> {
+            if let Some(suffix) = &suffix {
+                write!(f, [separator, suffix])?;
+            }
+            Ok(())
+        };
 
     // Both the parens and each item are referenced from *both*
     // `best_fitting!` variants below (only one of which ever actually gets
@@ -306,16 +351,20 @@ where
             format_args![
                 l_paren,
                 format_with(|f: &mut SqlFormatter| {
+                    write_prefix(f)?;
                     f.join_with(space())
                         .entries(entries.iter().map(|(_, _, formatted)| formatted))
-                        .finish()
+                        .finish()?;
+                    write_suffix(f, &space())
                 }),
                 r_paren,
             ],
             format_args![
                 l_paren,
                 group(&soft_block_indent(&format_with(|f: &mut SqlFormatter| {
-                    write_balanced_fill_entries(&entries, &balanced_breaks, f)
+                    write_prefix(f)?;
+                    write_balanced_fill_entries(&entries, &balanced_breaks, f)?;
+                    write_suffix(f, &hard_line_break())
                 })))
                 .should_expand(true),
                 r_paren,
@@ -323,7 +372,9 @@ where
             format_args![
                 l_paren,
                 group(&soft_block_indent(&format_with(|f: &mut SqlFormatter| {
-                    write_fill_expression_entries(&entries, f)
+                    write_prefix(f)?;
+                    write_fill_expression_entries(&entries, f)?;
+                    write_suffix(f, &hard_line_break())
                 })))
                 .should_expand(true),
                 r_paren,

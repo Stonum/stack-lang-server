@@ -5318,7 +5318,9 @@ impl SqlCallExpression {
             schema: self.schema(),
             name: self.name(),
             l_paren_token: self.l_paren_token(),
+            quantifier: self.quantifier(),
             arguments: self.arguments(),
+            order_by: self.order_by(),
             r_paren_token: self.r_paren_token(),
             filter_clause: self.filter_clause(),
         }
@@ -5332,14 +5334,20 @@ impl SqlCallExpression {
     pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 2usize)
     }
+    pub fn quantifier(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
     pub fn arguments(&self) -> SqlCallArgumentList {
-        support::list(&self.syntax, 3usize)
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn order_by(&self) -> Option<SqlOrderByClause> {
+        support::node(&self.syntax, 5usize)
     }
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
-        support::required_token(&self.syntax, 4usize)
+        support::required_token(&self.syntax, 6usize)
     }
     pub fn filter_clause(&self) -> Option<PsqlFilterClause> {
-        support::node(&self.syntax, 5usize)
+        support::node(&self.syntax, 7usize)
     }
 }
 impl Serialize for SqlCallExpression {
@@ -5355,7 +5363,9 @@ pub struct SqlCallExpressionFields {
     pub schema: Option<SqlShemaName>,
     pub name: SyntaxResult<AnySqlName>,
     pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub quantifier: Option<SyntaxToken>,
     pub arguments: SqlCallArgumentList,
+    pub order_by: Option<SqlOrderByClause>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
     pub filter_clause: Option<PsqlFilterClause>,
 }
@@ -18367,7 +18377,12 @@ impl std::fmt::Debug for SqlCallExpression {
                     "l_paren_token",
                     &support::DebugSyntaxResult(self.l_paren_token()),
                 )
+                .field(
+                    "quantifier",
+                    &support::DebugOptionalElement(self.quantifier()),
+                )
                 .field("arguments", &self.arguments())
+                .field("order_by", &support::DebugOptionalElement(self.order_by()))
                 .field(
                     "r_paren_token",
                     &support::DebugSyntaxResult(self.r_paren_token()),

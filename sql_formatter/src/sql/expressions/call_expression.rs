@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::utils::{is_simple_call_argument, write_bracketed_fill_list};
+use crate::utils::{is_simple_call_argument, write_bracketed_fill_list_with_affixes};
 use biome_formatter::write;
 use sql_syntax::AnySqlCallArgument;
 use sql_syntax::SqlCallExpression;
@@ -12,7 +12,9 @@ impl FormatNodeRule<SqlCallExpression> for FormatSqlCallExpression {
             schema,
             name,
             l_paren_token,
+            quantifier,
             arguments,
+            order_by,
             r_paren_token,
             filter_clause,
         } = node.as_fields();
@@ -21,9 +23,11 @@ impl FormatNodeRule<SqlCallExpression> for FormatSqlCallExpression {
             write!(f, [schema.format()])?;
         }
         write!(f, [name.format()])?;
-        write_bracketed_fill_list(
+        write_bracketed_fill_list_with_affixes(
             l_paren_token,
+            quantifier.as_ref().map(|quantifier| quantifier.format()),
             &arguments,
+            order_by.as_ref().map(|order_by| order_by.format()),
             r_paren_token,
             |argument: &AnySqlCallArgument| !is_simple_call_argument(argument, 0),
             f,

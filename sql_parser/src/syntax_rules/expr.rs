@@ -590,7 +590,15 @@ pub(crate) fn parse_call_expression(p: &mut SqlParser, segment_count: usize) -> 
 /// remapped) name has already been bumped into the still-open marker `m`.
 fn parse_call_expression_body(p: &mut SqlParser, m: Marker) -> ParsedSyntax {
     p.expect(T!['(']);
+    if p.at(T![distinct]) || p.at(T![all]) {
+        p.bump_any();
+        if p.at(T![')']) || p.at(T![order_by]) {
+            let err = expected_expression(p, p.cur_range());
+            p.error(err);
+        }
+    }
     SqlCallArgumentList.parse_list(p);
+    let _ = parse_order_by_clause(p);
     p.expect(T![')']);
     let _ = parse_filter_clause(p);
 
@@ -1279,7 +1287,7 @@ impl ParseSeparatedList for SqlCallArgumentList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![')'])
+        p.at(EOF) || p.at(T![')']) || p.at(T![order_by])
     }
 
     fn recover(

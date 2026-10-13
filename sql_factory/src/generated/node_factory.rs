@@ -2863,6 +2863,8 @@ pub fn sql_call_expression(
         arguments,
         r_paren_token,
         schema: None,
+        quantifier_token: None,
+        order_by: None,
         filter_clause: None,
     }
 }
@@ -2872,11 +2874,21 @@ pub struct SqlCallExpressionBuilder {
     arguments: SqlCallArgumentList,
     r_paren_token: SyntaxToken,
     schema: Option<SqlShemaName>,
+    quantifier_token: Option<SyntaxToken>,
+    order_by: Option<SqlOrderByClause>,
     filter_clause: Option<PsqlFilterClause>,
 }
 impl SqlCallExpressionBuilder {
     pub fn with_schema(mut self, schema: SqlShemaName) -> Self {
         self.schema = Some(schema);
+        self
+    }
+    pub fn with_quantifier_token(mut self, quantifier_token: SyntaxToken) -> Self {
+        self.quantifier_token = Some(quantifier_token);
+        self
+    }
+    pub fn with_order_by(mut self, order_by: SqlOrderByClause) -> Self {
+        self.order_by = Some(order_by);
         self
     }
     pub fn with_filter_clause(mut self, filter_clause: PsqlFilterClause) -> Self {
@@ -2891,7 +2903,11 @@ impl SqlCallExpressionBuilder {
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.name.into_syntax())),
                 Some(SyntaxElement::Token(self.l_paren_token)),
+                self.quantifier_token
+                    .map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.arguments.into_syntax())),
+                self.order_by
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
                 self.filter_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
