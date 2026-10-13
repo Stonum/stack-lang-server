@@ -257,6 +257,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPartitionValueList::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_ASSIGNMENT_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPlAssignmentStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_BLOCK => {
                     let $pattern = unsafe { $crate::PsqlPlBlock::new_unchecked(node) };
                     $body

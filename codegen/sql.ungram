@@ -1010,6 +1010,15 @@ PsqlPlVariableDefault =
 AnyPsqlPlStatement =
    AnySqlStatement
    | PsqlPlBlock
+   | PsqlPlAssignmentStatement
+
+// `target {:= | =} value;` -- the target is a variable, `record.field` or
+// `array[index]`.
+PsqlPlAssignmentStatement =
+   target: AnySqlExpression
+   operator: (':=' | '=')
+   value: AnySqlExpression
+   ';'
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =
