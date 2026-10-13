@@ -2157,6 +2157,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlElsifClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlExecuteStatement>
+    for crate::psql::statements::pl_execute_statement::FormatPsqlPlExecuteStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlExecuteStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlExecuteStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExecuteStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExecuteStatement,
+        crate::psql::statements::pl_execute_statement::FormatPsqlPlExecuteStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_execute_statement::FormatPsqlPlExecuteStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExecuteStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExecuteStatement,
+        crate::psql::statements::pl_execute_statement::FormatPsqlPlExecuteStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_execute_statement::FormatPsqlPlExecuteStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlIfStatement>
     for crate::psql::statements::pl_if_statement::FormatPsqlPlIfStatement
 {
@@ -2226,6 +2264,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlPerformStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::statements::pl_perform_statement::FormatPsqlPlPerformStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlUsingClause>
+    for crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlPlUsingClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlUsingClause,
+        crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlUsingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlUsingClause,
+        crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause::default(),
         )
     }
 }

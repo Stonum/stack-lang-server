@@ -119,7 +119,7 @@ pub(crate) fn parse_into_clause(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![into]);
     p.eat(T![strict]);
-    let targets = IntoTargetList.parse_list(p);
+    let targets = UnbracketedExpressionList.parse_list(p);
     if targets.range(p).is_empty() {
         let range = p.cur_range();
         p.error(expected_expression(p, range));
@@ -127,9 +127,11 @@ pub(crate) fn parse_into_clause(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_INTO_CLAUSE))
 }
 
-struct IntoTargetList;
+/// `a, b, ...` with no surrounding brackets: `INTO` targets, `USING`
+/// arguments.
+pub(crate) struct UnbracketedExpressionList;
 
-impl ParseSeparatedList for IntoTargetList {
+impl ParseSeparatedList for UnbracketedExpressionList {
     type Kind = SqlSyntaxKind;
     type Parser<'source> = SqlParser<'source>;
     const LIST_KIND: Self::Kind = SQL_EXPRESSION_LIST;
@@ -154,6 +156,7 @@ impl ParseSeparatedList for IntoTargetList {
             T![limit],
             T![offset],
             T![fetch],
+            T![using],
             DOLLAR_QUOTE
         ]) || is_at_next_statement(p)
     }

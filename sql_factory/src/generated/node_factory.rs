@@ -1963,6 +1963,50 @@ pub fn psql_pl_elsif_clause(
         ],
     ))
 }
+pub fn psql_pl_execute_statement(
+    execute_token: SyntaxToken,
+    command: AnySqlExpression,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlExecuteStatementBuilder {
+    PsqlPlExecuteStatementBuilder {
+        execute_token,
+        command,
+        semicolon_token,
+        into_clause: None,
+        using_clause: None,
+    }
+}
+pub struct PsqlPlExecuteStatementBuilder {
+    execute_token: SyntaxToken,
+    command: AnySqlExpression,
+    semicolon_token: SyntaxToken,
+    into_clause: Option<PsqlIntoClause>,
+    using_clause: Option<PsqlPlUsingClause>,
+}
+impl PsqlPlExecuteStatementBuilder {
+    pub fn with_into_clause(mut self, into_clause: PsqlIntoClause) -> Self {
+        self.into_clause = Some(into_clause);
+        self
+    }
+    pub fn with_using_clause(mut self, using_clause: PsqlPlUsingClause) -> Self {
+        self.using_clause = Some(using_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlExecuteStatement {
+        PsqlPlExecuteStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_EXECUTE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.execute_token)),
+                Some(SyntaxElement::Node(self.command.into_syntax())),
+                self.into_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_if_statement(
     if_token: SyntaxToken,
     condition: AnySqlExpression,
@@ -2062,6 +2106,18 @@ impl PsqlPlPerformStatementBuilder {
             ],
         ))
     }
+}
+pub fn psql_pl_using_clause(
+    using_token: SyntaxToken,
+    arguments: SqlExpressionList,
+) -> PsqlPlUsingClause {
+    PsqlPlUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(arguments.into_syntax())),
+        ],
+    ))
 }
 pub fn psql_pl_variable_declaration(
     name: SqlName,

@@ -16,7 +16,9 @@ use crate::syntax_rules::from::parse_from_clause;
 use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_statement, expected_type_name,
 };
-use crate::syntax_rules::select::SqlSelectItemList;
+use crate::syntax_rules::select::{
+    SqlSelectItemList, UnbracketedExpressionList, parse_into_clause,
+};
 use crate::syntax_rules::stmt::{STMT_RECOVERY_SET, parse_statement};
 use crate::syntax_rules::where_clause::parse_where_clause;
 use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T, TextRange};
@@ -177,10 +179,37 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![perform]) {
         return parse_pl_perform_statement(p);
     }
+    if p.at(T![execute]) {
+        return parse_pl_execute_statement(p);
+    }
     if is_at_pl_assignment(p) {
         return parse_pl_assignment_statement(p);
     }
     parse_statement(p)
+}
+
+/// `EXECUTE command [INTO [STRICT] target, ...] [USING expr, ...];`
+fn parse_pl_execute_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![execute]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![execute]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    let _ = parse_into_clause(p);
+    if p.at(T![using]) {
+        let using = p.start();
+        p.bump(T![using]);
+        let arguments = UnbracketedExpressionList.parse_list(p);
+        if arguments.range(p).is_empty() {
+            let range = p.cur_range();
+            p.error(expected_expression(p, range));
+        }
+        using.complete(p, PSQL_PL_USING_CLAUSE);
+    }
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_EXECUTE_STATEMENT))
 }
 
 /// `PERFORM items [FROM ...] [WHERE ...];`

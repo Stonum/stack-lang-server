@@ -1021,6 +1021,7 @@ AnyPsqlPlStatement =
    | PsqlPlAssignmentStatement
    | PsqlPlIfStatement
    | PsqlPlPerformStatement
+   | PsqlPlExecuteStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
 // `array[index]`.
@@ -1043,6 +1044,18 @@ PsqlPlIfStatement =
    ';'
 
 PsqlPlElsifClauseList = PsqlPlElsifClause*
+
+// `EXECUTE command [INTO [STRICT] target, ...] [USING expr, ...];`
+PsqlPlExecuteStatement =
+   'execute'
+   command: AnySqlExpression
+   into_clause: PsqlIntoClause?
+   using_clause: PsqlPlUsingClause?
+   ';'
+
+PsqlPlUsingClause =
+   'using'
+   arguments: SqlExpressionList
 
 // `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
 // discarded.

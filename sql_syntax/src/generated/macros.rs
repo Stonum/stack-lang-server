@@ -286,12 +286,20 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlElsifClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_EXECUTE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlExecuteStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_IF_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlIfStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_PERFORM_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlPerformStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlUsingClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_VARIABLE_DECLARATION => {
