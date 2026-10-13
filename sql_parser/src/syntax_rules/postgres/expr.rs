@@ -80,8 +80,32 @@ pub(crate) fn parse_array_subscript_tail(
     p: &mut SqlParser,
     mut expression: ParsedSyntax,
 ) -> ParsedSyntax {
-    while p.at(T!['[']) {
-        if expression.is_absent() {
+    loop {
+        let Present(completed) = &expression else {
+            break;
+        };
+
+        // `(expr).field`
+        if p.at(T![.]) {
+            if !matches!(
+                completed.kind(p),
+                SQL_PARENTHESIZED_EXPRESSION
+                    | PSQL_ARRAY_SUBSCRIPT_EXPRESSION
+                    | PSQL_FIELD_SELECTION_EXPRESSION
+            ) {
+                break;
+            }
+            let m = expression.precede(p);
+            p.bump(T![.]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            let completed = m.complete(p, PSQL_FIELD_SELECTION_EXPRESSION);
+            expression = SqlSyntaxFeature::Postgres.exclusive_syntax(p, completed, |p, marker| {
+                postgres_only_syntax_error(p, "Field selection", marker.range(p))
+            });
+            continue;
+        }
+
+        if !p.at(T!['[']) {
             break;
         }
 

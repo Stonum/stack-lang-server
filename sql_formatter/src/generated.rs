@@ -987,6 +987,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlExtensionSchemaClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlFieldSelectionExpression>
+    for crate::psql::expressions::field_selection_expression::FormatPsqlFieldSelectionExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlFieldSelectionExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlFieldSelectionExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlFieldSelectionExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlFieldSelectionExpression,
+        crate::psql::expressions::field_selection_expression::FormatPsqlFieldSelectionExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: field_selection_expression :: FormatPsqlFieldSelectionExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFieldSelectionExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlFieldSelectionExpression,
+        crate::psql::expressions::field_selection_expression::FormatPsqlFieldSelectionExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: field_selection_expression :: FormatPsqlFieldSelectionExpression :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlFilterClause>
     for crate::psql::clauses::filter_clause::FormatPsqlFilterClause
 {

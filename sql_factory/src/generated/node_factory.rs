@@ -1216,6 +1216,20 @@ impl PsqlExtensionSchemaClauseBuilder {
         ))
     }
 }
+pub fn psql_field_selection_expression(
+    expression: AnySqlExpression,
+    dot_token: SyntaxToken,
+    field: SqlName,
+) -> PsqlFieldSelectionExpression {
+    PsqlFieldSelectionExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_FIELD_SELECTION_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(dot_token)),
+            Some(SyntaxElement::Node(field.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_filter_clause(
     filter_token: SyntaxToken,
     l_paren_token: SyntaxToken,
