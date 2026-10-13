@@ -1818,6 +1818,22 @@ pub fn psql_partition_value_list(
         ],
     ))
 }
+pub fn psql_pl_assignment_statement(
+    target: AnySqlExpression,
+    operator_token: SyntaxToken,
+    value: AnySqlExpression,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlAssignmentStatement {
+    PsqlPlAssignmentStatement::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_ASSIGNMENT_STATEMENT,
+        [
+            Some(SyntaxElement::Node(target.into_syntax())),
+            Some(SyntaxElement::Token(operator_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+            Some(SyntaxElement::Token(semicolon_token)),
+        ],
+    ))
+}
 pub fn psql_pl_block(
     begin_token: SyntaxToken,
     statements: PsqlPlStatementList,

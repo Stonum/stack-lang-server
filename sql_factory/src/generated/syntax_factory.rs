@@ -2583,6 +2583,46 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_PARTITION_VALUE_LIST, children)
             }
+            PSQL_PL_ASSIGNMENT_STATEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T ! [:=] | T ! [=])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_ASSIGNMENT_STATEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_ASSIGNMENT_STATEMENT, children)
+            }
             PSQL_PL_BLOCK => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<5usize> = RawNodeSlots::default();

@@ -7,12 +7,15 @@ use biome_parser::prelude::*;
 
 use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
-use crate::syntax_rules::expr::{is_at_name_start, parse_expression, parse_name, parse_type_name};
+use crate::syntax_rules::expr::{
+    is_at_name_start, parse_binary_or_logical_expression, parse_expression, parse_name,
+    parse_type_name,
+};
 use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_statement, expected_type_name,
 };
 use crate::syntax_rules::stmt::{STMT_RECOVERY_SET, parse_statement};
-use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T, TextRange};
+use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T, TextRange};
 
 const PL_STATEMENT_RECOVERY_SET: TokenSet<SqlSyntaxKind> =
     STMT_RECOVERY_SET.union(token_set![T![end], DOLLAR_QUOTE]);
@@ -159,7 +162,66 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![begin]) || p.at(T![declare]) {
         return parse_pl_block(p);
     }
+    if is_at_pl_assignment(p) {
+        return parse_pl_assignment_statement(p);
+    }
     parse_statement(p)
+}
+
+/// A name, optionally followed by `.field`/`[index]` segments, then `:=`/`=`.
+fn is_at_pl_assignment(p: &mut SqlParser) -> bool {
+    if !is_at_name_start(p) {
+        return false;
+    }
+    p.lookahead(|p| {
+        p.bump_any();
+        loop {
+            if p.at(T![.]) {
+                p.bump(T![.]);
+                if p.at(EOF) {
+                    return false;
+                }
+                p.bump_any();
+            } else if p.at(T!['[']) {
+                let mut depth = 0usize;
+                loop {
+                    match p.cur() {
+                        T!['['] => depth += 1,
+                        T![']'] => {
+                            depth -= 1;
+                            if depth == 0 {
+                                p.bump_any();
+                                break;
+                            }
+                        }
+                        EOF => return false,
+                        _ => {}
+                    }
+                    p.bump_any();
+                }
+            } else {
+                return p.at(T![:=]) || p.at(T![=]);
+            }
+        }
+    })
+}
+
+/// `target {:= | =} value;`
+fn parse_pl_assignment_statement(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    // Stops before `=`, which is the assignment here, not a comparison.
+    parse_binary_or_logical_expression(p, OperatorPrecedence::Equality)
+        .or_add_diagnostic(p, expected_expression);
+    if p.at(T![:=]) || p.at(T![=]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `:=` or `=`", range);
+        p.error(err);
+    }
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_ASSIGNMENT_STATEMENT))
 }
 
 fn expected_declaration(p: &SqlParser, range: TextRange) -> ParseDiagnostic {

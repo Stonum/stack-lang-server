@@ -1921,6 +1921,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPartitionValueList {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlAssignmentStatement>
+    for crate::psql::statements::pl_assignment_statement::FormatPsqlPlAssignmentStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlAssignmentStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlAssignmentStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlAssignmentStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlAssignmentStatement,
+        crate::psql::statements::pl_assignment_statement::FormatPsqlPlAssignmentStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: pl_assignment_statement :: FormatPsqlPlAssignmentStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlAssignmentStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlAssignmentStatement,
+        crate::psql::statements::pl_assignment_statement::FormatPsqlPlAssignmentStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: pl_assignment_statement :: FormatPsqlPlAssignmentStatement :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlBlock> for crate::psql::auxiliary::pl_block::FormatPsqlPlBlock {
     type Context = SqlFormatContext;
     #[inline(always)]
