@@ -824,6 +824,8 @@ impl<'src> SqlLexer<'src> {
             SLH => self.read_slash(),
             EQL => self.resolve_eq(),
             PRC => self.eat_byte(T![%]),
+            // `?` -- the jsonb key-exists operator.
+            QST => self.eat_byte(T![?]),
             EXL => self.resolve_bang(),
             _ => {
                 let err = ParseDiagnostic::new(
