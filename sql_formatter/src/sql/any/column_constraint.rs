@@ -9,6 +9,7 @@ impl FormatRule<AnySqlColumnConstraint> for FormatAnySqlColumnConstraint {
     fn fmt(&self, node: &AnySqlColumnConstraint, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
             AnySqlColumnConstraint::SqlCheckConstraint(node) => node.format().fmt(f),
+            AnySqlColumnConstraint::SqlCollateConstraint(node) => node.format().fmt(f),
             AnySqlColumnConstraint::SqlConstraintName(node) => node.format().fmt(f),
             AnySqlColumnConstraint::SqlDefaultConstraint(node) => node.format().fmt(f),
             AnySqlColumnConstraint::SqlNotNullConstraint(node) => node.format().fmt(f),

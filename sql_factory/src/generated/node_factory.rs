@@ -3045,6 +3045,32 @@ pub fn sql_col_reference(name: SqlName) -> SqlColReference {
         [Some(SyntaxElement::Node(name.into_syntax()))],
     ))
 }
+pub fn sql_collate_constraint(
+    collate_token: SyntaxToken,
+    collation: SqlName,
+) -> SqlCollateConstraint {
+    SqlCollateConstraint::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_COLLATE_CONSTRAINT,
+        [
+            Some(SyntaxElement::Token(collate_token)),
+            Some(SyntaxElement::Node(collation.into_syntax())),
+        ],
+    ))
+}
+pub fn sql_collate_expression(
+    expression: AnySqlExpression,
+    collate_token: SyntaxToken,
+    collation: SqlName,
+) -> SqlCollateExpression {
+    SqlCollateExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_COLLATE_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(collate_token)),
+            Some(SyntaxElement::Node(collation.into_syntax())),
+        ],
+    ))
+}
 pub fn sql_column_definition(
     name: SqlName,
     ty: SqlTypeName,

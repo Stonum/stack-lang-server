@@ -5693,6 +5693,91 @@ pub struct SqlColReferenceFields {
     pub name: SyntaxResult<SqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCollateConstraint {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCollateConstraint {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCollateConstraintFields {
+        SqlCollateConstraintFields {
+            collate_token: self.collate_token(),
+            collation: self.collation(),
+        }
+    }
+    pub fn collate_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn collation(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlCollateConstraint {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCollateConstraintFields {
+    pub collate_token: SyntaxResult<SyntaxToken>,
+    pub collation: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlCollateExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlCollateExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlCollateExpressionFields {
+        SqlCollateExpressionFields {
+            expression: self.expression(),
+            collate_token: self.collate_token(),
+            collation: self.collation(),
+        }
+    }
+    pub fn expression(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn collate_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn collation(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for SqlCollateExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlCollateExpressionFields {
+    pub expression: SyntaxResult<AnySqlExpression>,
+    pub collate_token: SyntaxResult<SyntaxToken>,
+    pub collation: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlColumnDefinition {
     pub(crate) syntax: SyntaxNode,
 }
@@ -11254,6 +11339,7 @@ impl AnySqlCallArgument {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlColumnConstraint {
     SqlCheckConstraint(SqlCheckConstraint),
+    SqlCollateConstraint(SqlCollateConstraint),
     SqlConstraintName(SqlConstraintName),
     SqlDefaultConstraint(SqlDefaultConstraint),
     SqlNotNullConstraint(SqlNotNullConstraint),
@@ -11268,6 +11354,12 @@ impl AnySqlColumnConstraint {
     pub fn as_sql_check_constraint(&self) -> Option<&SqlCheckConstraint> {
         match &self {
             Self::SqlCheckConstraint(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_collate_constraint(&self) -> Option<&SqlCollateConstraint> {
+        match &self {
+            Self::SqlCollateConstraint(item) => Some(item),
             _ => None,
         }
     }
@@ -11400,6 +11492,7 @@ pub enum AnySqlExpression {
     SqlCaseExpression(SqlCaseExpression),
     SqlCastFunctionExpression(SqlCastFunctionExpression),
     SqlColReference(SqlColReference),
+    SqlCollateExpression(SqlCollateExpression),
     SqlExistsExpression(SqlExistsExpression),
     SqlInExpression(SqlInExpression),
     SqlIsDistinctFromExpression(SqlIsDistinctFromExpression),
@@ -11469,6 +11562,12 @@ impl AnySqlExpression {
     pub fn as_sql_col_reference(&self) -> Option<&SqlColReference> {
         match &self {
             Self::SqlColReference(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_sql_collate_expression(&self) -> Option<&SqlCollateExpression> {
+        match &self {
+            Self::SqlCollateExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -18666,6 +18765,109 @@ impl From<SqlColReference> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlCollateConstraint {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_COLLATE_CONSTRAINT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_COLLATE_CONSTRAINT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCollateConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCollateConstraint")
+                .field(
+                    "collate_token",
+                    &support::DebugSyntaxResult(self.collate_token()),
+                )
+                .field("collation", &support::DebugSyntaxResult(self.collation()))
+                .finish()
+        } else {
+            f.debug_struct("SqlCollateConstraint").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCollateConstraint> for SyntaxNode {
+    fn from(n: SqlCollateConstraint) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCollateConstraint> for SyntaxElement {
+    fn from(n: SqlCollateConstraint) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for SqlCollateExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_COLLATE_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_COLLATE_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlCollateExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlCollateExpression")
+                .field("expression", &support::DebugSyntaxResult(self.expression()))
+                .field(
+                    "collate_token",
+                    &support::DebugSyntaxResult(self.collate_token()),
+                )
+                .field("collation", &support::DebugSyntaxResult(self.collation()))
+                .finish()
+        } else {
+            f.debug_struct("SqlCollateExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlCollateExpression> for SyntaxNode {
+    fn from(n: SqlCollateExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlCollateExpression> for SyntaxElement {
+    fn from(n: SqlCollateExpression) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlColumnDefinition {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -25407,6 +25609,11 @@ impl From<SqlCheckConstraint> for AnySqlColumnConstraint {
         Self::SqlCheckConstraint(node)
     }
 }
+impl From<SqlCollateConstraint> for AnySqlColumnConstraint {
+    fn from(node: SqlCollateConstraint) -> Self {
+        Self::SqlCollateConstraint(node)
+    }
+}
 impl From<SqlConstraintName> for AnySqlColumnConstraint {
     fn from(node: SqlConstraintName) -> Self {
         Self::SqlConstraintName(node)
@@ -25455,6 +25662,7 @@ impl From<PsqlIdentityConstraint> for AnySqlColumnConstraint {
 impl AstNode for AnySqlColumnConstraint {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlCheckConstraint::KIND_SET
+        .union(SqlCollateConstraint::KIND_SET)
         .union(SqlConstraintName::KIND_SET)
         .union(SqlDefaultConstraint::KIND_SET)
         .union(SqlNotNullConstraint::KIND_SET)
@@ -25468,6 +25676,7 @@ impl AstNode for AnySqlColumnConstraint {
         matches!(
             kind,
             SQL_CHECK_CONSTRAINT
+                | SQL_COLLATE_CONSTRAINT
                 | SQL_CONSTRAINT_NAME
                 | SQL_DEFAULT_CONSTRAINT
                 | SQL_NOT_NULL_CONSTRAINT
@@ -25482,6 +25691,7 @@ impl AstNode for AnySqlColumnConstraint {
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             SQL_CHECK_CONSTRAINT => Self::SqlCheckConstraint(SqlCheckConstraint { syntax }),
+            SQL_COLLATE_CONSTRAINT => Self::SqlCollateConstraint(SqlCollateConstraint { syntax }),
             SQL_CONSTRAINT_NAME => Self::SqlConstraintName(SqlConstraintName { syntax }),
             SQL_DEFAULT_CONSTRAINT => Self::SqlDefaultConstraint(SqlDefaultConstraint { syntax }),
             SQL_NOT_NULL_CONSTRAINT => Self::SqlNotNullConstraint(SqlNotNullConstraint { syntax }),
@@ -25506,6 +25716,7 @@ impl AstNode for AnySqlColumnConstraint {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::SqlCheckConstraint(it) => &it.syntax,
+            Self::SqlCollateConstraint(it) => &it.syntax,
             Self::SqlConstraintName(it) => &it.syntax,
             Self::SqlDefaultConstraint(it) => &it.syntax,
             Self::SqlNotNullConstraint(it) => &it.syntax,
@@ -25520,6 +25731,7 @@ impl AstNode for AnySqlColumnConstraint {
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::SqlCheckConstraint(it) => it.syntax,
+            Self::SqlCollateConstraint(it) => it.syntax,
             Self::SqlConstraintName(it) => it.syntax,
             Self::SqlDefaultConstraint(it) => it.syntax,
             Self::SqlNotNullConstraint(it) => it.syntax,
@@ -25536,6 +25748,7 @@ impl std::fmt::Debug for AnySqlColumnConstraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::SqlCheckConstraint(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlCollateConstraint(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlConstraintName(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlDefaultConstraint(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlNotNullConstraint(it) => std::fmt::Debug::fmt(it, f),
@@ -25552,6 +25765,7 @@ impl From<AnySqlColumnConstraint> for SyntaxNode {
     fn from(n: AnySqlColumnConstraint) -> Self {
         match n {
             AnySqlColumnConstraint::SqlCheckConstraint(it) => it.into(),
+            AnySqlColumnConstraint::SqlCollateConstraint(it) => it.into(),
             AnySqlColumnConstraint::SqlConstraintName(it) => it.into(),
             AnySqlColumnConstraint::SqlDefaultConstraint(it) => it.into(),
             AnySqlColumnConstraint::SqlNotNullConstraint(it) => it.into(),
@@ -25803,6 +26017,11 @@ impl From<SqlColReference> for AnySqlExpression {
         Self::SqlColReference(node)
     }
 }
+impl From<SqlCollateExpression> for AnySqlExpression {
+    fn from(node: SqlCollateExpression) -> Self {
+        Self::SqlCollateExpression(node)
+    }
+}
 impl From<SqlExistsExpression> for AnySqlExpression {
     fn from(node: SqlExistsExpression) -> Self {
         Self::SqlExistsExpression(node)
@@ -25923,6 +26142,7 @@ impl AstNode for AnySqlExpression {
         .union(SqlCaseExpression::KIND_SET)
         .union(SqlCastFunctionExpression::KIND_SET)
         .union(SqlColReference::KIND_SET)
+        .union(SqlCollateExpression::KIND_SET)
         .union(SqlExistsExpression::KIND_SET)
         .union(SqlInExpression::KIND_SET)
         .union(SqlIsDistinctFromExpression::KIND_SET)
@@ -25954,6 +26174,7 @@ impl AstNode for AnySqlExpression {
             | SQL_CASE_EXPRESSION
             | SQL_CAST_FUNCTION_EXPRESSION
             | SQL_COL_REFERENCE
+            | SQL_COLLATE_EXPRESSION
             | SQL_EXISTS_EXPRESSION
             | SQL_IN_EXPRESSION
             | SQL_IS_DISTINCT_FROM_EXPRESSION
@@ -25991,6 +26212,7 @@ impl AstNode for AnySqlExpression {
                 Self::SqlCastFunctionExpression(SqlCastFunctionExpression { syntax })
             }
             SQL_COL_REFERENCE => Self::SqlColReference(SqlColReference { syntax }),
+            SQL_COLLATE_EXPRESSION => Self::SqlCollateExpression(SqlCollateExpression { syntax }),
             SQL_EXISTS_EXPRESSION => Self::SqlExistsExpression(SqlExistsExpression { syntax }),
             SQL_IN_EXPRESSION => Self::SqlInExpression(SqlInExpression { syntax }),
             SQL_IS_DISTINCT_FROM_EXPRESSION => {
@@ -26051,6 +26273,7 @@ impl AstNode for AnySqlExpression {
             Self::SqlCaseExpression(it) => &it.syntax,
             Self::SqlCastFunctionExpression(it) => &it.syntax,
             Self::SqlColReference(it) => &it.syntax,
+            Self::SqlCollateExpression(it) => &it.syntax,
             Self::SqlExistsExpression(it) => &it.syntax,
             Self::SqlInExpression(it) => &it.syntax,
             Self::SqlIsDistinctFromExpression(it) => &it.syntax,
@@ -26085,6 +26308,7 @@ impl AstNode for AnySqlExpression {
             Self::SqlCaseExpression(it) => it.syntax,
             Self::SqlCastFunctionExpression(it) => it.syntax,
             Self::SqlColReference(it) => it.syntax,
+            Self::SqlCollateExpression(it) => it.syntax,
             Self::SqlExistsExpression(it) => it.syntax,
             Self::SqlInExpression(it) => it.syntax,
             Self::SqlIsDistinctFromExpression(it) => it.syntax,
@@ -26122,6 +26346,7 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::SqlCaseExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlCastFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlColReference(it) => std::fmt::Debug::fmt(it, f),
+            Self::SqlCollateExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlExistsExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlInExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlIsDistinctFromExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -26158,6 +26383,7 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::SqlCaseExpression(it) => it.into(),
             AnySqlExpression::SqlCastFunctionExpression(it) => it.into(),
             AnySqlExpression::SqlColReference(it) => it.into(),
+            AnySqlExpression::SqlCollateExpression(it) => it.into(),
             AnySqlExpression::SqlExistsExpression(it) => it.into(),
             AnySqlExpression::SqlInExpression(it) => it.into(),
             AnySqlExpression::SqlIsDistinctFromExpression(it) => it.into(),
@@ -28811,6 +29037,16 @@ impl std::fmt::Display for SqlCheckConstraint {
     }
 }
 impl std::fmt::Display for SqlColReference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlCollateConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlCollateExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

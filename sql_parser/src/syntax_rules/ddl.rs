@@ -342,6 +342,11 @@ fn parse_column_constraint(p: &mut SqlParser) -> ParsedSyntax {
             parse_expression(p).or_add_diagnostic(p, expected_expression);
             SQL_DEFAULT_CONSTRAINT
         }
+        T![collate] => {
+            p.bump(T![collate]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            SQL_COLLATE_CONSTRAINT
+        }
         _ => {
             m.abandon(p);
             return Absent;

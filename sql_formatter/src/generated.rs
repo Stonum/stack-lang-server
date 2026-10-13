@@ -3939,6 +3939,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlColReference {
         )
     }
 }
+impl FormatRule<sql_syntax::SqlCollateConstraint>
+    for crate::sql::auxiliary::collate_constraint::FormatSqlCollateConstraint
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlCollateConstraint,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCollateConstraint>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCollateConstraint {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCollateConstraint,
+        crate::sql::auxiliary::collate_constraint::FormatSqlCollateConstraint,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::collate_constraint::FormatSqlCollateConstraint::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCollateConstraint {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCollateConstraint,
+        crate::sql::auxiliary::collate_constraint::FormatSqlCollateConstraint,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::collate_constraint::FormatSqlCollateConstraint::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::SqlCollateExpression>
+    for crate::sql::expressions::collate_expression::FormatSqlCollateExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::SqlCollateExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlCollateExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlCollateExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlCollateExpression,
+        crate::sql::expressions::collate_expression::FormatSqlCollateExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::expressions::collate_expression::FormatSqlCollateExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlCollateExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlCollateExpression,
+        crate::sql::expressions::collate_expression::FormatSqlCollateExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::expressions::collate_expression::FormatSqlCollateExpression::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlColumnDefinition>
     for crate::sql::auxiliary::column_definition::FormatSqlColumnDefinition
 {

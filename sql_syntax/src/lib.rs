@@ -53,6 +53,7 @@ impl SqlSyntaxKind {
                 | CASE_KW
                 | CAST_KW
                 | CHECK_KW
+                | COLLATE_KW
                 | COLUMN_KW
                 | CONSTRAINT_KW
                 | CREATE_KW

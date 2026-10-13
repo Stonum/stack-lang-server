@@ -1008,6 +1008,12 @@ AnySqlColumnConstraint =
    | SqlReferencesConstraint
    | PsqlIdentityConstraint
    | PsqlGeneratedColumnConstraint
+   | SqlCollateConstraint
+
+// `COLLATE collation` on a column definition.
+SqlCollateConstraint =
+   'collate'
+   collation: SqlName
 
 // `GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY [(sequence options)]` --
 // exactly one of `always` / `by default` is present.
@@ -1292,6 +1298,7 @@ AnySqlExpression =
    | SqlIsExpression
    | SqlIsDistinctFromExpression
    | SqlPostfixNullExpression
+   | SqlCollateExpression
    | SqlBetweenExpression
    | SqlInExpression
    | SqlLikeExpression
@@ -1397,6 +1404,12 @@ SqlIsDistinctFromExpression =
    'distinct'
    'from'
    right: AnySqlExpression
+
+// `x COLLATE collation` -- binds as tightly as a `::` cast.
+SqlCollateExpression =
+   expression: AnySqlExpression
+   'collate'
+   collation: SqlName
 
 // `x ISNULL` / `x NOTNULL` -- Postgres postfix spellings of `IS [NOT] NULL`.
 SqlPostfixNullExpression =

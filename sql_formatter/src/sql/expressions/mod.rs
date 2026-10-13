@@ -7,6 +7,7 @@ pub(crate) mod boolean_literal_expression;
 pub(crate) mod call_expression;
 pub(crate) mod case_expression;
 pub(crate) mod cast_function_expression;
+pub(crate) mod collate_expression;
 pub(crate) mod exists_expression;
 pub(crate) mod in_expression;
 pub(crate) mod is_distinct_from_expression;

@@ -4612,6 +4612,65 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(SQL_COL_REFERENCE, children)
             }
+            SQL_COLLATE_CONSTRAINT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![collate]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_COLLATE_CONSTRAINT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_COLLATE_CONSTRAINT, children)
+            }
+            SQL_COLLATE_EXPRESSION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![collate]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        SQL_COLLATE_EXPRESSION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(SQL_COLLATE_EXPRESSION, children)
+            }
             SQL_COLUMN_DEFINITION => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();

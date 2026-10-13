@@ -67,13 +67,9 @@ fn test_garbage_input_reports_diagnostic_without_panicking() {
 
 #[test]
 fn test_go_batch_separator_does_not_swallow_the_next_statement() {
-    // `GO` (a T-SQL batch separator some client scripts carry over from
-    // MSSQL) isn't given a grammar node -- it falls into ordinary
-    // bogus-statement recovery. Recovery must stop as soon as it reaches
-    // the start of a real statement, not just at the next `;`, or a
-    // perfectly valid statement immediately following `GO` (with no `;` in
-    // between) would get swallowed into the same bogus blob and never get
-    // its own, properly formattable node.
+    // In plain Postgres `GO` is still a `SqlGoStatement`, just with a
+    // diagnostic -- the statement right after it (no `;` in between) must
+    // keep its own, properly formattable node.
     let res = parse(
         "drop function if exists foo;\nGO\ncreate function foo() as 'select 1';\nselect 1;",
         SqlFileSource::script().with_dialect(SqlDialect::Postgres),
@@ -160,4 +156,35 @@ fn test_broken_subquery_only_turns_its_own_statement_bogus() {
         statement_kinds(&res),
         [SQL_BOGUS_STATEMENT, SQL_SELECT_STATEMENT]
     );
+}
+
+#[test]
+fn test_lists_end_at_a_reserved_statement_keyword_without_semicolon() {
+    use sql_syntax::SqlSyntaxKind::*;
+
+    for (src, second) in [
+        (
+            "select a, b from t, u\ncreate table x (a int)",
+            SQL_CREATE_TABLE_STATEMENT,
+        ),
+        ("select a, b\nselect c", SQL_SELECT_STATEMENT),
+        (
+            "select a from t group by a, b\nwith x as (select 1 as a) select a from x",
+            SQL_SELECT_STATEMENT,
+        ),
+        (
+            "select a from t order by a, b\ngrant all on t to public",
+            SQL_GRANT_STATEMENT,
+        ),
+        (
+            "update t set a = 1, b = 2\nanalyze t",
+            PSQL_ANALYZE_STATEMENT,
+        ),
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        assert_eq!(statement_kinds(&res).len(), 2, "{src}");
+        assert_eq!(statement_kinds(&res)[1], second, "{src}");
+    }
 }
