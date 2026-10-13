@@ -2075,6 +2075,82 @@ pub fn psql_pl_exit_when_clause(
         ],
     ))
 }
+pub fn psql_pl_for_execute_source(
+    execute_token: SyntaxToken,
+    command: AnySqlExpression,
+) -> PsqlPlForExecuteSourceBuilder {
+    PsqlPlForExecuteSourceBuilder {
+        execute_token,
+        command,
+        using_clause: None,
+    }
+}
+pub struct PsqlPlForExecuteSourceBuilder {
+    execute_token: SyntaxToken,
+    command: AnySqlExpression,
+    using_clause: Option<PsqlPlUsingClause>,
+}
+impl PsqlPlForExecuteSourceBuilder {
+    pub fn with_using_clause(mut self, using_clause: PsqlPlUsingClause) -> Self {
+        self.using_clause = Some(using_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlForExecuteSource {
+        PsqlPlForExecuteSource::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_FOR_EXECUTE_SOURCE,
+            [
+                Some(SyntaxElement::Token(self.execute_token)),
+                Some(SyntaxElement::Node(self.command.into_syntax())),
+                self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_for_statement(
+    for_token: SyntaxToken,
+    targets: PsqlPlForTargetList,
+    in_token: SyntaxToken,
+    source: AnyPsqlPlForSource,
+    body: PsqlPlLoopBody,
+) -> PsqlPlForStatementBuilder {
+    PsqlPlForStatementBuilder {
+        for_token,
+        targets,
+        in_token,
+        source,
+        body,
+        label: None,
+    }
+}
+pub struct PsqlPlForStatementBuilder {
+    for_token: SyntaxToken,
+    targets: PsqlPlForTargetList,
+    in_token: SyntaxToken,
+    source: AnyPsqlPlForSource,
+    body: PsqlPlLoopBody,
+    label: Option<PsqlPlLabel>,
+}
+impl PsqlPlForStatementBuilder {
+    pub fn with_label(mut self, label: PsqlPlLabel) -> Self {
+        self.label = Some(label);
+        self
+    }
+    pub fn build(self) -> PsqlPlForStatement {
+        PsqlPlForStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_FOR_STATEMENT,
+            [
+                self.label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.for_token)),
+                Some(SyntaxElement::Node(self.targets.into_syntax())),
+                Some(SyntaxElement::Token(self.in_token)),
+                Some(SyntaxElement::Node(self.source.into_syntax())),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_if_statement(
     if_token: SyntaxToken,
     condition: AnySqlExpression,
@@ -7250,6 +7326,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_pl_for_target_list<I, S>(items: I, separators: S) -> PsqlPlForTargetList
+where
+    I: IntoIterator<Item = SqlName>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlPlForTargetList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_FOR_TARGET_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_pl_raise_option_list<I, S>(items: I, separators: S) -> PsqlPlRaiseOptionList
