@@ -21,18 +21,25 @@ impl FormatNodeRule<SqlUpdateStatement> for FormatSqlUpdateStatement {
             write!(f, [with_clause.format(), hard_line_break()])?;
         }
 
-        write!(f, [update_token.format(), space(), table.format()])?;
-        write!(f, [hard_line_break(), set_clause.format()])?;
-
-        if let Some(from_clause) = from_clause {
-            write!(f, [hard_line_break(), from_clause.format()])?;
-        }
-        if let Some(where_clause) = where_clause {
-            write!(f, [hard_line_break(), where_clause.format()])?;
-        }
-        if let Some(returning_clause) = returning_clause {
-            write!(f, [hard_line_break(), returning_clause.format()])?;
-        }
+        // Same as SELECT: a short statement stays on one line, anything that
+        // doesn't fit (or breaks inside) puts each clause on its own line.
+        write!(
+            f,
+            [group(&format_once(|f| {
+                write!(f, [update_token.format(), space(), table.format()])?;
+                write!(f, [soft_line_break_or_space(), set_clause.format()])?;
+                if let Some(from_clause) = from_clause {
+                    write!(f, [soft_line_break_or_space(), from_clause.format()])?;
+                }
+                if let Some(where_clause) = where_clause {
+                    write!(f, [soft_line_break_or_space(), where_clause.format()])?;
+                }
+                if let Some(returning_clause) = returning_clause {
+                    write!(f, [soft_line_break_or_space(), returning_clause.format()])?;
+                }
+                Ok(())
+            }))]
+        )?;
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
         }

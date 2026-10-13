@@ -21,26 +21,33 @@ impl FormatNodeRule<SqlDeleteStatement> for FormatSqlDeleteStatement {
             write!(f, [with_clause.format(), hard_line_break()])?;
         }
 
+        // Same as SELECT: a short statement stays on one line, anything that
+        // doesn't fit (or breaks inside) puts each clause on its own line.
         write!(
             f,
-            [
-                delete_token.format(),
-                space(),
-                from_token.format(),
-                space(),
-                table.format()
-            ]
+            [group(&format_once(|f| {
+                write!(
+                    f,
+                    [
+                        delete_token.format(),
+                        space(),
+                        from_token.format(),
+                        space(),
+                        table.format()
+                    ]
+                )?;
+                if let Some(using) = using {
+                    write!(f, [soft_line_break_or_space(), using.format()])?;
+                }
+                if let Some(where_clause) = where_clause {
+                    write!(f, [soft_line_break_or_space(), where_clause.format()])?;
+                }
+                if let Some(returning_clause) = returning_clause {
+                    write!(f, [soft_line_break_or_space(), returning_clause.format()])?;
+                }
+                Ok(())
+            }))]
         )?;
-
-        if let Some(using) = using {
-            write!(f, [hard_line_break(), using.format()])?;
-        }
-        if let Some(where_clause) = where_clause {
-            write!(f, [hard_line_break(), where_clause.format()])?;
-        }
-        if let Some(returning_clause) = returning_clause {
-            write!(f, [hard_line_break(), returning_clause.format()])?;
-        }
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
         }

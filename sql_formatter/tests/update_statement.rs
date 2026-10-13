@@ -5,8 +5,7 @@ mod helper;
 fn format_update_set() {
     assert_fmt!(
         r#"--
-update t
-set a = 1
+update t set a = 1
 "#
     );
 }
@@ -15,8 +14,7 @@ set a = 1
 fn format_update_set_multiple() {
     assert_fmt!(
         r#"--
-update t
-set a = 1, b = 2
+update t set a = 1, b = 2
 "#
     );
 }
@@ -25,9 +23,7 @@ set a = 1, b = 2
 fn format_update_with_where() {
     assert_fmt!(
         r#"--
-update t
-set a = 1
-where b = 2
+update t set a = 1 where b = 2
 "#
     );
 }
@@ -36,10 +32,7 @@ where b = 2
 fn format_update_with_returning() {
     assert_fmt!(
         r#"--
-update t
-set a = 1
-where b = 2
-returning a, b
+update t set a = 1 where b = 2 returning a, b
 "#
     );
 }
@@ -60,8 +53,7 @@ set
 fn format_update_with_alias() {
     assert_fmt!(
         r#"--
-update t as tt
-set a = 1
+update t as tt set a = 1
 "#
     );
 }
@@ -70,10 +62,7 @@ set a = 1
 fn format_update_with_from_clause() {
     assert_fmt!(
         r#"--
-update t
-set a = 1
-from u
-where t.id = u.id
+update t set a = 1 from u where t.id = u.id
 "#
     );
 }
@@ -82,10 +71,7 @@ where t.id = u.id
 fn format_update_with_from_clause_multiple_items() {
     assert_fmt!(
         r#"--
-update t
-set a = 1, b = 2
-from u, v
-where t.id = u.id
+update t set a = 1, b = 2 from u, v where t.id = u.id
 "#
     );
 }
@@ -108,11 +94,7 @@ where t.id = 1
 fn format_update_with_from_clause_and_returning() {
     assert_fmt!(
         r#"--
-update t
-set a = 1
-from u
-where t.id = u.id
-returning t.id
+update t set a = 1 from u where t.id = u.id returning t.id
 "#
     );
 }
@@ -124,10 +106,26 @@ fn format_update_from_clause_normalizes_spacing_and_case() {
 UPDATE   t   SET   a=1,b=2   FROM   u,v   WHERE   t.id=u.id;
 "#,
         r#"--
-update t
-set a = 1, b = 2
-from u, v
-where t.id = u.id;
+update t set a = 1, b = 2 from u, v where t.id = u.id;
+"#
+    );
+}
+
+#[test]
+fn format_update_stays_on_one_line_when_it_fits_and_wraps_otherwise() {
+    assert_fmt_eq!(
+        r#"--
+UPDATE t
+SET a = 1
+WHERE b IS NULL;
+update accounts set owner_name = owners.full_name, owner_code = owners.code from owners where owners.id = accounts.owner and accounts.owner_name is null;
+"#,
+        r#"--
+update t set a = 1 where b is null;
+update accounts
+set owner_name = owners.full_name, owner_code = owners.code
+from owners
+where owners.id = accounts.owner and accounts.owner_name is null;
 "#
     );
 }

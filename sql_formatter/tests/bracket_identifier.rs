@@ -112,7 +112,7 @@ fn format_bracket_identifier_convert_to_quotes_as_table_qualifier() {
 fn format_bracket_identifier_convert_to_quotes_in_insert_column_list() {
     assert_fmt_with_bracket_style(
         "insert into t ([Col-Name], [Col2]) values (1, 2);\n",
-        "insert into t (\"Col-Name\", \"Col2\")\nvalues (1, 2);\n",
+        "insert into t (\"Col-Name\", \"Col2\") values (1, 2);\n",
         BracketIdentifierStyle::ConvertToQuotes,
     );
 }
@@ -121,7 +121,7 @@ fn format_bracket_identifier_convert_to_quotes_in_insert_column_list() {
 fn format_bracket_identifier_convert_to_quotes_in_update_set_clause() {
     assert_fmt_with_bracket_style(
         "update t set [Col-Name] = 1 where id = 2;\n",
-        "update t\nset \"Col-Name\" = 1\nwhere id = 2;\n",
+        "update t set \"Col-Name\" = 1 where id = 2;\n",
         BracketIdentifierStyle::ConvertToQuotes,
     );
 }
