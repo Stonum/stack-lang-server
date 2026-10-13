@@ -1874,7 +1874,9 @@ pub fn psql_pl_block(
         begin_token,
         statements,
         end_token,
+        label: None,
         declare_section: None,
+        end_label: None,
         semicolon_token: None,
     }
 }
@@ -1882,12 +1884,22 @@ pub struct PsqlPlBlockBuilder {
     begin_token: SyntaxToken,
     statements: PsqlPlStatementList,
     end_token: SyntaxToken,
+    label: Option<PsqlPlLabel>,
     declare_section: Option<PsqlPlDeclareSection>,
+    end_label: Option<SqlName>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl PsqlPlBlockBuilder {
+    pub fn with_label(mut self, label: PsqlPlLabel) -> Self {
+        self.label = Some(label);
+        self
+    }
     pub fn with_declare_section(mut self, declare_section: PsqlPlDeclareSection) -> Self {
         self.declare_section = Some(declare_section);
+        self
+    }
+    pub fn with_end_label(mut self, end_label: SqlName) -> Self {
+        self.end_label = Some(end_label);
         self
     }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
@@ -1898,11 +1910,15 @@ impl PsqlPlBlockBuilder {
         PsqlPlBlock::unwrap_cast(SyntaxNode::new_detached(
             SqlSyntaxKind::PSQL_PL_BLOCK,
             [
+                self.label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.declare_section
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.begin_token)),
                 Some(SyntaxElement::Node(self.statements.into_syntax())),
                 Some(SyntaxElement::Token(self.end_token)),
+                self.end_label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
             ],
@@ -2007,6 +2023,58 @@ impl PsqlPlExecuteStatementBuilder {
         ))
     }
 }
+pub fn psql_pl_exit_statement(
+    keyword_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlExitStatementBuilder {
+    PsqlPlExitStatementBuilder {
+        keyword_token,
+        semicolon_token,
+        label: None,
+        when_clause: None,
+    }
+}
+pub struct PsqlPlExitStatementBuilder {
+    keyword_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+    label: Option<SqlName>,
+    when_clause: Option<PsqlPlExitWhenClause>,
+}
+impl PsqlPlExitStatementBuilder {
+    pub fn with_label(mut self, label: SqlName) -> Self {
+        self.label = Some(label);
+        self
+    }
+    pub fn with_when_clause(mut self, when_clause: PsqlPlExitWhenClause) -> Self {
+        self.when_clause = Some(when_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlExitStatement {
+        PsqlPlExitStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_EXIT_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.keyword_token)),
+                self.label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.when_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_exit_when_clause(
+    when_token: SyntaxToken,
+    condition: AnySqlExpression,
+) -> PsqlPlExitWhenClause {
+    PsqlPlExitWhenClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_EXIT_WHEN_CLAUSE,
+        [
+            Some(SyntaxElement::Token(when_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_pl_if_statement(
     if_token: SyntaxToken,
     condition: AnySqlExpression,
@@ -2059,6 +2127,87 @@ impl PsqlPlIfStatementBuilder {
                 Some(SyntaxElement::Token(self.end_token)),
                 Some(SyntaxElement::Token(self.end_if_token)),
                 Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_label(
+    left_shift_token: SyntaxToken,
+    name: SqlName,
+    right_shift_token: SyntaxToken,
+) -> PsqlPlLabel {
+    PsqlPlLabel::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_LABEL,
+        [
+            Some(SyntaxElement::Token(left_shift_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Token(right_shift_token)),
+        ],
+    ))
+}
+pub fn psql_pl_loop_body(
+    loop_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+    end_token: SyntaxToken,
+    end_loop_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlLoopBodyBuilder {
+    PsqlPlLoopBodyBuilder {
+        loop_token,
+        statements,
+        end_token,
+        end_loop_token,
+        semicolon_token,
+        end_label: None,
+    }
+}
+pub struct PsqlPlLoopBodyBuilder {
+    loop_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+    end_token: SyntaxToken,
+    end_loop_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+    end_label: Option<SqlName>,
+}
+impl PsqlPlLoopBodyBuilder {
+    pub fn with_end_label(mut self, end_label: SqlName) -> Self {
+        self.end_label = Some(end_label);
+        self
+    }
+    pub fn build(self) -> PsqlPlLoopBody {
+        PsqlPlLoopBody::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_LOOP_BODY,
+            [
+                Some(SyntaxElement::Token(self.loop_token)),
+                Some(SyntaxElement::Node(self.statements.into_syntax())),
+                Some(SyntaxElement::Token(self.end_token)),
+                Some(SyntaxElement::Token(self.end_loop_token)),
+                self.end_label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_loop_statement(body: PsqlPlLoopBody) -> PsqlPlLoopStatementBuilder {
+    PsqlPlLoopStatementBuilder { body, label: None }
+}
+pub struct PsqlPlLoopStatementBuilder {
+    body: PsqlPlLoopBody,
+    label: Option<PsqlPlLabel>,
+}
+impl PsqlPlLoopStatementBuilder {
+    pub fn with_label(mut self, label: PsqlPlLabel) -> Self {
+        self.label = Some(label);
+        self
+    }
+    pub fn build(self) -> PsqlPlLoopStatement {
+        PsqlPlLoopStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_LOOP_STATEMENT,
+            [
+                self.label
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.body.into_syntax())),
             ],
         ))
     }

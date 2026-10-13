@@ -66,19 +66,124 @@ pub(crate) fn parse_pl_body(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_PL_BODY))
 }
 
-/// `[DECLARE declaration; ...] BEGIN statement; ... END [;]`
+/// `[<<label>>] [DECLARE declaration; ...] BEGIN statement; ... END [label] [;]`
 fn parse_pl_block(p: &mut SqlParser) -> ParsedSyntax {
-    if !p.at(T![begin]) && !p.at(T![declare]) {
+    if !p.at(T![begin]) && !p.at(T![declare]) && !p.at(T![<<]) {
         return Absent;
     }
 
     let m = p.start();
+    let label = parse_pl_label(p);
+    parse_pl_block_rest(p, m, label.as_deref())
+}
+
+/// The block after its optional `label`, which `m` already holds.
+fn parse_pl_block_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> ParsedSyntax {
     let _ = parse_pl_declare_section(p);
     p.expect(T![begin]);
     parse_pl_statement_list(p);
     p.expect(T![end]);
+    parse_pl_end_label(p, label);
     p.eat(T![;]);
     Present(m.complete(p, PSQL_PL_BLOCK))
+}
+
+/// `<<name>>`; returns the label's name.
+fn parse_pl_label(p: &mut SqlParser) -> Option<String> {
+    if !p.at(T![<<]) {
+        return None;
+    }
+
+    let m = p.start();
+    p.bump(T![<<]);
+    let name = is_at_name_start(p).then(|| p.text(p.cur_range()).to_string());
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    p.expect(T![>>]);
+    m.complete(p, PSQL_PL_LABEL);
+    name
+}
+
+/// A label name after `EXIT`/`CONTINUE`.
+fn parse_pl_label_reference(p: &mut SqlParser) -> ParsedSyntax {
+    if p.at(T![when]) {
+        return Absent;
+    }
+    parse_name(p)
+}
+
+/// The optional label repeated after `END [LOOP]`, which must match the
+/// opening `label`.
+fn parse_pl_end_label(p: &mut SqlParser, label: Option<&str>) {
+    if !is_at_name_start(p) {
+        return;
+    }
+
+    let range = p.cur_range();
+    let end_label = p.text(range).to_string();
+    let _ = parse_name(p);
+    match label {
+        Some(label) if label.eq_ignore_ascii_case(&end_label) => {}
+        Some(label) => {
+            let err = p.err_builder(
+                format!("End label `{end_label}` differs from the label `{label}`"),
+                range,
+            );
+            p.error(err);
+        }
+        None => {
+            let err = p.err_builder(
+                format!("End label `{end_label}` specified for an unlabelled block"),
+                range,
+            );
+            p.error(err);
+        }
+    }
+}
+
+/// A labelled statement: `<<name>>` followed by a block or a loop.
+fn parse_pl_labelled_statement(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    let label = parse_pl_label(p);
+    if p.at(T![loop]) {
+        parse_pl_loop_body(p, label.as_deref()).ok();
+        return Present(m.complete(p, PSQL_PL_LOOP_STATEMENT));
+    }
+    parse_pl_block_rest(p, m, label.as_deref())
+}
+
+/// `LOOP statement; ... END LOOP [label];`
+fn parse_pl_loop_body(p: &mut SqlParser, label: Option<&str>) -> ParsedSyntax {
+    if !p.at(T![loop]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![loop]);
+    parse_pl_statement_list(p);
+    p.expect(T![end]);
+    p.expect(T![loop]);
+    parse_pl_end_label(p, label);
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_LOOP_BODY))
+}
+
+/// `{EXIT | CONTINUE} [label] [WHEN cond];`
+fn parse_pl_exit_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![exit]) && !p.at(T![continue]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any();
+    let _ = parse_pl_label_reference(p);
+    if p.at(T![when]) {
+        let when = p.start();
+        p.bump(T![when]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        when.complete(p, PSQL_PL_EXIT_WHEN_CLAUSE);
+    }
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_EXIT_STATEMENT))
 }
 
 fn parse_pl_declare_section(p: &mut SqlParser) -> ParsedSyntax {
@@ -172,6 +277,17 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     // Inside a body `begin` opens a nested block, not a transaction.
     if p.at(T![begin]) || p.at(T![declare]) {
         return parse_pl_block(p);
+    }
+    if p.at(T![<<]) {
+        return parse_pl_labelled_statement(p);
+    }
+    if p.at(T![loop]) {
+        let m = p.start();
+        parse_pl_loop_body(p, None).ok();
+        return Present(m.complete(p, PSQL_PL_LOOP_STATEMENT));
+    }
+    if p.at(T![exit]) || p.at(T![continue]) {
+        return parse_pl_exit_statement(p);
     }
     if p.at(T![if]) {
         return parse_pl_if_statement(p);

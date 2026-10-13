@@ -622,6 +622,7 @@ impl<'src> SqlLexer<'src> {
     fn resolve_more_than(&mut self) -> SqlSyntaxKind {
         match self.next_byte() {
             Some(b'>') => {
+                self.next_byte();
                 T![>>]
             }
             Some(b'=') => {

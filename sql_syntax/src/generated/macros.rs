@@ -290,8 +290,28 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlExecuteStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_EXIT_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlExitStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_EXIT_WHEN_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlExitWhenClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_IF_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlIfStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_LABEL => {
+                    let $pattern = unsafe { $crate::PsqlPlLabel::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_LOOP_BODY => {
+                    let $pattern = unsafe { $crate::PsqlPlLoopBody::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_LOOP_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlLoopStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_PERFORM_STATEMENT => {
