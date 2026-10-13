@@ -280,7 +280,17 @@ impl OperatorPrecedence {
             | T![!~~]
             | T![~~*]
             | T![!~~*] => OperatorPrecedence::Relational,
-            T![||] | T![->] | T![->>] | T![?] => OperatorPrecedence::Concat,
+            T![||]
+            | T![->]
+            | T![->>]
+            | T![?]
+            | T![?|]
+            | T![?&]
+            | T![@>]
+            | T![<@]
+            | T![#>]
+            | T![#>>]
+            | T![#-] => OperatorPrecedence::Concat,
             T![<<] | T![>>] => OperatorPrecedence::Shift,
             T![+] | T![-] => OperatorPrecedence::Additive,
             T![*] | T![/] | T![%] => OperatorPrecedence::Multiplicative,

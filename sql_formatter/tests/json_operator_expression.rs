@@ -76,3 +76,31 @@ where journal_entry.data -> 'data_old' ? 'planned_time'
 "#
     );
 }
+
+#[test]
+fn format_jsonb_operators_normalize_spacing() {
+    assert_fmt_eq!(
+        r#"--
+select d?|array['a'], d?&array['a'], d@>'{}', '{}'<@d, d#>'{a}', d#>>'{a}', d#-'{a}' from t
+"#,
+        r#"--
+select d ?| array['a'], d ?& array['a'], d @> '{}', '{}' <@ d, d #> '{a}', d #>> '{a}', d #- '{a}' from t
+"#
+    );
+}
+
+#[test]
+fn format_long_condition_with_jsonb_containment_wraps() {
+    assert_fmt_eq!(
+        r#"--
+select a from t where journal_entry.payload @> '{"kind": "payment"}' and journal_entry.payload #>> '{owner,code}' = 'first_owner' and journal_entry.tags ?| array['urgent', 'manual']
+"#,
+        r#"--
+select a
+from t
+where journal_entry.payload @> '{"kind": "payment"}'
+	and journal_entry.payload #>> '{owner,code}' = 'first_owner'
+	and journal_entry.tags ?| array['urgent', 'manual']
+"#
+    );
+}

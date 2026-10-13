@@ -344,6 +344,21 @@ impl<'src> SqlLexer<'src> {
     /// dialect as a temp-table name -- not real Postgres syntax. Never
     /// resolves to a keyword: `#` can't be part of any real keyword, so
     /// unlike [Self::resolve_identifier] there's no ambiguity to check.
+    fn resolve_hash_operator(&mut self) -> SqlSyntaxKind {
+        self.advance(1); // '#'
+        if self.current_byte() == Some(b'-') {
+            self.advance(1);
+            return T![#-];
+        }
+        self.advance(1); // '>'
+        if self.current_byte() == Some(b'>') {
+            self.advance(1);
+            T![#>>]
+        } else {
+            T![#>]
+        }
+    }
+
     fn resolve_hash_identifier(&mut self) -> SqlSyntaxKind {
         self.advance(1); // '#'
         while self.advance_id_continue() {}
@@ -534,6 +549,10 @@ impl<'src> SqlLexer<'src> {
             Some(b'=') => {
                 self.next_byte();
                 T![<=]
+            }
+            Some(b'@') => {
+                self.next_byte();
+                T![<@]
             }
             _ => T![<],
         }
@@ -801,6 +820,9 @@ impl<'src> SqlLexer<'src> {
                 self.push_diagnostic(err);
                 ERROR_TOKEN
             }
+            // `#>`/`#>>`/`#-` jsonb path operators; a `#name` temp table never
+            // continues with `>` or `-`.
+            HAS if matches!(self.byte_at(1), Some(b'>' | b'-')) => self.resolve_hash_operator(),
             HAS if self.source_type.has_mlang_extension() => self.resolve_hash_identifier(),
             DOL => self.read_dollar_string(),
             DIG | ZER => self.resolve_number(),
@@ -824,8 +846,16 @@ impl<'src> SqlLexer<'src> {
             SLH => self.read_slash(),
             EQL => self.resolve_eq(),
             PRC => self.eat_byte(T![%]),
-            // `?` -- the jsonb key-exists operator.
-            QST => self.eat_byte(T![?]),
+            // `?`/`?|`/`?&` -- jsonb key-exists operators.
+            QST => match self.next_byte() {
+                Some(b'|') => self.eat_byte(T![?|]),
+                Some(b'&') => self.eat_byte(T![?&]),
+                _ => T![?],
+            },
+            AT_ if self.byte_at(1) == Some(b'>') => {
+                self.advance(2);
+                T![@>]
+            }
             EXL => self.resolve_bang(),
             _ => {
                 let err = ParseDiagnostic::new(
