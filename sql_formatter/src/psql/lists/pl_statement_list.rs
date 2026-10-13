@@ -10,3 +10,25 @@ impl FormatRule<PsqlPlStatementList> for FormatPsqlPlStatementList {
             .finish()
     }
 }
+
+/// The statements of a block or `IF` branch: indented on their own lines, or
+/// just a line break when there are none.
+pub(crate) struct FormatPlBranchStatements<'a> {
+    statements: &'a PsqlPlStatementList,
+}
+
+impl<'a> FormatPlBranchStatements<'a> {
+    pub(crate) fn new(statements: &'a PsqlPlStatementList) -> Self {
+        Self { statements }
+    }
+}
+
+impl Format<SqlFormatContext> for FormatPlBranchStatements<'_> {
+    fn fmt(&self, f: &mut SqlFormatter) -> FormatResult<()> {
+        if self.statements.is_empty() {
+            hard_line_break().fmt(f)
+        } else {
+            block_indent(&self.statements.format()).fmt(f)
+        }
+    }
+}

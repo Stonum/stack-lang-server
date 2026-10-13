@@ -274,6 +274,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlDeclareSection::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_ELSE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlElseClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlElsifClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_IF_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlIfStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_VARIABLE_DECLARATION => {
                     let $pattern =
                         unsafe { $crate::PsqlPlVariableDeclaration::new_unchecked(node) };
@@ -1063,6 +1075,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_DECLARATION_LIST => {
                     let $pattern = unsafe { $crate::PsqlPlDeclarationList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlPlElsifClauseList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_STATEMENT_LIST => {

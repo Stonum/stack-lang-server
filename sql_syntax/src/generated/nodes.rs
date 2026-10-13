@@ -3240,6 +3240,171 @@ pub struct PsqlPlDeclareSectionFields {
     pub declarations: PsqlPlDeclarationList,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlElseClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlElseClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlElseClauseFields {
+        PsqlPlElseClauseFields {
+            else_token: self.else_token(),
+            statements: self.statements(),
+        }
+    }
+    pub fn else_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn statements(&self) -> PsqlPlStatementList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlElseClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlElseClauseFields {
+    pub else_token: SyntaxResult<SyntaxToken>,
+    pub statements: PsqlPlStatementList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlElsifClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlElsifClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlElsifClauseFields {
+        PsqlPlElsifClauseFields {
+            elsif_token: self.elsif_token(),
+            condition: self.condition(),
+            then_token: self.then_token(),
+            statements: self.statements(),
+        }
+    }
+    pub fn elsif_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn then_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn statements(&self) -> PsqlPlStatementList {
+        support::list(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlPlElsifClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlElsifClauseFields {
+    pub elsif_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnySqlExpression>,
+    pub then_token: SyntaxResult<SyntaxToken>,
+    pub statements: PsqlPlStatementList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlIfStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlIfStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlIfStatementFields {
+        PsqlPlIfStatementFields {
+            if_token: self.if_token(),
+            condition: self.condition(),
+            then_token: self.then_token(),
+            statements: self.statements(),
+            elsif_clauses: self.elsif_clauses(),
+            else_clause: self.else_clause(),
+            end_token: self.end_token(),
+            end_if_token: self.end_if_token(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn if_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn condition(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn then_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn statements(&self) -> PsqlPlStatementList {
+        support::list(&self.syntax, 3usize)
+    }
+    pub fn elsif_clauses(&self) -> PsqlPlElsifClauseList {
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn else_clause(&self) -> Option<PsqlPlElseClause> {
+        support::node(&self.syntax, 5usize)
+    }
+    pub fn end_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 6usize)
+    }
+    pub fn end_if_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 7usize)
+    }
+    pub fn semicolon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 8usize)
+    }
+}
+impl Serialize for PsqlPlIfStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlIfStatementFields {
+    pub if_token: SyntaxResult<SyntaxToken>,
+    pub condition: SyntaxResult<AnySqlExpression>,
+    pub then_token: SyntaxResult<SyntaxToken>,
+    pub statements: PsqlPlStatementList,
+    pub elsif_clauses: PsqlPlElsifClauseList,
+    pub else_clause: Option<PsqlPlElseClause>,
+    pub end_token: SyntaxResult<SyntaxToken>,
+    pub end_if_token: SyntaxResult<SyntaxToken>,
+    pub semicolon_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlVariableDeclaration {
     pub(crate) syntax: SyntaxNode,
 }
@@ -12064,6 +12229,7 @@ pub enum AnyPsqlPlStatement {
     AnySqlStatement(AnySqlStatement),
     PsqlPlAssignmentStatement(PsqlPlAssignmentStatement),
     PsqlPlBlock(PsqlPlBlock),
+    PsqlPlIfStatement(PsqlPlIfStatement),
 }
 impl AnyPsqlPlStatement {
     pub fn as_any_sql_statement(&self) -> Option<&AnySqlStatement> {
@@ -12081,6 +12247,12 @@ impl AnyPsqlPlStatement {
     pub fn as_psql_pl_block(&self) -> Option<&PsqlPlBlock> {
         match &self {
             Self::PsqlPlBlock(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_if_statement(&self) -> Option<&PsqlPlIfStatement> {
+        match &self {
+            Self::PsqlPlIfStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -16919,6 +17091,171 @@ impl From<PsqlPlDeclareSection> for SyntaxNode {
 }
 impl From<PsqlPlDeclareSection> for SyntaxElement {
     fn from(n: PsqlPlDeclareSection) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlElseClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_ELSE_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_ELSE_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlElseClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlElseClause")
+                .field("else_token", &support::DebugSyntaxResult(self.else_token()))
+                .field("statements", &self.statements())
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlElseClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlElseClause> for SyntaxNode {
+    fn from(n: PsqlPlElseClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlElseClause> for SyntaxElement {
+    fn from(n: PsqlPlElseClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlElsifClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_ELSIF_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_ELSIF_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlElsifClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlElsifClause")
+                .field(
+                    "elsif_token",
+                    &support::DebugSyntaxResult(self.elsif_token()),
+                )
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field("then_token", &support::DebugSyntaxResult(self.then_token()))
+                .field("statements", &self.statements())
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlElsifClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlElsifClause> for SyntaxNode {
+    fn from(n: PsqlPlElsifClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlElsifClause> for SyntaxElement {
+    fn from(n: PsqlPlElsifClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlIfStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_IF_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_IF_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlIfStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlIfStatement")
+                .field("if_token", &support::DebugSyntaxResult(self.if_token()))
+                .field("condition", &support::DebugSyntaxResult(self.condition()))
+                .field("then_token", &support::DebugSyntaxResult(self.then_token()))
+                .field("statements", &self.statements())
+                .field("elsif_clauses", &self.elsif_clauses())
+                .field(
+                    "else_clause",
+                    &support::DebugOptionalElement(self.else_clause()),
+                )
+                .field("end_token", &support::DebugSyntaxResult(self.end_token()))
+                .field(
+                    "end_if_token",
+                    &support::DebugSyntaxResult(self.end_if_token()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugSyntaxResult(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlIfStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlIfStatement> for SyntaxNode {
+    fn from(n: PsqlPlIfStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlIfStatement> for SyntaxElement {
+    fn from(n: PsqlPlIfStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -27159,14 +27496,20 @@ impl From<PsqlPlBlock> for AnyPsqlPlStatement {
         Self::PsqlPlBlock(node)
     }
 }
+impl From<PsqlPlIfStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlIfStatement) -> Self {
+        Self::PsqlPlIfStatement(node)
+    }
+}
 impl AstNode for AnyPsqlPlStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnySqlStatement::KIND_SET
         .union(PsqlPlAssignmentStatement::KIND_SET)
-        .union(PsqlPlBlock::KIND_SET);
+        .union(PsqlPlBlock::KIND_SET)
+        .union(PsqlPlIfStatement::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
-            PSQL_PL_ASSIGNMENT_STATEMENT | PSQL_PL_BLOCK => true,
+            PSQL_PL_ASSIGNMENT_STATEMENT | PSQL_PL_BLOCK | PSQL_PL_IF_STATEMENT => true,
             k if AnySqlStatement::can_cast(k) => true,
             _ => false,
         }
@@ -27177,6 +27520,7 @@ impl AstNode for AnyPsqlPlStatement {
                 Self::PsqlPlAssignmentStatement(PsqlPlAssignmentStatement { syntax })
             }
             PSQL_PL_BLOCK => Self::PsqlPlBlock(PsqlPlBlock { syntax }),
+            PSQL_PL_IF_STATEMENT => Self::PsqlPlIfStatement(PsqlPlIfStatement { syntax }),
             _ => {
                 if let Some(any_sql_statement) = AnySqlStatement::cast(syntax) {
                     return Some(Self::AnySqlStatement(any_sql_statement));
@@ -27190,6 +27534,7 @@ impl AstNode for AnyPsqlPlStatement {
         match self {
             Self::PsqlPlAssignmentStatement(it) => &it.syntax,
             Self::PsqlPlBlock(it) => &it.syntax,
+            Self::PsqlPlIfStatement(it) => &it.syntax,
             Self::AnySqlStatement(it) => it.syntax(),
         }
     }
@@ -27197,6 +27542,7 @@ impl AstNode for AnyPsqlPlStatement {
         match self {
             Self::PsqlPlAssignmentStatement(it) => it.syntax,
             Self::PsqlPlBlock(it) => it.syntax,
+            Self::PsqlPlIfStatement(it) => it.syntax,
             Self::AnySqlStatement(it) => it.into_syntax(),
         }
     }
@@ -27207,6 +27553,7 @@ impl std::fmt::Debug for AnyPsqlPlStatement {
             Self::AnySqlStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlAssignmentStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlBlock(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlIfStatement(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -27216,6 +27563,7 @@ impl From<AnyPsqlPlStatement> for SyntaxNode {
             AnyPsqlPlStatement::AnySqlStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlAssignmentStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlBlock(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlIfStatement(it) => it.into(),
         }
     }
 }
@@ -31077,6 +31425,21 @@ impl std::fmt::Display for PsqlPlDeclareSection {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlPlElseClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlElsifClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlIfStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlPlVariableDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -32694,6 +33057,88 @@ impl IntoIterator for &PsqlPlDeclarationList {
 impl IntoIterator for PsqlPlDeclarationList {
     type Item = PsqlPlVariableDeclaration;
     type IntoIter = AstNodeListIterator<Language, PsqlPlVariableDeclaration>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlPlElsifClauseList {
+    syntax_list: SyntaxList,
+}
+impl PsqlPlElsifClauseList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlPlElsifClauseList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_ELSIF_CLAUSE_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_ELSIF_CLAUSE_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlPlElsifClauseList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstNodeList for PsqlPlElsifClauseList {
+    type Language = Language;
+    type Node = PsqlPlElsifClause;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlPlElsifClauseList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlPlElsifClauseList ")?;
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+impl IntoIterator for &PsqlPlElsifClauseList {
+    type Item = PsqlPlElsifClause;
+    type IntoIter = AstNodeListIterator<Language, PsqlPlElsifClause>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for PsqlPlElsifClauseList {
+    type Item = PsqlPlElsifClause;
+    type IntoIter = AstNodeListIterator<Language, PsqlPlElsifClause>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

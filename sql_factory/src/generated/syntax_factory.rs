@@ -2729,6 +2729,147 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_PL_DECLARE_SECTION, children)
             }
+            PSQL_PL_ELSE_CLAUSE => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![else]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlStatementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_ELSE_CLAUSE.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_ELSE_CLAUSE, children)
+            }
+            PSQL_PL_ELSIF_CLAUSE => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && matches!(element.kind(), T![elsif] | T![elseif])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![then]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlStatementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_ELSIF_CLAUSE.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_ELSIF_CLAUSE, children)
+            }
+            PSQL_PL_IF_STATEMENT => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<9usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![if]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && AnySqlExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![then]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlStatementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlElsifClauseList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlElseClause::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![end]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![if]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_IF_STATEMENT.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_IF_STATEMENT, children)
+            }
             PSQL_PL_VARIABLE_DECLARATION => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
@@ -9650,6 +9791,9 @@ impl SyntaxFactory for SqlSyntaxFactory {
             ),
             PSQL_PL_DECLARATION_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlPlVariableDeclaration::can_cast)
+            }
+            PSQL_PL_ELSIF_CLAUSE_LIST => {
+                Self::make_node_list_syntax(kind, children, PsqlPlElsifClause::can_cast)
             }
             PSQL_PL_STATEMENT_LIST => {
                 Self::make_node_list_syntax(kind, children, AnyPsqlPlStatement::can_cast)
