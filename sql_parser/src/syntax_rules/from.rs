@@ -1,4 +1,4 @@
-use super::stmt::is_at_go_separator;
+use super::stmt::is_at_next_statement;
 use biome_parser::parse_lists::ParseSeparatedList;
 use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
@@ -44,7 +44,7 @@ impl ParseSeparatedList for SqlFromItemList {
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         p.at(EOF)
-            || is_at_go_separator(p)
+            || is_at_next_statement(p)
             || p.at(T![where])
             || p.at(T![group_by])
             || p.at(T![having])

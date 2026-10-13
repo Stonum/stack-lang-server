@@ -16,6 +16,7 @@ impl FormatRule<AnySqlExpression> for FormatAnySqlExpression {
             AnySqlExpression::SqlCaseExpression(node) => node.format().fmt(f),
             AnySqlExpression::SqlCastFunctionExpression(node) => node.format().fmt(f),
             AnySqlExpression::SqlColReference(node) => node.format().fmt(f),
+            AnySqlExpression::SqlCollateExpression(node) => node.format().fmt(f),
             AnySqlExpression::SqlExistsExpression(node) => node.format().fmt(f),
             AnySqlExpression::SqlInExpression(node) => node.format().fmt(f),
             AnySqlExpression::SqlIsDistinctFromExpression(node) => node.format().fmt(f),

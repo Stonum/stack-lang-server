@@ -10,7 +10,7 @@ use super::expr::{
 use super::from::parse_from_clause;
 use super::parse_error::*;
 use super::postgres::select::{parse_distinct_on_clause, parse_limit_clause};
-use super::stmt::is_at_go_separator;
+use super::stmt::is_at_next_statement;
 use super::where_clause::parse_where_clause;
 use crate::SqlParser;
 use sql_syntax::{SqlSyntaxKind::*, T, *};
@@ -126,7 +126,7 @@ impl ParseSeparatedList for SqlGroupByItemList {
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         p.at(EOF)
-            || is_at_go_separator(p)
+            || is_at_next_statement(p)
             || p.at(T![;])
             || p.at(T![having])
             || p.at(T![union])
@@ -202,7 +202,7 @@ impl ParseSeparatedList for SqlOrderByExpressionList {
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         p.at(EOF)
-            || is_at_go_separator(p)
+            || is_at_next_statement(p)
             || p.at(T![;])
             || p.at(T![limit])
             || p.at(T![offset])
@@ -319,7 +319,7 @@ impl ParseSeparatedList for SqlSelectItemList {
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
         p.at(EOF)
-            || is_at_go_separator(p)
+            || is_at_next_statement(p)
             || p.at(T![;])
             || p.at(T![from])
             || p.at(T![where])

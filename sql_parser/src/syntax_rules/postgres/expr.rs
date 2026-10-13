@@ -271,9 +271,18 @@ fn parse_substring_for_clause(p: &mut SqlParser) -> ParsedSyntax {
 /// wraps an expression already parsed by the caller rather than parsing
 /// from scratch (same shape as [parse_array_subscript_tail]).
 pub(crate) fn parse_cast_tail(p: &mut SqlParser, mut expression: ParsedSyntax) -> ParsedSyntax {
-    while p.at(T![::]) {
+    while p.at(T![::]) || p.at(T![collate]) {
         if expression.is_absent() {
             break;
+        }
+
+        // `x COLLATE collation` shares the `::` tier and isn't Postgres-only.
+        if p.at(T![collate]) {
+            let m = expression.precede(p);
+            p.bump(T![collate]);
+            parse_name(p).or_add_diagnostic(p, expected_identifier);
+            expression = Present(m.complete(p, SQL_COLLATE_EXPRESSION));
+            continue;
         }
 
         let m = expression.precede(p);

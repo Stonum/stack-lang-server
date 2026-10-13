@@ -11,6 +11,7 @@ pub(crate) mod alter_column_type;
 pub(crate) mod alter_trigger_action;
 pub(crate) mod check_constraint;
 pub(crate) mod col_reference;
+pub(crate) mod collate_constraint;
 pub(crate) mod column_definition;
 pub(crate) mod column_list;
 pub(crate) mod constraint_name;

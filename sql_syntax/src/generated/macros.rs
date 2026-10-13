@@ -493,6 +493,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlColReference::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_COLLATE_CONSTRAINT => {
+                    let $pattern = unsafe { $crate::SqlCollateConstraint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::SQL_COLLATE_EXPRESSION => {
+                    let $pattern = unsafe { $crate::SqlCollateExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_COLUMN_DEFINITION => {
                     let $pattern = unsafe { $crate::SqlColumnDefinition::new_unchecked(node) };
                     $body

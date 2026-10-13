@@ -120,10 +120,12 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
 }
 
-/// A `GO` batch separator starting a new line ends the preceding
-/// statement's lists even without a `;`.
-pub(crate) fn is_at_go_separator(p: &mut SqlParser) -> bool {
-    p.at(T![go]) && p.has_preceding_line_break()
+/// The start of the next statement in a batch without `;`: a `GO` on a new
+/// line or a reserved statement keyword (`select`, `with`, `create`, ...),
+/// which can never be a column name. Ends the preceding statement's lists.
+pub(crate) fn is_at_next_statement(p: &mut SqlParser) -> bool {
+    (p.at(T![go]) && p.has_preceding_line_break())
+        || (p.at_ts(STMT_RECOVERY_SET) && p.cur().is_reserved_keyword())
 }
 
 /// `GO` on its own line: a client-side batch separator, accepted in mlang
