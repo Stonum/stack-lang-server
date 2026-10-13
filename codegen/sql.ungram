@@ -1058,6 +1058,7 @@ AnyPsqlPlStatement =
    | PsqlPlOpenStatement
    | PsqlPlFetchStatement
    | PsqlPlCloseStatement
+   | PsqlPlCaseStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1271,6 +1272,24 @@ PsqlPlCloseStatement =
    'close'
    cursor: SqlName
    ';'
+
+// `CASE [expr] WHEN value, ... THEN ... [ELSE ...] END CASE;`
+PsqlPlCaseStatement =
+   'case'
+   value: AnySqlExpression?
+   when_clauses: PsqlPlCaseWhenClauseList
+   else_clause: PsqlPlElseClause?
+   'end'
+   end_case: 'case'
+   ';'
+
+PsqlPlCaseWhenClauseList = PsqlPlCaseWhenClause*
+
+PsqlPlCaseWhenClause =
+   'when'
+   conditions: SqlExpressionList
+   'then'
+   statements: PsqlPlStatementList
 
 // `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
 // discarded.

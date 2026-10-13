@@ -2083,6 +2083,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlBody {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlCaseStatement>
+    for crate::psql::statements::pl_case_statement::FormatPsqlPlCaseStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlCaseStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlCaseStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlCaseStatement,
+        crate::psql::statements::pl_case_statement::FormatPsqlPlCaseStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_case_statement::FormatPsqlPlCaseStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlCaseStatement,
+        crate::psql::statements::pl_case_statement::FormatPsqlPlCaseStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_case_statement::FormatPsqlPlCaseStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlCaseWhenClause>
+    for crate::psql::clauses::pl_case_when_clause::FormatPsqlPlCaseWhenClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlCaseWhenClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlCaseWhenClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseWhenClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlCaseWhenClause,
+        crate::psql::clauses::pl_case_when_clause::FormatPsqlPlCaseWhenClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::pl_case_when_clause::FormatPsqlPlCaseWhenClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseWhenClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlCaseWhenClause,
+        crate::psql::clauses::pl_case_when_clause::FormatPsqlPlCaseWhenClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::pl_case_when_clause::FormatPsqlPlCaseWhenClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlCloseStatement>
     for crate::psql::statements::pl_close_statement::FormatPsqlPlCloseStatement
 {
@@ -9686,6 +9762,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlFunctionParameterList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::function_parameter_list::FormatPsqlFunctionParameterList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseWhenClauseList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlCaseWhenClauseList,
+        crate::psql::lists::pl_case_when_clause_list::FormatPsqlPlCaseWhenClauseList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::pl_case_when_clause_list::FormatPsqlPlCaseWhenClauseList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseWhenClauseList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlCaseWhenClauseList,
+        crate::psql::lists::pl_case_when_clause_list::FormatPsqlPlCaseWhenClauseList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::pl_case_when_clause_list::FormatPsqlPlCaseWhenClauseList::default(),
         )
     }
 }
