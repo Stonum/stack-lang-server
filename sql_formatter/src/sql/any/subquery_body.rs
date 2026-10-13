@@ -8,6 +8,7 @@ impl FormatRule<AnySqlSubqueryBody> for FormatAnySqlSubqueryBody {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &AnySqlSubqueryBody, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
+            AnySqlSubqueryBody::SqlCompoundSelectStatement(node) => node.format().fmt(f),
             AnySqlSubqueryBody::SqlSelectStatement(node) => node.format().fmt(f),
             AnySqlSubqueryBody::SqlValuesClause(node) => node.format().fmt(f),
         }

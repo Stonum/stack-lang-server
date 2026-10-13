@@ -14,6 +14,7 @@ impl FormatRule<AnySqlStatement> for FormatAnySqlStatement {
             AnySqlStatement::SqlBogusStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCallStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCommitStatement(node) => node.format().fmt(f),
+            AnySqlStatement::SqlCompoundSelectStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateIndexStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateTableAsStatement(node) => node.format().fmt(f),
             AnySqlStatement::SqlCreateTableStatement(node) => node.format().fmt(f),

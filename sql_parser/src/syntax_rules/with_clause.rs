@@ -6,7 +6,10 @@ use biome_parser::prelude::*;
 use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, parse_name};
 use super::parse_error::*;
 use super::postgres::with_clause::{eat_recursive_modifier, parse_cte_materialized_hint};
-use super::select::parse_select_statement_body;
+use super::select::{
+    is_at_parenthesized_set_operand, parse_compound_select_statement_body,
+    parse_select_statement_body,
+};
 use super::stmt::parse_statement;
 use super::values::parse_values_clause_body;
 use crate::SqlParser;
@@ -40,6 +43,9 @@ pub(crate) fn parse_with_prefixed_select_statement(p: &mut SqlParser) -> ParsedS
     if p.at(T![values]) {
         return parse_values_clause_body(p, m);
     }
+    if is_at_parenthesized_set_operand(p) {
+        return parse_compound_select_statement_body(p, m);
+    }
     parse_select_statement_body(p, m)
 }
 
@@ -61,6 +67,7 @@ impl ParseSeparatedList for SqlCteDefinitionList {
         // than "not at an identifier" (which would misfire on `,`).
         p.at(EOF)
             || p.at(T![select])
+            || is_at_parenthesized_set_operand(p)
             || p.at(T![values])
             || p.at(T![insert])
             || p.at(T![update])

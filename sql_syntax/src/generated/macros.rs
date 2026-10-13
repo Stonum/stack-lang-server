@@ -530,6 +530,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlCommitStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_COMPOUND_SELECT_STATEMENT => {
+                    let $pattern =
+                        unsafe { $crate::SqlCompoundSelectStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_CONSTRAINT_NAME => {
                     let $pattern = unsafe { $crate::SqlConstraintName::new_unchecked(node) };
                     $body

@@ -3217,6 +3217,56 @@ impl SqlCommitStatement {
         )
     }
 }
+impl SqlCompoundSelectStatement {
+    pub fn with_with_clause(self, element: Option<SqlWithClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            0usize..=0usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_first(self, element: SqlSubqueryExpression) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_set_operations(self, element: SqlSetOperationList) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+        )
+    }
+    pub fn with_order_by_clause(self, element: Option<SqlOrderByClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            3usize..=3usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_limit_clause(self, element: Option<PsqlLimitClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            4usize..=4usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_offset_clause(self, element: Option<SqlOffsetClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            5usize..=5usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_fetch_clause(self, element: Option<SqlFetchClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            6usize..=6usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_semicolon_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(7usize..=7usize, once(element.map(|element| element.into()))),
+        )
+    }
+}
 impl SqlConstraintName {
     pub fn with_constraint_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -5252,11 +5302,11 @@ impl SqlSetOperation {
                 .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
         )
     }
-    pub fn with_select_clause(self, element: SqlSelectClause) -> Self {
-        Self::unwrap_cast(
-            self.syntax
-                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
-        )
+    pub fn with_select_clause(self, element: Option<SqlSelectClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            2usize..=2usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
     }
     pub fn with_from_clause(self, element: Option<SqlFromClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
@@ -5279,6 +5329,12 @@ impl SqlSetOperation {
     pub fn with_having_clause(self, element: Option<SqlHavingClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
             6usize..=6usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
+    pub fn with_subquery(self, element: Option<SqlSubqueryExpression>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            7usize..=7usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
