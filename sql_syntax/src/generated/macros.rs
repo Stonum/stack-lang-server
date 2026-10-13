@@ -290,6 +290,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlIfStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_PERFORM_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlPerformStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_VARIABLE_DECLARATION => {
                     let $pattern =
                         unsafe { $crate::PsqlPlVariableDeclaration::new_unchecked(node) };

@@ -1020,6 +1020,7 @@ AnyPsqlPlStatement =
    | PsqlPlBlock
    | PsqlPlAssignmentStatement
    | PsqlPlIfStatement
+   | PsqlPlPerformStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
 // `array[index]`.
@@ -1042,6 +1043,15 @@ PsqlPlIfStatement =
    ';'
 
 PsqlPlElsifClauseList = PsqlPlElsifClause*
+
+// `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
+// discarded.
+PsqlPlPerformStatement =
+   'perform'
+   list: SqlSelectItemList
+   from_clause: SqlFromClause?
+   where_clause: SqlWhereClause?
+   ';'
 
 // `ELSIF cond THEN ...` (`ELSEIF` is an alias)
 PsqlPlElsifClause =

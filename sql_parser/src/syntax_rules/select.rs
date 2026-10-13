@@ -445,7 +445,7 @@ fn parse_fetch_tail(p: &mut SqlParser) -> ParsedSyntax {
     Absent
 }
 
-struct SqlSelectItemList;
+pub(crate) struct SqlSelectItemList;
 
 impl ParseSeparatedList for SqlSelectItemList {
     type Kind = SqlSyntaxKind;

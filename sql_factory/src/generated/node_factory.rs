@@ -2019,6 +2019,50 @@ impl PsqlPlIfStatementBuilder {
         ))
     }
 }
+pub fn psql_pl_perform_statement(
+    perform_token: SyntaxToken,
+    list: SqlSelectItemList,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlPerformStatementBuilder {
+    PsqlPlPerformStatementBuilder {
+        perform_token,
+        list,
+        semicolon_token,
+        from_clause: None,
+        where_clause: None,
+    }
+}
+pub struct PsqlPlPerformStatementBuilder {
+    perform_token: SyntaxToken,
+    list: SqlSelectItemList,
+    semicolon_token: SyntaxToken,
+    from_clause: Option<SqlFromClause>,
+    where_clause: Option<SqlWhereClause>,
+}
+impl PsqlPlPerformStatementBuilder {
+    pub fn with_from_clause(mut self, from_clause: SqlFromClause) -> Self {
+        self.from_clause = Some(from_clause);
+        self
+    }
+    pub fn with_where_clause(mut self, where_clause: SqlWhereClause) -> Self {
+        self.where_clause = Some(where_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlPerformStatement {
+        PsqlPlPerformStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_PERFORM_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.perform_token)),
+                Some(SyntaxElement::Node(self.list.into_syntax())),
+                self.from_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.where_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_variable_declaration(
     name: SqlName,
     ty: SqlTypeName,
