@@ -2788,21 +2788,33 @@ impl SqlCallExpression {
                 .splice_slots(2usize..=2usize, once(Some(element.into()))),
         )
     }
+    pub fn with_quantifier_token(self, element: Option<SyntaxToken>) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(3usize..=3usize, once(element.map(|element| element.into()))),
+        )
+    }
     pub fn with_arguments(self, element: SqlCallArgumentList) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(4usize..=4usize, once(Some(element.into_syntax().into()))),
         )
+    }
+    pub fn with_order_by(self, element: Option<SqlOrderByClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            5usize..=5usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
     }
     pub fn with_r_paren_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(4usize..=4usize, once(Some(element.into()))),
+                .splice_slots(6usize..=6usize, once(Some(element.into()))),
         )
     }
     pub fn with_filter_clause(self, element: Option<PsqlFilterClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
-            5usize..=5usize,
+            7usize..=7usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }

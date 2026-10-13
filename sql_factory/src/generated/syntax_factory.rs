@@ -4301,7 +4301,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             SQL_CALL_EXPRESSION => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<8usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && SqlShemaName::can_cast(element.kind())
@@ -4325,7 +4325,21 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
+                    && matches!(element.kind(), T![distinct] | T![all])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
                     && SqlCallArgumentList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlOrderByClause::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();

@@ -1464,11 +1464,15 @@ SqlCaseElseClause =
    'else'
    result: AnySqlExpression
 
+// `name([DISTINCT | ALL] arg, ... [ORDER BY ...]) [FILTER (...)]` -- the
+// quantifier and `ORDER BY` only make sense for aggregates.
 SqlCallExpression =
    schema: SqlShemaName?
    name: AnySqlName
    '('
+   quantifier: ('distinct' | 'all')?
    arguments: SqlCallArgumentList
+   order_by: SqlOrderByClause?
    ')'
    filter_clause: PsqlFilterClause?
 
