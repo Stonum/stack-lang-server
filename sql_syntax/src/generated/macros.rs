@@ -298,6 +298,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlPerformStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_RAISE_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlPlRaiseOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_RAISE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlRaiseStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_RAISE_USING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlRaiseUsingClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_USING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPlUsingClause::new_unchecked(node) };
                     $body
@@ -1095,6 +1107,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE_LIST => {
                     let $pattern = unsafe { $crate::PsqlPlElsifClauseList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_RAISE_OPTION_LIST => {
+                    let $pattern = unsafe { $crate::PsqlPlRaiseOptionList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_STATEMENT_LIST => {

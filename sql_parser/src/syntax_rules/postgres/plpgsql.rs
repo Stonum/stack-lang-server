@@ -9,8 +9,8 @@ use biome_parser::prelude::*;
 use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
 use crate::syntax_rules::expr::{
-    is_at_name_start, parse_binary_or_logical_expression, parse_expression, parse_name,
-    parse_type_name,
+    is_at_name_start, parse_binary_or_logical_expression, parse_expression, parse_label,
+    parse_name, parse_type_name,
 };
 use crate::syntax_rules::from::parse_from_clause;
 use crate::syntax_rules::parse_error::{
@@ -182,6 +182,9 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![execute]) {
         return parse_pl_execute_statement(p);
     }
+    if p.at(T![raise]) {
+        return parse_pl_raise_statement(p);
+    }
     if is_at_pl_assignment(p) {
         return parse_pl_assignment_statement(p);
     }
@@ -210,6 +213,75 @@ fn parse_pl_execute_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     p.expect(T![;]);
     Present(m.complete(p, PSQL_PL_EXECUTE_STATEMENT))
+}
+
+const RAISE_LEVEL_SET: TokenSet<SqlSyntaxKind> = token_set![
+    T![debug],
+    T![log],
+    T![info],
+    T![notice],
+    T![warning],
+    T![exception]
+];
+
+/// `RAISE [level] ['format', arg, ... | condition | SQLSTATE 'code']
+/// [USING option = value, ...];`
+fn parse_pl_raise_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![raise]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![raise]);
+    p.eat_ts(RAISE_LEVEL_SET);
+    let sqlstate = p.eat(T![sqlstate]);
+    let arguments = UnbracketedExpressionList.parse_list(p);
+    if sqlstate && arguments.range(p).is_empty() {
+        let range = p.cur_range();
+        p.error(expected_expression(p, range));
+    }
+
+    if p.at(T![using]) {
+        let using = p.start();
+        p.bump(T![using]);
+        let options = p.start();
+        let mut progress = ParserProgress::default();
+        loop {
+            progress.assert_progressing(p);
+            if parse_pl_raise_option(p)
+                .or_recover_with_token_set(
+                    p,
+                    &ParseRecoveryTokenSet::new(
+                        SQL_BOGUS,
+                        PL_STATEMENT_RECOVERY_SET.union(token_set![T![,], T![;]]),
+                    ),
+                    expected_raise_option,
+                )
+                .is_err()
+                || !p.eat(T![,])
+            {
+                break;
+            }
+        }
+        options.complete(p, PSQL_PL_RAISE_OPTION_LIST);
+        using.complete(p, PSQL_PL_RAISE_USING_CLAUSE);
+    }
+
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_RAISE_STATEMENT))
+}
+
+/// `name = value`; option names (`column`, `table`, ...) may be keywords.
+fn parse_pl_raise_option(p: &mut SqlParser) -> ParsedSyntax {
+    if !is_at_name_start(p) && !p.cur().is_keyword() {
+        return Absent;
+    }
+
+    let m = p.start();
+    parse_label(p).or_add_diagnostic(p, expected_identifier);
+    p.expect(T![=]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    Present(m.complete(p, PSQL_PL_RAISE_OPTION))
 }
 
 /// `PERFORM items [FROM ...] [WHERE ...];`
@@ -325,6 +397,10 @@ fn parse_pl_assignment_statement(p: &mut SqlParser) -> ParsedSyntax {
 
 fn expected_declaration(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     p.err_builder("Expected a variable declaration", range)
+}
+
+fn expected_raise_option(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    p.err_builder("Expected a `name = value` option", range)
 }
 
 fn expected_pl_block(p: &SqlParser, range: TextRange) -> ParseDiagnostic {

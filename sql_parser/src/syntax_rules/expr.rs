@@ -1120,7 +1120,7 @@ pub(crate) fn is_at_name_start(p: &mut SqlParser) -> bool {
 }
 
 /// A name after `AS` (Postgres `ColLabel`): any keyword, reserved or not.
-fn parse_label(p: &mut SqlParser) -> ParsedSyntax {
+pub(crate) fn parse_label(p: &mut SqlParser) -> ParsedSyntax {
     if !is_at_name_start(p) && p.cur().is_keyword() {
         let m = p.start();
         p.bump_remap(T![ident]);
