@@ -11,6 +11,7 @@ impl FormatRule<AnyPsqlPlForSource> for FormatAnyPsqlPlForSource {
             AnyPsqlPlForSource::AnySqlStatement(node) => node.format().fmt(f),
             AnyPsqlPlForSource::SqlSubqueryExpression(node) => node.format().fmt(f),
             AnyPsqlPlForSource::PsqlPlForExecuteSource(node) => node.format().fmt(f),
+            AnyPsqlPlForSource::PsqlPlForRangeSource(node) => node.format().fmt(f),
         }
     }
 }

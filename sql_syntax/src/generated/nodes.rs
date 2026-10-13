@@ -3575,6 +3575,101 @@ pub struct PsqlPlForExecuteSourceFields {
     pub using_clause: Option<PsqlPlUsingClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlForRangeSource {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlForRangeSource {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlForRangeSourceFields {
+        PsqlPlForRangeSourceFields {
+            reverse_token: self.reverse_token(),
+            lower: self.lower(),
+            dot2_token: self.dot2_token(),
+            upper: self.upper(),
+            step: self.step(),
+        }
+    }
+    pub fn reverse_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn lower(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn dot2_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn upper(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn step(&self) -> Option<PsqlPlForRangeStep> {
+        support::node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlPlForRangeSource {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlForRangeSourceFields {
+    pub reverse_token: Option<SyntaxToken>,
+    pub lower: SyntaxResult<AnySqlExpression>,
+    pub dot2_token: SyntaxResult<SyntaxToken>,
+    pub upper: SyntaxResult<AnySqlExpression>,
+    pub step: Option<PsqlPlForRangeStep>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlForRangeStep {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlForRangeStep {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlForRangeStepFields {
+        PsqlPlForRangeStepFields {
+            by_token: self.by_token(),
+            value: self.value(),
+        }
+    }
+    pub fn by_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlForRangeStep {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlForRangeStepFields {
+    pub by_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlForStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -13074,6 +13169,7 @@ pub enum AnyPsqlPlForSource {
     AnySqlStatement(AnySqlStatement),
     SqlSubqueryExpression(SqlSubqueryExpression),
     PsqlPlForExecuteSource(PsqlPlForExecuteSource),
+    PsqlPlForRangeSource(PsqlPlForRangeSource),
 }
 impl AnyPsqlPlForSource {
     pub fn as_any_sql_statement(&self) -> Option<&AnySqlStatement> {
@@ -13091,6 +13187,12 @@ impl AnyPsqlPlForSource {
     pub fn as_psql_pl_for_execute_source(&self) -> Option<&PsqlPlForExecuteSource> {
         match &self {
             Self::PsqlPlForExecuteSource(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_for_range_source(&self) -> Option<&PsqlPlForRangeSource> {
+        match &self {
+            Self::PsqlPlForRangeSource(item) => Some(item),
             _ => None,
         }
     }
@@ -18405,6 +18507,108 @@ impl From<PsqlPlForExecuteSource> for SyntaxNode {
 }
 impl From<PsqlPlForExecuteSource> for SyntaxElement {
     fn from(n: PsqlPlForExecuteSource) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlForRangeSource {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_FOR_RANGE_SOURCE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_FOR_RANGE_SOURCE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlForRangeSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlForRangeSource")
+                .field(
+                    "reverse_token",
+                    &support::DebugOptionalElement(self.reverse_token()),
+                )
+                .field("lower", &support::DebugSyntaxResult(self.lower()))
+                .field("dot2_token", &support::DebugSyntaxResult(self.dot2_token()))
+                .field("upper", &support::DebugSyntaxResult(self.upper()))
+                .field("step", &support::DebugOptionalElement(self.step()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlForRangeSource").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlForRangeSource> for SyntaxNode {
+    fn from(n: PsqlPlForRangeSource) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlForRangeSource> for SyntaxElement {
+    fn from(n: PsqlPlForRangeSource) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlForRangeStep {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_FOR_RANGE_STEP as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_FOR_RANGE_STEP
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlForRangeStep {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlForRangeStep")
+                .field("by_token", &support::DebugSyntaxResult(self.by_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlForRangeStep").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlForRangeStep> for SyntaxNode {
+    fn from(n: PsqlPlForRangeStep) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlForRangeStep> for SyntaxElement {
+    fn from(n: PsqlPlForRangeStep) -> Self {
         n.syntax.into()
     }
 }
@@ -29378,14 +29582,20 @@ impl From<PsqlPlForExecuteSource> for AnyPsqlPlForSource {
         Self::PsqlPlForExecuteSource(node)
     }
 }
+impl From<PsqlPlForRangeSource> for AnyPsqlPlForSource {
+    fn from(node: PsqlPlForRangeSource) -> Self {
+        Self::PsqlPlForRangeSource(node)
+    }
+}
 impl AstNode for AnyPsqlPlForSource {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnySqlStatement::KIND_SET
         .union(SqlSubqueryExpression::KIND_SET)
-        .union(PsqlPlForExecuteSource::KIND_SET);
+        .union(PsqlPlForExecuteSource::KIND_SET)
+        .union(PsqlPlForRangeSource::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
-            SQL_SUBQUERY_EXPRESSION | PSQL_PL_FOR_EXECUTE_SOURCE => true,
+            SQL_SUBQUERY_EXPRESSION | PSQL_PL_FOR_EXECUTE_SOURCE | PSQL_PL_FOR_RANGE_SOURCE => true,
             k if AnySqlStatement::can_cast(k) => true,
             _ => false,
         }
@@ -29398,6 +29608,7 @@ impl AstNode for AnyPsqlPlForSource {
             PSQL_PL_FOR_EXECUTE_SOURCE => {
                 Self::PsqlPlForExecuteSource(PsqlPlForExecuteSource { syntax })
             }
+            PSQL_PL_FOR_RANGE_SOURCE => Self::PsqlPlForRangeSource(PsqlPlForRangeSource { syntax }),
             _ => {
                 if let Some(any_sql_statement) = AnySqlStatement::cast(syntax) {
                     return Some(Self::AnySqlStatement(any_sql_statement));
@@ -29411,6 +29622,7 @@ impl AstNode for AnyPsqlPlForSource {
         match self {
             Self::SqlSubqueryExpression(it) => &it.syntax,
             Self::PsqlPlForExecuteSource(it) => &it.syntax,
+            Self::PsqlPlForRangeSource(it) => &it.syntax,
             Self::AnySqlStatement(it) => it.syntax(),
         }
     }
@@ -29418,6 +29630,7 @@ impl AstNode for AnyPsqlPlForSource {
         match self {
             Self::SqlSubqueryExpression(it) => it.syntax,
             Self::PsqlPlForExecuteSource(it) => it.syntax,
+            Self::PsqlPlForRangeSource(it) => it.syntax,
             Self::AnySqlStatement(it) => it.into_syntax(),
         }
     }
@@ -29428,6 +29641,7 @@ impl std::fmt::Debug for AnyPsqlPlForSource {
             Self::AnySqlStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlForExecuteSource(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlForRangeSource(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -29437,6 +29651,7 @@ impl From<AnyPsqlPlForSource> for SyntaxNode {
             AnyPsqlPlForSource::AnySqlStatement(it) => it.into(),
             AnyPsqlPlForSource::SqlSubqueryExpression(it) => it.into(),
             AnyPsqlPlForSource::PsqlPlForExecuteSource(it) => it.into(),
+            AnyPsqlPlForSource::PsqlPlForRangeSource(it) => it.into(),
         }
     }
 }
@@ -33539,6 +33754,16 @@ impl std::fmt::Display for PsqlPlExitWhenClause {
     }
 }
 impl std::fmt::Display for PsqlPlForExecuteSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlForRangeSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlForRangeStep {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

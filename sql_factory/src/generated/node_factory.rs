@@ -2107,6 +2107,61 @@ impl PsqlPlForExecuteSourceBuilder {
         ))
     }
 }
+pub fn psql_pl_for_range_source(
+    lower: AnySqlExpression,
+    dot2_token: SyntaxToken,
+    upper: AnySqlExpression,
+) -> PsqlPlForRangeSourceBuilder {
+    PsqlPlForRangeSourceBuilder {
+        lower,
+        dot2_token,
+        upper,
+        reverse_token: None,
+        step: None,
+    }
+}
+pub struct PsqlPlForRangeSourceBuilder {
+    lower: AnySqlExpression,
+    dot2_token: SyntaxToken,
+    upper: AnySqlExpression,
+    reverse_token: Option<SyntaxToken>,
+    step: Option<PsqlPlForRangeStep>,
+}
+impl PsqlPlForRangeSourceBuilder {
+    pub fn with_reverse_token(mut self, reverse_token: SyntaxToken) -> Self {
+        self.reverse_token = Some(reverse_token);
+        self
+    }
+    pub fn with_step(mut self, step: PsqlPlForRangeStep) -> Self {
+        self.step = Some(step);
+        self
+    }
+    pub fn build(self) -> PsqlPlForRangeSource {
+        PsqlPlForRangeSource::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_FOR_RANGE_SOURCE,
+            [
+                self.reverse_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.lower.into_syntax())),
+                Some(SyntaxElement::Token(self.dot2_token)),
+                Some(SyntaxElement::Node(self.upper.into_syntax())),
+                self.step
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_for_range_step(
+    by_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlPlForRangeStep {
+    PsqlPlForRangeStep::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_FOR_RANGE_STEP,
+        [
+            Some(SyntaxElement::Token(by_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_pl_for_statement(
     for_token: SyntaxToken,
     targets: PsqlPlForTargetList,

@@ -558,7 +558,8 @@ impl<'src> SqlLexer<'src> {
     fn resolve_number(&mut self) -> SqlSyntaxKind {
         self.consume_digits();
 
-        if self.current_byte() == Some(b'.') {
+        // `1..10` is a PL/pgSQL integer range, not `1.` followed by `.10`.
+        if self.current_byte() == Some(b'.') && self.peek_byte() != Some(b'.') {
             self.advance(1);
             self.consume_digits();
         }
@@ -903,7 +904,14 @@ impl<'src> SqlLexer<'src> {
             BTC => self.eat_byte(T![']']),
             COM => self.eat_byte(T![,]),
             SEM => self.eat_byte(T![;]),
-            PRD => self.eat_byte(T![.]),
+            PRD => {
+                if self.peek_byte() == Some(b'.') {
+                    self.advance(2);
+                    T![..]
+                } else {
+                    self.eat_byte(T![.])
+                }
+            }
             COL => self.resolve_colon(),
             LSS => self.resolve_less_than(),
             MOR => self.resolve_more_than(),

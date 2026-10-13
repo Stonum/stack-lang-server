@@ -8,7 +8,7 @@ use biome_parser::prelude::*;
 
 use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
-use crate::syntax_rules::expr::parse_subquery_expression;
+use crate::syntax_rules::expr::{at_subquery, parse_subquery_expression};
 use crate::syntax_rules::expr::{
     is_at_name_start, parse_binary_or_logical_expression, parse_expression, parse_label,
     parse_name, parse_type_name,
@@ -159,6 +159,31 @@ fn parse_pl_labelled_statement(p: &mut SqlParser) -> ParsedSyntax {
     parse_pl_block_rest(p, m, label.as_deref())
 }
 
+/// A query start: `select`, `with`, `values`, `table` or `(query)`.
+fn is_at_for_query(p: &mut SqlParser) -> bool {
+    p.at(T![select])
+        || p.at(T![with])
+        || p.at(T![values])
+        || p.at(T![table])
+        || (p.at(T!['(']) && at_subquery(p))
+}
+
+/// `[REVERSE] lower .. upper [BY step]`
+fn parse_pl_for_range_source(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    p.eat(T![reverse]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![..]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    if p.at(T![by]) {
+        let step = p.start();
+        p.bump(T![by]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        step.complete(p, PSQL_PL_FOR_RANGE_STEP);
+    }
+    Present(m.complete(p, PSQL_PL_FOR_RANGE_SOURCE))
+}
+
 /// `FOR target, ... IN source LOOP ... END LOOP [label];` after its optional
 /// `label`, which `m` already holds.
 fn parse_pl_for_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> ParsedSyntax {
@@ -199,6 +224,9 @@ fn parse_pl_for_source(p: &mut SqlParser) -> ParsedSyntax {
     }
     if p.at(T![loop]) {
         return Absent;
+    }
+    if p.at(T![reverse]) || !is_at_for_query(p) {
+        return parse_pl_for_range_source(p);
     }
 
     let outer = p.in_for_loop_query;
