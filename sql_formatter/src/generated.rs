@@ -2379,6 +2379,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlElsifClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlExceptionHandler>
+    for crate::psql::auxiliary::pl_exception_handler::FormatPsqlPlExceptionHandler
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlExceptionHandler,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlExceptionHandler>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionHandler {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExceptionHandler,
+        crate::psql::auxiliary::pl_exception_handler::FormatPsqlPlExceptionHandler,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_exception_handler::FormatPsqlPlExceptionHandler::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionHandler {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExceptionHandler,
+        crate::psql::auxiliary::pl_exception_handler::FormatPsqlPlExceptionHandler,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_exception_handler::FormatPsqlPlExceptionHandler::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlExceptionSection>
+    for crate::psql::auxiliary::pl_exception_section::FormatPsqlPlExceptionSection
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlExceptionSection,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlExceptionSection>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionSection {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExceptionSection,
+        crate::psql::auxiliary::pl_exception_section::FormatPsqlPlExceptionSection,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_exception_section::FormatPsqlPlExceptionSection::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionSection {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExceptionSection,
+        crate::psql::auxiliary::pl_exception_section::FormatPsqlPlExceptionSection,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_exception_section::FormatPsqlPlExceptionSection::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlExecuteStatement>
     for crate::psql::statements::pl_execute_statement::FormatPsqlPlExecuteStatement
 {
@@ -3356,6 +3432,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlScrollOption {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::pl_scroll_option::FormatPsqlPlScrollOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlSqlstateCondition>
+    for crate::psql::auxiliary::pl_sqlstate_condition::FormatPsqlPlSqlstateCondition
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlSqlstateCondition,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlSqlstateCondition>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlSqlstateCondition {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlSqlstateCondition,
+        crate::psql::auxiliary::pl_sqlstate_condition::FormatPsqlPlSqlstateCondition,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_sqlstate_condition::FormatPsqlPlSqlstateCondition::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlSqlstateCondition {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlSqlstateCondition,
+        crate::psql::auxiliary::pl_sqlstate_condition::FormatPsqlPlSqlstateCondition,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_sqlstate_condition::FormatPsqlPlSqlstateCondition::default(),
         )
     }
 }
@@ -9905,6 +10019,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlElsifClauseList {
         )
     }
 }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionConditionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExceptionConditionList,
+        crate::psql::lists::pl_exception_condition_list::FormatPsqlPlExceptionConditionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: lists :: pl_exception_condition_list :: FormatPsqlPlExceptionConditionList :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionConditionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExceptionConditionList,
+        crate::psql::lists::pl_exception_condition_list::FormatPsqlPlExceptionConditionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: lists :: pl_exception_condition_list :: FormatPsqlPlExceptionConditionList :: default ())
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionHandlerList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExceptionHandlerList,
+        crate::psql::lists::pl_exception_handler_list::FormatPsqlPlExceptionHandlerList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: lists :: pl_exception_handler_list :: FormatPsqlPlExceptionHandlerList :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExceptionHandlerList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExceptionHandlerList,
+        crate::psql::lists::pl_exception_handler_list::FormatPsqlPlExceptionHandlerList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: lists :: pl_exception_handler_list :: FormatPsqlPlExceptionHandlerList :: default ())
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlForTargetList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -11103,6 +11255,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlPlDeclaration {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::pl_declaration::FormatAnyPsqlPlDeclaration::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnyPsqlPlExceptionCondition {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnyPsqlPlExceptionCondition,
+        crate::psql::any::pl_exception_condition::FormatAnyPsqlPlExceptionCondition,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::pl_exception_condition::FormatAnyPsqlPlExceptionCondition::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlPlExceptionCondition {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnyPsqlPlExceptionCondition,
+        crate::psql::any::pl_exception_condition::FormatAnyPsqlPlExceptionCondition,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::pl_exception_condition::FormatAnyPsqlPlExceptionCondition::default(),
         )
     }
 }

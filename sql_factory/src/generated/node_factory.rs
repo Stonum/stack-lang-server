@@ -1888,6 +1888,7 @@ pub fn psql_pl_block(
         end_token,
         label: None,
         declare_section: None,
+        exception_section: None,
         end_label: None,
         semicolon_token: None,
     }
@@ -1898,6 +1899,7 @@ pub struct PsqlPlBlockBuilder {
     end_token: SyntaxToken,
     label: Option<PsqlPlLabel>,
     declare_section: Option<PsqlPlDeclareSection>,
+    exception_section: Option<PsqlPlExceptionSection>,
     end_label: Option<SqlName>,
     semicolon_token: Option<SyntaxToken>,
 }
@@ -1908,6 +1910,10 @@ impl PsqlPlBlockBuilder {
     }
     pub fn with_declare_section(mut self, declare_section: PsqlPlDeclareSection) -> Self {
         self.declare_section = Some(declare_section);
+        self
+    }
+    pub fn with_exception_section(mut self, exception_section: PsqlPlExceptionSection) -> Self {
+        self.exception_section = Some(exception_section);
         self
     }
     pub fn with_end_label(mut self, end_label: SqlName) -> Self {
@@ -1928,6 +1934,8 @@ impl PsqlPlBlockBuilder {
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.begin_token)),
                 Some(SyntaxElement::Node(self.statements.into_syntax())),
+                self.exception_section
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.end_token)),
                 self.end_label
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
@@ -2124,6 +2132,34 @@ pub fn psql_pl_elsif_clause(
             Some(SyntaxElement::Node(condition.into_syntax())),
             Some(SyntaxElement::Token(then_token)),
             Some(SyntaxElement::Node(statements.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_exception_handler(
+    when_token: SyntaxToken,
+    conditions: PsqlPlExceptionConditionList,
+    then_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+) -> PsqlPlExceptionHandler {
+    PsqlPlExceptionHandler::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_EXCEPTION_HANDLER,
+        [
+            Some(SyntaxElement::Token(when_token)),
+            Some(SyntaxElement::Node(conditions.into_syntax())),
+            Some(SyntaxElement::Token(then_token)),
+            Some(SyntaxElement::Node(statements.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_exception_section(
+    exception_token: SyntaxToken,
+    handlers: PsqlPlExceptionHandlerList,
+) -> PsqlPlExceptionSection {
+    PsqlPlExceptionSection::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_EXCEPTION_SECTION,
+        [
+            Some(SyntaxElement::Token(exception_token)),
+            Some(SyntaxElement::Node(handlers.into_syntax())),
         ],
     ))
 }
@@ -2971,6 +3007,18 @@ impl PsqlPlScrollOptionBuilder {
             ],
         ))
     }
+}
+pub fn psql_pl_sqlstate_condition(
+    sqlstate_token: SyntaxToken,
+    code: SqlStringLiteralExpression,
+) -> PsqlPlSqlstateCondition {
+    PsqlPlSqlstateCondition::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_SQLSTATE_CONDITION,
+        [
+            Some(SyntaxElement::Token(sqlstate_token)),
+            Some(SyntaxElement::Node(code.into_syntax())),
+        ],
+    ))
 }
 pub fn psql_pl_using_clause(
     using_token: SyntaxToken,
@@ -7867,6 +7915,42 @@ where
 {
     PsqlPlElsifClauseList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_pl_exception_condition_list<I, S>(
+    items: I,
+    separators: S,
+) -> PsqlPlExceptionConditionList
+where
+    I: IntoIterator<Item = AnyPsqlPlExceptionCondition>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlPlExceptionConditionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_EXCEPTION_CONDITION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_pl_exception_handler_list<I>(items: I) -> PsqlPlExceptionHandlerList
+where
+    I: IntoIterator<Item = PsqlPlExceptionHandler>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlPlExceptionHandlerList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_EXCEPTION_HANDLER_LIST,
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),

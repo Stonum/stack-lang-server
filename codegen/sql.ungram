@@ -991,9 +991,34 @@ PsqlPlBlock =
    declare_section: PsqlPlDeclareSection?
    'begin'
    statements: PsqlPlStatementList
+   exception_section: PsqlPlExceptionSection?
    'end'
    end_label: SqlName?
    ';'?
+
+// `EXCEPTION WHEN cond [OR cond ...] THEN ... ...`
+PsqlPlExceptionSection =
+   'exception'
+   handlers: PsqlPlExceptionHandlerList
+
+PsqlPlExceptionHandlerList = PsqlPlExceptionHandler*
+
+PsqlPlExceptionHandler =
+   'when'
+   conditions: PsqlPlExceptionConditionList
+   'then'
+   statements: PsqlPlStatementList
+
+PsqlPlExceptionConditionList = (AnyPsqlPlExceptionCondition ('or' AnyPsqlPlExceptionCondition)*)
+
+// A condition name (`others`, `no_data_found`, ...) or `SQLSTATE 'code'`.
+AnyPsqlPlExceptionCondition =
+   SqlName
+   | PsqlPlSqlstateCondition
+
+PsqlPlSqlstateCondition =
+   'sqlstate'
+   code: SqlStringLiteralExpression
 
 // `<<name>>` before a block or a loop
 PsqlPlLabel =
