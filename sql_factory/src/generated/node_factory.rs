@@ -1216,6 +1216,26 @@ impl PsqlExtensionSchemaClauseBuilder {
         ))
     }
 }
+pub fn psql_extract_expression(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    field: AnySqlExpression,
+    from_token: SyntaxToken,
+    source: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlExtractExpression {
+    PsqlExtractExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_EXTRACT_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(name_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(field.into_syntax())),
+            Some(SyntaxElement::Token(from_token)),
+            Some(SyntaxElement::Node(source.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_field_selection_expression(
     expression: AnySqlExpression,
     dot_token: SyntaxToken,
@@ -1796,6 +1816,26 @@ pub fn psql_policy_with_check_clause(
         ],
     ))
 }
+pub fn psql_position_expression(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    substring: AnySqlExpression,
+    in_token: SyntaxToken,
+    string: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlPositionExpression {
+    PsqlPositionExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_POSITION_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(name_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(substring.into_syntax())),
+            Some(SyntaxElement::Token(in_token)),
+            Some(SyntaxElement::Node(string.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_refresh_materialized_view_statement(
     refresh_token: SyntaxToken,
     materialized_token: SyntaxToken,
@@ -2254,6 +2294,57 @@ pub fn psql_trigger_when_clause(
             Some(SyntaxElement::Token(r_paren_token)),
         ],
     ))
+}
+pub fn psql_trim_expression(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    from_token: SyntaxToken,
+    string: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+) -> PsqlTrimExpressionBuilder {
+    PsqlTrimExpressionBuilder {
+        name_token,
+        l_paren_token,
+        from_token,
+        string,
+        r_paren_token,
+        side_token: None,
+        characters: None,
+    }
+}
+pub struct PsqlTrimExpressionBuilder {
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    from_token: SyntaxToken,
+    string: AnySqlExpression,
+    r_paren_token: SyntaxToken,
+    side_token: Option<SyntaxToken>,
+    characters: Option<AnySqlExpression>,
+}
+impl PsqlTrimExpressionBuilder {
+    pub fn with_side_token(mut self, side_token: SyntaxToken) -> Self {
+        self.side_token = Some(side_token);
+        self
+    }
+    pub fn with_characters(mut self, characters: AnySqlExpression) -> Self {
+        self.characters = Some(characters);
+        self
+    }
+    pub fn build(self) -> PsqlTrimExpression {
+        PsqlTrimExpression::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_TRIM_EXPRESSION,
+            [
+                Some(SyntaxElement::Token(self.name_token)),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                self.side_token.map(|token| SyntaxElement::Token(token)),
+                self.characters
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.from_token)),
+                Some(SyntaxElement::Node(self.string.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+            ],
+        ))
+    }
 }
 pub fn psql_truncate_identity_clause(
     action_token: SyntaxToken,

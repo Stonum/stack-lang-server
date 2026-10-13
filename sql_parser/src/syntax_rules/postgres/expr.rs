@@ -4,14 +4,14 @@ use biome_parser::prelude::*;
 
 use super::parse_error::postgres_only_syntax_error;
 use crate::syntax_rules::expr::{
-    SqlExpressionList, parse_expression, parse_name, parse_string_literal_expression,
-    parse_type_name,
+    SqlExpressionList, parse_binary_or_logical_expression, parse_expression, parse_name,
+    parse_string_literal_expression, parse_type_name,
 };
 use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_string_literal, expected_type_name,
 };
 use crate::{SqlParser, SqlSyntaxFeature};
-use sql_syntax::{SqlSyntaxKind, SqlSyntaxKind::*, T};
+use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T};
 
 /// `name => value` -- a named function argument. The caller has already
 /// checked that `name =>` is ahead.
@@ -214,8 +214,19 @@ fn parse_filter_clause_body(p: &mut SqlParser) -> ParsedSyntax {
 /// start, count)`) is left completely alone, still just a plain
 /// `SqlCallExpression`.
 pub(crate) fn is_at_substring_from_form(p: &mut SqlParser) -> bool {
+    is_at_keyword_argument_form(p, "substring", T![from])
+}
+
+/// `name(... separator ...)` with `separator` (`from`/`in`) at the call's top
+/// level -- the SQL-standard special argument syntax of `substring`,
+/// `extract`, `position` and `trim`.
+pub(crate) fn is_at_keyword_argument_form(
+    p: &mut SqlParser,
+    name: &str,
+    separator: SqlSyntaxKind,
+) -> bool {
     if !(p.at(T![ident])
-        && p.text(p.cur_range()).eq_ignore_ascii_case("substring")
+        && p.text(p.cur_range()).eq_ignore_ascii_case(name)
         && p.nth_at(1, T!['(']))
     {
         return false;
@@ -232,7 +243,7 @@ pub(crate) fn is_at_substring_from_form(p: &mut SqlParser) -> bool {
                     return false;
                 }
             }
-            T![from] if depth == 1 => return true,
+            kind if kind == separator && depth == 1 => return true,
             EOF => return false,
             _ => {}
         }
@@ -263,6 +274,67 @@ fn parse_substring_expression_body(p: &mut SqlParser) -> ParsedSyntax {
     let _ = parse_substring_for_clause(p);
     p.expect(T![')']);
     Present(m.complete(p, PSQL_SUBSTRING_EXPRESSION))
+}
+
+/// `extract(field from source)`
+pub(crate) fn parse_extract_expression(p: &mut SqlParser) -> ParsedSyntax {
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![ident]);
+            p.bump(T!['(']);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            p.expect(T![from]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            p.expect(T![')']);
+            Present(m.complete(p, PSQL_EXTRACT_EXPRESSION))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`EXTRACT(... FROM ...)`", marker.range(p)),
+    )
+}
+
+/// `position(substring in string)` -- the substring stops before `in`
+/// instead of reading it as an `IN` predicate.
+pub(crate) fn parse_position_expression(p: &mut SqlParser) -> ParsedSyntax {
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![ident]);
+            p.bump(T!['(']);
+            parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
+                .or_add_diagnostic(p, expected_expression);
+            p.expect(T![in]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            p.expect(T![')']);
+            Present(m.complete(p, PSQL_POSITION_EXPRESSION))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`POSITION(... IN ...)`", marker.range(p)),
+    )
+}
+
+/// `trim([both | leading | trailing] [characters] from string)`
+pub(crate) fn parse_trim_expression(p: &mut SqlParser) -> ParsedSyntax {
+    SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
+        p,
+        |p| {
+            let m = p.start();
+            p.bump(T![ident]);
+            p.bump(T!['(']);
+            if p.at(T![both]) || p.at(T![leading]) || p.at(T![trailing]) {
+                p.bump_any();
+            }
+            if !p.at(T![from]) {
+                parse_expression(p).or_add_diagnostic(p, expected_expression);
+            }
+            p.expect(T![from]);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            p.expect(T![')']);
+            Present(m.complete(p, PSQL_TRIM_EXPRESSION))
+        },
+        |p, marker| postgres_only_syntax_error(p, "`TRIM(... FROM ...)`", marker.range(p)),
+    )
 }
 
 fn parse_substring_from_clause(p: &mut SqlParser) -> ParsedSyntax {

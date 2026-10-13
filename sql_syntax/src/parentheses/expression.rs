@@ -46,6 +46,9 @@ impl NeedsParentheses for AnySqlExpression {
             | Self::PsqlCastExpression(_)
             | Self::SqlCollateExpression(_)
             | Self::PsqlFieldSelectionExpression(_)
+            | Self::PsqlExtractExpression(_)
+            | Self::PsqlPositionExpression(_)
+            | Self::PsqlTrimExpression(_)
             | Self::SqlCastFunctionExpression(_)
             | Self::SqlAnyAllExpression(_)
             | Self::SqlExistsExpression(_)
@@ -220,10 +223,40 @@ fn precedence_needs_parens(node: &SqlSyntaxNode, precedence: OperatorPrecedence)
     if parent.kind() == SqlSyntaxKind::SQL_PARENTHESIZED_EXPRESSION {
         return false;
     }
+    if let Some(needs_parens) = keyword_delimited_needs_parens(node, &parent, precedence) {
+        return needs_parens;
+    }
     let Some(parent_expr) = AnySqlExpression::cast(parent) else {
         return false;
     };
     expression_precedence(&parent_expr) > precedence
+}
+
+/// Operands of `extract(... from ...)`, `position(... in ...)`, `trim(...)`,
+/// `substring(...)` and `cast(... as ...)` are delimited by the call's own
+/// keywords and parentheses, so they never need extra parentheses -- except
+/// `position`'s first operand, which is parsed above `IN`'s precedence.
+fn keyword_delimited_needs_parens(
+    node: &SqlSyntaxNode,
+    parent: &SqlSyntaxNode,
+    precedence: OperatorPrecedence,
+) -> Option<bool> {
+    match parent.kind() {
+        SqlSyntaxKind::PSQL_POSITION_EXPRESSION => {
+            let is_first_operand = parent
+                .children()
+                .find(|child| AnySqlExpression::can_cast(child.kind()))
+                .is_some_and(|first| &first == node);
+            Some(is_first_operand && precedence <= OperatorPrecedence::Predicate)
+        }
+        SqlSyntaxKind::PSQL_EXTRACT_EXPRESSION
+        | SqlSyntaxKind::PSQL_TRIM_EXPRESSION
+        | SqlSyntaxKind::PSQL_SUBSTRING_EXPRESSION
+        | SqlSyntaxKind::PSQL_SUBSTRING_FROM_CLAUSE
+        | SqlSyntaxKind::PSQL_SUBSTRING_FOR_CLAUSE
+        | SqlSyntaxKind::SQL_CAST_FUNCTION_EXPRESSION => Some(false),
+        _ => None,
+    }
 }
 
 /// Implements the rules shared by [SqlBinaryExpression] and
@@ -240,11 +273,14 @@ fn binary_like_needs_parens(node: &SqlSyntaxNode) -> bool {
     let Some(child) = AnySqlExpression::cast_ref(node) else {
         return false;
     };
+    let precedence = expression_precedence(&child);
+    if let Some(needs_parens) = keyword_delimited_needs_parens(node, &parent, precedence) {
+        return needs_parens;
+    }
     let Some(parent_expr) = AnySqlExpression::cast(parent) else {
         return false;
     };
 
-    let precedence = expression_precedence(&child);
     let parent_precedence = expression_precedence(&parent_expr);
 
     // Parent binds tighter -- parentheses are necessary to not change the

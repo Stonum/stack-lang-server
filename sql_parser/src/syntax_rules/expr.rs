@@ -4,10 +4,11 @@ use biome_parser::prelude::ParsedSyntax::*;
 use biome_parser::prelude::*;
 
 use super::postgres::expr::{
-    gate_binary_expression, gate_type_name, is_at_substring_from_form,
+    gate_binary_expression, gate_type_name, is_at_keyword_argument_form, is_at_substring_from_form,
     is_postgres_only_binary_operator, parse_array_expression, parse_array_subscript_tail,
-    parse_cast_tail, parse_filter_clause, parse_interval_expression, parse_named_argument,
-    parse_substring_expression, parse_type_array_suffix,
+    parse_cast_tail, parse_extract_expression, parse_filter_clause, parse_interval_expression,
+    parse_named_argument, parse_position_expression, parse_substring_expression,
+    parse_trim_expression, parse_type_array_suffix,
 };
 use super::select::parse_order_by_clause;
 use super::with_clause::parse_with_prefixed_select_statement;
@@ -30,7 +31,7 @@ pub(crate) fn parse_expression(p: &mut SqlParser) -> ParsedSyntax {
 }
 
 /// A binary expression such as `1 + 2` or a logical expression such as `a and b`
-fn parse_binary_or_logical_expression(
+pub(crate) fn parse_binary_or_logical_expression(
     p: &mut SqlParser,
     left_precedence: OperatorPrecedence,
 ) -> ParsedSyntax {
@@ -285,6 +286,13 @@ fn parse_primary_expression(p: &mut SqlParser) -> ParsedSyntax {
     let expression = match p.cur() {
         T!['('] => parse_parenthesized_expression(p),
         T![ident] if is_at_substring_from_form(p) => parse_substring_expression(p),
+        T![ident] if is_at_keyword_argument_form(p, "extract", T![from]) => {
+            parse_extract_expression(p)
+        }
+        T![ident] if is_at_keyword_argument_form(p, "position", T![in]) => {
+            parse_position_expression(p)
+        }
+        T![ident] if is_at_keyword_argument_form(p, "trim", T![from]) => parse_trim_expression(p),
         T![ident] => parse_ident_expression(p),
         // A bare mlang-dialect `[bracket name]` column reference, e.g.
         // `where [Col-Name] = :1` -- everywhere else `[` only ever appears

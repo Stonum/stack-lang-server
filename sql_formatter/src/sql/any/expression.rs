@@ -36,10 +36,13 @@ impl FormatRule<AnySqlExpression> for FormatAnySqlExpression {
             AnySqlExpression::PsqlArrayExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlArraySubscriptExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlCastExpression(node) => node.format().fmt(f),
+            AnySqlExpression::PsqlExtractExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlFieldSelectionExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlIntervalExpression(node) => node.format().fmt(f),
+            AnySqlExpression::PsqlPositionExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlSubstringExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlTildeArrayExpression(node) => node.format().fmt(f),
+            AnySqlExpression::PsqlTrimExpression(node) => node.format().fmt(f),
         }
     }
 }
