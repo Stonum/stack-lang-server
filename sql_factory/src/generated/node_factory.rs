@@ -1460,6 +1460,37 @@ pub fn psql_interval_expression(
         ],
     ))
 }
+pub fn psql_into_clause(
+    into_token: SyntaxToken,
+    targets: SqlExpressionList,
+) -> PsqlIntoClauseBuilder {
+    PsqlIntoClauseBuilder {
+        into_token,
+        targets,
+        strict_token: None,
+    }
+}
+pub struct PsqlIntoClauseBuilder {
+    into_token: SyntaxToken,
+    targets: SqlExpressionList,
+    strict_token: Option<SyntaxToken>,
+}
+impl PsqlIntoClauseBuilder {
+    pub fn with_strict_token(mut self, strict_token: SyntaxToken) -> Self {
+        self.strict_token = Some(strict_token);
+        self
+    }
+    pub fn build(self) -> PsqlIntoClause {
+        PsqlIntoClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_INTO_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.into_token)),
+                self.strict_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.targets.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_join_using_clause(
     using_token: SyntaxToken,
     columns: SqlColumnList,
@@ -2184,14 +2215,34 @@ impl PsqlRefreshMaterializedViewStatementBuilder {
 pub fn psql_returning_clause(
     returning_token: SyntaxToken,
     items: SqlSelectItemList,
-) -> PsqlReturningClause {
-    PsqlReturningClause::unwrap_cast(SyntaxNode::new_detached(
-        SqlSyntaxKind::PSQL_RETURNING_CLAUSE,
-        [
-            Some(SyntaxElement::Token(returning_token)),
-            Some(SyntaxElement::Node(items.into_syntax())),
-        ],
-    ))
+) -> PsqlReturningClauseBuilder {
+    PsqlReturningClauseBuilder {
+        returning_token,
+        items,
+        into_clause: None,
+    }
+}
+pub struct PsqlReturningClauseBuilder {
+    returning_token: SyntaxToken,
+    items: SqlSelectItemList,
+    into_clause: Option<PsqlIntoClause>,
+}
+impl PsqlReturningClauseBuilder {
+    pub fn with_into_clause(mut self, into_clause: PsqlIntoClause) -> Self {
+        self.into_clause = Some(into_clause);
+        self
+    }
+    pub fn build(self) -> PsqlReturningClause {
+        PsqlReturningClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_RETURNING_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.returning_token)),
+                Some(SyntaxElement::Node(self.items.into_syntax())),
+                self.into_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
 }
 pub fn psql_returns_clause(returns_token: SyntaxToken, ty: AnySqlReturnsType) -> PsqlReturnsClause {
     PsqlReturnsClause::unwrap_cast(SyntaxNode::new_detached(
@@ -5678,16 +5729,22 @@ pub fn sql_select_clause(
         select_token,
         list,
         quantifier: None,
+        into_clause: None,
     }
 }
 pub struct SqlSelectClauseBuilder {
     select_token: SyntaxToken,
     list: SqlSelectItemList,
     quantifier: Option<AnySqlSelectQuantifier>,
+    into_clause: Option<PsqlIntoClause>,
 }
 impl SqlSelectClauseBuilder {
     pub fn with_quantifier(mut self, quantifier: AnySqlSelectQuantifier) -> Self {
         self.quantifier = Some(quantifier);
+        self
+    }
+    pub fn with_into_clause(mut self, into_clause: PsqlIntoClause) -> Self {
+        self.into_clause = Some(into_clause);
         self
     }
     pub fn build(self) -> SqlSelectClause {
@@ -5698,6 +5755,8 @@ impl SqlSelectClauseBuilder {
                 self.quantifier
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.list.into_syntax())),
+                self.into_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }

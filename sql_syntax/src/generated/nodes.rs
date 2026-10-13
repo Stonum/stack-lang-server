@@ -2230,6 +2230,51 @@ pub struct PsqlIntervalExpressionFields {
     pub value: SyntaxResult<SqlStringLiteralExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlIntoClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlIntoClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlIntoClauseFields {
+        PsqlIntoClauseFields {
+            into_token: self.into_token(),
+            strict_token: self.strict_token(),
+            targets: self.targets(),
+        }
+    }
+    pub fn into_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn strict_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn targets(&self) -> SqlExpressionList {
+        support::list(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlIntoClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlIntoClauseFields {
+    pub into_token: SyntaxResult<SyntaxToken>,
+    pub strict_token: Option<SyntaxToken>,
+    pub targets: SqlExpressionList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlJoinUsingClause {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3797,6 +3842,7 @@ impl PsqlReturningClause {
         PsqlReturningClauseFields {
             returning_token: self.returning_token(),
             items: self.items(),
+            into_clause: self.into_clause(),
         }
     }
     pub fn returning_token(&self) -> SyntaxResult<SyntaxToken> {
@@ -3804,6 +3850,9 @@ impl PsqlReturningClause {
     }
     pub fn items(&self) -> SqlSelectItemList {
         support::list(&self.syntax, 1usize)
+    }
+    pub fn into_clause(&self) -> Option<PsqlIntoClause> {
+        support::node(&self.syntax, 2usize)
     }
 }
 impl Serialize for PsqlReturningClause {
@@ -3818,6 +3867,7 @@ impl Serialize for PsqlReturningClause {
 pub struct PsqlReturningClauseFields {
     pub returning_token: SyntaxResult<SyntaxToken>,
     pub items: SqlSelectItemList,
+    pub into_clause: Option<PsqlIntoClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlReturnsClause {
@@ -10176,6 +10226,7 @@ impl SqlSelectClause {
             select_token: self.select_token(),
             quantifier: self.quantifier(),
             list: self.list(),
+            into_clause: self.into_clause(),
         }
     }
     pub fn select_token(&self) -> SyntaxResult<SyntaxToken> {
@@ -10186,6 +10237,9 @@ impl SqlSelectClause {
     }
     pub fn list(&self) -> SqlSelectItemList {
         support::list(&self.syntax, 2usize)
+    }
+    pub fn into_clause(&self) -> Option<PsqlIntoClause> {
+        support::node(&self.syntax, 3usize)
     }
 }
 impl Serialize for SqlSelectClause {
@@ -10201,6 +10255,7 @@ pub struct SqlSelectClauseFields {
     pub select_token: SyntaxResult<SyntaxToken>,
     pub quantifier: Option<AnySqlSelectQuantifier>,
     pub list: SqlSelectItemList,
+    pub into_clause: Option<PsqlIntoClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlSelectDistinctQuantifier {
@@ -15950,6 +16005,58 @@ impl From<PsqlIntervalExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlIntoClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_INTO_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_INTO_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlIntoClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlIntoClause")
+                .field("into_token", &support::DebugSyntaxResult(self.into_token()))
+                .field(
+                    "strict_token",
+                    &support::DebugOptionalElement(self.strict_token()),
+                )
+                .field("targets", &self.targets())
+                .finish()
+        } else {
+            f.debug_struct("PsqlIntoClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlIntoClause> for SyntaxNode {
+    fn from(n: PsqlIntoClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlIntoClause> for SyntaxElement {
+    fn from(n: PsqlIntoClause) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlJoinUsingClause {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -17697,6 +17804,10 @@ impl std::fmt::Debug for PsqlReturningClause {
                     &support::DebugSyntaxResult(self.returning_token()),
                 )
                 .field("items", &self.items())
+                .field(
+                    "into_clause",
+                    &support::DebugOptionalElement(self.into_clause()),
+                )
                 .finish()
         } else {
             f.debug_struct("PsqlReturningClause").finish()
@@ -24870,6 +24981,10 @@ impl std::fmt::Debug for SqlSelectClause {
                     &support::DebugOptionalElement(self.quantifier()),
                 )
                 .field("list", &self.list())
+                .field(
+                    "into_clause",
+                    &support::DebugOptionalElement(self.into_clause()),
+                )
                 .finish()
         } else {
             f.debug_struct("SqlSelectClause").finish()
@@ -31316,6 +31431,11 @@ impl std::fmt::Display for PsqlIndexMethodClause {
     }
 }
 impl std::fmt::Display for PsqlIntervalExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlIntoClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

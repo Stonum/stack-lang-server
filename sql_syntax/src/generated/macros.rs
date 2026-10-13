@@ -187,6 +187,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlIntervalExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_INTO_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlIntoClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_JOIN_USING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlJoinUsingClause::new_unchecked(node) };
                     $body

@@ -212,6 +212,14 @@ SqlSelectClause =
    'select'
    quantifier: AnySqlSelectQuantifier?
    list: SqlSelectItemList
+   into_clause: PsqlIntoClause?
+
+// `INTO [STRICT] target, ...` -- PL/pgSQL variables (or a new table in
+// plain Postgres SQL).
+PsqlIntoClause =
+   'into'
+   'strict'?
+   targets: SqlExpressionList
 
 AnySqlSelectQuantifier =
    SqlSelectAllQuantifier
@@ -1715,6 +1723,7 @@ PsqlLimitClause =
 PsqlReturningClause =
    'returning'
    items: SqlSelectItemList
+   into_clause: PsqlIntoClause?
 
 PsqlOnConflictClause =
    'on'

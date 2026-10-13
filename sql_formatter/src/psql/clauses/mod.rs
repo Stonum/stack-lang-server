@@ -7,6 +7,7 @@ pub(crate) mod do_update_clause;
 pub(crate) mod extension_schema_clause;
 pub(crate) mod filter_clause;
 pub(crate) mod index_method_clause;
+pub(crate) mod into_clause;
 pub(crate) mod join_using_clause;
 pub(crate) mod limit_clause;
 pub(crate) mod on_commit_clause;
