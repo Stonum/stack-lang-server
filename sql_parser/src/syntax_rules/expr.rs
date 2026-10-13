@@ -654,8 +654,59 @@ fn parse_window_specification(p: &mut SqlParser) -> ParsedSyntax {
     p.bump(T!['(']);
     let _ = parse_window_partition_by_clause(p);
     let _ = parse_order_by_clause(p);
+    let _ = parse_window_frame_clause(p);
     p.expect(T![')']);
     Present(m.complete(p, SQL_WINDOW_SPECIFICATION))
+}
+
+/// `{ROWS | RANGE | GROUPS} {bound | BETWEEN bound AND bound}`
+fn parse_window_frame_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !(p.at(T![rows]) || p.at(T![range]) || p.at(T![groups])) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any();
+    if p.eat(T![between]) {
+        parse_window_frame_bound(p).or_add_diagnostic(p, expected_expression);
+        p.expect(T![and]);
+        parse_window_frame_bound(p).or_add_diagnostic(p, expected_expression);
+    } else {
+        parse_window_frame_bound(p).or_add_diagnostic(p, expected_expression);
+    }
+    Present(m.complete(p, SQL_WINDOW_FRAME_CLAUSE))
+}
+
+/// `UNBOUNDED {PRECEDING | FOLLOWING}`, `CURRENT ROW` or `offset {PRECEDING |
+/// FOLLOWING}`
+fn parse_window_frame_bound(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    let kind = if p.at(T![unbounded]) {
+        p.bump(T![unbounded]);
+        expect_frame_direction(p);
+        SQL_WINDOW_FRAME_UNBOUNDED_BOUND
+    } else if p.at(T![current]) && p.nth_at(1, T![row]) {
+        p.bump(T![current]);
+        p.bump(T![row]);
+        SQL_WINDOW_FRAME_CURRENT_ROW_BOUND
+    } else if parse_expression(p).is_present() {
+        expect_frame_direction(p);
+        SQL_WINDOW_FRAME_OFFSET_BOUND
+    } else {
+        m.abandon(p);
+        return Absent;
+    };
+    Present(m.complete(p, kind))
+}
+
+fn expect_frame_direction(p: &mut SqlParser) {
+    if p.at(T![preceding]) || p.at(T![following]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `preceding` or `following`", range);
+        p.error(err);
+    }
 }
 
 fn parse_window_partition_by_clause(p: &mut SqlParser) -> ParsedSyntax {

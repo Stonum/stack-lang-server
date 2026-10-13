@@ -93,8 +93,10 @@ fn format_select_list_balances_simple_run_before_a_multiline_complex_item() {
 select
 	really_long_column_name_one, really_long_column_name_two, really_long_column_name_three,
 	really_long_column_name_four, really_long_column_name_five,
-	row_number() over (partition by
-		really_long_partition_column_one, really_long_partition_column_two, really_long_partition_column_three order by really_long_order_column)
+	row_number() over (
+		partition by really_long_partition_column_one, really_long_partition_column_two, really_long_partition_column_three
+		order by really_long_order_column
+	)
 from t
 "#
     );

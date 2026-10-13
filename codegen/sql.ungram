@@ -1503,7 +1503,34 @@ SqlWindowSpecification =
    '('
    partition_by_clause: SqlWindowPartitionByClause?
    order_by_clause: SqlOrderByClause?
+   frame_clause: SqlWindowFrameClause?
    ')'
+
+// `{ROWS | RANGE | GROUPS} {bound | BETWEEN bound AND bound}` -- the
+// `between`/`and` pair is checked by the parser.
+SqlWindowFrameClause =
+   unit: ('rows' | 'range' | 'groups')
+   'between'?
+   start: AnySqlWindowFrameBound
+   'and'?
+   end: AnySqlWindowFrameBound?
+
+AnySqlWindowFrameBound =
+   SqlWindowFrameUnboundedBound
+   | SqlWindowFrameCurrentRowBound
+   | SqlWindowFrameOffsetBound
+
+SqlWindowFrameUnboundedBound =
+   'unbounded'
+   direction: ('preceding' | 'following')
+
+SqlWindowFrameCurrentRowBound =
+   'current'
+   'row'
+
+SqlWindowFrameOffsetBound =
+   offset: AnySqlExpression
+   direction: ('preceding' | 'following')
 
 SqlWindowPartitionByClause =
    'partition_by'
