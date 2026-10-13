@@ -985,13 +985,21 @@ PsqlPlBody =
    block: PsqlPlBlock
    r_quote: 'dollar_quote'
 
-// `[DECLARE declaration; ...] BEGIN statement; ... END [;]`
+// `[<<label>>] [DECLARE declaration; ...] BEGIN statement; ... END [label] [;]`
 PsqlPlBlock =
+   label: PsqlPlLabel?
    declare_section: PsqlPlDeclareSection?
    'begin'
    statements: PsqlPlStatementList
    'end'
+   end_label: SqlName?
    ';'?
+
+// `<<name>>` before a block or a loop
+PsqlPlLabel =
+   '<<'
+   name: SqlName
+   '>>'
 
 PsqlPlStatementList = AnyPsqlPlStatement*
 
@@ -1025,6 +1033,8 @@ AnyPsqlPlStatement =
    | PsqlPlRaiseStatement
    | PsqlPlReturnStatement
    | PsqlPlReturnQueryStatement
+   | PsqlPlLoopStatement
+   | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
 // `array[index]`.
@@ -1095,6 +1105,31 @@ PsqlPlReturnQueryStatement =
    'return'
    'query'
    query: AnyPsqlPlStatement
+
+// `[<<label>>] LOOP ... END LOOP [label];`
+PsqlPlLoopStatement =
+   label: PsqlPlLabel?
+   body: PsqlPlLoopBody
+
+// `LOOP statement; ... END LOOP [label];` -- shared by every loop kind.
+PsqlPlLoopBody =
+   'loop'
+   statements: PsqlPlStatementList
+   'end'
+   end_loop: 'loop'
+   end_label: SqlName?
+   ';'
+
+// `{EXIT | CONTINUE} [label] [WHEN cond];`
+PsqlPlExitStatement =
+   keyword: ('exit' | 'continue')
+   label: SqlName?
+   when_clause: PsqlPlExitWhenClause?
+   ';'
+
+PsqlPlExitWhenClause =
+   'when'
+   condition: AnySqlExpression
 
 // `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
 // discarded.

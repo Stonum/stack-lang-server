@@ -2195,6 +2195,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExecuteStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlExitStatement>
+    for crate::psql::statements::pl_exit_statement::FormatPsqlPlExitStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlExitStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlExitStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExitStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExitStatement,
+        crate::psql::statements::pl_exit_statement::FormatPsqlPlExitStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_exit_statement::FormatPsqlPlExitStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExitStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExitStatement,
+        crate::psql::statements::pl_exit_statement::FormatPsqlPlExitStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_exit_statement::FormatPsqlPlExitStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlExitWhenClause>
+    for crate::psql::clauses::pl_exit_when_clause::FormatPsqlPlExitWhenClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlExitWhenClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlExitWhenClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlExitWhenClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlExitWhenClause,
+        crate::psql::clauses::pl_exit_when_clause::FormatPsqlPlExitWhenClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::pl_exit_when_clause::FormatPsqlPlExitWhenClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlExitWhenClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlExitWhenClause,
+        crate::psql::clauses::pl_exit_when_clause::FormatPsqlPlExitWhenClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::pl_exit_when_clause::FormatPsqlPlExitWhenClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlIfStatement>
     for crate::psql::statements::pl_if_statement::FormatPsqlPlIfStatement
 {
@@ -2226,6 +2302,110 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlIfStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::statements::pl_if_statement::FormatPsqlPlIfStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlLabel> for crate::psql::auxiliary::pl_label::FormatPsqlPlLabel {
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlPlLabel, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlLabel>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlLabel {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlLabel,
+        crate::psql::auxiliary::pl_label::FormatPsqlPlLabel,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_label::FormatPsqlPlLabel::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlLabel {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlLabel,
+        crate::psql::auxiliary::pl_label::FormatPsqlPlLabel,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_label::FormatPsqlPlLabel::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlLoopBody>
+    for crate::psql::auxiliary::pl_loop_body::FormatPsqlPlLoopBody
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlPlLoopBody, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlLoopBody>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlLoopBody {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlLoopBody,
+        crate::psql::auxiliary::pl_loop_body::FormatPsqlPlLoopBody,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_loop_body::FormatPsqlPlLoopBody::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlLoopBody {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlLoopBody,
+        crate::psql::auxiliary::pl_loop_body::FormatPsqlPlLoopBody,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_loop_body::FormatPsqlPlLoopBody::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlLoopStatement>
+    for crate::psql::statements::pl_loop_statement::FormatPsqlPlLoopStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlLoopStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlLoopStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlLoopStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlLoopStatement,
+        crate::psql::statements::pl_loop_statement::FormatPsqlPlLoopStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_loop_statement::FormatPsqlPlLoopStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlLoopStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlLoopStatement,
+        crate::psql::statements::pl_loop_statement::FormatPsqlPlLoopStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_loop_statement::FormatPsqlPlLoopStatement::default(),
         )
     }
 }

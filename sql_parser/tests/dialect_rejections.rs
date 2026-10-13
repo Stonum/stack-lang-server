@@ -216,3 +216,13 @@ fn test_bit_shift_operator_rejected_under_standard_dialect() {
 
     assert!(res.has_errors());
 }
+
+#[test]
+fn test_bit_shift_operators_accepted_under_postgres() {
+    let res = parse(
+        "select a << 1, a >> 2, (a >> 1) << 1 from t",
+        SqlFileSource::script().with_dialect(SqlDialect::Postgres),
+    );
+
+    assert!(!res.has_errors(), "{:?}", res.diagnostics());
+}

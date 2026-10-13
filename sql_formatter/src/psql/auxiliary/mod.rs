@@ -26,6 +26,8 @@ pub(crate) mod partition_value_list;
 pub(crate) mod pl_block;
 pub(crate) mod pl_body;
 pub(crate) mod pl_declare_section;
+pub(crate) mod pl_label;
+pub(crate) mod pl_loop_body;
 pub(crate) mod pl_raise_option;
 pub(crate) mod pl_variable_declaration;
 pub(crate) mod pl_variable_default;
