@@ -1035,6 +1035,7 @@ AnyPsqlPlStatement =
    | PsqlPlReturnQueryStatement
    | PsqlPlLoopStatement
    | PsqlPlWhileStatement
+   | PsqlPlForStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1118,6 +1119,29 @@ PsqlPlWhileStatement =
    'while'
    condition: AnySqlExpression
    body: PsqlPlLoopBody
+
+// `[<<label>>] FOR target, ... IN source LOOP ... END LOOP [label];`
+PsqlPlForStatement =
+   label: PsqlPlLabel?
+   'for'
+   targets: PsqlPlForTargetList
+   'in'
+   source: AnyPsqlPlForSource
+   body: PsqlPlLoopBody
+
+PsqlPlForTargetList = (SqlName (',' SqlName)*)
+
+// A query (`select ...`, `with ...`, `(select ...)`) or `EXECUTE ...`.
+AnyPsqlPlForSource =
+   AnySqlStatement
+   | SqlSubqueryExpression
+   | PsqlPlForExecuteSource
+
+// `EXECUTE command [USING expr, ...]`
+PsqlPlForExecuteSource =
+   'execute'
+   command: AnySqlExpression
+   using_clause: PsqlPlUsingClause?
 
 // `LOOP statement; ... END LOOP [label];` -- shared by every loop kind.
 PsqlPlLoopBody =

@@ -17,6 +17,7 @@ pub(crate) mod lock_statement;
 pub(crate) mod pl_assignment_statement;
 pub(crate) mod pl_execute_statement;
 pub(crate) mod pl_exit_statement;
+pub(crate) mod pl_for_statement;
 pub(crate) mod pl_if_statement;
 pub(crate) mod pl_loop_statement;
 pub(crate) mod pl_perform_statement;

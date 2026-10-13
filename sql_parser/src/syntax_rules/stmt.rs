@@ -133,6 +133,7 @@ pub(crate) fn parse_statement(p: &mut SqlParser) -> ParsedSyntax {
 pub(crate) fn is_at_next_statement(p: &mut SqlParser) -> bool {
     (p.at(T![go]) && p.has_preceding_line_break())
         || (p.at_ts(STMT_RECOVERY_SET) && p.cur().is_reserved_keyword())
+        || (p.in_for_loop_query && p.at(T![loop]))
 }
 
 /// `GO` on its own line: a client-side batch separator, accepted in mlang

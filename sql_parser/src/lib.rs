@@ -53,6 +53,9 @@ pub struct SqlParser<'source> {
     pub source_type: SqlFileSource,
     context: ParserContext<SqlSyntaxKind>,
     source: SqlTokenSource<'source>,
+    /// Inside the query of a PL/pgSQL `FOR ... IN query LOOP`, where `loop`
+    /// ends the query's lists instead of being an alias.
+    pub(crate) in_for_loop_query: bool,
 }
 
 impl<'source> SqlParser<'source> {
@@ -61,6 +64,7 @@ impl<'source> SqlParser<'source> {
             source_type,
             context: ParserContext::default(),
             source: SqlTokenSource::from_str(source, source_type),
+            in_for_loop_query: false,
         }
     }
 

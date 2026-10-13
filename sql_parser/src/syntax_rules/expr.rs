@@ -1233,6 +1233,7 @@ fn is_at_bare_alias_keyword(p: &mut SqlParser) -> bool {
     let kind = p.cur();
     kind.is_non_reserved_keyword()
         && !matches!(kind, T![over] | T![filter] | T![set] | T![values] | T![go])
+        && !(p.in_for_loop_query && kind == T![loop])
 }
 
 /// `(col1 [type1], col2 [type2], ...)` -- an explicit column definition

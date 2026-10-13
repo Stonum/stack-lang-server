@@ -298,6 +298,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlExitWhenClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_FOR_EXECUTE_SOURCE => {
+                    let $pattern = unsafe { $crate::PsqlPlForExecuteSource::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FOR_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlForStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_IF_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlIfStatement::new_unchecked(node) };
                     $body
@@ -1140,6 +1148,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE_LIST => {
                     let $pattern = unsafe { $crate::PsqlPlElsifClauseList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FOR_TARGET_LIST => {
+                    let $pattern = unsafe { $crate::PsqlPlForTargetList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_RAISE_OPTION_LIST => {

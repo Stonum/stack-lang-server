@@ -8,6 +8,7 @@ use biome_parser::prelude::*;
 
 use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
+use crate::syntax_rules::expr::parse_subquery_expression;
 use crate::syntax_rules::expr::{
     is_at_name_start, parse_binary_or_logical_expression, parse_expression, parse_label,
     parse_name, parse_type_name,
@@ -17,7 +18,8 @@ use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_statement, expected_type_name,
 };
 use crate::syntax_rules::select::{
-    SqlSelectItemList, UnbracketedExpressionList, parse_into_clause,
+    SqlSelectItemList, UnbracketedExpressionList, is_at_parenthesized_set_operand,
+    parse_into_clause,
 };
 use crate::syntax_rules::stmt::{STMT_RECOVERY_SET, parse_statement};
 use crate::syntax_rules::where_clause::parse_where_clause;
@@ -151,7 +153,63 @@ fn parse_pl_labelled_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![while]) {
         return parse_pl_while_rest(p, m, label.as_deref());
     }
+    if p.at(T![for]) {
+        return parse_pl_for_rest(p, m, label.as_deref());
+    }
     parse_pl_block_rest(p, m, label.as_deref())
+}
+
+/// `FOR target, ... IN source LOOP ... END LOOP [label];` after its optional
+/// `label`, which `m` already holds.
+fn parse_pl_for_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> ParsedSyntax {
+    p.expect(T![for]);
+
+    let targets = p.start();
+    loop {
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        if !p.eat(T![,]) {
+            break;
+        }
+    }
+    targets.complete(p, PSQL_PL_FOR_TARGET_LIST);
+
+    p.expect(T![in]);
+    parse_pl_for_source(p).or_add_diagnostic(p, expected_for_source);
+    parse_pl_loop_body(p, label).or_add_diagnostic(p, expected_loop_body);
+    Present(m.complete(p, PSQL_PL_FOR_STATEMENT))
+}
+
+/// A query, `(query)` or `EXECUTE command [USING ...]`, ending before `LOOP`.
+fn parse_pl_for_source(p: &mut SqlParser) -> ParsedSyntax {
+    if p.at(T![execute]) {
+        let m = p.start();
+        p.bump(T![execute]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        if p.at(T![using]) {
+            let using = p.start();
+            p.bump(T![using]);
+            let arguments = UnbracketedExpressionList.parse_list(p);
+            if arguments.range(p).is_empty() {
+                let range = p.cur_range();
+                p.error(expected_expression(p, range));
+            }
+            using.complete(p, PSQL_PL_USING_CLAUSE);
+        }
+        return Present(m.complete(p, PSQL_PL_FOR_EXECUTE_SOURCE));
+    }
+    if p.at(T![loop]) {
+        return Absent;
+    }
+
+    let outer = p.in_for_loop_query;
+    p.in_for_loop_query = true;
+    let source = if p.at(T!['(']) && !is_at_parenthesized_set_operand(p) {
+        parse_subquery_expression(p)
+    } else {
+        parse_statement(p)
+    };
+    p.in_for_loop_query = outer;
+    source
 }
 
 /// `WHILE cond LOOP ... END LOOP [label];` after its optional `label`,
@@ -301,6 +359,10 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![while]) {
         let m = p.start();
         return parse_pl_while_rest(p, m, None);
+    }
+    if p.at(T![for]) {
+        let m = p.start();
+        return parse_pl_for_rest(p, m, None);
     }
     if p.at(T![exit]) || p.at(T![continue]) {
         return parse_pl_exit_statement(p);
@@ -565,6 +627,10 @@ fn expected_declaration(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
 
 fn expected_raise_option(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     p.err_builder("Expected a `name = value` option", range)
+}
+
+fn expected_for_source(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    p.err_builder("Expected a query or `execute ...`", range)
 }
 
 fn expected_loop_body(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
