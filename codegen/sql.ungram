@@ -1011,6 +1011,7 @@ AnyPsqlPlStatement =
    AnySqlStatement
    | PsqlPlBlock
    | PsqlPlAssignmentStatement
+   | PsqlPlIfStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
 // `array[index]`.
@@ -1019,6 +1020,31 @@ PsqlPlAssignmentStatement =
    operator: (':=' | '=')
    value: AnySqlExpression
    ';'
+
+// `IF cond THEN ... [ELSIF cond THEN ...] [ELSE ...] END IF;`
+PsqlPlIfStatement =
+   'if'
+   condition: AnySqlExpression
+   'then'
+   statements: PsqlPlStatementList
+   elsif_clauses: PsqlPlElsifClauseList
+   else_clause: PsqlPlElseClause?
+   'end'
+   end_if: 'if'
+   ';'
+
+PsqlPlElsifClauseList = PsqlPlElsifClause*
+
+// `ELSIF cond THEN ...` (`ELSEIF` is an alias)
+PsqlPlElsifClause =
+   elsif_token: ('elsif' | 'elseif')
+   condition: AnySqlExpression
+   'then'
+   statements: PsqlPlStatementList
+
+PsqlPlElseClause =
+   'else'
+   statements: PsqlPlStatementList
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =

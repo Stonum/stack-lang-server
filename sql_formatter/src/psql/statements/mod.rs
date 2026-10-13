@@ -15,5 +15,6 @@ pub(crate) mod drop_policy_statement;
 pub(crate) mod drop_trigger_statement;
 pub(crate) mod lock_statement;
 pub(crate) mod pl_assignment_statement;
+pub(crate) mod pl_if_statement;
 pub(crate) mod refresh_materialized_view_statement;
 pub(crate) mod vacuum_statement;

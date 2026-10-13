@@ -1904,6 +1904,90 @@ pub fn psql_pl_declare_section(
         ],
     ))
 }
+pub fn psql_pl_else_clause(
+    else_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+) -> PsqlPlElseClause {
+    PsqlPlElseClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_ELSE_CLAUSE,
+        [
+            Some(SyntaxElement::Token(else_token)),
+            Some(SyntaxElement::Node(statements.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_elsif_clause(
+    elsif_token_token: SyntaxToken,
+    condition: AnySqlExpression,
+    then_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+) -> PsqlPlElsifClause {
+    PsqlPlElsifClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE,
+        [
+            Some(SyntaxElement::Token(elsif_token_token)),
+            Some(SyntaxElement::Node(condition.into_syntax())),
+            Some(SyntaxElement::Token(then_token)),
+            Some(SyntaxElement::Node(statements.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_if_statement(
+    if_token: SyntaxToken,
+    condition: AnySqlExpression,
+    then_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+    elsif_clauses: PsqlPlElsifClauseList,
+    end_token: SyntaxToken,
+    end_if_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlIfStatementBuilder {
+    PsqlPlIfStatementBuilder {
+        if_token,
+        condition,
+        then_token,
+        statements,
+        elsif_clauses,
+        end_token,
+        end_if_token,
+        semicolon_token,
+        else_clause: None,
+    }
+}
+pub struct PsqlPlIfStatementBuilder {
+    if_token: SyntaxToken,
+    condition: AnySqlExpression,
+    then_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+    elsif_clauses: PsqlPlElsifClauseList,
+    end_token: SyntaxToken,
+    end_if_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+    else_clause: Option<PsqlPlElseClause>,
+}
+impl PsqlPlIfStatementBuilder {
+    pub fn with_else_clause(mut self, else_clause: PsqlPlElseClause) -> Self {
+        self.else_clause = Some(else_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlIfStatement {
+        PsqlPlIfStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_IF_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.if_token)),
+                Some(SyntaxElement::Node(self.condition.into_syntax())),
+                Some(SyntaxElement::Token(self.then_token)),
+                Some(SyntaxElement::Node(self.statements.into_syntax())),
+                Some(SyntaxElement::Node(self.elsif_clauses.into_syntax())),
+                self.else_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.end_token)),
+                Some(SyntaxElement::Token(self.end_if_token)),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_variable_declaration(
     name: SqlName,
     ty: SqlTypeName,
@@ -6678,6 +6762,18 @@ where
 {
     PsqlPlDeclarationList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::PSQL_PL_DECLARATION_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_pl_elsif_clause_list<I>(items: I) -> PsqlPlElsifClauseList
+where
+    I: IntoIterator<Item = PsqlPlElsifClause>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlPlElsifClauseList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE_LIST,
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),

@@ -17,8 +17,13 @@ use crate::syntax_rules::parse_error::{
 use crate::syntax_rules::stmt::{STMT_RECOVERY_SET, parse_statement};
 use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T, TextRange};
 
+/// Tokens that close a statement list: the block's `END` or a branch of an
+/// enclosing `IF`.
+const PL_STATEMENT_LIST_END_SET: TokenSet<SqlSyntaxKind> =
+    token_set![T![end], T![else], T![elsif], T![elseif], DOLLAR_QUOTE, EOF];
+
 const PL_STATEMENT_RECOVERY_SET: TokenSet<SqlSyntaxKind> =
-    STMT_RECOVERY_SET.union(token_set![T![end], DOLLAR_QUOTE]);
+    STMT_RECOVERY_SET.union(PL_STATEMENT_LIST_END_SET);
 
 /// Whether a routine body in `language` is PL/pgSQL; `None` (no `LANGUAGE`
 /// clause) means the `DO` default, which is PL/pgSQL.
@@ -139,7 +144,7 @@ fn parse_pl_statement_list(p: &mut SqlParser) {
     let list = p.start();
     let mut progress = ParserProgress::default();
 
-    while !p.at(EOF) && !p.at(T![end]) && !p.at(DOLLAR_QUOTE) {
+    while !p.at_ts(PL_STATEMENT_LIST_END_SET) {
         progress.assert_progressing(p);
 
         if parse_pl_statement(p)
@@ -162,10 +167,49 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![begin]) || p.at(T![declare]) {
         return parse_pl_block(p);
     }
+    if p.at(T![if]) {
+        return parse_pl_if_statement(p);
+    }
     if is_at_pl_assignment(p) {
         return parse_pl_assignment_statement(p);
     }
     parse_statement(p)
+}
+
+/// `IF cond THEN ... [ELSIF cond THEN ...] [ELSE ...] END IF;`
+fn parse_pl_if_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![if]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![if]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    p.expect(T![then]);
+    parse_pl_statement_list(p);
+
+    let elsif_clauses = p.start();
+    while p.at(T![elsif]) || p.at(T![elseif]) {
+        let clause = p.start();
+        p.bump_any();
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        p.expect(T![then]);
+        parse_pl_statement_list(p);
+        clause.complete(p, PSQL_PL_ELSIF_CLAUSE);
+    }
+    elsif_clauses.complete(p, PSQL_PL_ELSIF_CLAUSE_LIST);
+
+    if p.at(T![else]) {
+        let clause = p.start();
+        p.bump(T![else]);
+        parse_pl_statement_list(p);
+        clause.complete(p, PSQL_PL_ELSE_CLAUSE);
+    }
+
+    p.expect(T![end]);
+    p.expect(T![if]);
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_IF_STATEMENT))
 }
 
 /// A name, optionally followed by `.field`/`[index]` segments, then `:=`/`=`.
