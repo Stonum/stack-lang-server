@@ -158,6 +158,7 @@ impl ParseSeparatedList for UnbracketedExpressionList {
             T![fetch],
             T![using],
             T![loop],
+            T![then],
             DOLLAR_QUOTE
         ]) || is_at_next_statement(p)
     }

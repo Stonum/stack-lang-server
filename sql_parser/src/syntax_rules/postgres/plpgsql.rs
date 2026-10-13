@@ -26,9 +26,16 @@ use crate::syntax_rules::where_clause::parse_where_clause;
 use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T, TextRange};
 
 /// Tokens that close a statement list: the block's `END` or a branch of an
-/// enclosing `IF`.
-const PL_STATEMENT_LIST_END_SET: TokenSet<SqlSyntaxKind> =
-    token_set![T![end], T![else], T![elsif], T![elseif], DOLLAR_QUOTE, EOF];
+/// enclosing `IF`/`CASE`.
+const PL_STATEMENT_LIST_END_SET: TokenSet<SqlSyntaxKind> = token_set![
+    T![end],
+    T![else],
+    T![when],
+    T![elsif],
+    T![elseif],
+    DOLLAR_QUOTE,
+    EOF
+];
 
 const PL_STATEMENT_RECOVERY_SET: TokenSet<SqlSyntaxKind> =
     STMT_RECOVERY_SET.union(PL_STATEMENT_LIST_END_SET);
@@ -493,6 +500,9 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![close]) {
         return parse_pl_close_statement(p);
     }
+    if p.at(T![case]) {
+        return parse_pl_case_statement(p);
+    }
     if p.at(T![if]) {
         return parse_pl_if_statement(p);
     }
@@ -712,6 +722,51 @@ fn parse_pl_fetch_statement(p: &mut SqlParser) -> ParsedSyntax {
     let _ = parse_into_clause(p);
     p.expect(T![;]);
     Present(m.complete(p, PSQL_PL_FETCH_STATEMENT))
+}
+
+/// `CASE [expr] WHEN value, ... THEN ... [ELSE ...] END CASE;`
+fn parse_pl_case_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![case]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![case]);
+    if !p.at(T![when]) {
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+    }
+
+    let when_clauses = p.start();
+    if !p.at(T![when]) {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `when`", range);
+        p.error(err);
+    }
+    while p.at(T![when]) {
+        let clause = p.start();
+        p.bump(T![when]);
+        let conditions = UnbracketedExpressionList.parse_list(p);
+        if conditions.range(p).is_empty() {
+            let range = p.cur_range();
+            p.error(expected_expression(p, range));
+        }
+        p.expect(T![then]);
+        parse_pl_statement_list(p);
+        clause.complete(p, PSQL_PL_CASE_WHEN_CLAUSE);
+    }
+    when_clauses.complete(p, PSQL_PL_CASE_WHEN_CLAUSE_LIST);
+
+    if p.at(T![else]) {
+        let clause = p.start();
+        p.bump(T![else]);
+        parse_pl_statement_list(p);
+        clause.complete(p, PSQL_PL_ELSE_CLAUSE);
+    }
+
+    p.expect(T![end]);
+    p.expect(T![case]);
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_CASE_STATEMENT))
 }
 
 /// `CLOSE cursor;`

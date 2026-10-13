@@ -279,6 +279,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlBody::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_CASE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlCaseStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_CASE_WHEN_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlCaseWhenClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_CLOSE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlCloseStatement::new_unchecked(node) };
                     $body
@@ -1202,6 +1210,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST => {
                     let $pattern =
                         unsafe { $crate::PsqlFunctionParameterList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_CASE_WHEN_CLAUSE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlPlCaseWhenClauseList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_DECLARATION_LIST => {

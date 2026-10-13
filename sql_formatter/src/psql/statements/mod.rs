@@ -15,6 +15,7 @@ pub(crate) mod drop_policy_statement;
 pub(crate) mod drop_trigger_statement;
 pub(crate) mod lock_statement;
 pub(crate) mod pl_assignment_statement;
+pub(crate) mod pl_case_statement;
 pub(crate) mod pl_close_statement;
 pub(crate) mod pl_execute_statement;
 pub(crate) mod pl_exit_statement;

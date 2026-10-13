@@ -1951,6 +1951,74 @@ pub fn psql_pl_body(
         ],
     ))
 }
+pub fn psql_pl_case_statement(
+    case_token: SyntaxToken,
+    when_clauses: PsqlPlCaseWhenClauseList,
+    end_token: SyntaxToken,
+    end_case_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlCaseStatementBuilder {
+    PsqlPlCaseStatementBuilder {
+        case_token,
+        when_clauses,
+        end_token,
+        end_case_token,
+        semicolon_token,
+        value: None,
+        else_clause: None,
+    }
+}
+pub struct PsqlPlCaseStatementBuilder {
+    case_token: SyntaxToken,
+    when_clauses: PsqlPlCaseWhenClauseList,
+    end_token: SyntaxToken,
+    end_case_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+    value: Option<AnySqlExpression>,
+    else_clause: Option<PsqlPlElseClause>,
+}
+impl PsqlPlCaseStatementBuilder {
+    pub fn with_value(mut self, value: AnySqlExpression) -> Self {
+        self.value = Some(value);
+        self
+    }
+    pub fn with_else_clause(mut self, else_clause: PsqlPlElseClause) -> Self {
+        self.else_clause = Some(else_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlCaseStatement {
+        PsqlPlCaseStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_CASE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.case_token)),
+                self.value
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.when_clauses.into_syntax())),
+                self.else_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.end_token)),
+                Some(SyntaxElement::Token(self.end_case_token)),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_case_when_clause(
+    when_token: SyntaxToken,
+    conditions: SqlExpressionList,
+    then_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+) -> PsqlPlCaseWhenClause {
+    PsqlPlCaseWhenClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_CASE_WHEN_CLAUSE,
+        [
+            Some(SyntaxElement::Token(when_token)),
+            Some(SyntaxElement::Node(conditions.into_syntax())),
+            Some(SyntaxElement::Token(then_token)),
+            Some(SyntaxElement::Node(statements.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_pl_close_statement(
     close_token: SyntaxToken,
     cursor: SqlName,
@@ -7733,6 +7801,18 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_pl_case_when_clause_list<I>(items: I) -> PsqlPlCaseWhenClauseList
+where
+    I: IntoIterator<Item = PsqlPlCaseWhenClause>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlPlCaseWhenClauseList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_CASE_WHEN_CLAUSE_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_pl_declaration_list<I>(items: I) -> PsqlPlDeclarationList
