@@ -4704,6 +4704,15 @@ pub fn sql_null_literal_expression(value_token: SyntaxToken) -> SqlNullLiteralEx
         [Some(SyntaxElement::Token(value_token))],
     ))
 }
+pub fn sql_nulls_order(nulls_token: SyntaxToken, position_token: SyntaxToken) -> SqlNullsOrder {
+    SqlNullsOrder::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::SQL_NULLS_ORDER,
+        [
+            Some(SyntaxElement::Token(nulls_token)),
+            Some(SyntaxElement::Token(position_token)),
+        ],
+    ))
+}
 pub fn sql_number_literal_expression(value_token: SyntaxToken) -> SqlNumberLiteralExpression {
     SqlNumberLiteralExpression::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::SQL_NUMBER_LITERAL_EXPRESSION,
@@ -4735,15 +4744,21 @@ pub fn sql_order_by_expression(item: AnySqlExpression) -> SqlOrderByExpressionBu
     SqlOrderByExpressionBuilder {
         item,
         order_token: None,
+        nulls_order: None,
     }
 }
 pub struct SqlOrderByExpressionBuilder {
     item: AnySqlExpression,
     order_token: Option<SyntaxToken>,
+    nulls_order: Option<SqlNullsOrder>,
 }
 impl SqlOrderByExpressionBuilder {
     pub fn with_order_token(mut self, order_token: SyntaxToken) -> Self {
         self.order_token = Some(order_token);
+        self
+    }
+    pub fn with_nulls_order(mut self, nulls_order: SqlNullsOrder) -> Self {
+        self.nulls_order = Some(nulls_order);
         self
     }
     pub fn build(self) -> SqlOrderByExpression {
@@ -4752,6 +4767,8 @@ impl SqlOrderByExpressionBuilder {
             [
                 Some(SyntaxElement::Node(self.item.into_syntax())),
                 self.order_token.map(|token| SyntaxElement::Token(token)),
+                self.nulls_order
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }

@@ -306,6 +306,12 @@ SqlOrderByExpressionList = (SqlOrderByExpression (',' SqlOrderByExpression)*)
 SqlOrderByExpression = 
    item: AnySqlExpression
    order: ('asc' | 'desc')?
+   nulls_order: SqlNullsOrder?
+
+// `NULLS FIRST | NULLS LAST`
+SqlNullsOrder =
+   'nulls'
+   position: ('first' | 'last')
 
 SqlOffsetClause =
    'offset'

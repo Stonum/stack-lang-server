@@ -692,6 +692,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SqlNullLiteralExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::SQL_NULLS_ORDER => {
+                    let $pattern = unsafe { $crate::SqlNullsOrder::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_NUMBER_LITERAL_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::SqlNumberLiteralExpression::new_unchecked(node) };

@@ -238,6 +238,18 @@ pub(crate) fn parse_order_by_expression(p: &mut SqlParser) -> ParsedSyntax {
         if p.at(T![asc]) || p.at(T![desc]) {
             p.bump_any();
         }
+        if p.at(T![nulls]) {
+            let nulls = p.start();
+            p.bump(T![nulls]);
+            if p.at(T![first]) || p.at(T![last]) {
+                p.bump_any();
+            } else {
+                let range = p.cur_range();
+                let err = p.err_builder("Expected `first` or `last` after `nulls`", range);
+                p.error(err);
+            }
+            nulls.complete(p, SQL_NULLS_ORDER);
+        }
         Present(m.complete(p, SQL_ORDER_BY_EXPRESSION))
     } else {
         m.abandon(p);

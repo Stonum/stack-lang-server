@@ -4431,6 +4431,20 @@ impl SqlNullLiteralExpression {
         )
     }
 }
+impl SqlNullsOrder {
+    pub fn with_nulls_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(0usize..=0usize, once(Some(element.into()))),
+        )
+    }
+    pub fn with_position_token(self, element: SyntaxToken) -> Self {
+        Self::unwrap_cast(
+            self.syntax
+                .splice_slots(1usize..=1usize, once(Some(element.into()))),
+        )
+    }
+}
 impl SqlNumberLiteralExpression {
     pub fn with_value_token(self, element: SyntaxToken) -> Self {
         Self::unwrap_cast(
@@ -4479,6 +4493,12 @@ impl SqlOrderByExpression {
             self.syntax
                 .splice_slots(1usize..=1usize, once(element.map(|element| element.into()))),
         )
+    }
+    pub fn with_nulls_order(self, element: Option<SqlNullsOrder>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            2usize..=2usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
     }
 }
 impl SqlParameterExpression {
