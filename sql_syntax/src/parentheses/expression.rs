@@ -41,6 +41,7 @@ impl NeedsParentheses for AnySqlExpression {
             | Self::SqlCallExpression(_)
             | Self::SqlWindowFunctionExpression(_)
             | Self::PsqlArrayExpression(_)
+            | Self::PsqlArraySubqueryExpression(_)
             | Self::PsqlTildeArrayExpression(_)
             | Self::PsqlArraySubscriptExpression(_)
             | Self::PsqlCastExpression(_)

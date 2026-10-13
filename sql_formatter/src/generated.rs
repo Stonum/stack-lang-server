@@ -120,6 +120,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlArrayExpression {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlArraySubqueryExpression>
+    for crate::psql::expressions::array_subquery_expression::FormatPsqlArraySubqueryExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlArraySubqueryExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlArraySubqueryExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlArraySubqueryExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlArraySubqueryExpression,
+        crate::psql::expressions::array_subquery_expression::FormatPsqlArraySubqueryExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: array_subquery_expression :: FormatPsqlArraySubqueryExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlArraySubqueryExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlArraySubqueryExpression,
+        crate::psql::expressions::array_subquery_expression::FormatPsqlArraySubqueryExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: array_subquery_expression :: FormatPsqlArraySubqueryExpression :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlArraySubscriptExpression>
     for crate::psql::expressions::array_subscript_expression::FormatPsqlArraySubscriptExpression
 {
@@ -2412,6 +2444,78 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForStatement {
         FormatOwnedWithRule::new(
             self,
             crate::psql::statements::pl_for_statement::FormatPsqlPlForStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlForeachSlice>
+    for crate::psql::auxiliary::pl_foreach_slice::FormatPsqlPlForeachSlice
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlPlForeachSlice, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlForeachSlice>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlForeachSlice {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlForeachSlice,
+        crate::psql::auxiliary::pl_foreach_slice::FormatPsqlPlForeachSlice,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_foreach_slice::FormatPsqlPlForeachSlice::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForeachSlice {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlForeachSlice,
+        crate::psql::auxiliary::pl_foreach_slice::FormatPsqlPlForeachSlice,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_foreach_slice::FormatPsqlPlForeachSlice::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlForeachStatement>
+    for crate::psql::statements::pl_foreach_statement::FormatPsqlPlForeachStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlForeachStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlForeachStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlForeachStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlForeachStatement,
+        crate::psql::statements::pl_foreach_statement::FormatPsqlPlForeachStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_foreach_statement::FormatPsqlPlForeachStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForeachStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlForeachStatement,
+        crate::psql::statements::pl_foreach_statement::FormatPsqlPlForeachStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_foreach_statement::FormatPsqlPlForeachStatement::default(),
         )
     }
 }

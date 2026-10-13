@@ -156,7 +156,42 @@ fn parse_pl_labelled_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![for]) {
         return parse_pl_for_rest(p, m, label.as_deref());
     }
+    if p.at(T![foreach]) {
+        return parse_pl_foreach_rest(p, m, label.as_deref());
+    }
     parse_pl_block_rest(p, m, label.as_deref())
+}
+
+/// `FOREACH target, ... [SLICE n] IN ARRAY expr LOOP ... END LOOP [label];`
+/// after its optional `label`, which `m` already holds.
+fn parse_pl_foreach_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> ParsedSyntax {
+    p.expect(T![foreach]);
+    parse_pl_for_targets(p);
+    if p.at(T![slice]) {
+        let slice = p.start();
+        p.bump(T![slice]);
+        // Stops before `in`, which belongs to `FOREACH`, not to a predicate.
+        parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
+            .or_add_diagnostic(p, expected_expression);
+        slice.complete(p, PSQL_PL_FOREACH_SLICE);
+    }
+    p.expect(T![in]);
+    p.expect(T![array]);
+    parse_expression(p).or_add_diagnostic(p, expected_expression);
+    parse_pl_loop_body(p, label).or_add_diagnostic(p, expected_loop_body);
+    Present(m.complete(p, PSQL_PL_FOREACH_STATEMENT))
+}
+
+/// `name, ...` -- the loop variables of `FOR`/`FOREACH`.
+fn parse_pl_for_targets(p: &mut SqlParser) {
+    let targets = p.start();
+    loop {
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        if !p.eat(T![,]) {
+            break;
+        }
+    }
+    targets.complete(p, PSQL_PL_FOR_TARGET_LIST);
 }
 
 /// A query start: `select`, `with`, `values`, `table` or `(query)`.
@@ -188,15 +223,7 @@ fn parse_pl_for_range_source(p: &mut SqlParser) -> ParsedSyntax {
 /// `label`, which `m` already holds.
 fn parse_pl_for_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> ParsedSyntax {
     p.expect(T![for]);
-
-    let targets = p.start();
-    loop {
-        parse_name(p).or_add_diagnostic(p, expected_identifier);
-        if !p.eat(T![,]) {
-            break;
-        }
-    }
-    targets.complete(p, PSQL_PL_FOR_TARGET_LIST);
+    parse_pl_for_targets(p);
 
     p.expect(T![in]);
     parse_pl_for_source(p).or_add_diagnostic(p, expected_for_source);
@@ -391,6 +418,10 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![for]) {
         let m = p.start();
         return parse_pl_for_rest(p, m, None);
+    }
+    if p.at(T![foreach]) {
+        let m = p.start();
+        return parse_pl_foreach_rest(p, m, None);
     }
     if p.at(T![exit]) || p.at(T![continue]) {
         return parse_pl_exit_statement(p);

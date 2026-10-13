@@ -28,6 +28,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlArrayExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_ARRAY_SUBQUERY_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlArraySubqueryExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_ARRAY_SUBSCRIPT_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::PsqlArraySubscriptExpression::new_unchecked(node) };
@@ -312,6 +317,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_FOR_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlForStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FOREACH_SLICE => {
+                    let $pattern = unsafe { $crate::PsqlPlForeachSlice::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FOREACH_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlForeachStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_IF_STATEMENT => {

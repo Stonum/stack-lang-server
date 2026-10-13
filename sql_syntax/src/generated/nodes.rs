@@ -160,6 +160,46 @@ pub struct PsqlArrayExpressionFields {
     pub r_brack_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlArraySubqueryExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlArraySubqueryExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlArraySubqueryExpressionFields {
+        PsqlArraySubqueryExpressionFields {
+            array_token: self.array_token(),
+            query: self.query(),
+        }
+    }
+    pub fn array_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn query(&self) -> SyntaxResult<SqlSubqueryExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlArraySubqueryExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlArraySubqueryExpressionFields {
+    pub array_token: SyntaxResult<SyntaxToken>,
+    pub query: SyntaxResult<SqlSubqueryExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlArraySubscriptExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3727,6 +3767,116 @@ pub struct PsqlPlForStatementFields {
     pub targets: PsqlPlForTargetList,
     pub in_token: SyntaxResult<SyntaxToken>,
     pub source: SyntaxResult<AnyPsqlPlForSource>,
+    pub body: SyntaxResult<PsqlPlLoopBody>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlForeachSlice {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlForeachSlice {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlForeachSliceFields {
+        PsqlPlForeachSliceFields {
+            slice_token: self.slice_token(),
+            dimension: self.dimension(),
+        }
+    }
+    pub fn slice_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn dimension(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlForeachSlice {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlForeachSliceFields {
+    pub slice_token: SyntaxResult<SyntaxToken>,
+    pub dimension: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlForeachStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlForeachStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlForeachStatementFields {
+        PsqlPlForeachStatementFields {
+            label: self.label(),
+            foreach_token: self.foreach_token(),
+            targets: self.targets(),
+            slice: self.slice(),
+            in_token: self.in_token(),
+            array_token: self.array_token(),
+            array: self.array(),
+            body: self.body(),
+        }
+    }
+    pub fn label(&self) -> Option<PsqlPlLabel> {
+        support::node(&self.syntax, 0usize)
+    }
+    pub fn foreach_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn targets(&self) -> PsqlPlForTargetList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn slice(&self) -> Option<PsqlPlForeachSlice> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn in_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+    pub fn array_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn array(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 6usize)
+    }
+    pub fn body(&self) -> SyntaxResult<PsqlPlLoopBody> {
+        support::required_node(&self.syntax, 7usize)
+    }
+}
+impl Serialize for PsqlPlForeachStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlForeachStatementFields {
+    pub label: Option<PsqlPlLabel>,
+    pub foreach_token: SyntaxResult<SyntaxToken>,
+    pub targets: PsqlPlForTargetList,
+    pub slice: Option<PsqlPlForeachSlice>,
+    pub in_token: SyntaxResult<SyntaxToken>,
+    pub array_token: SyntaxResult<SyntaxToken>,
+    pub array: SyntaxResult<AnySqlExpression>,
     pub body: SyntaxResult<PsqlPlLoopBody>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -13205,6 +13355,7 @@ pub enum AnyPsqlPlStatement {
     PsqlPlExecuteStatement(PsqlPlExecuteStatement),
     PsqlPlExitStatement(PsqlPlExitStatement),
     PsqlPlForStatement(PsqlPlForStatement),
+    PsqlPlForeachStatement(PsqlPlForeachStatement),
     PsqlPlIfStatement(PsqlPlIfStatement),
     PsqlPlLoopStatement(PsqlPlLoopStatement),
     PsqlPlPerformStatement(PsqlPlPerformStatement),
@@ -13247,6 +13398,12 @@ impl AnyPsqlPlStatement {
     pub fn as_psql_pl_for_statement(&self) -> Option<&PsqlPlForStatement> {
         match &self {
             Self::PsqlPlForStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_foreach_statement(&self) -> Option<&PsqlPlForeachStatement> {
+        match &self {
+            Self::PsqlPlForeachStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -13653,6 +13810,7 @@ pub enum AnySqlExpression {
     SqlUnaryExpression(SqlUnaryExpression),
     SqlWindowFunctionExpression(SqlWindowFunctionExpression),
     PsqlArrayExpression(PsqlArrayExpression),
+    PsqlArraySubqueryExpression(PsqlArraySubqueryExpression),
     PsqlArraySubscriptExpression(PsqlArraySubscriptExpression),
     PsqlCastExpression(PsqlCastExpression),
     PsqlExtractExpression(PsqlExtractExpression),
@@ -13817,6 +13975,12 @@ impl AnySqlExpression {
     pub fn as_psql_array_expression(&self) -> Option<&PsqlArrayExpression> {
         match &self {
             Self::PsqlArrayExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_array_subquery_expression(&self) -> Option<&PsqlArraySubqueryExpression> {
+        match &self {
+            Self::PsqlArraySubqueryExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -14825,6 +14989,57 @@ impl From<PsqlArrayExpression> for SyntaxNode {
 }
 impl From<PsqlArrayExpression> for SyntaxElement {
     fn from(n: PsqlArrayExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlArraySubqueryExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_ARRAY_SUBQUERY_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_ARRAY_SUBQUERY_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlArraySubqueryExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlArraySubqueryExpression")
+                .field(
+                    "array_token",
+                    &support::DebugSyntaxResult(self.array_token()),
+                )
+                .field("query", &support::DebugSyntaxResult(self.query()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlArraySubqueryExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlArraySubqueryExpression> for SyntaxNode {
+    fn from(n: PsqlArraySubqueryExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlArraySubqueryExpression> for SyntaxElement {
+    fn from(n: PsqlArraySubqueryExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -18661,6 +18876,117 @@ impl From<PsqlPlForStatement> for SyntaxNode {
 }
 impl From<PsqlPlForStatement> for SyntaxElement {
     fn from(n: PsqlPlForStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlForeachSlice {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_FOREACH_SLICE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_FOREACH_SLICE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlForeachSlice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlForeachSlice")
+                .field(
+                    "slice_token",
+                    &support::DebugSyntaxResult(self.slice_token()),
+                )
+                .field("dimension", &support::DebugSyntaxResult(self.dimension()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlForeachSlice").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlForeachSlice> for SyntaxNode {
+    fn from(n: PsqlPlForeachSlice) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlForeachSlice> for SyntaxElement {
+    fn from(n: PsqlPlForeachSlice) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlForeachStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_FOREACH_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_FOREACH_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlForeachStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlForeachStatement")
+                .field("label", &support::DebugOptionalElement(self.label()))
+                .field(
+                    "foreach_token",
+                    &support::DebugSyntaxResult(self.foreach_token()),
+                )
+                .field("targets", &self.targets())
+                .field("slice", &support::DebugOptionalElement(self.slice()))
+                .field("in_token", &support::DebugSyntaxResult(self.in_token()))
+                .field(
+                    "array_token",
+                    &support::DebugSyntaxResult(self.array_token()),
+                )
+                .field("array", &support::DebugSyntaxResult(self.array()))
+                .field("body", &support::DebugSyntaxResult(self.body()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlForeachStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlForeachStatement> for SyntaxNode {
+    fn from(n: PsqlPlForeachStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlForeachStatement> for SyntaxElement {
+    fn from(n: PsqlPlForeachStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -29686,6 +30012,11 @@ impl From<PsqlPlForStatement> for AnyPsqlPlStatement {
         Self::PsqlPlForStatement(node)
     }
 }
+impl From<PsqlPlForeachStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlForeachStatement) -> Self {
+        Self::PsqlPlForeachStatement(node)
+    }
+}
 impl From<PsqlPlIfStatement> for AnyPsqlPlStatement {
     fn from(node: PsqlPlIfStatement) -> Self {
         Self::PsqlPlIfStatement(node)
@@ -29729,6 +30060,7 @@ impl AstNode for AnyPsqlPlStatement {
         .union(PsqlPlExecuteStatement::KIND_SET)
         .union(PsqlPlExitStatement::KIND_SET)
         .union(PsqlPlForStatement::KIND_SET)
+        .union(PsqlPlForeachStatement::KIND_SET)
         .union(PsqlPlIfStatement::KIND_SET)
         .union(PsqlPlLoopStatement::KIND_SET)
         .union(PsqlPlPerformStatement::KIND_SET)
@@ -29743,6 +30075,7 @@ impl AstNode for AnyPsqlPlStatement {
             | PSQL_PL_EXECUTE_STATEMENT
             | PSQL_PL_EXIT_STATEMENT
             | PSQL_PL_FOR_STATEMENT
+            | PSQL_PL_FOREACH_STATEMENT
             | PSQL_PL_IF_STATEMENT
             | PSQL_PL_LOOP_STATEMENT
             | PSQL_PL_PERFORM_STATEMENT
@@ -29765,6 +30098,9 @@ impl AstNode for AnyPsqlPlStatement {
             }
             PSQL_PL_EXIT_STATEMENT => Self::PsqlPlExitStatement(PsqlPlExitStatement { syntax }),
             PSQL_PL_FOR_STATEMENT => Self::PsqlPlForStatement(PsqlPlForStatement { syntax }),
+            PSQL_PL_FOREACH_STATEMENT => {
+                Self::PsqlPlForeachStatement(PsqlPlForeachStatement { syntax })
+            }
             PSQL_PL_IF_STATEMENT => Self::PsqlPlIfStatement(PsqlPlIfStatement { syntax }),
             PSQL_PL_LOOP_STATEMENT => Self::PsqlPlLoopStatement(PsqlPlLoopStatement { syntax }),
             PSQL_PL_PERFORM_STATEMENT => {
@@ -29794,6 +30130,7 @@ impl AstNode for AnyPsqlPlStatement {
             Self::PsqlPlExecuteStatement(it) => &it.syntax,
             Self::PsqlPlExitStatement(it) => &it.syntax,
             Self::PsqlPlForStatement(it) => &it.syntax,
+            Self::PsqlPlForeachStatement(it) => &it.syntax,
             Self::PsqlPlIfStatement(it) => &it.syntax,
             Self::PsqlPlLoopStatement(it) => &it.syntax,
             Self::PsqlPlPerformStatement(it) => &it.syntax,
@@ -29811,6 +30148,7 @@ impl AstNode for AnyPsqlPlStatement {
             Self::PsqlPlExecuteStatement(it) => it.syntax,
             Self::PsqlPlExitStatement(it) => it.syntax,
             Self::PsqlPlForStatement(it) => it.syntax,
+            Self::PsqlPlForeachStatement(it) => it.syntax,
             Self::PsqlPlIfStatement(it) => it.syntax,
             Self::PsqlPlLoopStatement(it) => it.syntax,
             Self::PsqlPlPerformStatement(it) => it.syntax,
@@ -29831,6 +30169,7 @@ impl std::fmt::Debug for AnyPsqlPlStatement {
             Self::PsqlPlExecuteStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlExitStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlForStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlForeachStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlIfStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlLoopStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlPerformStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -29850,6 +30189,7 @@ impl From<AnyPsqlPlStatement> for SyntaxNode {
             AnyPsqlPlStatement::PsqlPlExecuteStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlExitStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlForStatement(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlForeachStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlIfStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlLoopStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlPerformStatement(it) => it.into(),
@@ -30856,6 +31196,11 @@ impl From<PsqlArrayExpression> for AnySqlExpression {
         Self::PsqlArrayExpression(node)
     }
 }
+impl From<PsqlArraySubqueryExpression> for AnySqlExpression {
+    fn from(node: PsqlArraySubqueryExpression) -> Self {
+        Self::PsqlArraySubqueryExpression(node)
+    }
+}
 impl From<PsqlArraySubscriptExpression> for AnySqlExpression {
     fn from(node: PsqlArraySubscriptExpression) -> Self {
         Self::PsqlArraySubscriptExpression(node)
@@ -30929,6 +31274,7 @@ impl AstNode for AnySqlExpression {
         .union(SqlUnaryExpression::KIND_SET)
         .union(SqlWindowFunctionExpression::KIND_SET)
         .union(PsqlArrayExpression::KIND_SET)
+        .union(PsqlArraySubqueryExpression::KIND_SET)
         .union(PsqlArraySubscriptExpression::KIND_SET)
         .union(PsqlCastExpression::KIND_SET)
         .union(PsqlExtractExpression::KIND_SET)
@@ -30965,6 +31311,7 @@ impl AstNode for AnySqlExpression {
             | SQL_UNARY_EXPRESSION
             | SQL_WINDOW_FUNCTION_EXPRESSION
             | PSQL_ARRAY_EXPRESSION
+            | PSQL_ARRAY_SUBQUERY_EXPRESSION
             | PSQL_ARRAY_SUBSCRIPT_EXPRESSION
             | PSQL_CAST_EXPRESSION
             | PSQL_EXTRACT_EXPRESSION
@@ -31019,6 +31366,9 @@ impl AstNode for AnySqlExpression {
                 Self::SqlWindowFunctionExpression(SqlWindowFunctionExpression { syntax })
             }
             PSQL_ARRAY_EXPRESSION => Self::PsqlArrayExpression(PsqlArrayExpression { syntax }),
+            PSQL_ARRAY_SUBQUERY_EXPRESSION => {
+                Self::PsqlArraySubqueryExpression(PsqlArraySubqueryExpression { syntax })
+            }
             PSQL_ARRAY_SUBSCRIPT_EXPRESSION => {
                 Self::PsqlArraySubscriptExpression(PsqlArraySubscriptExpression { syntax })
             }
@@ -31078,6 +31428,7 @@ impl AstNode for AnySqlExpression {
             Self::SqlUnaryExpression(it) => &it.syntax,
             Self::SqlWindowFunctionExpression(it) => &it.syntax,
             Self::PsqlArrayExpression(it) => &it.syntax,
+            Self::PsqlArraySubqueryExpression(it) => &it.syntax,
             Self::PsqlArraySubscriptExpression(it) => &it.syntax,
             Self::PsqlCastExpression(it) => &it.syntax,
             Self::PsqlExtractExpression(it) => &it.syntax,
@@ -31117,6 +31468,7 @@ impl AstNode for AnySqlExpression {
             Self::SqlUnaryExpression(it) => it.syntax,
             Self::SqlWindowFunctionExpression(it) => it.syntax,
             Self::PsqlArrayExpression(it) => it.syntax,
+            Self::PsqlArraySubqueryExpression(it) => it.syntax,
             Self::PsqlArraySubscriptExpression(it) => it.syntax,
             Self::PsqlCastExpression(it) => it.syntax,
             Self::PsqlExtractExpression(it) => it.syntax,
@@ -31159,6 +31511,7 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::SqlUnaryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlWindowFunctionExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlArrayExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlArraySubqueryExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlArraySubscriptExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlCastExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlExtractExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -31200,6 +31553,7 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::SqlUnaryExpression(it) => it.into(),
             AnySqlExpression::SqlWindowFunctionExpression(it) => it.into(),
             AnySqlExpression::PsqlArrayExpression(it) => it.into(),
+            AnySqlExpression::PsqlArraySubqueryExpression(it) => it.into(),
             AnySqlExpression::PsqlArraySubscriptExpression(it) => it.into(),
             AnySqlExpression::PsqlCastExpression(it) => it.into(),
             AnySqlExpression::PsqlExtractExpression(it) => it.into(),
@@ -33438,6 +33792,11 @@ impl std::fmt::Display for PsqlArrayExpression {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlArraySubqueryExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlArraySubscriptExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -33769,6 +34128,16 @@ impl std::fmt::Display for PsqlPlForRangeStep {
     }
 }
 impl std::fmt::Display for PsqlPlForStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlForeachSlice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlForeachStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
