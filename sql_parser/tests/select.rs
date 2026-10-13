@@ -439,3 +439,41 @@ fn test_operator_with_missing_operand_is_a_bogus_expression() {
         assert!(tree.contains("SQL_BOGUS_EXPRESSION"), "{src}");
     }
 }
+
+#[test]
+fn test_select_jsonb_operators() {
+    for src in [
+        "select d ?| array['a', 'b'], d ?& array['a'] from t",
+        r#"select a from t where d @> '{"a": 1}' and '{"a": 1}' <@ d"#,
+        "select d #> '{a,b}', d #>> '{a,b}', d #- '{a}' from t",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("SQL_BINARY_EXPRESSION"), "{src}");
+    }
+}
+
+#[test]
+fn test_jsonb_operators_rejected_under_mssql_dialect() {
+    for src in [
+        "select d ? 'k' from t",
+        "select d @> e from t",
+        "select d #> e from t",
+    ] {
+        let res = parse(src, SqlFileSource::script().with_dialect(SqlDialect::Mssql));
+
+        assert!(res.has_errors(), "{src}");
+    }
+}
+
+#[test]
+fn test_jsonb_path_operator_next_to_mlang_temp_table() {
+    let res = parse(
+        "select a from #tmp where #tmp.d #> '{a}' = '1'",
+        postgres().with_mlang_extension(true),
+    );
+
+    assert_parser!(res);
+}

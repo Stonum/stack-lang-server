@@ -537,3 +537,15 @@ fn escape_string_constant() {
     assert_lex! { "E", IDENT:1 }
     assert_lex! { "e 'x'", IDENT:1, WHITESPACE:1, SQL_STRING_LITERAL:3 }
 }
+
+#[test]
+fn jsonb_operators() {
+    assert_lex! { "?|", QUESTION_PIPE:2 }
+    assert_lex! { "?&", QUESTION_AMP:2 }
+    assert_lex! { "?", QUESTION:1 }
+    assert_lex! { "@>", AT_R_ANGLE:2 }
+    assert_lex! { "<@", L_ANGLE_AT:2 }
+    assert_lex! { "#>", HASH_R_ANGLE:2 }
+    assert_lex! { "#>>", HASH_R_ANGLE2:3 }
+    assert_lex! { "#-", HASH_MINUS:2 }
+}
