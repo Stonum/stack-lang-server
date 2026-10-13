@@ -503,6 +503,12 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T![case]) {
         return parse_pl_case_statement(p);
     }
+    if p.at(T![null]) {
+        let m = p.start();
+        p.bump(T![null]);
+        p.expect(T![;]);
+        return Present(m.complete(p, PSQL_PL_NULL_STATEMENT));
+    }
     if p.at(T![if]) {
         return parse_pl_if_statement(p);
     }

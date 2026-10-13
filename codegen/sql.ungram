@@ -1059,6 +1059,7 @@ AnyPsqlPlStatement =
    | PsqlPlFetchStatement
    | PsqlPlCloseStatement
    | PsqlPlCaseStatement
+   | PsqlPlNullStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1290,6 +1291,11 @@ PsqlPlCaseWhenClause =
    conditions: SqlExpressionList
    'then'
    statements: PsqlPlStatementList
+
+// `NULL;` -- does nothing.
+PsqlPlNullStatement =
+   'null'
+   ';'
 
 // `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
 // discarded.

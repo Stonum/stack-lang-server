@@ -2680,6 +2680,18 @@ impl PsqlPlLoopStatementBuilder {
         ))
     }
 }
+pub fn psql_pl_null_statement(
+    null_token: SyntaxToken,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlNullStatement {
+    PsqlPlNullStatement::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_NULL_STATEMENT,
+        [
+            Some(SyntaxElement::Token(null_token)),
+            Some(SyntaxElement::Token(semicolon_token)),
+        ],
+    ))
+}
 pub fn psql_pl_open_arguments(
     l_paren_token: SyntaxToken,
     arguments: SqlExpressionList,

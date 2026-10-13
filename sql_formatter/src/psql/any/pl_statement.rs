@@ -21,6 +21,7 @@ impl FormatRule<AnyPsqlPlStatement> for FormatAnyPsqlPlStatement {
             AnyPsqlPlStatement::PsqlPlGetDiagnosticsStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlIfStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlLoopStatement(node) => node.format().fmt(f),
+            AnyPsqlPlStatement::PsqlPlNullStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlOpenStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlPerformStatement(node) => node.format().fmt(f),
             AnyPsqlPlStatement::PsqlPlRaiseStatement(node) => node.format().fmt(f),

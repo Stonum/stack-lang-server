@@ -2955,6 +2955,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlLoopStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlNullStatement>
+    for crate::psql::statements::pl_null_statement::FormatPsqlPlNullStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlNullStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlNullStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlNullStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlNullStatement,
+        crate::psql::statements::pl_null_statement::FormatPsqlPlNullStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_null_statement::FormatPsqlPlNullStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlNullStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlNullStatement,
+        crate::psql::statements::pl_null_statement::FormatPsqlPlNullStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_null_statement::FormatPsqlPlNullStatement::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlOpenArguments>
     for crate::psql::auxiliary::pl_open_arguments::FormatPsqlPlOpenArguments
 {
