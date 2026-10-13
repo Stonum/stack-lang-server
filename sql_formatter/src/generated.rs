@@ -2309,6 +2309,78 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForExecuteSource {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlForRangeSource>
+    for crate::psql::auxiliary::pl_for_range_source::FormatPsqlPlForRangeSource
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlForRangeSource,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlForRangeSource>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlForRangeSource {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlForRangeSource,
+        crate::psql::auxiliary::pl_for_range_source::FormatPsqlPlForRangeSource,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_for_range_source::FormatPsqlPlForRangeSource::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForRangeSource {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlForRangeSource,
+        crate::psql::auxiliary::pl_for_range_source::FormatPsqlPlForRangeSource,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_for_range_source::FormatPsqlPlForRangeSource::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlForRangeStep>
+    for crate::psql::auxiliary::pl_for_range_step::FormatPsqlPlForRangeStep
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlPlForRangeStep, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlForRangeStep>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlForRangeStep {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlForRangeStep,
+        crate::psql::auxiliary::pl_for_range_step::FormatPsqlPlForRangeStep,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_for_range_step::FormatPsqlPlForRangeStep::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForRangeStep {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlForRangeStep,
+        crate::psql::auxiliary::pl_for_range_step::FormatPsqlPlForRangeStep,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_for_range_step::FormatPsqlPlForRangeStep::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlForStatement>
     for crate::psql::statements::pl_for_statement::FormatPsqlPlForStatement
 {

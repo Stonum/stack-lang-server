@@ -265,6 +265,9 @@ fn comparison_operators() {
     assert_lex! { "->>", ARROW_ARROW:3 }
     assert_lex! { "<<", SHL:2 }
     assert_lex! { ">>", SHR:2 }
+    assert_lex! { "1..10", SQL_NUMBER_LITERAL:1, DOT2:2, SQL_NUMBER_LITERAL:2 }
+    assert_lex! { "1.5", SQL_NUMBER_LITERAL:3 }
+    assert_lex! { "a.b", IDENT:1, DOT:1, IDENT:1 }
     assert_lex! { "a>>b", IDENT:1, SHR:2, IDENT:1 }
     assert_lex! { "-", MINUS:1 }
     assert_lex! { "-1", MINUS:1, SQL_NUMBER_LITERAL:1 }

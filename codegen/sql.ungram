@@ -1136,6 +1136,19 @@ AnyPsqlPlForSource =
    AnySqlStatement
    | SqlSubqueryExpression
    | PsqlPlForExecuteSource
+   | PsqlPlForRangeSource
+
+// `[REVERSE] lower .. upper [BY step]`
+PsqlPlForRangeSource =
+   'reverse'?
+   lower: AnySqlExpression
+   '..'
+   upper: AnySqlExpression
+   step: PsqlPlForRangeStep?
+
+PsqlPlForRangeStep =
+   'by'
+   value: AnySqlExpression
 
 // `EXECUTE command [USING expr, ...]`
 PsqlPlForExecuteSource =

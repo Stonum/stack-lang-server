@@ -302,6 +302,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlForExecuteSource::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_FOR_RANGE_SOURCE => {
+                    let $pattern = unsafe { $crate::PsqlPlForRangeSource::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FOR_RANGE_STEP => {
+                    let $pattern = unsafe { $crate::PsqlPlForRangeStep::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_FOR_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlForStatement::new_unchecked(node) };
                     $body
