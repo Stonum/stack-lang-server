@@ -1037,6 +1037,7 @@ AnyPsqlPlStatement =
    | PsqlPlWhileStatement
    | PsqlPlForStatement
    | PsqlPlForeachStatement
+   | PsqlPlGetDiagnosticsStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1191,6 +1192,22 @@ PsqlPlExitStatement =
 PsqlPlExitWhenClause =
    'when'
    condition: AnySqlExpression
+
+// `GET [CURRENT | STACKED] DIAGNOSTICS target = item, ...;`
+PsqlPlGetDiagnosticsStatement =
+   'get'
+   scope: ('current' | 'stacked')?
+   'diagnostics'
+   items: PsqlPlDiagnosticsItemList
+   ';'
+
+PsqlPlDiagnosticsItemList = (PsqlPlDiagnosticsItem (',' PsqlPlDiagnosticsItem)*)
+
+// `target {= | :=} ROW_COUNT`
+PsqlPlDiagnosticsItem =
+   target: SqlName
+   operator: ('=' | ':=')
+   item: SqlName
 
 // `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
 // discarded.

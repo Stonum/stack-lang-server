@@ -26,6 +26,7 @@ pub(crate) mod partition_value_list;
 pub(crate) mod pl_block;
 pub(crate) mod pl_body;
 pub(crate) mod pl_declare_section;
+pub(crate) mod pl_diagnostics_item;
 pub(crate) mod pl_for_execute_source;
 pub(crate) mod pl_for_range_source;
 pub(crate) mod pl_for_range_step;

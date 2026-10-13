@@ -1963,6 +1963,20 @@ pub fn psql_pl_declare_section(
         ],
     ))
 }
+pub fn psql_pl_diagnostics_item(
+    target: SqlName,
+    operator_token: SyntaxToken,
+    item: SqlName,
+) -> PsqlPlDiagnosticsItem {
+    PsqlPlDiagnosticsItem::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_DIAGNOSTICS_ITEM,
+        [
+            Some(SyntaxElement::Node(target.into_syntax())),
+            Some(SyntaxElement::Token(operator_token)),
+            Some(SyntaxElement::Node(item.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_pl_else_clause(
     else_token: SyntaxToken,
     statements: PsqlPlStatementList,
@@ -2282,6 +2296,45 @@ impl PsqlPlForeachStatementBuilder {
                 Some(SyntaxElement::Token(self.array_token)),
                 Some(SyntaxElement::Node(self.array.into_syntax())),
                 Some(SyntaxElement::Node(self.body.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_get_diagnostics_statement(
+    get_token: SyntaxToken,
+    diagnostics_token: SyntaxToken,
+    items: PsqlPlDiagnosticsItemList,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlGetDiagnosticsStatementBuilder {
+    PsqlPlGetDiagnosticsStatementBuilder {
+        get_token,
+        diagnostics_token,
+        items,
+        semicolon_token,
+        scope_token: None,
+    }
+}
+pub struct PsqlPlGetDiagnosticsStatementBuilder {
+    get_token: SyntaxToken,
+    diagnostics_token: SyntaxToken,
+    items: PsqlPlDiagnosticsItemList,
+    semicolon_token: SyntaxToken,
+    scope_token: Option<SyntaxToken>,
+}
+impl PsqlPlGetDiagnosticsStatementBuilder {
+    pub fn with_scope_token(mut self, scope_token: SyntaxToken) -> Self {
+        self.scope_token = Some(scope_token);
+        self
+    }
+    pub fn build(self) -> PsqlPlGetDiagnosticsStatement {
+        PsqlPlGetDiagnosticsStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_GET_DIAGNOSTICS_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.get_token)),
+                self.scope_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.diagnostics_token)),
+                Some(SyntaxElement::Node(self.items.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
             ],
         ))
     }
@@ -7449,6 +7502,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_pl_diagnostics_item_list<I, S>(items: I, separators: S) -> PsqlPlDiagnosticsItemList
+where
+    I: IntoIterator<Item = PsqlPlDiagnosticsItem>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlPlDiagnosticsItemList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_DIAGNOSTICS_ITEM_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_pl_elsif_clause_list<I>(items: I) -> PsqlPlElsifClauseList

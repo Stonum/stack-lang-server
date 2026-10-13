@@ -2121,6 +2121,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlDeclareSection {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlDiagnosticsItem>
+    for crate::psql::auxiliary::pl_diagnostics_item::FormatPsqlPlDiagnosticsItem
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlDiagnosticsItem,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlDiagnosticsItem>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlDiagnosticsItem {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlDiagnosticsItem,
+        crate::psql::auxiliary::pl_diagnostics_item::FormatPsqlPlDiagnosticsItem,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_diagnostics_item::FormatPsqlPlDiagnosticsItem::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlDiagnosticsItem {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlDiagnosticsItem,
+        crate::psql::auxiliary::pl_diagnostics_item::FormatPsqlPlDiagnosticsItem,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_diagnostics_item::FormatPsqlPlDiagnosticsItem::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlElseClause>
     for crate::psql::clauses::pl_else_clause::FormatPsqlPlElseClause
 {
@@ -2517,6 +2555,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlForeachStatement {
             self,
             crate::psql::statements::pl_foreach_statement::FormatPsqlPlForeachStatement::default(),
         )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlGetDiagnosticsStatement>
+    for crate::psql::statements::pl_get_diagnostics_statement::FormatPsqlPlGetDiagnosticsStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlGetDiagnosticsStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlGetDiagnosticsStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlGetDiagnosticsStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlGetDiagnosticsStatement,
+        crate::psql::statements::pl_get_diagnostics_statement::FormatPsqlPlGetDiagnosticsStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: statements :: pl_get_diagnostics_statement :: FormatPsqlPlGetDiagnosticsStatement :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlGetDiagnosticsStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlGetDiagnosticsStatement,
+        crate::psql::statements::pl_get_diagnostics_statement::FormatPsqlPlGetDiagnosticsStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: statements :: pl_get_diagnostics_statement :: FormatPsqlPlGetDiagnosticsStatement :: default ())
     }
 }
 impl FormatRule<sql_syntax::PsqlPlIfStatement>
@@ -9341,6 +9411,33 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlDeclarationList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::pl_declaration_list::FormatPsqlPlDeclarationList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlDiagnosticsItemList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlDiagnosticsItemList,
+        crate::psql::lists::pl_diagnostics_item_list::FormatPsqlPlDiagnosticsItemList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::pl_diagnostics_item_list::FormatPsqlPlDiagnosticsItemList::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlDiagnosticsItemList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlDiagnosticsItemList,
+        crate::psql::lists::pl_diagnostics_item_list::FormatPsqlPlDiagnosticsItemList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::pl_diagnostics_item_list::FormatPsqlPlDiagnosticsItemList::default(
+            ),
         )
     }
 }
