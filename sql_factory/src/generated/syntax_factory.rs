@@ -2684,7 +2684,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             PSQL_PL_BLOCK => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<8usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && PsqlPlLabel::can_cast(element.kind())
@@ -2709,6 +2709,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && PsqlPlStatementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlExceptionSection::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -3081,6 +3088,72 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_PL_ELSIF_CLAUSE, children)
+            }
+            PSQL_PL_EXCEPTION_HANDLER => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![when]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlExceptionConditionList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![then]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlStatementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_EXCEPTION_HANDLER.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_EXCEPTION_HANDLER, children)
+            }
+            PSQL_PL_EXCEPTION_SECTION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![exception]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlExceptionHandlerList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_EXCEPTION_SECTION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_EXCEPTION_SECTION, children)
             }
             PSQL_PL_EXECUTE_STATEMENT => {
                 let mut elements = (&children).into_iter();
@@ -4175,6 +4248,32 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_PL_SCROLL_OPTION, children)
+            }
+            PSQL_PL_SQLSTATE_CONDITION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![sqlstate]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlStringLiteralExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_SQLSTATE_CONDITION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_SQLSTATE_CONDITION, children)
             }
             PSQL_PL_USING_CLAUSE => {
                 let mut elements = (&children).into_iter();
@@ -11190,6 +11289,16 @@ impl SyntaxFactory for SqlSyntaxFactory {
             ),
             PSQL_PL_ELSIF_CLAUSE_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlPlElsifClause::can_cast)
+            }
+            PSQL_PL_EXCEPTION_CONDITION_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                AnyPsqlPlExceptionCondition::can_cast,
+                T![or],
+                false,
+            ),
+            PSQL_PL_EXCEPTION_HANDLER_LIST => {
+                Self::make_node_list_syntax(kind, children, PsqlPlExceptionHandler::can_cast)
             }
             PSQL_PL_FOR_TARGET_LIST => {
                 Self::make_separated_list_syntax(kind, children, SqlName::can_cast, T ! [,], false)

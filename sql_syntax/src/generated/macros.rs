@@ -311,6 +311,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlElsifClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_EXCEPTION_HANDLER => {
+                    let $pattern = unsafe { $crate::PsqlPlExceptionHandler::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_EXCEPTION_SECTION => {
+                    let $pattern = unsafe { $crate::PsqlPlExceptionSection::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_EXECUTE_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlExecuteStatement::new_unchecked(node) };
                     $body
@@ -419,6 +427,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_SCROLL_OPTION => {
                     let $pattern = unsafe { $crate::PsqlPlScrollOption::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_SQLSTATE_CONDITION => {
+                    let $pattern = unsafe { $crate::PsqlPlSqlstateCondition::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_USING_CLAUSE => {
@@ -1231,6 +1243,16 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_ELSIF_CLAUSE_LIST => {
                     let $pattern = unsafe { $crate::PsqlPlElsifClauseList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_EXCEPTION_CONDITION_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPlExceptionConditionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_EXCEPTION_HANDLER_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPlExceptionHandlerList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_FOR_TARGET_LIST => {

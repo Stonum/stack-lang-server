@@ -12,6 +12,7 @@ impl FormatNodeRule<PsqlPlBlock> for FormatPsqlPlBlock {
             declare_section,
             begin_token,
             statements,
+            exception_section,
             end_token,
             end_label,
             semicolon_token,
@@ -27,10 +28,13 @@ impl FormatNodeRule<PsqlPlBlock> for FormatPsqlPlBlock {
             f,
             [
                 begin_token.format(),
-                FormatPlBranchStatements::new(&statements),
-                end_token.format()
+                FormatPlBranchStatements::new(&statements)
             ]
         )?;
+        if let Some(exception_section) = exception_section {
+            write!(f, [exception_section.format()])?;
+        }
+        write!(f, [end_token.format()])?;
         if let Some(end_label) = end_label {
             write!(f, [space(), end_label.format()])?;
         }

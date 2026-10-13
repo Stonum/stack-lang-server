@@ -8,12 +8,14 @@ use biome_parser::prelude::*;
 
 use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
+use crate::syntax_rules::expr::parse_string_literal_expression;
 use crate::syntax_rules::expr::{
     SqlExpressionList, is_at_name_start, parse_binary_or_logical_expression, parse_expression,
     parse_label, parse_name, parse_type_name,
 };
 use crate::syntax_rules::expr::{at_subquery, parse_subquery_expression};
 use crate::syntax_rules::from::parse_from_clause;
+use crate::syntax_rules::parse_error::expected_string_literal;
 use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_statement, expected_type_name,
 };
@@ -26,11 +28,12 @@ use crate::syntax_rules::where_clause::parse_where_clause;
 use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T, TextRange};
 
 /// Tokens that close a statement list: the block's `END` or a branch of an
-/// enclosing `IF`/`CASE`.
+/// enclosing `IF`/`CASE`, or the block's `EXCEPTION` section.
 const PL_STATEMENT_LIST_END_SET: TokenSet<SqlSyntaxKind> = token_set![
     T![end],
     T![else],
     T![when],
+    T![exception],
     T![elsif],
     T![elseif],
     DOLLAR_QUOTE,
@@ -91,10 +94,62 @@ fn parse_pl_block_rest(p: &mut SqlParser, m: Marker, label: Option<&str>) -> Par
     let _ = parse_pl_declare_section(p);
     p.expect(T![begin]);
     parse_pl_statement_list(p);
+    let _ = parse_pl_exception_section(p);
     p.expect(T![end]);
     parse_pl_end_label(p, label);
     p.eat(T![;]);
     Present(m.complete(p, PSQL_PL_BLOCK))
+}
+
+/// `EXCEPTION WHEN cond [OR cond ...] THEN ... ...`
+fn parse_pl_exception_section(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![exception]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![exception]);
+
+    let handlers = p.start();
+    if !p.at(T![when]) {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `when`", range);
+        p.error(err);
+    }
+    while p.at(T![when]) {
+        let handler = p.start();
+        p.bump(T![when]);
+
+        let conditions = p.start();
+        loop {
+            parse_pl_exception_condition(p).or_add_diagnostic(p, expected_exception_condition);
+            if !p.eat(T![or]) {
+                break;
+            }
+        }
+        conditions.complete(p, PSQL_PL_EXCEPTION_CONDITION_LIST);
+
+        p.expect(T![then]);
+        parse_pl_statement_list(p);
+        handler.complete(p, PSQL_PL_EXCEPTION_HANDLER);
+    }
+    handlers.complete(p, PSQL_PL_EXCEPTION_HANDLER_LIST);
+
+    Present(m.complete(p, PSQL_PL_EXCEPTION_SECTION))
+}
+
+/// A condition name or `SQLSTATE 'code'`.
+fn parse_pl_exception_condition(p: &mut SqlParser) -> ParsedSyntax {
+    if p.at(T![sqlstate]) {
+        let m = p.start();
+        p.bump(T![sqlstate]);
+        parse_string_literal_expression(p).or_add_diagnostic(p, expected_string_literal);
+        return Present(m.complete(p, PSQL_PL_SQLSTATE_CONDITION));
+    }
+    if p.at(T![then]) {
+        return Absent;
+    }
+    parse_label(p)
 }
 
 /// `<<name>>`; returns the label's name.
@@ -937,6 +992,10 @@ fn parse_pl_assignment_statement(p: &mut SqlParser) -> ParsedSyntax {
 
 fn expected_declaration(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
     p.err_builder("Expected a variable declaration", range)
+}
+
+fn expected_exception_condition(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
+    p.err_builder("Expected a condition name or `sqlstate '...'`", range)
 }
 
 fn expected_raise_option(p: &SqlParser, range: TextRange) -> ParseDiagnostic {
