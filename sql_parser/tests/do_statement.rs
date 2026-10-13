@@ -13,9 +13,9 @@ fn postgres() -> SqlFileSource {
 #[test]
 fn test_do_statement_forms() {
     for src in [
-        "do $$ begin perform 1; end $$",
+        "do $$ begin delete from t; end $$",
         "DO LANGUAGE plpgsql $$ BEGIN END $$;",
-        "do $body$ begin null; end $body$ language plpgsql",
+        "do $body$ begin truncate t; end $body$ language plpgsql",
         "do 'begin null; end'",
     ] {
         let res = parse(src, postgres());

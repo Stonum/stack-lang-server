@@ -1188,7 +1188,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlStringLiteralExpression::can_cast(element.kind())
+                    && AnyPsqlRoutineBody::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -2582,6 +2582,79 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_PARTITION_VALUE_LIST, children)
+            }
+            PSQL_PL_BLOCK => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T![begin]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlStatementList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![end]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T ! [;]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_BLOCK.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_BLOCK, children)
+            }
+            PSQL_PL_BODY => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == DOLLAR_QUOTE
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlBlock::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == DOLLAR_QUOTE
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_BODY.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_BODY, children)
             }
             PSQL_POLICY_FOR_CLAUSE => {
                 let mut elements = (&children).into_iter();
@@ -9415,6 +9488,9 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 T ! [,],
                 false,
             ),
+            PSQL_PL_STATEMENT_LIST => {
+                Self::make_node_list_syntax(kind, children, AnyPsqlPlStatement::can_cast)
+            }
             PSQL_RETURNS_TABLE_COLUMN_LIST => Self::make_separated_list_syntax(
                 kind,
                 children,

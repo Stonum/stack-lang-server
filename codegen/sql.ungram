@@ -962,9 +962,33 @@ PsqlCopyOption =
 PsqlDoStatement =
    'do'
    leading_language: PsqlLanguageOption?
-   body: SqlStringLiteralExpression
+   body: AnyPsqlRoutineBody
    trailing_language: PsqlLanguageOption?
    ';'?
+
+// A routine body: parsed PL/pgSQL inside `$tag$...$tag$`, or an opaque
+// string for any other language (or a quoted `'...'` body).
+AnyPsqlRoutineBody =
+   SqlStringLiteralExpression
+   | PsqlPlBody
+
+PsqlPlBody =
+   l_quote: 'dollar_quote'
+   block: PsqlPlBlock
+   r_quote: 'dollar_quote'
+
+// `BEGIN statement; ... END [;]`
+PsqlPlBlock =
+   'begin'
+   statements: PsqlPlStatementList
+   'end'
+   ';'?
+
+PsqlPlStatementList = AnyPsqlPlStatement*
+
+AnyPsqlPlStatement =
+   AnySqlStatement
+   | PsqlPlBlock
 
 // `TABLE name` -- Postgres shorthand for `SELECT * FROM name`.
 PsqlTableQuery =

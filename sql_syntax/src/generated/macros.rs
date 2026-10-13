@@ -257,6 +257,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPartitionValueList::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_BLOCK => {
+                    let $pattern = unsafe { $crate::PsqlPlBlock::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_BODY => {
+                    let $pattern = unsafe { $crate::PsqlPlBody::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_POLICY_FOR_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPolicyForClause::new_unchecked(node) };
                     $body
@@ -1033,6 +1041,10 @@ macro_rules! map_syntax_node {
                 $crate::SqlSyntaxKind::PSQL_FUNCTION_PARAMETER_LIST => {
                     let $pattern =
                         unsafe { $crate::PsqlFunctionParameterList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_STATEMENT_LIST => {
+                    let $pattern = unsafe { $crate::PsqlPlStatementList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_RETURNS_TABLE_COLUMN_LIST => {

@@ -23,6 +23,8 @@ pub(crate) mod partition_hash_values;
 pub(crate) mod partition_in_values;
 pub(crate) mod partition_range_values;
 pub(crate) mod partition_value_list;
+pub(crate) mod pl_block;
+pub(crate) mod pl_body;
 pub(crate) mod returns_null_option;
 pub(crate) mod returns_table_column;
 pub(crate) mod security_option;

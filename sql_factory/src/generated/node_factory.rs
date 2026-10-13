@@ -893,7 +893,7 @@ pub fn psql_do_nothing_clause(
 }
 pub fn psql_do_statement(
     do_token: SyntaxToken,
-    body: SqlStringLiteralExpression,
+    body: AnyPsqlRoutineBody,
 ) -> PsqlDoStatementBuilder {
     PsqlDoStatementBuilder {
         do_token,
@@ -905,7 +905,7 @@ pub fn psql_do_statement(
 }
 pub struct PsqlDoStatementBuilder {
     do_token: SyntaxToken,
-    body: SqlStringLiteralExpression,
+    body: AnyPsqlRoutineBody,
     leading_language: Option<PsqlLanguageOption>,
     trailing_language: Option<PsqlLanguageOption>,
     semicolon_token: Option<SyntaxToken>,
@@ -1815,6 +1815,56 @@ pub fn psql_partition_value_list(
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(values.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_pl_block(
+    begin_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+    end_token: SyntaxToken,
+) -> PsqlPlBlockBuilder {
+    PsqlPlBlockBuilder {
+        begin_token,
+        statements,
+        end_token,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlPlBlockBuilder {
+    begin_token: SyntaxToken,
+    statements: PsqlPlStatementList,
+    end_token: SyntaxToken,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlPlBlockBuilder {
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlPlBlock {
+        PsqlPlBlock::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_BLOCK,
+            [
+                Some(SyntaxElement::Token(self.begin_token)),
+                Some(SyntaxElement::Node(self.statements.into_syntax())),
+                Some(SyntaxElement::Token(self.end_token)),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_body(
+    l_quote_token: SyntaxToken,
+    block: PsqlPlBlock,
+    r_quote_token: SyntaxToken,
+) -> PsqlPlBody {
+    PsqlPlBody::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_BODY,
+        [
+            Some(SyntaxElement::Token(l_quote_token)),
+            Some(SyntaxElement::Node(block.into_syntax())),
+            Some(SyntaxElement::Token(r_quote_token)),
         ],
     ))
 }
@@ -6512,6 +6562,18 @@ where
                 Some(separators.next()?.into())
             }
         }),
+    ))
+}
+pub fn psql_pl_statement_list<I>(items: I) -> PsqlPlStatementList
+where
+    I: IntoIterator<Item = AnyPsqlPlStatement>,
+    I::IntoIter: ExactSizeIterator,
+{
+    PsqlPlStatementList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_STATEMENT_LIST,
+        items
+            .into_iter()
+            .map(|item| Some(item.into_syntax().into())),
     ))
 }
 pub fn psql_returns_table_column_list<I, S>(items: I, separators: S) -> PsqlReturnsTableColumnList
