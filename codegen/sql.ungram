@@ -1007,7 +1007,24 @@ PsqlPlDeclareSection =
    'declare'
    declarations: PsqlPlDeclarationList
 
-PsqlPlDeclarationList = PsqlPlVariableDeclaration*
+PsqlPlDeclarationList = AnyPsqlPlDeclaration*
+
+AnyPsqlPlDeclaration =
+   PsqlPlVariableDeclaration
+   | PsqlPlCursorDeclaration
+
+// `name [[NO] SCROLL] CURSOR {FOR | IS} query;` -- the query owns the `;`.
+PsqlPlCursorDeclaration =
+   name: SqlName
+   scroll: PsqlPlScrollOption?
+   'cursor'
+   keyword: ('for' | 'is')
+   query: AnySqlStatement
+
+// `[NO] SCROLL`
+PsqlPlScrollOption =
+   'no'?
+   'scroll'
 
 // `name [CONSTANT] type [COLLATE c] [NOT NULL] [{DEFAULT | := | =} value];`
 PsqlPlVariableDeclaration =
@@ -1038,6 +1055,9 @@ AnyPsqlPlStatement =
    | PsqlPlForStatement
    | PsqlPlForeachStatement
    | PsqlPlGetDiagnosticsStatement
+   | PsqlPlOpenStatement
+   | PsqlPlFetchStatement
+   | PsqlPlCloseStatement
    | PsqlPlExitStatement
 
 // `target {:= | =} value;` -- the target is a variable, `record.field` or
@@ -1208,6 +1228,49 @@ PsqlPlDiagnosticsItem =
    target: SqlName
    operator: ('=' | ':=')
    item: SqlName
+
+// `OPEN cursor [(arg, ...)];` or `OPEN cursor [[NO] SCROLL] FOR {query | EXECUTE ...};`
+// -- a query owns the `;`.
+PsqlPlOpenStatement =
+   'open'
+   cursor: SqlName
+   arguments: PsqlPlOpenArguments?
+   scroll: PsqlPlScrollOption?
+   for_clause: PsqlPlOpenForClause?
+   ';'?
+
+PsqlPlOpenArguments =
+   '('
+   arguments: SqlExpressionList
+   ')'
+
+PsqlPlOpenForClause =
+   'for'
+   source: AnyPsqlPlOpenSource
+
+AnyPsqlPlOpenSource =
+   AnySqlStatement
+   | PsqlPlForExecuteSource
+
+// `{FETCH | MOVE} [direction] [{FROM | IN}] cursor [INTO target, ...];`
+PsqlPlFetchStatement =
+   keyword: ('fetch' | 'move')
+   direction: PsqlPlFetchDirection?
+   from_token: ('from' | 'in')?
+   cursor: SqlName
+   into_clause: PsqlIntoClause?
+   ';'
+
+// `NEXT`, `PRIOR`, `FIRST`, `LAST`, `ABSOLUTE n`, `RELATIVE n`, `FORWARD [n | ALL]`, ...
+PsqlPlFetchDirection =
+   kind: ('next' | 'prior' | 'first' | 'last' | 'absolute' | 'relative' | 'forward' | 'backward' | 'all')?
+   count: AnySqlExpression?
+
+// `CLOSE cursor;`
+PsqlPlCloseStatement =
+   'close'
+   cursor: SqlName
+   ';'
 
 // `PERFORM items [FROM ...] [WHERE ...];` -- a query whose result is
 // discarded.

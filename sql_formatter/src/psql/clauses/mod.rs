@@ -17,6 +17,7 @@ pub(crate) mod partition_by_clause;
 pub(crate) mod pl_else_clause;
 pub(crate) mod pl_elsif_clause;
 pub(crate) mod pl_exit_when_clause;
+pub(crate) mod pl_open_for_clause;
 pub(crate) mod pl_raise_using_clause;
 pub(crate) mod pl_using_clause;
 pub(crate) mod policy_for_clause;

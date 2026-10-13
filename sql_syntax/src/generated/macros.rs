@@ -279,6 +279,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlBody::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_CLOSE_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlCloseStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_CURSOR_DECLARATION => {
+                    let $pattern = unsafe { $crate::PsqlPlCursorDeclaration::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_DECLARE_SECTION => {
                     let $pattern = unsafe { $crate::PsqlPlDeclareSection::new_unchecked(node) };
                     $body
@@ -305,6 +313,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_EXIT_WHEN_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPlExitWhenClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FETCH_DIRECTION => {
+                    let $pattern = unsafe { $crate::PsqlPlFetchDirection::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_FETCH_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlFetchStatement::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_FOR_EXECUTE_SOURCE => {
@@ -352,6 +368,18 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlLoopStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_OPEN_ARGUMENTS => {
+                    let $pattern = unsafe { $crate::PsqlPlOpenArguments::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_OPEN_FOR_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlPlOpenForClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_OPEN_STATEMENT => {
+                    let $pattern = unsafe { $crate::PsqlPlOpenStatement::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_PERFORM_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlPerformStatement::new_unchecked(node) };
                     $body
@@ -375,6 +403,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_RETURN_STATEMENT => {
                     let $pattern = unsafe { $crate::PsqlPlReturnStatement::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_SCROLL_OPTION => {
+                    let $pattern = unsafe { $crate::PsqlPlScrollOption::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_USING_CLAUSE => {

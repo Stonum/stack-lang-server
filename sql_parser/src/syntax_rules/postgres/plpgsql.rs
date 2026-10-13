@@ -8,11 +8,11 @@ use biome_parser::prelude::*;
 
 use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
-use crate::syntax_rules::expr::{at_subquery, parse_subquery_expression};
 use crate::syntax_rules::expr::{
-    is_at_name_start, parse_binary_or_logical_expression, parse_expression, parse_label,
-    parse_name, parse_type_name,
+    SqlExpressionList, is_at_name_start, parse_binary_or_logical_expression, parse_expression,
+    parse_label, parse_name, parse_type_name,
 };
+use crate::syntax_rules::expr::{at_subquery, parse_subquery_expression};
 use crate::syntax_rules::from::parse_from_clause;
 use crate::syntax_rules::parse_error::{
     expected_expression, expected_identifier, expected_statement, expected_type_name,
@@ -324,7 +324,12 @@ fn parse_pl_declare_section(p: &mut SqlParser) -> ParsedSyntax {
     while !p.at(EOF) && !p.at(T![begin]) && !p.at(DOLLAR_QUOTE) {
         progress.assert_progressing(p);
 
-        if parse_pl_variable_declaration(p)
+        let declaration = if is_at_pl_cursor_declaration(p) {
+            parse_pl_cursor_declaration(p)
+        } else {
+            parse_pl_variable_declaration(p)
+        };
+        if declaration
             .or_recover_with_token_set(
                 p,
                 &ParseRecoveryTokenSet::new(SQL_BOGUS, token_set![T![;], T![begin], DOLLAR_QUOTE]),
@@ -340,6 +345,54 @@ fn parse_pl_declare_section(p: &mut SqlParser) -> ParsedSyntax {
     list.complete(p, PSQL_PL_DECLARATION_LIST);
 
     Present(m.complete(p, PSQL_PL_DECLARE_SECTION))
+}
+
+/// `name [NO] SCROLL` or `name CURSOR`
+fn is_at_pl_cursor_declaration(p: &mut SqlParser) -> bool {
+    is_at_name_start(p)
+        && (p.nth_at(1, T![cursor])
+            || p.nth_at(1, T![scroll])
+            || (p.nth_at(1, T![no]) && p.nth_at(2, T![scroll])))
+}
+
+/// `name [[NO] SCROLL] CURSOR {FOR | IS} query;`
+fn parse_pl_cursor_declaration(p: &mut SqlParser) -> ParsedSyntax {
+    let m = p.start();
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    let _ = parse_pl_scroll_option(p);
+    p.expect(T![cursor]);
+    if p.at(T![for]) || p.at(T![is]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `for` or `is`", range);
+        p.error(err);
+    }
+    parse_pl_query(p);
+    Present(m.complete(p, PSQL_PL_CURSOR_DECLARATION))
+}
+
+/// The query after `RETURN QUERY`, `CURSOR FOR`, `OPEN ... FOR`; it owns the `;`.
+fn parse_pl_query(p: &mut SqlParser) {
+    if p.at(T![;]) {
+        let range = p.cur_range();
+        p.error(expected_statement(p, range));
+        p.bump(T![;]);
+    } else {
+        parse_statement(p).or_add_diagnostic(p, expected_statement);
+    }
+}
+
+/// `[NO] SCROLL`
+fn parse_pl_scroll_option(p: &mut SqlParser) -> ParsedSyntax {
+    if !(p.at(T![scroll]) || (p.at(T![no]) && p.nth_at(1, T![scroll]))) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.eat(T![no]);
+    p.bump(T![scroll]);
+    Present(m.complete(p, PSQL_PL_SCROLL_OPTION))
 }
 
 /// `name [CONSTANT] type [COLLATE c] [NOT NULL] [{DEFAULT | := | =} value];`
@@ -430,6 +483,15 @@ fn parse_pl_statement(p: &mut SqlParser) -> ParsedSyntax {
         && (p.nth_at(1, T![diagnostics]) || p.nth_at(1, T![current]) || p.nth_at(1, T![stacked]))
     {
         return parse_pl_get_diagnostics_statement(p);
+    }
+    if p.at(T![open]) {
+        return parse_pl_open_statement(p);
+    }
+    if p.at(T![fetch]) || p.at(T![move]) {
+        return parse_pl_fetch_statement(p);
+    }
+    if p.at(T![close]) {
+        return parse_pl_close_statement(p);
     }
     if p.at(T![if]) {
         return parse_pl_if_statement(p);
@@ -554,14 +616,10 @@ fn parse_pl_return_statement(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     p.bump(T![return]);
     if p.eat(T![query]) {
-        if p.at(T![;]) {
-            let range = p.cur_range();
-            p.error(expected_statement(p, range));
-            p.bump(T![;]);
-        } else if p.at(T![execute]) {
+        if p.at(T![execute]) {
             parse_pl_execute_statement(p).or_add_diagnostic(p, expected_statement);
         } else {
-            parse_statement(p).or_add_diagnostic(p, expected_statement);
+            parse_pl_query(p);
         }
         return Present(m.complete(p, PSQL_PL_RETURN_QUERY_STATEMENT));
     }
@@ -572,6 +630,101 @@ fn parse_pl_return_statement(p: &mut SqlParser) -> ParsedSyntax {
     }
     p.expect(T![;]);
     Present(m.complete(p, PSQL_PL_RETURN_STATEMENT))
+}
+
+/// `OPEN cursor [(arg, ...)];` or `OPEN cursor [[NO] SCROLL] FOR {query | EXECUTE ...};`
+fn parse_pl_open_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![open]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![open]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    if p.at(T!['(']) {
+        let arguments = p.start();
+        p.bump(T!['(']);
+        SqlExpressionList.parse_list(p);
+        p.expect(T![')']);
+        arguments.complete(p, PSQL_PL_OPEN_ARGUMENTS);
+    }
+    let _ = parse_pl_scroll_option(p);
+
+    if p.at(T![for]) {
+        let for_clause = p.start();
+        p.bump(T![for]);
+        if p.at(T![execute]) {
+            let _ = parse_pl_for_source(p);
+            for_clause.complete(p, PSQL_PL_OPEN_FOR_CLAUSE);
+            p.expect(T![;]);
+        } else {
+            parse_pl_query(p);
+            for_clause.complete(p, PSQL_PL_OPEN_FOR_CLAUSE);
+        }
+    } else {
+        p.expect(T![;]);
+    }
+    Present(m.complete(p, PSQL_PL_OPEN_STATEMENT))
+}
+
+const FETCH_DIRECTION_SET: TokenSet<SqlSyntaxKind> = token_set![
+    T![next],
+    T![prior],
+    T![first],
+    T![last],
+    T![absolute],
+    T![relative],
+    T![forward],
+    T![backward],
+    T![all]
+];
+
+/// `{FETCH | MOVE} [direction] [{FROM | IN}] cursor [INTO target, ...];`
+fn parse_pl_fetch_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![fetch]) && !p.at(T![move]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump_any();
+
+    // A bare cursor name is followed by `into`/`;`; anything else before
+    // `from`/`in` is a direction.
+    let has_direction = !(is_at_name_start(p) && (p.nth_at(1, T![into]) || p.nth_at(1, T![;])))
+        && !p.at(T![from])
+        && !p.at(T![in]);
+    if has_direction {
+        let direction = p.start();
+        let keyword = p.eat_ts(FETCH_DIRECTION_SET);
+        if !p.at(T![from]) && !p.at(T![in]) {
+            parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
+                .or_add_diagnostic(p, expected_expression);
+        } else if !keyword {
+            let range = p.cur_range();
+            p.error(expected_expression(p, range));
+        }
+        direction.complete(p, PSQL_PL_FETCH_DIRECTION);
+    }
+    if p.at(T![from]) || p.at(T![in]) {
+        p.bump_any();
+    }
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    let _ = parse_into_clause(p);
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_FETCH_STATEMENT))
+}
+
+/// `CLOSE cursor;`
+fn parse_pl_close_statement(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![close]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![close]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    p.expect(T![;]);
+    Present(m.complete(p, PSQL_PL_CLOSE_STATEMENT))
 }
 
 /// `GET [CURRENT | STACKED] DIAGNOSTICS target = item, ...;`

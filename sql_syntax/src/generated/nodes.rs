@@ -3295,6 +3295,106 @@ pub struct PsqlPlBodyFields {
     pub r_quote_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlCloseStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlCloseStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlCloseStatementFields {
+        PsqlPlCloseStatementFields {
+            close_token: self.close_token(),
+            cursor: self.cursor(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn close_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn cursor(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn semicolon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlPlCloseStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlCloseStatementFields {
+    pub close_token: SyntaxResult<SyntaxToken>,
+    pub cursor: SyntaxResult<SqlName>,
+    pub semicolon_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlCursorDeclaration {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlCursorDeclaration {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlCursorDeclarationFields {
+        PsqlPlCursorDeclarationFields {
+            name: self.name(),
+            scroll: self.scroll(),
+            cursor_token: self.cursor_token(),
+            keyword: self.keyword(),
+            query: self.query(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn scroll(&self) -> Option<PsqlPlScrollOption> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn cursor_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn keyword(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn query(&self) -> SyntaxResult<AnySqlStatement> {
+        support::required_node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlPlCursorDeclaration {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlCursorDeclarationFields {
+    pub name: SyntaxResult<SqlName>,
+    pub scroll: Option<PsqlPlScrollOption>,
+    pub cursor_token: SyntaxResult<SyntaxToken>,
+    pub keyword: SyntaxResult<SyntaxToken>,
+    pub query: SyntaxResult<AnySqlStatement>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlDeclareSection {
     pub(crate) syntax: SyntaxNode,
 }
@@ -3613,6 +3713,106 @@ impl Serialize for PsqlPlExitWhenClause {
 pub struct PsqlPlExitWhenClauseFields {
     pub when_token: SyntaxResult<SyntaxToken>,
     pub condition: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlFetchDirection {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlFetchDirection {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlFetchDirectionFields {
+        PsqlPlFetchDirectionFields {
+            kind: self.kind(),
+            count: self.count(),
+        }
+    }
+    pub fn kind(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn count(&self) -> Option<AnySqlExpression> {
+        support::node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlFetchDirection {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlFetchDirectionFields {
+    pub kind: Option<SyntaxToken>,
+    pub count: Option<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlFetchStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlFetchStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlFetchStatementFields {
+        PsqlPlFetchStatementFields {
+            keyword: self.keyword(),
+            direction: self.direction(),
+            from_token: self.from_token(),
+            cursor: self.cursor(),
+            into_clause: self.into_clause(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn keyword(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn direction(&self) -> Option<PsqlPlFetchDirection> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn from_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn cursor(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn into_clause(&self) -> Option<PsqlIntoClause> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn semicolon_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlPlFetchStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlFetchStatementFields {
+    pub keyword: SyntaxResult<SyntaxToken>,
+    pub direction: Option<PsqlPlFetchDirection>,
+    pub from_token: Option<SyntaxToken>,
+    pub cursor: SyntaxResult<SqlName>,
+    pub into_clause: Option<PsqlIntoClause>,
+    pub semicolon_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlForExecuteSource {
@@ -4200,6 +4400,151 @@ pub struct PsqlPlLoopStatementFields {
     pub body: SyntaxResult<PsqlPlLoopBody>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlOpenArguments {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlOpenArguments {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlOpenArgumentsFields {
+        PsqlPlOpenArgumentsFields {
+            l_paren_token: self.l_paren_token(),
+            arguments: self.arguments(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn arguments(&self) -> SqlExpressionList {
+        support::list(&self.syntax, 1usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlPlOpenArguments {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlOpenArgumentsFields {
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub arguments: SqlExpressionList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlOpenForClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlOpenForClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlOpenForClauseFields {
+        PsqlPlOpenForClauseFields {
+            for_token: self.for_token(),
+            source: self.source(),
+        }
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn source(&self) -> SyntaxResult<AnyPsqlPlOpenSource> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlOpenForClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlOpenForClauseFields {
+    pub for_token: SyntaxResult<SyntaxToken>,
+    pub source: SyntaxResult<AnyPsqlPlOpenSource>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlOpenStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlOpenStatement {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlOpenStatementFields {
+        PsqlPlOpenStatementFields {
+            open_token: self.open_token(),
+            cursor: self.cursor(),
+            arguments: self.arguments(),
+            scroll: self.scroll(),
+            for_clause: self.for_clause(),
+            semicolon_token: self.semicolon_token(),
+        }
+    }
+    pub fn open_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn cursor(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn arguments(&self) -> Option<PsqlPlOpenArguments> {
+        support::node(&self.syntax, 2usize)
+    }
+    pub fn scroll(&self) -> Option<PsqlPlScrollOption> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn for_clause(&self) -> Option<PsqlPlOpenForClause> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlPlOpenStatement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlOpenStatementFields {
+    pub open_token: SyntaxResult<SyntaxToken>,
+    pub cursor: SyntaxResult<SqlName>,
+    pub arguments: Option<PsqlPlOpenArguments>,
+    pub scroll: Option<PsqlPlScrollOption>,
+    pub for_clause: Option<PsqlPlOpenForClause>,
+    pub semicolon_token: Option<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlPerformStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -4493,6 +4838,46 @@ pub struct PsqlPlReturnStatementFields {
     pub next_token: Option<SyntaxToken>,
     pub value: Option<AnySqlExpression>,
     pub semicolon_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlScrollOption {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlScrollOption {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlScrollOptionFields {
+        PsqlPlScrollOptionFields {
+            no_token: self.no_token(),
+            scroll_token: self.scroll_token(),
+        }
+    }
+    pub fn no_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 0usize)
+    }
+    pub fn scroll_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlPlScrollOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlScrollOptionFields {
+    pub no_token: Option<SyntaxToken>,
+    pub scroll_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlUsingClause {
@@ -13415,6 +13800,25 @@ impl AnyPsqlPartitionValues {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlPlDeclaration {
+    PsqlPlCursorDeclaration(PsqlPlCursorDeclaration),
+    PsqlPlVariableDeclaration(PsqlPlVariableDeclaration),
+}
+impl AnyPsqlPlDeclaration {
+    pub fn as_psql_pl_cursor_declaration(&self) -> Option<&PsqlPlCursorDeclaration> {
+        match &self {
+            Self::PsqlPlCursorDeclaration(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_variable_declaration(&self) -> Option<&PsqlPlVariableDeclaration> {
+        match &self {
+            Self::PsqlPlVariableDeclaration(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlPlForSource {
     AnySqlStatement(AnySqlStatement),
     SqlSubqueryExpression(SqlSubqueryExpression),
@@ -13448,17 +13852,39 @@ impl AnyPsqlPlForSource {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlPlOpenSource {
+    AnySqlStatement(AnySqlStatement),
+    PsqlPlForExecuteSource(PsqlPlForExecuteSource),
+}
+impl AnyPsqlPlOpenSource {
+    pub fn as_any_sql_statement(&self) -> Option<&AnySqlStatement> {
+        match &self {
+            Self::AnySqlStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_for_execute_source(&self) -> Option<&PsqlPlForExecuteSource> {
+        match &self {
+            Self::PsqlPlForExecuteSource(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlPlStatement {
     AnySqlStatement(AnySqlStatement),
     PsqlPlAssignmentStatement(PsqlPlAssignmentStatement),
     PsqlPlBlock(PsqlPlBlock),
+    PsqlPlCloseStatement(PsqlPlCloseStatement),
     PsqlPlExecuteStatement(PsqlPlExecuteStatement),
     PsqlPlExitStatement(PsqlPlExitStatement),
+    PsqlPlFetchStatement(PsqlPlFetchStatement),
     PsqlPlForStatement(PsqlPlForStatement),
     PsqlPlForeachStatement(PsqlPlForeachStatement),
     PsqlPlGetDiagnosticsStatement(PsqlPlGetDiagnosticsStatement),
     PsqlPlIfStatement(PsqlPlIfStatement),
     PsqlPlLoopStatement(PsqlPlLoopStatement),
+    PsqlPlOpenStatement(PsqlPlOpenStatement),
     PsqlPlPerformStatement(PsqlPlPerformStatement),
     PsqlPlRaiseStatement(PsqlPlRaiseStatement),
     PsqlPlReturnQueryStatement(PsqlPlReturnQueryStatement),
@@ -13484,6 +13910,12 @@ impl AnyPsqlPlStatement {
             _ => None,
         }
     }
+    pub fn as_psql_pl_close_statement(&self) -> Option<&PsqlPlCloseStatement> {
+        match &self {
+            Self::PsqlPlCloseStatement(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_psql_pl_execute_statement(&self) -> Option<&PsqlPlExecuteStatement> {
         match &self {
             Self::PsqlPlExecuteStatement(item) => Some(item),
@@ -13493,6 +13925,12 @@ impl AnyPsqlPlStatement {
     pub fn as_psql_pl_exit_statement(&self) -> Option<&PsqlPlExitStatement> {
         match &self {
             Self::PsqlPlExitStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_fetch_statement(&self) -> Option<&PsqlPlFetchStatement> {
+        match &self {
+            Self::PsqlPlFetchStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -13523,6 +13961,12 @@ impl AnyPsqlPlStatement {
     pub fn as_psql_pl_loop_statement(&self) -> Option<&PsqlPlLoopStatement> {
         match &self {
             Self::PsqlPlLoopStatement(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_open_statement(&self) -> Option<&PsqlPlOpenStatement> {
+        match &self {
+            Self::PsqlPlOpenStatement(item) => Some(item),
             _ => None,
         }
     }
@@ -18458,6 +18902,115 @@ impl From<PsqlPlBody> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlPlCloseStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_CLOSE_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_CLOSE_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlCloseStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlCloseStatement")
+                .field(
+                    "close_token",
+                    &support::DebugSyntaxResult(self.close_token()),
+                )
+                .field("cursor", &support::DebugSyntaxResult(self.cursor()))
+                .field(
+                    "semicolon_token",
+                    &support::DebugSyntaxResult(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlCloseStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlCloseStatement> for SyntaxNode {
+    fn from(n: PsqlPlCloseStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlCloseStatement> for SyntaxElement {
+    fn from(n: PsqlPlCloseStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlCursorDeclaration {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_CURSOR_DECLARATION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_CURSOR_DECLARATION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlCursorDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlCursorDeclaration")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("scroll", &support::DebugOptionalElement(self.scroll()))
+                .field(
+                    "cursor_token",
+                    &support::DebugSyntaxResult(self.cursor_token()),
+                )
+                .field("keyword", &support::DebugSyntaxResult(self.keyword()))
+                .field("query", &support::DebugSyntaxResult(self.query()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlCursorDeclaration").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlCursorDeclaration> for SyntaxNode {
+    fn from(n: PsqlPlCursorDeclaration) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlCursorDeclaration> for SyntaxElement {
+    fn from(n: PsqlPlCursorDeclaration) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlPlDeclareSection {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -18823,6 +19376,118 @@ impl From<PsqlPlExitWhenClause> for SyntaxNode {
 }
 impl From<PsqlPlExitWhenClause> for SyntaxElement {
     fn from(n: PsqlPlExitWhenClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlFetchDirection {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_FETCH_DIRECTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_FETCH_DIRECTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlFetchDirection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlFetchDirection")
+                .field("kind", &support::DebugOptionalElement(self.kind()))
+                .field("count", &support::DebugOptionalElement(self.count()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlFetchDirection").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlFetchDirection> for SyntaxNode {
+    fn from(n: PsqlPlFetchDirection) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlFetchDirection> for SyntaxElement {
+    fn from(n: PsqlPlFetchDirection) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlFetchStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_FETCH_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_FETCH_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlFetchStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlFetchStatement")
+                .field("keyword", &support::DebugSyntaxResult(self.keyword()))
+                .field(
+                    "direction",
+                    &support::DebugOptionalElement(self.direction()),
+                )
+                .field(
+                    "from_token",
+                    &support::DebugOptionalElement(self.from_token()),
+                )
+                .field("cursor", &support::DebugSyntaxResult(self.cursor()))
+                .field(
+                    "into_clause",
+                    &support::DebugOptionalElement(self.into_clause()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugSyntaxResult(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlFetchStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlFetchStatement> for SyntaxNode {
+    fn from(n: PsqlPlFetchStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlFetchStatement> for SyntaxElement {
+    fn from(n: PsqlPlFetchStatement) -> Self {
         n.syntax.into()
     }
 }
@@ -19431,6 +20096,170 @@ impl From<PsqlPlLoopStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlPlOpenArguments {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_OPEN_ARGUMENTS as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_OPEN_ARGUMENTS
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlOpenArguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlOpenArguments")
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("arguments", &self.arguments())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlOpenArguments").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlOpenArguments> for SyntaxNode {
+    fn from(n: PsqlPlOpenArguments) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlOpenArguments> for SyntaxElement {
+    fn from(n: PsqlPlOpenArguments) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlOpenForClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_OPEN_FOR_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_OPEN_FOR_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlOpenForClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlOpenForClause")
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field("source", &support::DebugSyntaxResult(self.source()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlOpenForClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlOpenForClause> for SyntaxNode {
+    fn from(n: PsqlPlOpenForClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlOpenForClause> for SyntaxElement {
+    fn from(n: PsqlPlOpenForClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlOpenStatement {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_OPEN_STATEMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_OPEN_STATEMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlOpenStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlOpenStatement")
+                .field("open_token", &support::DebugSyntaxResult(self.open_token()))
+                .field("cursor", &support::DebugSyntaxResult(self.cursor()))
+                .field(
+                    "arguments",
+                    &support::DebugOptionalElement(self.arguments()),
+                )
+                .field("scroll", &support::DebugOptionalElement(self.scroll()))
+                .field(
+                    "for_clause",
+                    &support::DebugOptionalElement(self.for_clause()),
+                )
+                .field(
+                    "semicolon_token",
+                    &support::DebugOptionalElement(self.semicolon_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlOpenStatement").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlOpenStatement> for SyntaxNode {
+    fn from(n: PsqlPlOpenStatement) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlOpenStatement> for SyntaxElement {
+    fn from(n: PsqlPlOpenStatement) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlPlPerformStatement {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -19769,6 +20598,57 @@ impl From<PsqlPlReturnStatement> for SyntaxNode {
 }
 impl From<PsqlPlReturnStatement> for SyntaxElement {
     fn from(n: PsqlPlReturnStatement) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlScrollOption {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_SCROLL_OPTION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_SCROLL_OPTION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlScrollOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlScrollOption")
+                .field("no_token", &support::DebugOptionalElement(self.no_token()))
+                .field(
+                    "scroll_token",
+                    &support::DebugSyntaxResult(self.scroll_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlScrollOption").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlScrollOption> for SyntaxNode {
+    fn from(n: PsqlPlScrollOption) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlScrollOption> for SyntaxElement {
+    fn from(n: PsqlPlScrollOption) -> Self {
         n.syntax.into()
     }
 }
@@ -30111,6 +30991,73 @@ impl From<AnyPsqlPartitionValues> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlPlCursorDeclaration> for AnyPsqlPlDeclaration {
+    fn from(node: PsqlPlCursorDeclaration) -> Self {
+        Self::PsqlPlCursorDeclaration(node)
+    }
+}
+impl From<PsqlPlVariableDeclaration> for AnyPsqlPlDeclaration {
+    fn from(node: PsqlPlVariableDeclaration) -> Self {
+        Self::PsqlPlVariableDeclaration(node)
+    }
+}
+impl AstNode for AnyPsqlPlDeclaration {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlPlCursorDeclaration::KIND_SET.union(PsqlPlVariableDeclaration::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_PL_CURSOR_DECLARATION | PSQL_PL_VARIABLE_DECLARATION
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_PL_CURSOR_DECLARATION => {
+                Self::PsqlPlCursorDeclaration(PsqlPlCursorDeclaration { syntax })
+            }
+            PSQL_PL_VARIABLE_DECLARATION => {
+                Self::PsqlPlVariableDeclaration(PsqlPlVariableDeclaration { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlPlCursorDeclaration(it) => &it.syntax,
+            Self::PsqlPlVariableDeclaration(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlPlCursorDeclaration(it) => it.syntax,
+            Self::PsqlPlVariableDeclaration(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlPlDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlPlCursorDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlPlDeclaration> for SyntaxNode {
+    fn from(n: AnyPsqlPlDeclaration) -> Self {
+        match n {
+            AnyPsqlPlDeclaration::PsqlPlCursorDeclaration(it) => it.into(),
+            AnyPsqlPlDeclaration::PsqlPlVariableDeclaration(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlPlDeclaration> for SyntaxElement {
+    fn from(n: AnyPsqlPlDeclaration) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlSubqueryExpression> for AnyPsqlPlForSource {
     fn from(node: SqlSubqueryExpression) -> Self {
         Self::SqlSubqueryExpression(node)
@@ -30200,6 +31147,71 @@ impl From<AnyPsqlPlForSource> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlPlForExecuteSource> for AnyPsqlPlOpenSource {
+    fn from(node: PsqlPlForExecuteSource) -> Self {
+        Self::PsqlPlForExecuteSource(node)
+    }
+}
+impl AstNode for AnyPsqlPlOpenSource {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        AnySqlStatement::KIND_SET.union(PsqlPlForExecuteSource::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        match kind {
+            PSQL_PL_FOR_EXECUTE_SOURCE => true,
+            k if AnySqlStatement::can_cast(k) => true,
+            _ => false,
+        }
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_PL_FOR_EXECUTE_SOURCE => {
+                Self::PsqlPlForExecuteSource(PsqlPlForExecuteSource { syntax })
+            }
+            _ => {
+                if let Some(any_sql_statement) = AnySqlStatement::cast(syntax) {
+                    return Some(Self::AnySqlStatement(any_sql_statement));
+                }
+                return None;
+            }
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlPlForExecuteSource(it) => &it.syntax,
+            Self::AnySqlStatement(it) => it.syntax(),
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlPlForExecuteSource(it) => it.syntax,
+            Self::AnySqlStatement(it) => it.into_syntax(),
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlPlOpenSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AnySqlStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlForExecuteSource(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlPlOpenSource> for SyntaxNode {
+    fn from(n: AnyPsqlPlOpenSource) -> Self {
+        match n {
+            AnyPsqlPlOpenSource::AnySqlStatement(it) => it.into(),
+            AnyPsqlPlOpenSource::PsqlPlForExecuteSource(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlPlOpenSource> for SyntaxElement {
+    fn from(n: AnyPsqlPlOpenSource) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<PsqlPlAssignmentStatement> for AnyPsqlPlStatement {
     fn from(node: PsqlPlAssignmentStatement) -> Self {
         Self::PsqlPlAssignmentStatement(node)
@@ -30210,6 +31222,11 @@ impl From<PsqlPlBlock> for AnyPsqlPlStatement {
         Self::PsqlPlBlock(node)
     }
 }
+impl From<PsqlPlCloseStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlCloseStatement) -> Self {
+        Self::PsqlPlCloseStatement(node)
+    }
+}
 impl From<PsqlPlExecuteStatement> for AnyPsqlPlStatement {
     fn from(node: PsqlPlExecuteStatement) -> Self {
         Self::PsqlPlExecuteStatement(node)
@@ -30218,6 +31235,11 @@ impl From<PsqlPlExecuteStatement> for AnyPsqlPlStatement {
 impl From<PsqlPlExitStatement> for AnyPsqlPlStatement {
     fn from(node: PsqlPlExitStatement) -> Self {
         Self::PsqlPlExitStatement(node)
+    }
+}
+impl From<PsqlPlFetchStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlFetchStatement) -> Self {
+        Self::PsqlPlFetchStatement(node)
     }
 }
 impl From<PsqlPlForStatement> for AnyPsqlPlStatement {
@@ -30243,6 +31265,11 @@ impl From<PsqlPlIfStatement> for AnyPsqlPlStatement {
 impl From<PsqlPlLoopStatement> for AnyPsqlPlStatement {
     fn from(node: PsqlPlLoopStatement) -> Self {
         Self::PsqlPlLoopStatement(node)
+    }
+}
+impl From<PsqlPlOpenStatement> for AnyPsqlPlStatement {
+    fn from(node: PsqlPlOpenStatement) -> Self {
+        Self::PsqlPlOpenStatement(node)
     }
 }
 impl From<PsqlPlPerformStatement> for AnyPsqlPlStatement {
@@ -30275,13 +31302,16 @@ impl AstNode for AnyPsqlPlStatement {
     const KIND_SET: SyntaxKindSet<Language> = AnySqlStatement::KIND_SET
         .union(PsqlPlAssignmentStatement::KIND_SET)
         .union(PsqlPlBlock::KIND_SET)
+        .union(PsqlPlCloseStatement::KIND_SET)
         .union(PsqlPlExecuteStatement::KIND_SET)
         .union(PsqlPlExitStatement::KIND_SET)
+        .union(PsqlPlFetchStatement::KIND_SET)
         .union(PsqlPlForStatement::KIND_SET)
         .union(PsqlPlForeachStatement::KIND_SET)
         .union(PsqlPlGetDiagnosticsStatement::KIND_SET)
         .union(PsqlPlIfStatement::KIND_SET)
         .union(PsqlPlLoopStatement::KIND_SET)
+        .union(PsqlPlOpenStatement::KIND_SET)
         .union(PsqlPlPerformStatement::KIND_SET)
         .union(PsqlPlRaiseStatement::KIND_SET)
         .union(PsqlPlReturnQueryStatement::KIND_SET)
@@ -30291,13 +31321,16 @@ impl AstNode for AnyPsqlPlStatement {
         match kind {
             PSQL_PL_ASSIGNMENT_STATEMENT
             | PSQL_PL_BLOCK
+            | PSQL_PL_CLOSE_STATEMENT
             | PSQL_PL_EXECUTE_STATEMENT
             | PSQL_PL_EXIT_STATEMENT
+            | PSQL_PL_FETCH_STATEMENT
             | PSQL_PL_FOR_STATEMENT
             | PSQL_PL_FOREACH_STATEMENT
             | PSQL_PL_GET_DIAGNOSTICS_STATEMENT
             | PSQL_PL_IF_STATEMENT
             | PSQL_PL_LOOP_STATEMENT
+            | PSQL_PL_OPEN_STATEMENT
             | PSQL_PL_PERFORM_STATEMENT
             | PSQL_PL_RAISE_STATEMENT
             | PSQL_PL_RETURN_QUERY_STATEMENT
@@ -30313,10 +31346,12 @@ impl AstNode for AnyPsqlPlStatement {
                 Self::PsqlPlAssignmentStatement(PsqlPlAssignmentStatement { syntax })
             }
             PSQL_PL_BLOCK => Self::PsqlPlBlock(PsqlPlBlock { syntax }),
+            PSQL_PL_CLOSE_STATEMENT => Self::PsqlPlCloseStatement(PsqlPlCloseStatement { syntax }),
             PSQL_PL_EXECUTE_STATEMENT => {
                 Self::PsqlPlExecuteStatement(PsqlPlExecuteStatement { syntax })
             }
             PSQL_PL_EXIT_STATEMENT => Self::PsqlPlExitStatement(PsqlPlExitStatement { syntax }),
+            PSQL_PL_FETCH_STATEMENT => Self::PsqlPlFetchStatement(PsqlPlFetchStatement { syntax }),
             PSQL_PL_FOR_STATEMENT => Self::PsqlPlForStatement(PsqlPlForStatement { syntax }),
             PSQL_PL_FOREACH_STATEMENT => {
                 Self::PsqlPlForeachStatement(PsqlPlForeachStatement { syntax })
@@ -30326,6 +31361,7 @@ impl AstNode for AnyPsqlPlStatement {
             }
             PSQL_PL_IF_STATEMENT => Self::PsqlPlIfStatement(PsqlPlIfStatement { syntax }),
             PSQL_PL_LOOP_STATEMENT => Self::PsqlPlLoopStatement(PsqlPlLoopStatement { syntax }),
+            PSQL_PL_OPEN_STATEMENT => Self::PsqlPlOpenStatement(PsqlPlOpenStatement { syntax }),
             PSQL_PL_PERFORM_STATEMENT => {
                 Self::PsqlPlPerformStatement(PsqlPlPerformStatement { syntax })
             }
@@ -30350,13 +31386,16 @@ impl AstNode for AnyPsqlPlStatement {
         match self {
             Self::PsqlPlAssignmentStatement(it) => &it.syntax,
             Self::PsqlPlBlock(it) => &it.syntax,
+            Self::PsqlPlCloseStatement(it) => &it.syntax,
             Self::PsqlPlExecuteStatement(it) => &it.syntax,
             Self::PsqlPlExitStatement(it) => &it.syntax,
+            Self::PsqlPlFetchStatement(it) => &it.syntax,
             Self::PsqlPlForStatement(it) => &it.syntax,
             Self::PsqlPlForeachStatement(it) => &it.syntax,
             Self::PsqlPlGetDiagnosticsStatement(it) => &it.syntax,
             Self::PsqlPlIfStatement(it) => &it.syntax,
             Self::PsqlPlLoopStatement(it) => &it.syntax,
+            Self::PsqlPlOpenStatement(it) => &it.syntax,
             Self::PsqlPlPerformStatement(it) => &it.syntax,
             Self::PsqlPlRaiseStatement(it) => &it.syntax,
             Self::PsqlPlReturnQueryStatement(it) => &it.syntax,
@@ -30369,13 +31408,16 @@ impl AstNode for AnyPsqlPlStatement {
         match self {
             Self::PsqlPlAssignmentStatement(it) => it.syntax,
             Self::PsqlPlBlock(it) => it.syntax,
+            Self::PsqlPlCloseStatement(it) => it.syntax,
             Self::PsqlPlExecuteStatement(it) => it.syntax,
             Self::PsqlPlExitStatement(it) => it.syntax,
+            Self::PsqlPlFetchStatement(it) => it.syntax,
             Self::PsqlPlForStatement(it) => it.syntax,
             Self::PsqlPlForeachStatement(it) => it.syntax,
             Self::PsqlPlGetDiagnosticsStatement(it) => it.syntax,
             Self::PsqlPlIfStatement(it) => it.syntax,
             Self::PsqlPlLoopStatement(it) => it.syntax,
+            Self::PsqlPlOpenStatement(it) => it.syntax,
             Self::PsqlPlPerformStatement(it) => it.syntax,
             Self::PsqlPlRaiseStatement(it) => it.syntax,
             Self::PsqlPlReturnQueryStatement(it) => it.syntax,
@@ -30391,13 +31433,16 @@ impl std::fmt::Debug for AnyPsqlPlStatement {
             Self::AnySqlStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlAssignmentStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlBlock(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlCloseStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlExecuteStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlExitStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlFetchStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlForStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlForeachStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlGetDiagnosticsStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlIfStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlLoopStatement(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlOpenStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlPerformStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlRaiseStatement(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlReturnQueryStatement(it) => std::fmt::Debug::fmt(it, f),
@@ -30412,13 +31457,16 @@ impl From<AnyPsqlPlStatement> for SyntaxNode {
             AnyPsqlPlStatement::AnySqlStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlAssignmentStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlBlock(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlCloseStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlExecuteStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlExitStatement(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlFetchStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlForStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlForeachStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlGetDiagnosticsStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlIfStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlLoopStatement(it) => it.into(),
+            AnyPsqlPlStatement::PsqlPlOpenStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlPerformStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlRaiseStatement(it) => it.into(),
             AnyPsqlPlStatement::PsqlPlReturnQueryStatement(it) => it.into(),
@@ -33844,7 +34892,17 @@ impl std::fmt::Display for AnyPsqlPartitionValues {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlPlDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlPlForSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for AnyPsqlPlOpenSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -34309,6 +35367,16 @@ impl std::fmt::Display for PsqlPlBody {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlPlCloseStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlCursorDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlPlDeclareSection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -34340,6 +35408,16 @@ impl std::fmt::Display for PsqlPlExitStatement {
     }
 }
 impl std::fmt::Display for PsqlPlExitWhenClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlFetchDirection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlFetchStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -34399,6 +35477,21 @@ impl std::fmt::Display for PsqlPlLoopStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlPlOpenArguments {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlOpenForClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlOpenStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlPlPerformStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -34425,6 +35518,11 @@ impl std::fmt::Display for PsqlPlReturnQueryStatement {
     }
 }
 impl std::fmt::Display for PsqlPlReturnStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlScrollOption {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -36032,7 +37130,7 @@ impl Serialize for PsqlPlDeclarationList {
 }
 impl AstNodeList for PsqlPlDeclarationList {
     type Language = Language;
-    type Node = PsqlPlVariableDeclaration;
+    type Node = AnyPsqlPlDeclaration;
     fn syntax_list(&self) -> &SyntaxList {
         &self.syntax_list
     }
@@ -36047,15 +37145,15 @@ impl Debug for PsqlPlDeclarationList {
     }
 }
 impl IntoIterator for &PsqlPlDeclarationList {
-    type Item = PsqlPlVariableDeclaration;
-    type IntoIter = AstNodeListIterator<Language, PsqlPlVariableDeclaration>;
+    type Item = AnyPsqlPlDeclaration;
+    type IntoIter = AstNodeListIterator<Language, AnyPsqlPlDeclaration>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
 impl IntoIterator for PsqlPlDeclarationList {
-    type Item = PsqlPlVariableDeclaration;
-    type IntoIter = AstNodeListIterator<Language, PsqlPlVariableDeclaration>;
+    type Item = AnyPsqlPlDeclaration;
+    type IntoIter = AstNodeListIterator<Language, AnyPsqlPlDeclaration>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
