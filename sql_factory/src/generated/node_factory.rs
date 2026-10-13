@@ -2107,6 +2107,82 @@ impl PsqlPlPerformStatementBuilder {
         ))
     }
 }
+pub fn psql_pl_raise_option(
+    name: SqlName,
+    eq_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlPlRaiseOption {
+    PsqlPlRaiseOption::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_RAISE_OPTION,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Token(eq_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_raise_statement(
+    raise_token: SyntaxToken,
+    arguments: SqlExpressionList,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlRaiseStatementBuilder {
+    PsqlPlRaiseStatementBuilder {
+        raise_token,
+        arguments,
+        semicolon_token,
+        level_token: None,
+        sqlstate_token: None,
+        using_clause: None,
+    }
+}
+pub struct PsqlPlRaiseStatementBuilder {
+    raise_token: SyntaxToken,
+    arguments: SqlExpressionList,
+    semicolon_token: SyntaxToken,
+    level_token: Option<SyntaxToken>,
+    sqlstate_token: Option<SyntaxToken>,
+    using_clause: Option<PsqlPlRaiseUsingClause>,
+}
+impl PsqlPlRaiseStatementBuilder {
+    pub fn with_level_token(mut self, level_token: SyntaxToken) -> Self {
+        self.level_token = Some(level_token);
+        self
+    }
+    pub fn with_sqlstate_token(mut self, sqlstate_token: SyntaxToken) -> Self {
+        self.sqlstate_token = Some(sqlstate_token);
+        self
+    }
+    pub fn with_using_clause(mut self, using_clause: PsqlPlRaiseUsingClause) -> Self {
+        self.using_clause = Some(using_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlRaiseStatement {
+        PsqlPlRaiseStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_RAISE_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.raise_token)),
+                self.level_token.map(|token| SyntaxElement::Token(token)),
+                self.sqlstate_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.arguments.into_syntax())),
+                self.using_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_raise_using_clause(
+    using_token: SyntaxToken,
+    options: PsqlPlRaiseOptionList,
+) -> PsqlPlRaiseUsingClause {
+    PsqlPlRaiseUsingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_RAISE_USING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(using_token)),
+            Some(SyntaxElement::Node(options.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_pl_using_clause(
     using_token: SyntaxToken,
     arguments: SqlExpressionList,
@@ -6936,6 +7012,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_pl_raise_option_list<I, S>(items: I, separators: S) -> PsqlPlRaiseOptionList
+where
+    I: IntoIterator<Item = PsqlPlRaiseOption>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlPlRaiseOptionList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_RAISE_OPTION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_pl_statement_list<I>(items: I) -> PsqlPlStatementList

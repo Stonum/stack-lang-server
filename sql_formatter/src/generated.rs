@@ -2267,6 +2267,116 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlPerformStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlRaiseOption>
+    for crate::psql::auxiliary::pl_raise_option::FormatPsqlPlRaiseOption
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlPlRaiseOption, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlRaiseOption>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseOption {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlRaiseOption,
+        crate::psql::auxiliary::pl_raise_option::FormatPsqlPlRaiseOption,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_raise_option::FormatPsqlPlRaiseOption::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseOption {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlRaiseOption,
+        crate::psql::auxiliary::pl_raise_option::FormatPsqlPlRaiseOption,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_raise_option::FormatPsqlPlRaiseOption::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlRaiseStatement>
+    for crate::psql::statements::pl_raise_statement::FormatPsqlPlRaiseStatement
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlRaiseStatement,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlRaiseStatement>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseStatement {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlRaiseStatement,
+        crate::psql::statements::pl_raise_statement::FormatPsqlPlRaiseStatement,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::statements::pl_raise_statement::FormatPsqlPlRaiseStatement::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseStatement {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlRaiseStatement,
+        crate::psql::statements::pl_raise_statement::FormatPsqlPlRaiseStatement,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::statements::pl_raise_statement::FormatPsqlPlRaiseStatement::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlRaiseUsingClause>
+    for crate::psql::clauses::pl_raise_using_clause::FormatPsqlPlRaiseUsingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlRaiseUsingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlRaiseUsingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseUsingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlRaiseUsingClause,
+        crate::psql::clauses::pl_raise_using_clause::FormatPsqlPlRaiseUsingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::pl_raise_using_clause::FormatPsqlPlRaiseUsingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseUsingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlRaiseUsingClause,
+        crate::psql::clauses::pl_raise_using_clause::FormatPsqlPlRaiseUsingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::pl_raise_using_clause::FormatPsqlPlRaiseUsingClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlUsingClause>
     for crate::psql::clauses::pl_using_clause::FormatPsqlPlUsingClause
 {
@@ -8720,6 +8830,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlElsifClauseList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::pl_elsif_clause_list::FormatPsqlPlElsifClauseList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseOptionList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlRaiseOptionList,
+        crate::psql::lists::pl_raise_option_list::FormatPsqlPlRaiseOptionList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::pl_raise_option_list::FormatPsqlPlRaiseOptionList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseOptionList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlRaiseOptionList,
+        crate::psql::lists::pl_raise_option_list::FormatPsqlPlRaiseOptionList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::pl_raise_option_list::FormatPsqlPlRaiseOptionList::default(),
         )
     }
 }

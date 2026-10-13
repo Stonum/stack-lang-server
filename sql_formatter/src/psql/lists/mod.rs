@@ -5,6 +5,7 @@ pub(crate) mod function_option_list;
 pub(crate) mod function_parameter_list;
 pub(crate) mod pl_declaration_list;
 pub(crate) mod pl_elsif_clause_list;
+pub(crate) mod pl_raise_option_list;
 pub(crate) mod pl_statement_list;
 pub(crate) mod returns_table_column_list;
 pub(crate) mod sequence_option_list;
