@@ -31,6 +31,7 @@ pub(crate) mod in_value_list;
 pub(crate) mod name;
 pub(crate) mod not_null_constraint;
 pub(crate) mod null_constraint;
+pub(crate) mod nulls_order;
 pub(crate) mod precision_modifier;
 pub(crate) mod primary_key_constraint;
 pub(crate) mod primary_key_table_constraint;

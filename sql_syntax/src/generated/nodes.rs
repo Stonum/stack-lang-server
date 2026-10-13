@@ -8298,6 +8298,46 @@ pub struct SqlNullLiteralExpressionFields {
     pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct SqlNullsOrder {
+    pub(crate) syntax: SyntaxNode,
+}
+impl SqlNullsOrder {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> SqlNullsOrderFields {
+        SqlNullsOrderFields {
+            nulls_token: self.nulls_token(),
+            position: self.position(),
+        }
+    }
+    pub fn nulls_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn position(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for SqlNullsOrder {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct SqlNullsOrderFields {
+    pub nulls_token: SyntaxResult<SyntaxToken>,
+    pub position: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlNumberLiteralExpression {
     pub(crate) syntax: SyntaxNode,
 }
@@ -8430,6 +8470,7 @@ impl SqlOrderByExpression {
         SqlOrderByExpressionFields {
             item: self.item(),
             order: self.order(),
+            nulls_order: self.nulls_order(),
         }
     }
     pub fn item(&self) -> SyntaxResult<AnySqlExpression> {
@@ -8437,6 +8478,9 @@ impl SqlOrderByExpression {
     }
     pub fn order(&self) -> Option<SyntaxToken> {
         support::token(&self.syntax, 1usize)
+    }
+    pub fn nulls_order(&self) -> Option<SqlNullsOrder> {
+        support::node(&self.syntax, 2usize)
     }
 }
 impl Serialize for SqlOrderByExpression {
@@ -8451,6 +8495,7 @@ impl Serialize for SqlOrderByExpression {
 pub struct SqlOrderByExpressionFields {
     pub item: SyntaxResult<AnySqlExpression>,
     pub order: Option<SyntaxToken>,
+    pub nulls_order: Option<SqlNullsOrder>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlParameterExpression {
@@ -21586,6 +21631,57 @@ impl From<SqlNullLiteralExpression> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for SqlNullsOrder {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(SQL_NULLS_ORDER as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == SQL_NULLS_ORDER
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for SqlNullsOrder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("SqlNullsOrder")
+                .field(
+                    "nulls_token",
+                    &support::DebugSyntaxResult(self.nulls_token()),
+                )
+                .field("position", &support::DebugSyntaxResult(self.position()))
+                .finish()
+        } else {
+            f.debug_struct("SqlNullsOrder").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<SqlNullsOrder> for SyntaxNode {
+    fn from(n: SqlNullsOrder) -> Self {
+        n.syntax
+    }
+}
+impl From<SqlNullsOrder> for SyntaxElement {
+    fn from(n: SqlNullsOrder) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlNumberLiteralExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -21768,6 +21864,10 @@ impl std::fmt::Debug for SqlOrderByExpression {
             f.debug_struct("SqlOrderByExpression")
                 .field("item", &support::DebugSyntaxResult(self.item()))
                 .field("order", &support::DebugOptionalElement(self.order()))
+                .field(
+                    "nulls_order",
+                    &support::DebugOptionalElement(self.nulls_order()),
+                )
                 .finish()
         } else {
             f.debug_struct("SqlOrderByExpression").finish()
@@ -29297,6 +29397,11 @@ impl std::fmt::Display for SqlNullConstraint {
     }
 }
 impl std::fmt::Display for SqlNullLiteralExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for SqlNullsOrder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

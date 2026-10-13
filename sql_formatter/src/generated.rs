@@ -5660,6 +5660,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::SqlNullLiteralExpression {
         FormatOwnedWithRule :: new (self , crate :: sql :: expressions :: null_literal_expression :: FormatSqlNullLiteralExpression :: default ())
     }
 }
+impl FormatRule<sql_syntax::SqlNullsOrder>
+    for crate::sql::auxiliary::nulls_order::FormatSqlNullsOrder
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::SqlNullsOrder, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::SqlNullsOrder>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::SqlNullsOrder {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::SqlNullsOrder,
+        crate::sql::auxiliary::nulls_order::FormatSqlNullsOrder,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::auxiliary::nulls_order::FormatSqlNullsOrder::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::SqlNullsOrder {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::SqlNullsOrder,
+        crate::sql::auxiliary::nulls_order::FormatSqlNullsOrder,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::auxiliary::nulls_order::FormatSqlNullsOrder::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlNumberLiteralExpression>
     for crate::sql::expressions::number_literal_expression::FormatSqlNumberLiteralExpression
 {
