@@ -1951,6 +1951,60 @@ pub fn psql_pl_body(
         ],
     ))
 }
+pub fn psql_pl_close_statement(
+    close_token: SyntaxToken,
+    cursor: SqlName,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlCloseStatement {
+    PsqlPlCloseStatement::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_CLOSE_STATEMENT,
+        [
+            Some(SyntaxElement::Token(close_token)),
+            Some(SyntaxElement::Node(cursor.into_syntax())),
+            Some(SyntaxElement::Token(semicolon_token)),
+        ],
+    ))
+}
+pub fn psql_pl_cursor_declaration(
+    name: SqlName,
+    cursor_token: SyntaxToken,
+    keyword_token: SyntaxToken,
+    query: AnySqlStatement,
+) -> PsqlPlCursorDeclarationBuilder {
+    PsqlPlCursorDeclarationBuilder {
+        name,
+        cursor_token,
+        keyword_token,
+        query,
+        scroll: None,
+    }
+}
+pub struct PsqlPlCursorDeclarationBuilder {
+    name: SqlName,
+    cursor_token: SyntaxToken,
+    keyword_token: SyntaxToken,
+    query: AnySqlStatement,
+    scroll: Option<PsqlPlScrollOption>,
+}
+impl PsqlPlCursorDeclarationBuilder {
+    pub fn with_scroll(mut self, scroll: PsqlPlScrollOption) -> Self {
+        self.scroll = Some(scroll);
+        self
+    }
+    pub fn build(self) -> PsqlPlCursorDeclaration {
+        PsqlPlCursorDeclaration::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_CURSOR_DECLARATION,
+            [
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                self.scroll
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.cursor_token)),
+                Some(SyntaxElement::Token(self.keyword_token)),
+                Some(SyntaxElement::Node(self.query.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_declare_section(
     declare_token: SyntaxToken,
     declarations: PsqlPlDeclarationList,
@@ -2100,6 +2154,88 @@ pub fn psql_pl_exit_when_clause(
             Some(SyntaxElement::Node(condition.into_syntax())),
         ],
     ))
+}
+pub fn psql_pl_fetch_direction() -> PsqlPlFetchDirectionBuilder {
+    PsqlPlFetchDirectionBuilder {
+        kind_token: None,
+        count: None,
+    }
+}
+pub struct PsqlPlFetchDirectionBuilder {
+    kind_token: Option<SyntaxToken>,
+    count: Option<AnySqlExpression>,
+}
+impl PsqlPlFetchDirectionBuilder {
+    pub fn with_kind_token(mut self, kind_token: SyntaxToken) -> Self {
+        self.kind_token = Some(kind_token);
+        self
+    }
+    pub fn with_count(mut self, count: AnySqlExpression) -> Self {
+        self.count = Some(count);
+        self
+    }
+    pub fn build(self) -> PsqlPlFetchDirection {
+        PsqlPlFetchDirection::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_FETCH_DIRECTION,
+            [
+                self.kind_token.map(|token| SyntaxElement::Token(token)),
+                self.count
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_fetch_statement(
+    keyword_token: SyntaxToken,
+    cursor: SqlName,
+    semicolon_token: SyntaxToken,
+) -> PsqlPlFetchStatementBuilder {
+    PsqlPlFetchStatementBuilder {
+        keyword_token,
+        cursor,
+        semicolon_token,
+        direction: None,
+        from_token_token: None,
+        into_clause: None,
+    }
+}
+pub struct PsqlPlFetchStatementBuilder {
+    keyword_token: SyntaxToken,
+    cursor: SqlName,
+    semicolon_token: SyntaxToken,
+    direction: Option<PsqlPlFetchDirection>,
+    from_token_token: Option<SyntaxToken>,
+    into_clause: Option<PsqlIntoClause>,
+}
+impl PsqlPlFetchStatementBuilder {
+    pub fn with_direction(mut self, direction: PsqlPlFetchDirection) -> Self {
+        self.direction = Some(direction);
+        self
+    }
+    pub fn with_from_token_token(mut self, from_token_token: SyntaxToken) -> Self {
+        self.from_token_token = Some(from_token_token);
+        self
+    }
+    pub fn with_into_clause(mut self, into_clause: PsqlIntoClause) -> Self {
+        self.into_clause = Some(into_clause);
+        self
+    }
+    pub fn build(self) -> PsqlPlFetchStatement {
+        PsqlPlFetchStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_FETCH_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.keyword_token)),
+                self.direction
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.from_token_token
+                    .map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Node(self.cursor.into_syntax())),
+                self.into_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
 }
 pub fn psql_pl_for_execute_source(
     execute_token: SyntaxToken,
@@ -2476,6 +2612,88 @@ impl PsqlPlLoopStatementBuilder {
         ))
     }
 }
+pub fn psql_pl_open_arguments(
+    l_paren_token: SyntaxToken,
+    arguments: SqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlPlOpenArguments {
+    PsqlPlOpenArguments::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_OPEN_ARGUMENTS,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(arguments.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_pl_open_for_clause(
+    for_token: SyntaxToken,
+    source: AnyPsqlPlOpenSource,
+) -> PsqlPlOpenForClause {
+    PsqlPlOpenForClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_OPEN_FOR_CLAUSE,
+        [
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Node(source.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_open_statement(
+    open_token: SyntaxToken,
+    cursor: SqlName,
+) -> PsqlPlOpenStatementBuilder {
+    PsqlPlOpenStatementBuilder {
+        open_token,
+        cursor,
+        arguments: None,
+        scroll: None,
+        for_clause: None,
+        semicolon_token: None,
+    }
+}
+pub struct PsqlPlOpenStatementBuilder {
+    open_token: SyntaxToken,
+    cursor: SqlName,
+    arguments: Option<PsqlPlOpenArguments>,
+    scroll: Option<PsqlPlScrollOption>,
+    for_clause: Option<PsqlPlOpenForClause>,
+    semicolon_token: Option<SyntaxToken>,
+}
+impl PsqlPlOpenStatementBuilder {
+    pub fn with_arguments(mut self, arguments: PsqlPlOpenArguments) -> Self {
+        self.arguments = Some(arguments);
+        self
+    }
+    pub fn with_scroll(mut self, scroll: PsqlPlScrollOption) -> Self {
+        self.scroll = Some(scroll);
+        self
+    }
+    pub fn with_for_clause(mut self, for_clause: PsqlPlOpenForClause) -> Self {
+        self.for_clause = Some(for_clause);
+        self
+    }
+    pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
+        self.semicolon_token = Some(semicolon_token);
+        self
+    }
+    pub fn build(self) -> PsqlPlOpenStatement {
+        PsqlPlOpenStatement::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_OPEN_STATEMENT,
+            [
+                Some(SyntaxElement::Token(self.open_token)),
+                Some(SyntaxElement::Node(self.cursor.into_syntax())),
+                self.arguments
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.scroll
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.for_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.semicolon_token
+                    .map(|token| SyntaxElement::Token(token)),
+            ],
+        ))
+    }
+}
 pub fn psql_pl_perform_statement(
     perform_token: SyntaxToken,
     list: SqlSelectItemList,
@@ -2645,6 +2863,31 @@ impl PsqlPlReturnStatementBuilder {
                 self.value
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.semicolon_token)),
+            ],
+        ))
+    }
+}
+pub fn psql_pl_scroll_option(scroll_token: SyntaxToken) -> PsqlPlScrollOptionBuilder {
+    PsqlPlScrollOptionBuilder {
+        scroll_token,
+        no_token: None,
+    }
+}
+pub struct PsqlPlScrollOptionBuilder {
+    scroll_token: SyntaxToken,
+    no_token: Option<SyntaxToken>,
+}
+impl PsqlPlScrollOptionBuilder {
+    pub fn with_no_token(mut self, no_token: SyntaxToken) -> Self {
+        self.no_token = Some(no_token);
+        self
+    }
+    pub fn build(self) -> PsqlPlScrollOption {
+        PsqlPlScrollOption::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_PL_SCROLL_OPTION,
+            [
+                self.no_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.scroll_token)),
             ],
         ))
     }
@@ -7494,7 +7737,7 @@ where
 }
 pub fn psql_pl_declaration_list<I>(items: I) -> PsqlPlDeclarationList
 where
-    I: IntoIterator<Item = PsqlPlVariableDeclaration>,
+    I: IntoIterator<Item = AnyPsqlPlDeclaration>,
     I::IntoIter: ExactSizeIterator,
 {
     PsqlPlDeclarationList::unwrap_cast(SyntaxNode::new_detached(
