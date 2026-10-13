@@ -50,6 +50,7 @@ impl SqlSyntaxKind {
                 | ARRAY_KW
                 | AS_KW
                 | ASC_KW
+                | BOTH_KW
                 | CASE_KW
                 | CAST_KW
                 | CHECK_KW
@@ -76,6 +77,7 @@ impl SqlSyntaxKind {
                 | INTERSECT_KW
                 | INTO_KW
                 | LATERAL_KW
+                | LEADING_KW
                 | LIMIT_KW
                 | NOT_KW
                 | NULL_KW
@@ -91,6 +93,7 @@ impl SqlSyntaxKind {
                 | SELECT_KW
                 | SOME_KW
                 | TABLE_KW
+                | TRAILING_KW
                 | THEN_KW
                 | TO_KW
                 | TRUE_KW

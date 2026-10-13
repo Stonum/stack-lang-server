@@ -987,6 +987,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlExtensionSchemaClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlExtractExpression>
+    for crate::psql::expressions::extract_expression::FormatPsqlExtractExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlExtractExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlExtractExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlExtractExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlExtractExpression,
+        crate::psql::expressions::extract_expression::FormatPsqlExtractExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::extract_expression::FormatPsqlExtractExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlExtractExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlExtractExpression,
+        crate::psql::expressions::extract_expression::FormatPsqlExtractExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::extract_expression::FormatPsqlExtractExpression::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlFieldSelectionExpression>
     for crate::psql::expressions::field_selection_expression::FormatPsqlFieldSelectionExpression
 {
@@ -1957,6 +1995,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPolicyWithCheckClause {
         FormatOwnedWithRule :: new (self , crate :: psql :: clauses :: policy_with_check_clause :: FormatPsqlPolicyWithCheckClause :: default ())
     }
 }
+impl FormatRule<sql_syntax::PsqlPositionExpression>
+    for crate::psql::expressions::position_expression::FormatPsqlPositionExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPositionExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPositionExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPositionExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPositionExpression,
+        crate::psql::expressions::position_expression::FormatPsqlPositionExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::position_expression::FormatPsqlPositionExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPositionExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPositionExpression,
+        crate::psql::expressions::position_expression::FormatPsqlPositionExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::position_expression::FormatPsqlPositionExpression::default(),
+        )
+    }
+}
 impl FormatRule < sql_syntax :: PsqlRefreshMaterializedViewStatement > for crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlRefreshMaterializedViewStatement , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlRefreshMaterializedViewStatement > :: fmt (self , node , f) } }
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlRefreshMaterializedViewStatement {
     type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlRefreshMaterializedViewStatement , crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement > ;
@@ -2873,6 +2949,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTriggerWhenClause {
         FormatOwnedWithRule::new(
             self,
             crate::psql::clauses::trigger_when_clause::FormatPsqlTriggerWhenClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlTrimExpression>
+    for crate::psql::expressions::trim_expression::FormatPsqlTrimExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlTrimExpression, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTrimExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTrimExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTrimExpression,
+        crate::psql::expressions::trim_expression::FormatPsqlTrimExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::trim_expression::FormatPsqlTrimExpression::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTrimExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTrimExpression,
+        crate::psql::expressions::trim_expression::FormatPsqlTrimExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::trim_expression::FormatPsqlTrimExpression::default(),
         )
     }
 }

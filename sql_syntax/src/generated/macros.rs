@@ -149,6 +149,10 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlExtensionSchemaClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_EXTRACT_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlExtractExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_FIELD_SELECTION_EXPRESSION => {
                     let $pattern =
                         unsafe { $crate::PsqlFieldSelectionExpression::new_unchecked(node) };
@@ -262,6 +266,10 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlPolicyWithCheckClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_POSITION_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlPositionExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_REFRESH_MATERIALIZED_VIEW_STATEMENT => {
                     let $pattern = unsafe {
                         $crate::PsqlRefreshMaterializedViewStatement::new_unchecked(node)
@@ -369,6 +377,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_TRIGGER_WHEN_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlTriggerWhenClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_TRIM_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlTrimExpression::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_TRUNCATE_IDENTITY_CLAUSE => {

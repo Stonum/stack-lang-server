@@ -1322,6 +1322,9 @@ AnySqlExpression =
    | PsqlCastExpression
    | PsqlFieldSelectionExpression
    | PsqlSubstringExpression
+   | PsqlExtractExpression
+   | PsqlPositionExpression
+   | PsqlTrimExpression
    | PsqlIntervalExpression
    | AnySqlLiteralExpression
 
@@ -1892,6 +1895,36 @@ PsqlSubstringExpression =
    expression: AnySqlExpression
    from_clause: PsqlSubstringFromClause?
    for_clause: PsqlSubstringForClause?
+   ')'
+
+// `extract(field from source)` -- `extract` stays a plain `ident`, like
+// `substring`.
+PsqlExtractExpression =
+   name: 'ident'
+   '('
+   field: AnySqlExpression
+   'from'
+   source: AnySqlExpression
+   ')'
+
+// `position(substring in string)`
+PsqlPositionExpression =
+   name: 'ident'
+   '('
+   substring: AnySqlExpression
+   'in'
+   string: AnySqlExpression
+   ')'
+
+// `trim([both | leading | trailing] [characters] from string)` -- only the
+// `from` form; `trim(string[, characters])` is a plain call.
+PsqlTrimExpression =
+   name: 'ident'
+   '('
+   side: ('both' | 'leading' | 'trailing')?
+   characters: AnySqlExpression?
+   'from'
+   string: AnySqlExpression
    ')'
 
 PsqlSubstringFromClause =
