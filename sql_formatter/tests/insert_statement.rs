@@ -5,8 +5,7 @@ mod helper;
 fn format_insert_values() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-values (1, 2)
+insert into t (a, b) values (1, 2)
 "#
     );
 }
@@ -15,8 +14,7 @@ values (1, 2)
 fn format_insert_select() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-select a, b from t2
+insert into t (a, b) select a, b from t2
 "#
     );
 }
@@ -25,8 +23,7 @@ select a, b from t2
 fn format_insert_without_columns() {
     assert_fmt!(
         r#"--
-insert into t
-values (1, 2)
+insert into t values (1, 2)
 "#
     );
 }
@@ -35,9 +32,7 @@ values (1, 2)
 fn format_insert_with_returning() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-values (1, 2)
-returning a, b
+insert into t (a, b) values (1, 2) returning a, b
 "#
     );
 }
@@ -90,9 +85,7 @@ values (
 fn format_insert_on_conflict_do_nothing() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-values (1, 2)
-on conflict (a) do nothing
+insert into t (a, b) values (1, 2) on conflict (a) do nothing
 "#
     );
 }
@@ -115,9 +108,7 @@ where a = 1
 fn format_insert_on_conflict_on_constraint() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-values (1, 2)
-on conflict on constraint t_pkey do nothing
+insert into t (a, b) values (1, 2) on conflict on constraint t_pkey do nothing
 "#
     );
 }
@@ -126,8 +117,7 @@ on conflict on constraint t_pkey do nothing
 fn format_insert_parenthesized_select_source() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-(select a, b from u)
+insert into t (a, b) (select a, b from u)
 "#
     );
 }

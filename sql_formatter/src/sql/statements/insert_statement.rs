@@ -22,28 +22,34 @@ impl FormatNodeRule<SqlInsertStatement> for FormatSqlInsertStatement {
             write!(f, [with_clause.format(), hard_line_break()])?;
         }
 
+        // Same as SELECT: a short statement stays on one line, anything that
+        // doesn't fit (or breaks inside) puts each clause on its own line.
         write!(
             f,
-            [
-                insert_token.format(),
-                space(),
-                into_token.format(),
-                space(),
-                table.format()
-            ]
+            [group(&format_once(|f| {
+                write!(
+                    f,
+                    [
+                        insert_token.format(),
+                        space(),
+                        into_token.format(),
+                        space(),
+                        table.format()
+                    ]
+                )?;
+                if let Some(columns) = &columns {
+                    write!(f, [space(), columns.format()])?;
+                }
+                write!(f, [soft_line_break_or_space(), source.format()])?;
+                if let Some(on_conflict_clause) = on_conflict_clause {
+                    write!(f, [soft_line_break_or_space(), on_conflict_clause.format()])?;
+                }
+                if let Some(returning_clause) = returning_clause {
+                    write!(f, [soft_line_break_or_space(), returning_clause.format()])?;
+                }
+                Ok(())
+            }))]
         )?;
-        if let Some(columns) = columns {
-            write!(f, [space(), columns.format()])?;
-        }
-
-        write!(f, [hard_line_break(), source.format()])?;
-
-        if let Some(on_conflict_clause) = on_conflict_clause {
-            write!(f, [hard_line_break(), on_conflict_clause.format()])?;
-        }
-        if let Some(returning_clause) = returning_clause {
-            write!(f, [hard_line_break(), returning_clause.format()])?;
-        }
         if let Some(semicolon_token) = semicolon_token {
             write!(f, [semicolon_token.format()])?;
         }

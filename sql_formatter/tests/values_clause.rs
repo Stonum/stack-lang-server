@@ -62,8 +62,7 @@ select (values (1))
 fn format_insert_values_multiple_rows() {
     assert_fmt!(
         r#"--
-insert into t
-values (1, 2), (3, 4)
+insert into t values (1, 2), (3, 4)
 "#
     );
 }
@@ -72,8 +71,7 @@ values (1, 2), (3, 4)
 fn format_insert_values_multiple_rows_with_columns() {
     assert_fmt!(
         r#"--
-insert into t (a, b)
-values (1, 2), (3, 4)
+insert into t (a, b) values (1, 2), (3, 4)
 "#
     );
 }
