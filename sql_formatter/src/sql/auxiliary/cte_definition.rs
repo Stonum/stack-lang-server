@@ -14,6 +14,8 @@ impl FormatNodeRule<SqlCteDefinition> for FormatSqlCteDefinition {
             l_paren_token,
             query,
             r_paren_token,
+            search,
+            cycle,
         } = node.as_fields();
 
         write!(f, [name.format()])?;
@@ -32,6 +34,13 @@ impl FormatNodeRule<SqlCteDefinition> for FormatSqlCteDefinition {
                 group(&soft_block_indent(&query.format())),
                 r_paren_token.format(),
             ]
-        )
+        )?;
+        if let Some(search) = search {
+            write!(f, [space(), search.format()])?;
+        }
+        if let Some(cycle) = cycle {
+            write!(f, [space(), cycle.format()])?;
+        }
+        Ok(())
     }
 }

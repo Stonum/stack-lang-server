@@ -1155,6 +1155,121 @@ pub struct PsqlCreateTriggerStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCteCycleClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCteCycleClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCteCycleClauseFields {
+        PsqlCteCycleClauseFields {
+            cycle_token: self.cycle_token(),
+            columns: self.columns(),
+            set_token: self.set_token(),
+            mark: self.mark(),
+            mark_values: self.mark_values(),
+            using_token: self.using_token(),
+            path: self.path(),
+        }
+    }
+    pub fn cycle_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn columns(&self) -> SqlColumnNameList {
+        support::list(&self.syntax, 1usize)
+    }
+    pub fn set_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn mark(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn mark_values(&self) -> Option<PsqlCteCycleMarkValues> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn using_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn path(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 6usize)
+    }
+}
+impl Serialize for PsqlCteCycleClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCteCycleClauseFields {
+    pub cycle_token: SyntaxResult<SyntaxToken>,
+    pub columns: SqlColumnNameList,
+    pub set_token: SyntaxResult<SyntaxToken>,
+    pub mark: SyntaxResult<SqlName>,
+    pub mark_values: Option<PsqlCteCycleMarkValues>,
+    pub using_token: SyntaxResult<SyntaxToken>,
+    pub path: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCteCycleMarkValues {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCteCycleMarkValues {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCteCycleMarkValuesFields {
+        PsqlCteCycleMarkValuesFields {
+            to_token: self.to_token(),
+            value: self.value(),
+            default_token: self.default_token(),
+            default: self.default(),
+        }
+    }
+    pub fn to_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn default_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn default(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlCteCycleMarkValues {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCteCycleMarkValuesFields {
+    pub to_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnySqlExpression>,
+    pub default_token: SyntaxResult<SyntaxToken>,
+    pub default: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlCteMaterializedHint {
     pub(crate) syntax: SyntaxNode,
 }
@@ -1193,6 +1308,71 @@ impl Serialize for PsqlCteMaterializedHint {
 pub struct PsqlCteMaterializedHintFields {
     pub not_token: Option<SyntaxToken>,
     pub materialized_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlCteSearchClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlCteSearchClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlCteSearchClauseFields {
+        PsqlCteSearchClauseFields {
+            search_token: self.search_token(),
+            order: self.order(),
+            first_token: self.first_token(),
+            by_token: self.by_token(),
+            columns: self.columns(),
+            set_token: self.set_token(),
+            column: self.column(),
+        }
+    }
+    pub fn search_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn order(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn first_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+    pub fn by_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn columns(&self) -> SqlColumnNameList {
+        support::list(&self.syntax, 4usize)
+    }
+    pub fn set_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn column(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 6usize)
+    }
+}
+impl Serialize for PsqlCteSearchClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlCteSearchClauseFields {
+    pub search_token: SyntaxResult<SyntaxToken>,
+    pub order: SyntaxResult<SyntaxToken>,
+    pub first_token: SyntaxResult<SyntaxToken>,
+    pub by_token: SyntaxResult<SyntaxToken>,
+    pub columns: SqlColumnNameList,
+    pub set_token: SyntaxResult<SyntaxToken>,
+    pub column: SyntaxResult<SqlName>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlDeleteUsingClause {
@@ -10023,6 +10203,8 @@ impl SqlCteDefinition {
             l_paren_token: self.l_paren_token(),
             query: self.query(),
             r_paren_token: self.r_paren_token(),
+            search: self.search(),
+            cycle: self.cycle(),
         }
     }
     pub fn name(&self) -> SyntaxResult<SqlName> {
@@ -10046,6 +10228,12 @@ impl SqlCteDefinition {
     pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 6usize)
     }
+    pub fn search(&self) -> Option<PsqlCteSearchClause> {
+        support::node(&self.syntax, 7usize)
+    }
+    pub fn cycle(&self) -> Option<PsqlCteCycleClause> {
+        support::node(&self.syntax, 8usize)
+    }
 }
 impl Serialize for SqlCteDefinition {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -10064,6 +10252,8 @@ pub struct SqlCteDefinitionFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub query: SyntaxResult<AnySqlStatement>,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub search: Option<PsqlCteSearchClause>,
+    pub cycle: Option<PsqlCteCycleClause>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlDataBaseName {
@@ -17978,6 +18168,121 @@ impl From<PsqlCreateTriggerStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlCteCycleClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CTE_CYCLE_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CTE_CYCLE_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCteCycleClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCteCycleClause")
+                .field(
+                    "cycle_token",
+                    &support::DebugSyntaxResult(self.cycle_token()),
+                )
+                .field("columns", &self.columns())
+                .field("set_token", &support::DebugSyntaxResult(self.set_token()))
+                .field("mark", &support::DebugSyntaxResult(self.mark()))
+                .field(
+                    "mark_values",
+                    &support::DebugOptionalElement(self.mark_values()),
+                )
+                .field(
+                    "using_token",
+                    &support::DebugSyntaxResult(self.using_token()),
+                )
+                .field("path", &support::DebugSyntaxResult(self.path()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCteCycleClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCteCycleClause> for SyntaxNode {
+    fn from(n: PsqlCteCycleClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCteCycleClause> for SyntaxElement {
+    fn from(n: PsqlCteCycleClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCteCycleMarkValues {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CTE_CYCLE_MARK_VALUES as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CTE_CYCLE_MARK_VALUES
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCteCycleMarkValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCteCycleMarkValues")
+                .field("to_token", &support::DebugSyntaxResult(self.to_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .field(
+                    "default_token",
+                    &support::DebugSyntaxResult(self.default_token()),
+                )
+                .field("default", &support::DebugSyntaxResult(self.default()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCteCycleMarkValues").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCteCycleMarkValues> for SyntaxNode {
+    fn from(n: PsqlCteCycleMarkValues) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCteCycleMarkValues> for SyntaxElement {
+    fn from(n: PsqlCteCycleMarkValues) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlCteMaterializedHint {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -18029,6 +18334,65 @@ impl From<PsqlCteMaterializedHint> for SyntaxNode {
 }
 impl From<PsqlCteMaterializedHint> for SyntaxElement {
     fn from(n: PsqlCteMaterializedHint) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlCteSearchClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_CTE_SEARCH_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_CTE_SEARCH_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlCteSearchClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlCteSearchClause")
+                .field(
+                    "search_token",
+                    &support::DebugSyntaxResult(self.search_token()),
+                )
+                .field("order", &support::DebugSyntaxResult(self.order()))
+                .field(
+                    "first_token",
+                    &support::DebugSyntaxResult(self.first_token()),
+                )
+                .field("by_token", &support::DebugSyntaxResult(self.by_token()))
+                .field("columns", &self.columns())
+                .field("set_token", &support::DebugSyntaxResult(self.set_token()))
+                .field("column", &support::DebugSyntaxResult(self.column()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlCteSearchClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlCteSearchClause> for SyntaxNode {
+    fn from(n: PsqlCteSearchClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlCteSearchClause> for SyntaxElement {
+    fn from(n: PsqlCteSearchClause) -> Self {
         n.syntax.into()
     }
 }
@@ -27877,6 +28241,8 @@ impl std::fmt::Debug for SqlCteDefinition {
                     "r_paren_token",
                     &support::DebugSyntaxResult(self.r_paren_token()),
                 )
+                .field("search", &support::DebugOptionalElement(self.search()))
+                .field("cycle", &support::DebugOptionalElement(self.cycle()))
                 .finish()
         } else {
             f.debug_struct("SqlCteDefinition").finish()
@@ -38446,7 +38812,22 @@ impl std::fmt::Display for PsqlCreateTriggerStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlCteCycleClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCteCycleMarkValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlCteMaterializedHint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlCteSearchClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

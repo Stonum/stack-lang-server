@@ -3,7 +3,10 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, parse_name};
+use super::expr::{
+    EXPR_RECOVERY_SET, SqlColumnNameList, is_at_name_start, parse_column_name_list,
+    parse_expression, parse_name,
+};
 use super::parse_error::*;
 use super::postgres::with_clause::{eat_recursive_modifier, parse_cte_materialized_hint};
 use super::select::{
@@ -107,5 +110,54 @@ fn parse_cte_definition(p: &mut SqlParser) -> ParsedSyntax {
     // ...`) whose output rows feed into the outer query.
     parse_statement(p).or_add_diagnostic(p, expected_statement);
     p.expect(T![')']);
+    let _ = parse_cte_search_clause(p);
+    let _ = parse_cte_cycle_clause(p);
     Present(m.complete(p, SQL_CTE_DEFINITION))
+}
+
+/// `SEARCH {DEPTH | BREADTH} FIRST BY column, ... SET column`
+fn parse_cte_search_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![search]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![search]);
+    if p.at(T![depth]) || p.at(T![breadth]) {
+        p.bump_any();
+    } else {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected `depth` or `breadth`", range);
+        p.error(err);
+    }
+    p.expect(T![first]);
+    p.expect(T![by]);
+    SqlColumnNameList.parse_list(p);
+    p.expect(T![set]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    Present(m.complete(p, PSQL_CTE_SEARCH_CLAUSE))
+}
+
+/// `CYCLE column, ... SET mark [TO value DEFAULT value] USING path`
+fn parse_cte_cycle_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![cycle]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![cycle]);
+    SqlColumnNameList.parse_list(p);
+    p.expect(T![set]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    if p.at(T![to]) {
+        let values = p.start();
+        p.bump(T![to]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        p.expect(T![default]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        values.complete(p, PSQL_CTE_CYCLE_MARK_VALUES);
+    }
+    p.expect(T![using]);
+    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    Present(m.complete(p, PSQL_CTE_CYCLE_CLAUSE))
 }

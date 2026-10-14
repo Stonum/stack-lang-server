@@ -101,8 +101,20 @@ macro_rules! map_syntax_node {
                         unsafe { $crate::PsqlCreateTriggerStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_CTE_CYCLE_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlCteCycleClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CTE_CYCLE_MARK_VALUES => {
+                    let $pattern = unsafe { $crate::PsqlCteCycleMarkValues::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_CTE_MATERIALIZED_HINT => {
                     let $pattern = unsafe { $crate::PsqlCteMaterializedHint::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_CTE_SEARCH_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlCteSearchClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_DELETE_USING_CLAUSE => {

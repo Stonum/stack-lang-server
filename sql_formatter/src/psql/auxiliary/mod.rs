@@ -7,6 +7,7 @@ pub(crate) mod copy_option;
 pub(crate) mod copy_options;
 pub(crate) mod copy_stdio;
 pub(crate) mod copy_table_source;
+pub(crate) mod cte_cycle_mark_values;
 pub(crate) mod cte_materialized_hint;
 pub(crate) mod detach_partition_action;
 pub(crate) mod drop_function_parameters;
