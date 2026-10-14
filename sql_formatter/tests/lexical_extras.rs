@@ -27,3 +27,15 @@ from t;
 "#
     );
 }
+
+#[test]
+fn format_number_without_leading_digit() {
+    assert_fmt_eq!(
+        r#"--
+SELECT .5, -.25e2, t.a FROM t WHERE x > .1;
+"#,
+        r#"--
+select .5, -.25e2, t.a from t where x > .1;
+"#
+    );
+}
