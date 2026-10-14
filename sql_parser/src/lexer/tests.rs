@@ -266,6 +266,10 @@ fn comparison_operators() {
     assert_lex! { "<<", SHL:2 }
     assert_lex! { ">>", SHR:2 }
     assert_lex! { "1..10", SQL_NUMBER_LITERAL:1, DOT2:2, SQL_NUMBER_LITERAL:2 }
+    assert_lex! { r"'\'", SQL_STRING_LITERAL:3 }
+    assert_lex! { r"'\\' || 'a'", SQL_STRING_LITERAL:4, WHITESPACE:1, PIPEPIPE:2, WHITESPACE:1, SQL_STRING_LITERAL:3 }
+    assert_lex! { r"'it''s'", SQL_STRING_LITERAL:7 }
+    assert_lex! { r"E'\''", SQL_STRING_LITERAL:5 }
     assert_lex! { "1.5", SQL_NUMBER_LITERAL:3 }
     assert_lex! { "a.b", IDENT:1, DOT:1, IDENT:1 }
     assert_lex! { "a>>b", IDENT:1, SHR:2, IDENT:1 }

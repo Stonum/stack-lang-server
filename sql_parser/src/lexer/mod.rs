@@ -454,7 +454,9 @@ impl<'src> SqlLexer<'src> {
         }
     }
 
-    fn consume_quoted_literal(&mut self) -> bool {
+    /// `escapes`: backslash escapes are only processed in `E'...'` strings;
+    /// in `'...'` (standard_conforming_strings) and `"..."` a `\` is literal.
+    fn consume_quoted_literal(&mut self, escapes: bool) -> bool {
         let quote = self.current_byte().unwrap();
         self.advance(1);
         while let Some(b) = self.current_byte() {
@@ -466,7 +468,7 @@ impl<'src> SqlLexer<'src> {
                     continue;
                 }
                 return true;
-            } else if b == b'\\' {
+            } else if escapes && b == b'\\' {
                 self.consume_escape_sequence();
             } else {
                 self.advance_byte_or_char(b);
@@ -845,14 +847,14 @@ impl<'src> SqlLexer<'src> {
         match dispatched {
             WHS => self.consume_newline_or_whitespaces(),
             QOT if byte == b'\'' => {
-                if self.consume_quoted_literal() {
+                if self.consume_quoted_literal(false) {
                     SQL_STRING_LITERAL
                 } else {
                     ERROR_TOKEN
                 }
             }
             QOT if byte == b'"' => {
-                if self.consume_quoted_literal() {
+                if self.consume_quoted_literal(false) {
                     IDENT
                 } else {
                     ERROR_TOKEN
@@ -861,7 +863,7 @@ impl<'src> SqlLexer<'src> {
             // `E'...'` -- a Postgres escape string constant.
             IDT if matches!(byte, b'e' | b'E') && self.byte_at(1) == Some(b'\'') => {
                 self.advance(1);
-                if self.consume_quoted_literal() {
+                if self.consume_quoted_literal(true) {
                     SQL_STRING_LITERAL
                 } else {
                     ERROR_TOKEN
