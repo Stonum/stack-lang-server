@@ -6,7 +6,7 @@ use sql_formatter::{SqlFormatOptions, format_node};
 use sql_parser::parse;
 use sql_syntax::{SqlDialect, SqlFileSource};
 
-/// A multi-line dollar-quoted body, kept verbatim by the formatter, can
+/// A multi-line dollar-quoted non-plpgsql body, kept verbatim by the formatter, can
 /// still carry the source file's own line-ending style embedded directly
 /// in its text (not just in between-token trivia, which is already
 /// normalized elsewhere). On a CRLF source file this used to panic --
@@ -17,7 +17,7 @@ use sql_syntax::{SqlDialect, SqlFileSource};
 /// harmless).
 #[test]
 fn format_crlf_dollar_quoted_body_does_not_panic() {
-    let src = "create function foo() returns int as $$\r\nbegin\r\n  return 1;\r\nend;\r\n$$ language plpgsql;\n";
+    let src = "create function foo() returns int as $$\r\nselect\r\n  1;\r\n$$ language sql;\n";
     let syntax = SqlFileSource::query()
         .with_dialect(SqlDialect::Postgres)
         .with_mlang_extension(true);
@@ -37,7 +37,7 @@ fn format_crlf_dollar_quoted_body_does_not_panic() {
     );
     assert_eq!(
         result,
-        "create function foo() returns int as $$\nbegin\n  return 1;\nend;\n$$ language plpgsql;\n"
+        "create function foo() returns int as $$\nselect\n  1;\n$$ language sql;\n"
     );
 }
 

@@ -47,17 +47,60 @@ create function foo(a int) returns boolean as 'select 1' language plpgsql;
 }
 
 #[test]
-fn format_create_function_dollar_quoted_body_is_preserved_verbatim() {
-    // The body is never reformatted, whatever whitespace/indentation it
-    // already has -- this is exactly the point of treating it as an opaque
-    // string-literal token rather than parsing PL/pgSQL.
+fn format_create_function_non_plpgsql_body_is_preserved_verbatim() {
+    // Only a `LANGUAGE plpgsql` body is parsed; any other one stays an
+    // opaque string, whatever whitespace/indentation it already has.
     assert_fmt!(
         r#"--
 create function foo(a int) returns boolean as $$
+  select   a > 0
+$$ language sql;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_plpgsql_body_is_formatted() {
+    assert_fmt_eq!(
+        r#"--
+CREATE FUNCTION foo(a int) RETURNS boolean AS $$
+BEGIN
+  IF a > 0 THEN RETURN true; END IF;
+  RETURN false;
+END;
+$$ LANGUAGE plpgsql;
+"#,
+        r#"--
+create function foo(a int) returns boolean as $$
 begin
-  return true;
+	if a > 0 then
+		return true;
+	end if;
+	return false;
 end;
 $$ language plpgsql;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_language_after_body_is_found() {
+    assert_fmt_eq!(
+        r#"--
+create function foo() returns void language plpgsql as $f$ begin perform 1; end $f$;
+create function bar() returns void as $f$ begin perform 1; end $f$ security definer language 'plpgsql';
+"#,
+        r#"--
+create function foo() returns void language plpgsql as $f$
+begin
+	perform 1;
+end
+$f$;
+create function bar() returns void as $f$
+begin
+	perform 1;
+end
+$f$ security definer language 'plpgsql';
 "#
     );
 }
@@ -381,7 +424,11 @@ create or replace function accounts_summary_recalculate(first_parameter integer,
         r#"--
 create or replace function accounts_summary_recalculate(
 	first_parameter integer, second_parameter text, third_parameter boolean
-) returns integer language 'plpgsql' security definer as $$ begin return 1; end $$;
+) returns integer language 'plpgsql' security definer as $$
+begin
+	return 1;
+end
+$$;
 "#
     );
 }

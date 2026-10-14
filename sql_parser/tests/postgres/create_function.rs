@@ -60,7 +60,7 @@ fn test_create_function_with_language() {
 #[test]
 fn test_create_function_dollar_quoted_body() {
     let res = parse(
-        "create function foo(a int) returns boolean as $$ select 1 $$ language plpgsql;",
+        "create function foo(a int) returns boolean as $$ begin return a > 0; end $$ language plpgsql;",
         postgres(),
     );
 
@@ -70,7 +70,7 @@ fn test_create_function_dollar_quoted_body() {
 #[test]
 fn test_create_function_tagged_dollar_quoted_body() {
     let res = parse(
-        "create function foo(a int) returns boolean as $func$ select 1 $func$ language plpgsql;",
+        "create function foo(a int) returns boolean as $func$ begin return a > 0; end $func$ language plpgsql;",
         postgres(),
     );
 
@@ -584,6 +584,46 @@ fn test_create_function_quoted_language_in_mlang_dialect() {
 #[test]
 fn test_create_function_language_without_name_reports_error() {
     let res = parse("create function foo() as 'select 1' language;", postgres());
+
+    assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_function_plpgsql_body_is_parsed() {
+    for src in [
+        "create function f() returns int language plpgsql as $$ begin return 1; end $$;",
+        "create function f() returns int as $$ begin return 1; end $$ language 'plpgsql';",
+        "create function f() returns int as $$ begin return 1; end $$ strict language plpgsql;",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(tree.contains("PSQL_PL_BODY@"), "{src}");
+    }
+}
+
+#[test]
+fn test_create_function_other_bodies_stay_strings() {
+    for src in [
+        "create function f() returns int language sql as $$ select 1 $$;",
+        "create function f() returns int as $$ select 1 $$;",
+        "create function f() returns int as 'begin return 1; end' language plpgsql;",
+    ] {
+        let res = parse(src, postgres());
+
+        assert_parser!(res);
+        let tree = format!("{:#?}", res.syntax());
+        assert!(!tree.contains("PSQL_PL_BODY@"), "{src}");
+    }
+}
+
+#[test]
+fn test_create_function_invalid_plpgsql_body_reports_errors() {
+    let res = parse(
+        "create function f() returns int as $$ select 1 $$ language plpgsql;",
+        postgres(),
+    );
 
     assert!(res.has_errors());
 }

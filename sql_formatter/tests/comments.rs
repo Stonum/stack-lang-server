@@ -14,7 +14,7 @@ fn format_comments_between_returns_and_as_are_stable() {
         r#"--
 create function foo(a int) returns int as -- comment one
 -- comment two
-$$select 1$$ language plpgsql;
+$$select 1$$ language sql;
 "#
     );
 }
