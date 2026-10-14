@@ -19,6 +19,7 @@ impl FormatNodeRule<SqlSelectStatement> for FormatSqlSelectStatement {
             limit_clause,
             offset_clause,
             fetch_clause,
+            trailing_into_clause,
             semicolon_token,
         } = node.as_fields();
 
@@ -54,6 +55,12 @@ impl FormatNodeRule<SqlSelectStatement> for FormatSqlSelectStatement {
                 }
                 if let Some(fetch_clause) = fetch_clause {
                     write!(f, [soft_line_break_or_space(), fetch_clause.format()])?;
+                }
+                if let Some(trailing_into_clause) = trailing_into_clause {
+                    write!(
+                        f,
+                        [soft_line_break_or_space(), trailing_into_clause.format()]
+                    )?;
                 }
                 Ok(())
             }))]

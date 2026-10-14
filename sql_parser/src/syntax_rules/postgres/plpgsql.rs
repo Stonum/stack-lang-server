@@ -386,7 +386,11 @@ fn parse_pl_declare_section(p: &mut SqlParser) -> ParsedSyntax {
     while !p.at(EOF) && !p.at(T![begin]) && !p.at(DOLLAR_QUOTE) {
         progress.assert_progressing(p);
 
-        let declaration = if is_at_pl_cursor_declaration(p) {
+        let declaration = if p.at(T![declare]) {
+            let m = p.start();
+            p.bump(T![declare]);
+            Present(m.complete(p, PSQL_PL_REPEATED_DECLARE))
+        } else if is_at_pl_cursor_declaration(p) {
             parse_pl_cursor_declaration(p)
         } else {
             parse_pl_variable_declaration(p)

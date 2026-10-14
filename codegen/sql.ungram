@@ -180,6 +180,8 @@ SqlSelectStatement =
    limit_clause: PsqlLimitClause?
    offset_clause: SqlOffsetClause?
    fetch_clause: SqlFetchClause?
+   // PL/pgSQL also accepts `INTO` at the end of the query.
+   trailing_into_clause: PsqlIntoClause?
    ';'?
 
 SqlSetOperationList = SqlSetOperation*
@@ -372,6 +374,7 @@ SqlInsertStatement =
    'into'
    table: SqlTableBinding
    columns: SqlColumnList?
+   overriding: PsqlOverridingClause?
    source: AnySqlInsertSource
    on_conflict_clause: PsqlOnConflictClause?
    returning_clause: PsqlReturningClause?
@@ -381,6 +384,12 @@ SqlColumnList =
    '('
    items: SqlColumnNameList
    ')'
+
+// `OVERRIDING {SYSTEM | USER} VALUE`
+PsqlOverridingClause =
+   'overriding'
+   kind: ('system' | 'user')
+   'value'
 
 SqlColumnNameList = (SqlName (',' SqlName)*)
 
@@ -450,7 +459,17 @@ SqlSetClause =
    'set'
    items: SqlSetItemList
 
-SqlSetItemList = (SqlSetItem (',' SqlSetItem)*)
+SqlSetItemList = (AnySqlSetItem (',' AnySqlSetItem)*)
+
+AnySqlSetItem =
+   SqlSetItem
+   | PsqlMultiColumnSetItem
+
+// `(a, b) = (select x, y ...)`
+PsqlMultiColumnSetItem =
+   columns: SqlColumnList
+   '='
+   value: AnySqlExpression
 
 SqlSetItem = 
    column: SqlName
@@ -1037,6 +1056,11 @@ PsqlPlDeclarationList = AnyPsqlPlDeclaration*
 AnyPsqlPlDeclaration =
    PsqlPlVariableDeclaration
    | PsqlPlCursorDeclaration
+   | PsqlPlRepeatedDeclare
+
+// A redundant `DECLARE` inside the section, which PL/pgSQL ignores.
+PsqlPlRepeatedDeclare =
+   'declare'
 
 // `name [[NO] SCROLL] CURSOR {FOR | IS} query;` -- the query owns the `;`.
 PsqlPlCursorDeclaration =

@@ -29,6 +29,19 @@ pub(crate) fn parse_insert_statement_body(p: &mut SqlParser, insert_stmt: Marker
     parse_table_binding(p).or_add_diagnostic(p, expected_table_binding);
 
     let _ = parse_column_name_list(p);
+    if p.at(T![overriding]) {
+        let m = p.start();
+        p.bump(T![overriding]);
+        if p.at(T![system]) || p.at(T![user]) {
+            p.bump_any();
+        } else {
+            let range = p.cur_range();
+            let err = p.err_builder("Expected `system` or `user`", range);
+            p.error(err);
+        }
+        p.expect(T![value]);
+        m.complete(p, PSQL_OVERRIDING_CLAUSE);
+    }
     parse_insert_source(p).or_add_diagnostic(p, expected_insert_source);
     let _ = parse_on_conflict_clause(p);
     let _ = parse_returning_clause(p);

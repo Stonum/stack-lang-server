@@ -1232,7 +1232,10 @@ pub(crate) fn parse_alias(p: &mut SqlParser) {
 fn is_at_bare_alias_keyword(p: &mut SqlParser) -> bool {
     let kind = p.cur();
     kind.is_non_reserved_keyword()
-        && !matches!(kind, T![over] | T![filter] | T![set] | T![values] | T![go])
+        && !matches!(
+            kind,
+            T![over] | T![filter] | T![set] | T![values] | T![go] | T![overriding]
+        )
         && !(p.in_for_loop_query && kind == T![loop])
 }
 

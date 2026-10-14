@@ -1549,6 +1549,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLockStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlMultiColumnSetItem>
+    for crate::psql::auxiliary::multi_column_set_item::FormatPsqlMultiColumnSetItem
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlMultiColumnSetItem,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlMultiColumnSetItem>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlMultiColumnSetItem {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlMultiColumnSetItem,
+        crate::psql::auxiliary::multi_column_set_item::FormatPsqlMultiColumnSetItem,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::multi_column_set_item::FormatPsqlMultiColumnSetItem::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlMultiColumnSetItem {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlMultiColumnSetItem,
+        crate::psql::auxiliary::multi_column_set_item::FormatPsqlMultiColumnSetItem,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::multi_column_set_item::FormatPsqlMultiColumnSetItem::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlNamedArgument>
     for crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument
 {
@@ -1690,6 +1728,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlOnConstraintClause {
         FormatOwnedWithRule::new(
             self,
             crate::psql::clauses::on_constraint_clause::FormatPsqlOnConstraintClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlOverridingClause>
+    for crate::psql::clauses::overriding_clause::FormatPsqlOverridingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlOverridingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlOverridingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlOverridingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlOverridingClause,
+        crate::psql::clauses::overriding_clause::FormatPsqlOverridingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::overriding_clause::FormatPsqlOverridingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlOverridingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlOverridingClause,
+        crate::psql::clauses::overriding_clause::FormatPsqlOverridingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::overriding_clause::FormatPsqlOverridingClause::default(),
         )
     }
 }
@@ -3328,6 +3404,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRaiseUsingClause {
         FormatOwnedWithRule::new(
             self,
             crate::psql::clauses::pl_raise_using_clause::FormatPsqlPlRaiseUsingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlRepeatedDeclare>
+    for crate::psql::auxiliary::pl_repeated_declare::FormatPsqlPlRepeatedDeclare
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlRepeatedDeclare,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlRepeatedDeclare>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlRepeatedDeclare {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlRepeatedDeclare,
+        crate::psql::auxiliary::pl_repeated_declare::FormatPsqlPlRepeatedDeclare,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_repeated_declare::FormatPsqlPlRepeatedDeclare::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlRepeatedDeclare {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlRepeatedDeclare,
+        crate::psql::auxiliary::pl_repeated_declare::FormatPsqlPlRepeatedDeclare,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_repeated_declare::FormatPsqlPlRepeatedDeclare::default(),
         )
     }
 }
@@ -11894,6 +12008,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlSelectQuantifier {
         FormatOwnedWithRule::new(
             self,
             crate::sql::any::select_quantifier::FormatAnySqlSelectQuantifier::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnySqlSetItem {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnySqlSetItem,
+        crate::sql::any::set_item::FormatAnySqlSetItem,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::sql::any::set_item::FormatAnySqlSetItem::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnySqlSetItem {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnySqlSetItem,
+        crate::sql::any::set_item::FormatAnySqlSetItem,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::sql::any::set_item::FormatAnySqlSetItem::default(),
         )
     }
 }

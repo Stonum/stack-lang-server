@@ -2555,6 +2555,51 @@ pub struct PsqlLockStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlMultiColumnSetItem {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlMultiColumnSetItem {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlMultiColumnSetItemFields {
+        PsqlMultiColumnSetItemFields {
+            columns: self.columns(),
+            eq_token: self.eq_token(),
+            value: self.value(),
+        }
+    }
+    pub fn columns(&self) -> SyntaxResult<SqlColumnList> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn eq_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlMultiColumnSetItem {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlMultiColumnSetItemFields {
+    pub columns: SyntaxResult<SqlColumnList>,
+    pub eq_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlNamedArgument {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2743,6 +2788,51 @@ pub struct PsqlOnConstraintClauseFields {
     pub on_token: SyntaxResult<SyntaxToken>,
     pub constraint_token: SyntaxResult<SyntaxToken>,
     pub name: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlOverridingClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlOverridingClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlOverridingClauseFields {
+        PsqlOverridingClauseFields {
+            overriding_token: self.overriding_token(),
+            kind: self.kind(),
+            value_token: self.value_token(),
+        }
+    }
+    pub fn overriding_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlOverridingClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlOverridingClauseFields {
+    pub overriding_token: SyntaxResult<SyntaxToken>,
+    pub kind: SyntaxResult<SyntaxToken>,
+    pub value_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlParameterDefault {
@@ -4993,6 +5083,41 @@ impl Serialize for PsqlPlRaiseUsingClause {
 pub struct PsqlPlRaiseUsingClauseFields {
     pub using_token: SyntaxResult<SyntaxToken>,
     pub options: PsqlPlRaiseOptionList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPlRepeatedDeclare {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPlRepeatedDeclare {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPlRepeatedDeclareFields {
+        PsqlPlRepeatedDeclareFields {
+            declare_token: self.declare_token(),
+        }
+    }
+    pub fn declare_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlPlRepeatedDeclare {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPlRepeatedDeclareFields {
+    pub declare_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlPlReturnQueryStatement {
@@ -10503,6 +10628,7 @@ impl SqlInsertStatement {
             into_token: self.into_token(),
             table: self.table(),
             columns: self.columns(),
+            overriding: self.overriding(),
             source: self.source(),
             on_conflict_clause: self.on_conflict_clause(),
             returning_clause: self.returning_clause(),
@@ -10524,17 +10650,20 @@ impl SqlInsertStatement {
     pub fn columns(&self) -> Option<SqlColumnList> {
         support::node(&self.syntax, 4usize)
     }
+    pub fn overriding(&self) -> Option<PsqlOverridingClause> {
+        support::node(&self.syntax, 5usize)
+    }
     pub fn source(&self) -> SyntaxResult<AnySqlInsertSource> {
-        support::required_node(&self.syntax, 5usize)
+        support::required_node(&self.syntax, 6usize)
     }
     pub fn on_conflict_clause(&self) -> Option<PsqlOnConflictClause> {
-        support::node(&self.syntax, 6usize)
-    }
-    pub fn returning_clause(&self) -> Option<PsqlReturningClause> {
         support::node(&self.syntax, 7usize)
     }
+    pub fn returning_clause(&self) -> Option<PsqlReturningClause> {
+        support::node(&self.syntax, 8usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 8usize)
+        support::token(&self.syntax, 9usize)
     }
 }
 impl Serialize for SqlInsertStatement {
@@ -10552,6 +10681,7 @@ pub struct SqlInsertStatementFields {
     pub into_token: SyntaxResult<SyntaxToken>,
     pub table: SyntaxResult<SqlTableBinding>,
     pub columns: Option<SqlColumnList>,
+    pub overriding: Option<PsqlOverridingClause>,
     pub source: SyntaxResult<AnySqlInsertSource>,
     pub on_conflict_clause: Option<PsqlOnConflictClause>,
     pub returning_clause: Option<PsqlReturningClause>,
@@ -12174,6 +12304,7 @@ impl SqlSelectStatement {
             limit_clause: self.limit_clause(),
             offset_clause: self.offset_clause(),
             fetch_clause: self.fetch_clause(),
+            trailing_into_clause: self.trailing_into_clause(),
             semicolon_token: self.semicolon_token(),
         }
     }
@@ -12210,8 +12341,11 @@ impl SqlSelectStatement {
     pub fn fetch_clause(&self) -> Option<SqlFetchClause> {
         support::node(&self.syntax, 10usize)
     }
+    pub fn trailing_into_clause(&self) -> Option<PsqlIntoClause> {
+        support::node(&self.syntax, 11usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 11usize)
+        support::token(&self.syntax, 12usize)
     }
 }
 impl Serialize for SqlSelectStatement {
@@ -12235,6 +12369,7 @@ pub struct SqlSelectStatementFields {
     pub limit_clause: Option<PsqlLimitClause>,
     pub offset_clause: Option<SqlOffsetClause>,
     pub fetch_clause: Option<SqlFetchClause>,
+    pub trailing_into_clause: Option<PsqlIntoClause>,
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -14092,12 +14227,19 @@ impl AnyPsqlPartitionValues {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlPlDeclaration {
     PsqlPlCursorDeclaration(PsqlPlCursorDeclaration),
+    PsqlPlRepeatedDeclare(PsqlPlRepeatedDeclare),
     PsqlPlVariableDeclaration(PsqlPlVariableDeclaration),
 }
 impl AnyPsqlPlDeclaration {
     pub fn as_psql_pl_cursor_declaration(&self) -> Option<&PsqlPlCursorDeclaration> {
         match &self {
             Self::PsqlPlCursorDeclaration(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_pl_repeated_declare(&self) -> Option<&PsqlPlRepeatedDeclare> {
+        match &self {
+            Self::PsqlPlRepeatedDeclare(item) => Some(item),
             _ => None,
         }
     }
@@ -15214,6 +15356,25 @@ impl AnySqlSelectQuantifier {
     pub fn as_sql_select_distinct_quantifier(&self) -> Option<&SqlSelectDistinctQuantifier> {
         match &self {
             Self::SqlSelectDistinctQuantifier(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnySqlSetItem {
+    SqlSetItem(SqlSetItem),
+    PsqlMultiColumnSetItem(PsqlMultiColumnSetItem),
+}
+impl AnySqlSetItem {
+    pub fn as_sql_set_item(&self) -> Option<&SqlSetItem> {
+        match &self {
+            Self::SqlSetItem(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_multi_column_set_item(&self) -> Option<&PsqlMultiColumnSetItem> {
+        match &self {
+            Self::PsqlMultiColumnSetItem(item) => Some(item),
             _ => None,
         }
     }
@@ -18399,6 +18560,55 @@ impl From<PsqlLockStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlMultiColumnSetItem {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_MULTI_COLUMN_SET_ITEM as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_MULTI_COLUMN_SET_ITEM
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlMultiColumnSetItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlMultiColumnSetItem")
+                .field("columns", &support::DebugSyntaxResult(self.columns()))
+                .field("eq_token", &support::DebugSyntaxResult(self.eq_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlMultiColumnSetItem").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlMultiColumnSetItem> for SyntaxNode {
+    fn from(n: PsqlMultiColumnSetItem) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlMultiColumnSetItem> for SyntaxElement {
+    fn from(n: PsqlMultiColumnSetItem) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlNamedArgument {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -18609,6 +18819,61 @@ impl From<PsqlOnConstraintClause> for SyntaxNode {
 }
 impl From<PsqlOnConstraintClause> for SyntaxElement {
     fn from(n: PsqlOnConstraintClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlOverridingClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_OVERRIDING_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_OVERRIDING_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlOverridingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlOverridingClause")
+                .field(
+                    "overriding_token",
+                    &support::DebugSyntaxResult(self.overriding_token()),
+                )
+                .field("kind", &support::DebugSyntaxResult(self.kind()))
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlOverridingClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlOverridingClause> for SyntaxNode {
+    fn from(n: PsqlOverridingClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlOverridingClause> for SyntaxElement {
+    fn from(n: PsqlOverridingClause) -> Self {
         n.syntax.into()
     }
 }
@@ -21075,6 +21340,56 @@ impl From<PsqlPlRaiseUsingClause> for SyntaxNode {
 }
 impl From<PsqlPlRaiseUsingClause> for SyntaxElement {
     fn from(n: PsqlPlRaiseUsingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPlRepeatedDeclare {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_PL_REPEATED_DECLARE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_PL_REPEATED_DECLARE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPlRepeatedDeclare {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPlRepeatedDeclare")
+                .field(
+                    "declare_token",
+                    &support::DebugSyntaxResult(self.declare_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPlRepeatedDeclare").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPlRepeatedDeclare> for SyntaxNode {
+    fn from(n: PsqlPlRepeatedDeclare) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPlRepeatedDeclare> for SyntaxElement {
+    fn from(n: PsqlPlRepeatedDeclare) -> Self {
         n.syntax.into()
     }
 }
@@ -27244,6 +27559,10 @@ impl std::fmt::Debug for SqlInsertStatement {
                 .field("into_token", &support::DebugSyntaxResult(self.into_token()))
                 .field("table", &support::DebugSyntaxResult(self.table()))
                 .field("columns", &support::DebugOptionalElement(self.columns()))
+                .field(
+                    "overriding",
+                    &support::DebugOptionalElement(self.overriding()),
+                )
                 .field("source", &support::DebugSyntaxResult(self.source()))
                 .field(
                     "on_conflict_clause",
@@ -29205,6 +29524,10 @@ impl std::fmt::Debug for SqlSelectStatement {
                 .field(
                     "fetch_clause",
                     &support::DebugOptionalElement(self.fetch_clause()),
+                )
+                .field(
+                    "trailing_into_clause",
+                    &support::DebugOptionalElement(self.trailing_into_clause()),
                 )
                 .field(
                     "semicolon_token",
@@ -31638,6 +31961,11 @@ impl From<PsqlPlCursorDeclaration> for AnyPsqlPlDeclaration {
         Self::PsqlPlCursorDeclaration(node)
     }
 }
+impl From<PsqlPlRepeatedDeclare> for AnyPsqlPlDeclaration {
+    fn from(node: PsqlPlRepeatedDeclare) -> Self {
+        Self::PsqlPlRepeatedDeclare(node)
+    }
+}
 impl From<PsqlPlVariableDeclaration> for AnyPsqlPlDeclaration {
     fn from(node: PsqlPlVariableDeclaration) -> Self {
         Self::PsqlPlVariableDeclaration(node)
@@ -31645,18 +31973,22 @@ impl From<PsqlPlVariableDeclaration> for AnyPsqlPlDeclaration {
 }
 impl AstNode for AnyPsqlPlDeclaration {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        PsqlPlCursorDeclaration::KIND_SET.union(PsqlPlVariableDeclaration::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = PsqlPlCursorDeclaration::KIND_SET
+        .union(PsqlPlRepeatedDeclare::KIND_SET)
+        .union(PsqlPlVariableDeclaration::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            PSQL_PL_CURSOR_DECLARATION | PSQL_PL_VARIABLE_DECLARATION
+            PSQL_PL_CURSOR_DECLARATION | PSQL_PL_REPEATED_DECLARE | PSQL_PL_VARIABLE_DECLARATION
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             PSQL_PL_CURSOR_DECLARATION => {
                 Self::PsqlPlCursorDeclaration(PsqlPlCursorDeclaration { syntax })
+            }
+            PSQL_PL_REPEATED_DECLARE => {
+                Self::PsqlPlRepeatedDeclare(PsqlPlRepeatedDeclare { syntax })
             }
             PSQL_PL_VARIABLE_DECLARATION => {
                 Self::PsqlPlVariableDeclaration(PsqlPlVariableDeclaration { syntax })
@@ -31668,12 +32000,14 @@ impl AstNode for AnyPsqlPlDeclaration {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Self::PsqlPlCursorDeclaration(it) => &it.syntax,
+            Self::PsqlPlRepeatedDeclare(it) => &it.syntax,
             Self::PsqlPlVariableDeclaration(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::PsqlPlCursorDeclaration(it) => it.syntax,
+            Self::PsqlPlRepeatedDeclare(it) => it.syntax,
             Self::PsqlPlVariableDeclaration(it) => it.syntax,
         }
     }
@@ -31682,6 +32016,7 @@ impl std::fmt::Debug for AnyPsqlPlDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PsqlPlCursorDeclaration(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPlRepeatedDeclare(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlVariableDeclaration(it) => std::fmt::Debug::fmt(it, f),
         }
     }
@@ -31690,6 +32025,7 @@ impl From<AnyPsqlPlDeclaration> for SyntaxNode {
     fn from(n: AnyPsqlPlDeclaration) -> Self {
         match n {
             AnyPsqlPlDeclaration::PsqlPlCursorDeclaration(it) => it.into(),
+            AnyPsqlPlDeclaration::PsqlPlRepeatedDeclare(it) => it.into(),
             AnyPsqlPlDeclaration::PsqlPlVariableDeclaration(it) => it.into(),
         }
     }
@@ -34481,6 +34817,68 @@ impl From<AnySqlSelectQuantifier> for SyntaxElement {
         node.into()
     }
 }
+impl From<SqlSetItem> for AnySqlSetItem {
+    fn from(node: SqlSetItem) -> Self {
+        Self::SqlSetItem(node)
+    }
+}
+impl From<PsqlMultiColumnSetItem> for AnySqlSetItem {
+    fn from(node: PsqlMultiColumnSetItem) -> Self {
+        Self::PsqlMultiColumnSetItem(node)
+    }
+}
+impl AstNode for AnySqlSetItem {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SqlSetItem::KIND_SET.union(PsqlMultiColumnSetItem::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, SQL_SET_ITEM | PSQL_MULTI_COLUMN_SET_ITEM)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            SQL_SET_ITEM => Self::SqlSetItem(SqlSetItem { syntax }),
+            PSQL_MULTI_COLUMN_SET_ITEM => {
+                Self::PsqlMultiColumnSetItem(PsqlMultiColumnSetItem { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::SqlSetItem(it) => &it.syntax,
+            Self::PsqlMultiColumnSetItem(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::SqlSetItem(it) => it.syntax,
+            Self::PsqlMultiColumnSetItem(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnySqlSetItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SqlSetItem(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlMultiColumnSetItem(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnySqlSetItem> for SyntaxNode {
+    fn from(n: AnySqlSetItem) -> Self {
+        match n {
+            AnySqlSetItem::SqlSetItem(it) => it.into(),
+            AnySqlSetItem::PsqlMultiColumnSetItem(it) => it.into(),
+        }
+    }
+}
+impl From<AnySqlSetItem> for SyntaxElement {
+    fn from(n: AnySqlSetItem) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlAlterIndexStatement> for AnySqlStatement {
     fn from(node: SqlAlterIndexStatement) -> Self {
         Self::SqlAlterIndexStatement(node)
@@ -35755,6 +36153,11 @@ impl std::fmt::Display for AnySqlSelectQuantifier {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnySqlSetItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnySqlStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -36025,6 +36428,11 @@ impl std::fmt::Display for PsqlLockStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlMultiColumnSetItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlNamedArgument {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -36041,6 +36449,11 @@ impl std::fmt::Display for PsqlOnConflictClause {
     }
 }
 impl std::fmt::Display for PsqlOnConstraintClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlOverridingClause {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -36266,6 +36679,11 @@ impl std::fmt::Display for PsqlPlRaiseStatement {
     }
 }
 impl std::fmt::Display for PsqlPlRaiseUsingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPlRepeatedDeclare {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -40517,7 +40935,7 @@ impl Serialize for SqlSetItemList {
 }
 impl AstSeparatedList for SqlSetItemList {
     type Language = Language;
-    type Node = SqlSetItem;
+    type Node = AnySqlSetItem;
     fn syntax_list(&self) -> &SyntaxList {
         &self.syntax_list
     }
@@ -40532,15 +40950,15 @@ impl Debug for SqlSetItemList {
     }
 }
 impl IntoIterator for SqlSetItemList {
-    type Item = SyntaxResult<SqlSetItem>;
-    type IntoIter = AstSeparatedListNodesIterator<Language, SqlSetItem>;
+    type Item = SyntaxResult<AnySqlSetItem>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnySqlSetItem>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
 impl IntoIterator for &SqlSetItemList {
-    type Item = SyntaxResult<SqlSetItem>;
-    type IntoIter = AstSeparatedListNodesIterator<Language, SqlSetItem>;
+    type Item = SyntaxResult<AnySqlSetItem>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnySqlSetItem>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

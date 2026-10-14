@@ -1642,6 +1642,20 @@ impl PsqlLockStatementBuilder {
         ))
     }
 }
+pub fn psql_multi_column_set_item(
+    columns: SqlColumnList,
+    eq_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlMultiColumnSetItem {
+    PsqlMultiColumnSetItem::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_MULTI_COLUMN_SET_ITEM,
+        [
+            Some(SyntaxElement::Node(columns.into_syntax())),
+            Some(SyntaxElement::Token(eq_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_named_argument(
     name: SqlName,
     fat_arrow_token: SyntaxToken,
@@ -1738,6 +1752,20 @@ pub fn psql_on_constraint_clause(
             Some(SyntaxElement::Token(on_token)),
             Some(SyntaxElement::Token(constraint_token)),
             Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_overriding_clause(
+    overriding_token: SyntaxToken,
+    kind_token: SyntaxToken,
+    value_token: SyntaxToken,
+) -> PsqlOverridingClause {
+    PsqlOverridingClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_OVERRIDING_CLAUSE,
+        [
+            Some(SyntaxElement::Token(overriding_token)),
+            Some(SyntaxElement::Token(kind_token)),
+            Some(SyntaxElement::Token(value_token)),
         ],
     ))
 }
@@ -2928,6 +2956,12 @@ pub fn psql_pl_raise_using_clause(
             Some(SyntaxElement::Token(using_token)),
             Some(SyntaxElement::Node(options.into_syntax())),
         ],
+    ))
+}
+pub fn psql_pl_repeated_declare(declare_token: SyntaxToken) -> PsqlPlRepeatedDeclare {
+    PsqlPlRepeatedDeclare::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_REPEATED_DECLARE,
+        [Some(SyntaxElement::Token(declare_token))],
     ))
 }
 pub fn psql_pl_return_query_statement(
@@ -5992,6 +6026,7 @@ pub fn sql_insert_statement(
         source,
         with_clause: None,
         columns: None,
+        overriding: None,
         on_conflict_clause: None,
         returning_clause: None,
         semicolon_token: None,
@@ -6004,6 +6039,7 @@ pub struct SqlInsertStatementBuilder {
     source: AnySqlInsertSource,
     with_clause: Option<SqlWithClause>,
     columns: Option<SqlColumnList>,
+    overriding: Option<PsqlOverridingClause>,
     on_conflict_clause: Option<PsqlOnConflictClause>,
     returning_clause: Option<PsqlReturningClause>,
     semicolon_token: Option<SyntaxToken>,
@@ -6015,6 +6051,10 @@ impl SqlInsertStatementBuilder {
     }
     pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
         self.columns = Some(columns);
+        self
+    }
+    pub fn with_overriding(mut self, overriding: PsqlOverridingClause) -> Self {
+        self.overriding = Some(overriding);
         self
     }
     pub fn with_on_conflict_clause(mut self, on_conflict_clause: PsqlOnConflictClause) -> Self {
@@ -6039,6 +6079,8 @@ impl SqlInsertStatementBuilder {
                 Some(SyntaxElement::Token(self.into_token)),
                 Some(SyntaxElement::Node(self.table.into_syntax())),
                 self.columns
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.overriding
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.source.into_syntax())),
                 self.on_conflict_clause
@@ -6877,6 +6919,7 @@ pub fn sql_select_statement(
         limit_clause: None,
         offset_clause: None,
         fetch_clause: None,
+        trailing_into_clause: None,
         semicolon_token: None,
     }
 }
@@ -6892,6 +6935,7 @@ pub struct SqlSelectStatementBuilder {
     limit_clause: Option<PsqlLimitClause>,
     offset_clause: Option<SqlOffsetClause>,
     fetch_clause: Option<SqlFetchClause>,
+    trailing_into_clause: Option<PsqlIntoClause>,
     semicolon_token: Option<SyntaxToken>,
 }
 impl SqlSelectStatementBuilder {
@@ -6931,6 +6975,10 @@ impl SqlSelectStatementBuilder {
         self.fetch_clause = Some(fetch_clause);
         self
     }
+    pub fn with_trailing_into_clause(mut self, trailing_into_clause: PsqlIntoClause) -> Self {
+        self.trailing_into_clause = Some(trailing_into_clause);
+        self
+    }
     pub fn with_semicolon_token(mut self, semicolon_token: SyntaxToken) -> Self {
         self.semicolon_token = Some(semicolon_token);
         self
@@ -6958,6 +7006,8 @@ impl SqlSelectStatementBuilder {
                 self.offset_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.fetch_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.trailing_into_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.semicolon_token
                     .map(|token| SyntaxElement::Token(token)),
@@ -8444,7 +8494,7 @@ where
 }
 pub fn sql_set_item_list<I, S>(items: I, separators: S) -> SqlSetItemList
 where
-    I: IntoIterator<Item = SqlSetItem>,
+    I: IntoIterator<Item = AnySqlSetItem>,
     I::IntoIter: ExactSizeIterator,
     S: IntoIterator<Item = SqlSyntaxToken>,
     S::IntoIter: ExactSizeIterator,
