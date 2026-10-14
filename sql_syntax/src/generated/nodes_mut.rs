@@ -6676,15 +6676,21 @@ impl SqlSelectClause {
             once(element.map(|element| element.into_syntax().into())),
         ))
     }
+    pub fn with_leading_into_clause(self, element: Option<PsqlIntoClause>) -> Self {
+        Self::unwrap_cast(self.syntax.splice_slots(
+            2usize..=2usize,
+            once(element.map(|element| element.into_syntax().into())),
+        ))
+    }
     pub fn with_list(self, element: SqlSelectItemList) -> Self {
         Self::unwrap_cast(
             self.syntax
-                .splice_slots(2usize..=2usize, once(Some(element.into_syntax().into()))),
+                .splice_slots(3usize..=3usize, once(Some(element.into_syntax().into()))),
         )
     }
     pub fn with_into_clause(self, element: Option<PsqlIntoClause>) -> Self {
         Self::unwrap_cast(self.syntax.splice_slots(
-            3usize..=3usize,
+            4usize..=4usize,
             once(element.map(|element| element.into_syntax().into())),
         ))
     }

@@ -101,6 +101,7 @@ fn parse_select_core(p: &mut SqlParser) {
     let select_clause = p.start();
     p.expect(T![select]);
     let _ = parse_select_quantifier(p);
+    let _ = parse_leading_into_clause(p);
     SqlSelectItemList.parse_list(p);
     let _ = parse_into_clause(p);
     select_clause.complete(p, SQL_SELECT_CLAUSE);
@@ -109,6 +110,27 @@ fn parse_select_core(p: &mut SqlParser) {
     let _ = parse_where_clause(p);
     let _ = parse_group_by_clause(p);
     let _ = parse_having_clause(p);
+}
+
+/// PL/pgSQL's `SELECT INTO [STRICT] target, ... items FROM ...`: the targets
+/// end at the first one not followed by `,`.
+fn parse_leading_into_clause(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(T![into]) {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![into]);
+    p.eat(T![strict]);
+    let targets = p.start();
+    loop {
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        if !p.eat(T![,]) {
+            break;
+        }
+    }
+    targets.complete(p, SQL_EXPRESSION_LIST);
+    Present(m.complete(p, PSQL_INTO_CLAUSE))
 }
 
 /// `INTO [STRICT] target, ...` after a select list or `RETURNING` items.
@@ -257,6 +279,7 @@ impl ParseSeparatedList for SqlGroupByItemList {
         p.at(EOF)
             || is_at_next_statement(p)
             || p.at(T![;])
+            || p.at(T![into])
             || p.at(T![having])
             || p.at(T![union])
             || p.at(T![intersect])
@@ -333,6 +356,7 @@ impl ParseSeparatedList for SqlOrderByExpressionList {
         p.at(EOF)
             || is_at_next_statement(p)
             || p.at(T![;])
+            || p.at(T![into])
             || p.at(T![limit])
             || p.at(T![offset])
             || p.at(T![fetch])

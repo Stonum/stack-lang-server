@@ -213,6 +213,8 @@ SqlCompoundSelectStatement =
 SqlSelectClause =
    'select'
    quantifier: AnySqlSelectQuantifier?
+   // PL/pgSQL: `SELECT INTO target, ... items`
+   leading_into_clause: PsqlIntoClause?
    list: SqlSelectItemList
    into_clause: PsqlIntoClause?
 

@@ -11,6 +11,7 @@ impl FormatNodeRule<SqlSelectClause> for FormatSqlSelectClause {
         let SqlSelectClauseFields {
             select_token,
             quantifier,
+            leading_into_clause,
             list,
             into_clause,
         } = node.as_fields();
@@ -19,6 +20,9 @@ impl FormatNodeRule<SqlSelectClause> for FormatSqlSelectClause {
             write!(f, [select_token.format()])?;
             if let Some(quantifier) = &quantifier {
                 write!(f, [space(), quantifier.format()])?;
+            }
+            if let Some(leading_into_clause) = &leading_into_clause {
+                write!(f, [space(), leading_into_clause.format()])?;
             }
             Ok(())
         });
