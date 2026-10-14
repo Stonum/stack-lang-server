@@ -4612,6 +4612,46 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTildeArraySuffix {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlTildeNameExpression>
+    for crate::psql::expressions::tilde_name_expression::FormatPsqlTildeNameExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlTildeNameExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlTildeNameExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTildeNameExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlTildeNameExpression,
+        crate::psql::expressions::tilde_name_expression::FormatPsqlTildeNameExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::tilde_name_expression::FormatPsqlTildeNameExpression::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTildeNameExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlTildeNameExpression,
+        crate::psql::expressions::tilde_name_expression::FormatPsqlTildeNameExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::tilde_name_expression::FormatPsqlTildeNameExpression::default(
+            ),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlTriggerEvent>
     for crate::psql::auxiliary::trigger_event::FormatPsqlTriggerEvent
 {

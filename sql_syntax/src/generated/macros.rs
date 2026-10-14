@@ -571,6 +571,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlTildeArraySuffix::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_TILDE_NAME_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlTildeNameExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_TRIGGER_EVENT => {
                     let $pattern = unsafe { $crate::PsqlTriggerEvent::new_unchecked(node) };
                     $body

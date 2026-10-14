@@ -939,7 +939,15 @@ impl<'src> SqlLexer<'src> {
             // `#>`/`#>>`/`#-` jsonb path operators; a `#name` temp table never
             // continues with `>` or `-`.
             HAS if matches!(self.byte_at(1), Some(b'>' | b'-')) => self.resolve_hash_operator(),
-            HAS if self.source_type.has_mlang_extension() => self.resolve_hash_identifier(),
+            HAS if self.source_type.has_mlang_extension()
+                && self
+                    .peek_byte()
+                    .is_some_and(|b| b.is_ascii_alphanumeric() || b == b'_' || b >= 0x80) =>
+            {
+                self.resolve_hash_identifier()
+            }
+            // A lone `#` is Postgres' bitwise XOR.
+            HAS => self.eat_byte(T![#]),
             DOL => self.read_dollar_string(),
             DIG | ZER => self.resolve_number(),
             PNO => self.eat_byte(T!['(']),
@@ -983,6 +991,7 @@ impl<'src> SqlLexer<'src> {
                 self.advance(2);
                 T![@>]
             }
+            AT_ => self.eat_byte(T![@]),
             EXL => self.resolve_bang(),
             _ => {
                 let err = ParseDiagnostic::new(

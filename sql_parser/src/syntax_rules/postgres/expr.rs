@@ -264,6 +264,7 @@ fn parse_filter_clause_body(p: &mut SqlParser) -> ParsedSyntax {
 /// `SqlCallExpression`.
 pub(crate) fn is_at_substring_from_form(p: &mut SqlParser) -> bool {
     is_at_keyword_argument_form(p, "substring", T![from])
+        || is_at_keyword_argument_form(p, "substring", T![for])
 }
 
 /// `name(... separator ...)` with `separator` (`from`/`in`) at the call's top
@@ -517,6 +518,7 @@ pub(crate) fn is_postgres_only_binary_operator(op: SqlSyntaxKind) -> bool {
             | T![@>]
             | T![<@]
             | T![&&]
+            | T![#]
             | T![#>]
             | T![#>>]
             | T![#-]

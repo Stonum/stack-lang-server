@@ -292,6 +292,7 @@ impl OperatorPrecedence {
             | T![@>]
             | T![<@]
             | T![&&]
+            | T![#]
             | T![#>]
             | T![#>>]
             | T![#-] => OperatorPrecedence::Concat,

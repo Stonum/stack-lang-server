@@ -88,9 +88,21 @@ fn hash_identifier_only_in_mlang_dialect() {
     assert_eq!(lexer.current(), SqlSyntaxKind::IDENT);
     assert_eq!(lexer.current_range().len(), TextSize::from(9));
 
+    // Outside mlang `#` is Postgres' bitwise XOR operator.
     let mut lexer = SqlLexer::from_str("#tmptable", SqlFileSource::query());
     lexer.next_token(SqlLexContext);
-    assert_eq!(lexer.current(), SqlSyntaxKind::ERROR_TOKEN);
+    assert_eq!(lexer.current(), SqlSyntaxKind::HASH);
+    assert_eq!(lexer.current_range().len(), TextSize::from(1));
+
+    // ...and in mlang too when no name follows.
+    let mut lexer = SqlLexer::from_str(
+        "# 1",
+        SqlFileSource::query()
+            .with_dialect(SqlDialect::Postgres)
+            .with_mlang_extension(true),
+    );
+    lexer.next_token(SqlLexContext);
+    assert_eq!(lexer.current(), SqlSyntaxKind::HASH);
 }
 
 #[test]

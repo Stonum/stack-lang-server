@@ -5426,6 +5426,25 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_TILDE_ARRAY_SUFFIX, children)
             }
+            PSQL_TILDE_NAME_EXPRESSION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && SqlTildeName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_TILDE_NAME_EXPRESSION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_TILDE_NAME_EXPRESSION, children)
+            }
             PSQL_TRIGGER_EVENT => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
@@ -6927,6 +6946,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                             | T ! [#>]
                             | T ! [#>>]
                             | T ! [#-]
+                            | T ! [#]
                     )
                 {
                     slots.mark_present();
@@ -9320,7 +9340,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             SQL_JOIN_CLAUSE => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<8usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && matches!(
@@ -9348,6 +9368,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && AnySqlFromExpression::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlJoinClauseList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -9384,7 +9411,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             SQL_LIKE_EXPRESSION => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<4usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<5usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && AnySqlExpression::can_cast(element.kind())
@@ -9401,7 +9428,14 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && matches!(element.kind(), T![like] | T![ilike])
+                    && matches!(element.kind(), T![like] | T![ilike] | T![similar])
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![to]
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -11262,7 +11296,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
-                    && matches!(element.kind(), T![not] | T ! [-] | T ! [+])
+                    && matches!(element.kind(), T![not] | T ! [-] | T ! [+] | T ! [@])
                 {
                     slots.mark_present();
                     current_element = elements.next();

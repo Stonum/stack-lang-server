@@ -144,6 +144,8 @@ fn parse_binary_or_logical_expression_recursive(
             Some(T![like])
         } else if at_not_prefixed_predicate(p, T![ilike]) {
             Some(T![ilike])
+        } else if at_not_prefixed_predicate(p, T![similar]) {
+            Some(T![similar])
         } else {
             None
         };
@@ -161,6 +163,9 @@ fn parse_binary_or_logical_expression_recursive(
             let m = left.precede(p);
             p.eat(T![not]);
             p.bump(like_op);
+            if like_op == T![similar] {
+                p.expect(T![to]);
+            }
             parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
                 .or_add_diagnostic(p, expected_expression);
             left = Present(m.complete(p, or_bogus(SQL_LIKE_EXPRESSION, missing_left)));
@@ -249,7 +254,7 @@ fn report_missing_left_operand(p: &mut SqlParser) {
 /// binary/logical chain restricted to `OperatorPrecedence::Not` and above.
 fn parse_unary_expression(p: &mut SqlParser) -> ParsedSyntax {
     match p.cur() {
-        T![-] | T![+] => {
+        T![-] | T![+] | T![@] => {
             let m = p.start();
             p.bump_any();
             parse_unary_expression(p).or_add_diagnostic(p, expected_expression);
@@ -965,7 +970,7 @@ fn parse_col_reference(p: &mut SqlParser) -> ParsedSyntax {
     parse_table_name(p, (total_segments - 1).min(3));
 
     p.bump(T![.]);
-    parse_name(p).or_add_diagnostic(p, expected_identifier);
+    parse_label(p).or_add_diagnostic(p, expected_identifier);
     Present(table_col_reference.complete(p, SQL_TABLE_COL_REFERENCE))
 }
 
@@ -1035,6 +1040,19 @@ fn parse_tilde_reference_or_call(p: &mut SqlParser) -> ParsedSyntax {
         p.bump(T![.]);
         parse_name(p).or_add_diagnostic(p, expected_identifier);
         Present(table_col_reference.complete(p, SQL_TABLE_COL_REFERENCE))
+    } else if p.lookahead(|p| {
+        p.re_lex(SqlReLexContext::TildeName) == SQL_TILDE_NAME_LITERAL && {
+            p.bump(SQL_TILDE_NAME_LITERAL);
+            !p.at(T!['('])
+        }
+    }) {
+        // `~$#name~` on its own: a table name used as a value.
+        let m = p.start();
+        p.re_lex(SqlReLexContext::TildeName);
+        let name = p.start();
+        p.bump(SQL_TILDE_NAME_LITERAL);
+        name.complete(p, SQL_TILDE_NAME);
+        Present(m.complete(p, PSQL_TILDE_NAME_EXPRESSION))
     } else {
         parse_call_expression(p, 0)
     }
@@ -1090,6 +1108,11 @@ pub(crate) fn count_dotted_name_segments(p: &mut SqlParser) -> usize {
                 break;
             }
             p.bump(T![.]);
+            // Any keyword may follow a `.` (`kr.full`), as the last segment.
+            if !is_at_name_segment_start(p) && p.cur().is_keyword() {
+                count += 1;
+                break;
+            }
         }
         count
     })
@@ -1173,7 +1196,9 @@ pub(crate) fn is_at_name_segment_start(p: &mut SqlParser) -> bool {
 pub(crate) fn bump_name_segment(p: &mut SqlParser) {
     if p.at(T![ident]) {
         p.bump(T![ident]);
-    } else if p.cur().is_non_reserved_keyword() {
+    } else if p.cur().is_keyword() {
+        // Non-reserved keywords anywhere; a reserved one only as the last
+        // segment after a `.` (see [count_dotted_name_segments]).
         p.bump_remap(T![ident]);
     } else {
         p.re_lex(SqlReLexContext::BracketName);

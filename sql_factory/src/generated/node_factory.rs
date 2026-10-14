@@ -3643,6 +3643,12 @@ pub fn psql_tilde_array_suffix(
         ],
     ))
 }
+pub fn psql_tilde_name_expression(name: SqlTildeName) -> PsqlTildeNameExpression {
+    PsqlTildeNameExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TILDE_NAME_EXPRESSION,
+        [Some(SyntaxElement::Node(name.into_syntax()))],
+    ))
+}
 pub fn psql_trigger_event(kind_token: SyntaxToken) -> PsqlTriggerEventBuilder {
     PsqlTriggerEventBuilder {
         kind_token,
@@ -6444,10 +6450,12 @@ impl SqlIsExpressionBuilder {
 pub fn sql_join_clause(
     join_token: SyntaxToken,
     source: AnySqlFromExpression,
+    nested_joins: SqlJoinClauseList,
 ) -> SqlJoinClauseBuilder {
     SqlJoinClauseBuilder {
         join_token,
         source,
+        nested_joins,
         join_type_token: None,
         outer_token: None,
         on_token: None,
@@ -6458,6 +6466,7 @@ pub fn sql_join_clause(
 pub struct SqlJoinClauseBuilder {
     join_token: SyntaxToken,
     source: AnySqlFromExpression,
+    nested_joins: SqlJoinClauseList,
     join_type_token: Option<SyntaxToken>,
     outer_token: Option<SyntaxToken>,
     on_token: Option<SyntaxToken>,
@@ -6494,6 +6503,7 @@ impl SqlJoinClauseBuilder {
                 self.outer_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.join_token)),
                 Some(SyntaxElement::Node(self.source.into_syntax())),
+                Some(SyntaxElement::Node(self.nested_joins.into_syntax())),
                 self.on_token.map(|token| SyntaxElement::Token(token)),
                 self.condition
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
@@ -6513,6 +6523,7 @@ pub fn sql_like_expression(
         operator_token_token,
         pattern,
         not_token: None,
+        to_token: None,
     }
 }
 pub struct SqlLikeExpressionBuilder {
@@ -6520,10 +6531,15 @@ pub struct SqlLikeExpressionBuilder {
     operator_token_token: SyntaxToken,
     pattern: AnySqlExpression,
     not_token: Option<SyntaxToken>,
+    to_token: Option<SyntaxToken>,
 }
 impl SqlLikeExpressionBuilder {
     pub fn with_not_token(mut self, not_token: SyntaxToken) -> Self {
         self.not_token = Some(not_token);
+        self
+    }
+    pub fn with_to_token(mut self, to_token: SyntaxToken) -> Self {
+        self.to_token = Some(to_token);
         self
     }
     pub fn build(self) -> SqlLikeExpression {
@@ -6533,6 +6549,7 @@ impl SqlLikeExpressionBuilder {
                 Some(SyntaxElement::Node(self.expression.into_syntax())),
                 self.not_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Token(self.operator_token_token)),
+                self.to_token.map(|token| SyntaxElement::Token(token)),
                 Some(SyntaxElement::Node(self.pattern.into_syntax())),
             ],
         ))
