@@ -7082,6 +7082,7 @@ pub fn sql_select_clause(
         select_token,
         list,
         quantifier: None,
+        leading_into_clause: None,
         into_clause: None,
     }
 }
@@ -7089,11 +7090,16 @@ pub struct SqlSelectClauseBuilder {
     select_token: SyntaxToken,
     list: SqlSelectItemList,
     quantifier: Option<AnySqlSelectQuantifier>,
+    leading_into_clause: Option<PsqlIntoClause>,
     into_clause: Option<PsqlIntoClause>,
 }
 impl SqlSelectClauseBuilder {
     pub fn with_quantifier(mut self, quantifier: AnySqlSelectQuantifier) -> Self {
         self.quantifier = Some(quantifier);
+        self
+    }
+    pub fn with_leading_into_clause(mut self, leading_into_clause: PsqlIntoClause) -> Self {
+        self.leading_into_clause = Some(leading_into_clause);
         self
     }
     pub fn with_into_clause(mut self, into_clause: PsqlIntoClause) -> Self {
@@ -7106,6 +7112,8 @@ impl SqlSelectClauseBuilder {
             [
                 Some(SyntaxElement::Token(self.select_token)),
                 self.quantifier
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.leading_into_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Node(self.list.into_syntax())),
                 self.into_clause

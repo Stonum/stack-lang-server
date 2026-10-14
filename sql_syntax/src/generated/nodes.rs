@@ -12725,6 +12725,7 @@ impl SqlSelectClause {
         SqlSelectClauseFields {
             select_token: self.select_token(),
             quantifier: self.quantifier(),
+            leading_into_clause: self.leading_into_clause(),
             list: self.list(),
             into_clause: self.into_clause(),
         }
@@ -12735,11 +12736,14 @@ impl SqlSelectClause {
     pub fn quantifier(&self) -> Option<AnySqlSelectQuantifier> {
         support::node(&self.syntax, 1usize)
     }
+    pub fn leading_into_clause(&self) -> Option<PsqlIntoClause> {
+        support::node(&self.syntax, 2usize)
+    }
     pub fn list(&self) -> SqlSelectItemList {
-        support::list(&self.syntax, 2usize)
+        support::list(&self.syntax, 3usize)
     }
     pub fn into_clause(&self) -> Option<PsqlIntoClause> {
-        support::node(&self.syntax, 3usize)
+        support::node(&self.syntax, 4usize)
     }
 }
 impl Serialize for SqlSelectClause {
@@ -12754,6 +12758,7 @@ impl Serialize for SqlSelectClause {
 pub struct SqlSelectClauseFields {
     pub select_token: SyntaxResult<SyntaxToken>,
     pub quantifier: Option<AnySqlSelectQuantifier>,
+    pub leading_into_clause: Option<PsqlIntoClause>,
     pub list: SqlSelectItemList,
     pub into_clause: Option<PsqlIntoClause>,
 }
@@ -30538,6 +30543,10 @@ impl std::fmt::Debug for SqlSelectClause {
                 .field(
                     "quantifier",
                     &support::DebugOptionalElement(self.quantifier()),
+                )
+                .field(
+                    "leading_into_clause",
+                    &support::DebugOptionalElement(self.leading_into_clause()),
                 )
                 .field("list", &self.list())
                 .field(
