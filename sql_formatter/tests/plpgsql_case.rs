@@ -39,7 +39,8 @@ begin
 	case account_kind
 		when
 			'first_account_kind', 'second_account_kind', 'third_account_kind', 'fourth_account_kind',
-			'fifth_account_kind', 'sixth_account_kind', 'seventh_account_kind' then
+			'fifth_account_kind', 'sixth_account_kind', 'seventh_account_kind'
+		then
 			y := 1;
 	end case;
 end

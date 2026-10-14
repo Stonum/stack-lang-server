@@ -34,7 +34,8 @@ do $$
 begin
 	while processed_accounts_count < total_accounts_count
 		and now() - started_at < interval '30 minutes'
-		and not cancel_requested loop
+		and not cancel_requested
+	loop
 		processed_accounts_count := processed_accounts_count + 1;
 	end loop;
 end

@@ -42,7 +42,8 @@ create trigger "T_LOG_ALLTRIG" after insert or update or delete
 on foo
 for each row
 execute function audit_general_trigger_js(
-	'row_id, name, folder_add, number, code, category, other_field, another_field', 'row_id, name, folder_add, number, code'
+	'row_id, name, folder_add, number, code, category, other_field, another_field',
+	'row_id, name, folder_add, number, code'
 )
 "#
     );

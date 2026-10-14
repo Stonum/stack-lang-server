@@ -72,7 +72,31 @@ do $$
 begin
 	if exists (select 1 from accounts where accounts.owner = 1)
 		and accounts_total > 100
-		and not accounts_locked then
+		and not accounts_locked
+	then
+		delete from t;
+	end if;
+end
+$$;
+"#
+    );
+}
+
+#[test]
+fn format_long_elsif_condition_puts_then_on_its_own_line() {
+    assert_fmt_eq!(
+        r#"--
+do $$ begin if a then null; elsif exists (select 1 from accounts where accounts.owner = 1) and accounts_total > 100 and not accounts_locked then delete from t; end if; end $$;
+"#,
+        r#"--
+do $$
+begin
+	if a then
+		null;
+	elsif exists (select 1 from accounts where accounts.owner = 1)
+		and accounts_total > 100
+		and not accounts_locked
+	then
 		delete from t;
 	end if;
 end

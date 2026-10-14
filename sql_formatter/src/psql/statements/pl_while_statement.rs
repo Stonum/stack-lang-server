@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use sql_syntax::PsqlPlWhileStatement;
 use sql_syntax::PsqlPlWhileStatementFields;
 #[derive(Debug, Clone, Default)]
@@ -19,10 +19,13 @@ impl FormatNodeRule<PsqlPlWhileStatement> for FormatPsqlPlWhileStatement {
         write!(
             f,
             [
-                while_token.format(),
-                space(),
-                condition.format(),
-                space(),
+                // A condition that wraps puts `loop` on its own line.
+                group(&format_args![
+                    while_token.format(),
+                    space(),
+                    condition.format(),
+                    soft_line_break_or_space()
+                ]),
                 body.format()
             ]
         )
