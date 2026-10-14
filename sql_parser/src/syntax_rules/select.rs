@@ -35,6 +35,7 @@ pub(crate) fn parse_select_statement_body(p: &mut SqlParser, select_stmt: Marker
     let _ = parse_limit_clause(p);
     let _ = parse_offset_clause(p);
     let _ = parse_fetch_clause(p);
+    let _ = parse_into_clause(p);
     p.eat(T![;]);
 
     Present(select_stmt.complete(p, SQL_SELECT_STATEMENT))

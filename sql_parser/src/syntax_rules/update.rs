@@ -3,7 +3,9 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
-use super::expr::{EXPR_RECOVERY_SET, is_at_name_start, parse_expression, parse_name};
+use super::expr::{
+    EXPR_RECOVERY_SET, is_at_name_start, parse_column_name_list, parse_expression, parse_name,
+};
 use super::from::{SqlFromItemList, parse_table_binding};
 use super::parse_error::*;
 use super::postgres::returning_clause::parse_returning_clause;
@@ -100,6 +102,13 @@ impl ParseSeparatedList for SqlSetItemList {
 }
 
 fn parse_set_item(p: &mut SqlParser) -> ParsedSyntax {
+    if p.at(T!['(']) {
+        let m = p.start();
+        let _ = parse_column_name_list(p);
+        p.expect(T![=]);
+        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        return Present(m.complete(p, PSQL_MULTI_COLUMN_SET_ITEM));
+    }
     if !is_at_name_start(p) {
         return Absent;
     }

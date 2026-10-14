@@ -12,6 +12,7 @@ impl FormatNodeRule<SqlInsertStatement> for FormatSqlInsertStatement {
             into_token,
             table,
             columns,
+            overriding,
             source,
             on_conflict_clause,
             returning_clause,
@@ -39,6 +40,9 @@ impl FormatNodeRule<SqlInsertStatement> for FormatSqlInsertStatement {
                 )?;
                 if let Some(columns) = &columns {
                     write!(f, [space(), columns.format()])?;
+                }
+                if let Some(overriding) = overriding {
+                    write!(f, [soft_line_break_or_space(), overriding.format()])?;
                 }
                 write!(f, [soft_line_break_or_space(), source.format()])?;
                 if let Some(on_conflict_clause) = on_conflict_clause {

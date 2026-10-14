@@ -216,6 +216,10 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlLockStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_MULTI_COLUMN_SET_ITEM => {
+                    let $pattern = unsafe { $crate::PsqlMultiColumnSetItem::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_NAMED_ARGUMENT => {
                     let $pattern = unsafe { $crate::PsqlNamedArgument::new_unchecked(node) };
                     $body
@@ -230,6 +234,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_ON_CONSTRAINT_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlOnConstraintClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_OVERRIDING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlOverridingClause::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PARAMETER_DEFAULT => {
@@ -414,6 +422,10 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_RAISE_USING_CLAUSE => {
                     let $pattern = unsafe { $crate::PsqlPlRaiseUsingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_REPEATED_DECLARE => {
+                    let $pattern = unsafe { $crate::PsqlPlRepeatedDeclare::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_RETURN_QUERY_STATEMENT => {

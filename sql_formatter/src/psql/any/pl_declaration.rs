@@ -9,6 +9,7 @@ impl FormatRule<AnyPsqlPlDeclaration> for FormatAnyPsqlPlDeclaration {
     fn fmt(&self, node: &AnyPsqlPlDeclaration, f: &mut SqlFormatter) -> FormatResult<()> {
         match node {
             AnyPsqlPlDeclaration::PsqlPlCursorDeclaration(node) => node.format().fmt(f),
+            AnyPsqlPlDeclaration::PsqlPlRepeatedDeclare(node) => node.format().fmt(f),
             AnyPsqlPlDeclaration::PsqlPlVariableDeclaration(node) => node.format().fmt(f),
         }
     }

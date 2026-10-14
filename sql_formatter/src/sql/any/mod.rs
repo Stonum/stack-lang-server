@@ -21,6 +21,7 @@ pub(crate) mod privilege_target;
 pub(crate) mod returns_type;
 pub(crate) mod select_item;
 pub(crate) mod select_quantifier;
+pub(crate) mod set_item;
 pub(crate) mod statement;
 pub(crate) mod subquery_body;
 pub(crate) mod table_constraint;
