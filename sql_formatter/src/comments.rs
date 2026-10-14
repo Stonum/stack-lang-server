@@ -58,6 +58,10 @@ impl CommentStyle for SqlCommentStyle {
             CommentPlacement::Default(comment) => comment,
             placed => return placed,
         };
+        let comment = match handle_end_of_statement_comment(comment) {
+            CommentPlacement::Default(comment) => comment,
+            placed => return placed,
+        };
         handle_sibling_boundary_comment(comment)
     }
 }
@@ -79,6 +83,46 @@ fn handle_create_function_body_comment(
     };
 
     CommentPlacement::leading(following.clone(), comment)
+}
+
+/// A comment on the same line as the end of a statement or declaration
+/// (`x int; -- note`) stays its trailing comment. By default it would lead
+/// the next statement and move to its own line -- before `begin` or after
+/// it, depending on the pass. When the preceding node is a container (a
+/// `DECLARE` section, a branch's statement list) the comment trails its last
+/// item instead.
+fn handle_end_of_statement_comment(
+    comment: DecoratedComment<SqlLanguage>,
+) -> CommentPlacement<SqlLanguage> {
+    if comment.lines_before() > 0 {
+        return CommentPlacement::Default(comment);
+    }
+    let Some(mut node) = comment.preceding_node().cloned() else {
+        return CommentPlacement::Default(comment);
+    };
+
+    loop {
+        let in_line_list = node.parent().is_some_and(|parent| {
+            matches!(
+                parent.kind(),
+                SqlSyntaxKind::PSQL_PL_STATEMENT_LIST
+                    | SqlSyntaxKind::PSQL_PL_DECLARATION_LIST
+                    | SqlSyntaxKind::SQL_STATEMENT_LIST
+            )
+        });
+        if in_line_list {
+            return CommentPlacement::trailing(node, comment);
+        }
+        // Descend only into a child that ends where this node does, so the
+        // comment really follows that child's last token.
+        let Some(last) = node
+            .last_child()
+            .filter(|last| last.text_trimmed_range().end() == node.text_trimmed_range().end())
+        else {
+            return CommentPlacement::Default(comment);
+        };
+        node = last;
+    }
 }
 
 /// A comment between two sibling nodes (same immediate parent) with no node

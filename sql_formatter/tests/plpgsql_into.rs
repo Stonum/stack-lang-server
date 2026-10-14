@@ -94,9 +94,9 @@ $$;
 
 #[test]
 fn format_nested_fill_list_respects_the_indentation() {
-    // Balanced lines are computed for the full width; three levels deep they
-    // don't fit, so the fill wraps them earlier: uneven, but never past the
-    // line limit.
+    // Balanced lines are computed for the full width; three levels deep the
+    // first one doesn't fit, so the list falls back to an even plain fill
+    // instead of overflowing.
     assert_fmt_eq!(
         r#"--
 do $$ begin begin begin select a into account_target_value_name_01, account_target_value_name_02, account_target_value_name_03, account_target_value_name_04, account_target_value_name_05, account_target_value_name_06, account_target_value_name_07, account_target_value_name_08, account_target_value_name_09, account_target_value_name_10, account_target_value_name_11 from t; end; end; end $$;
@@ -109,10 +109,9 @@ begin
 			select a
 			into
 				account_target_value_name_01, account_target_value_name_02, account_target_value_name_03,
-				account_target_value_name_04,
-				account_target_value_name_05, account_target_value_name_06, account_target_value_name_07,
-				account_target_value_name_08,
-				account_target_value_name_09, account_target_value_name_10, account_target_value_name_11
+				account_target_value_name_04, account_target_value_name_05, account_target_value_name_06,
+				account_target_value_name_07, account_target_value_name_08, account_target_value_name_09,
+				account_target_value_name_10, account_target_value_name_11
 			from t;
 		end;
 	end;
