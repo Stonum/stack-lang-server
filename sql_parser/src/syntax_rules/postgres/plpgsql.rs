@@ -952,7 +952,9 @@ fn is_at_pl_assignment(p: &mut SqlParser) -> bool {
                     return false;
                 }
                 p.bump_any();
-            } else if p.at(T!['[']) {
+            } else if p.at(T!['[']) || (p.at(T![~]) && p.nth_at(1, T!['['])) {
+                // `[i]`, or mlang's `~[i]~` whose closing `~` follows `]`.
+                let tilde = p.eat(T![~]);
                 let mut depth = 0usize;
                 loop {
                     match p.cur() {
@@ -968,6 +970,9 @@ fn is_at_pl_assignment(p: &mut SqlParser) -> bool {
                         _ => {}
                     }
                     p.bump_any();
+                }
+                if tilde && !p.eat(T![~]) {
+                    return false;
                 }
             } else {
                 return p.at(T![:=]) || p.at(T![=]);

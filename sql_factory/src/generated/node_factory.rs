@@ -3599,6 +3599,26 @@ pub fn psql_tilde_array_expression(
         ],
     ))
 }
+pub fn psql_tilde_array_subscript_expression(
+    expression: AnySqlExpression,
+    open_tilde_token: SyntaxToken,
+    l_brack_token: SyntaxToken,
+    index: AnySqlExpression,
+    r_brack_token: SyntaxToken,
+    close_tilde_token: SyntaxToken,
+) -> PsqlTildeArraySubscriptExpression {
+    PsqlTildeArraySubscriptExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION,
+        [
+            Some(SyntaxElement::Node(expression.into_syntax())),
+            Some(SyntaxElement::Token(open_tilde_token)),
+            Some(SyntaxElement::Token(l_brack_token)),
+            Some(SyntaxElement::Node(index.into_syntax())),
+            Some(SyntaxElement::Token(r_brack_token)),
+            Some(SyntaxElement::Token(close_tilde_token)),
+        ],
+    ))
+}
 pub fn psql_tilde_array_suffix(
     open_tilde_token: SyntaxToken,
     l_brack_token: SyntaxToken,

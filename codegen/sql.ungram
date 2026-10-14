@@ -1747,6 +1747,7 @@ AnySqlExpression =
    | PsqlArraySubqueryExpression
    | PsqlTildeArrayExpression
    | PsqlArraySubscriptExpression
+   | PsqlTildeArraySubscriptExpression
    | PsqlCastExpression
    | PsqlFieldSelectionExpression
    | PsqlSubstringExpression
@@ -2392,6 +2393,15 @@ PsqlArraySubscriptExpression =
    '['
    index: AnySqlExpression
    ']'
+
+// `arr~[i]~` -- mlang-dialect escaping of a subscript's brackets.
+PsqlTildeArraySubscriptExpression =
+   expression: AnySqlExpression
+   open_tilde: '~'
+   '['
+   index: AnySqlExpression
+   ']'
+   close_tilde: '~'
 
 PsqlCastExpression =
    expression: AnySqlExpression
