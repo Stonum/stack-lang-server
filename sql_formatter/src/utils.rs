@@ -546,11 +546,14 @@ fn balanced_fill_breaks<T>(entries: &[(bool, usize, T)], line_width: usize) -> V
     greedy_fill_breaks(entries, lo)
 }
 
-/// Prints `entries` using precomputed `breaks` (from [balanced_fill_breaks])
-/// instead of letting `f.fill()` decide live -- the breaks are already
-/// final, so each boundary is either a plain `space()` (same line) or a
-/// `hard_line_break()` (new line), no soft breaks or fits-measurement
-/// involved.
+/// Prints `entries` with a hard break at each precomputed `breaks` position
+/// (from [balanced_fill_breaks]) and a fill's soft break everywhere else.
+/// The breaks are computed against the full line width, but the list may be
+/// printed indented: the soft breaks let `f.fill()` wrap a line earlier when
+/// the real remaining width is smaller, so the output never overflows. With
+/// enough room it is exactly the balanced layout. (A `best_fitting!` check
+/// can't catch the overflow: the variant's first line is just the keyword or
+/// bracket before the list.)
 fn write_balanced_fill_entries<T>(
     entries: &[(bool, usize, T)],
     breaks: &[bool],
@@ -559,15 +562,19 @@ fn write_balanced_fill_entries<T>(
 where
     T: Format<SqlFormatContext>,
 {
+    let mut filler = f.fill();
     for (i, (_, _, formatted)) in entries.iter().enumerate() {
-        if i > 0 {
-            if breaks[i] {
-                write!(f, [hard_line_break()])?;
-            } else {
-                write!(f, [space()])?;
-            }
-        }
-        write!(f, [formatted])?;
+        let forced = i > 0 && breaks[i];
+        filler.entry(
+            &format_once(|f| {
+                if forced {
+                    write!(f, [hard_line_break()])
+                } else {
+                    write!(f, [soft_line_break_or_space()])
+                }
+            }),
+            formatted,
+        );
     }
-    Ok(())
+    filler.finish()
 }

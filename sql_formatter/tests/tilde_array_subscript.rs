@@ -44,7 +44,8 @@ begin
 	if tg_argv~[0]~ is not null
 		and tg_argv~[0]~ != ''
 		and tg_argv~[1]~ is not null
-		and tg_argv~[1]~ != '' then
+		and tg_argv~[1]~ != ''
+	then
 		null;
 	end if;
 end

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::psql::lists::pl_statement_list::FormatPlBranchStatements;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use sql_syntax::PsqlPlIfStatement;
 use sql_syntax::PsqlPlIfStatementFields;
 #[derive(Debug, Clone, Default)]
@@ -22,11 +22,15 @@ impl FormatNodeRule<PsqlPlIfStatement> for FormatPsqlPlIfStatement {
         write!(
             f,
             [
-                if_token.format(),
-                space(),
-                condition.format(),
-                space(),
-                then_token.format(),
+                // A condition that wraps puts `then` on its own line, so the
+                // body doesn't line up with the condition's continuation.
+                group(&format_args![
+                    if_token.format(),
+                    space(),
+                    condition.format(),
+                    soft_line_break_or_space(),
+                    then_token.format()
+                ]),
                 FormatPlBranchStatements::new(&statements),
                 elsif_clauses.format(),
             ]

@@ -18,20 +18,17 @@ impl FormatNodeRule<PsqlPlCaseWhenClause> for FormatPsqlPlCaseWhenClause {
 
         write!(
             f,
-            [group(&format_once(|f| {
-                write_wrapping_fill_clause(
-                    when_token.format(),
-                    &conditions,
-                    |condition: &AnySqlExpression| !is_simple_expression(condition, 0),
-                    f,
-                )
-            }))]
-        )?;
-        write!(
-            f,
             [
-                space(),
-                then_token.format(),
+                // A value list that wraps puts `then` on its own line.
+                group(&format_once(|f| {
+                    write_wrapping_fill_clause(
+                        when_token.format(),
+                        &conditions,
+                        |condition: &AnySqlExpression| !is_simple_expression(condition, 0),
+                        f,
+                    )?;
+                    write!(f, [soft_line_break_or_space(), then_token.format()])
+                })),
                 FormatPlBranchStatements::new(&statements)
             ]
         )

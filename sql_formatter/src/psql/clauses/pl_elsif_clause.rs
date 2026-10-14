@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::psql::lists::pl_statement_list::FormatPlBranchStatements;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use sql_syntax::PsqlPlElsifClause;
 use sql_syntax::PsqlPlElsifClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -17,11 +17,14 @@ impl FormatNodeRule<PsqlPlElsifClause> for FormatPsqlPlElsifClause {
         write!(
             f,
             [
-                elsif_token.format(),
-                space(),
-                condition.format(),
-                space(),
-                then_token.format(),
+                // Same layout as `IF` (`pl_if_statement.rs`).
+                group(&format_args![
+                    elsif_token.format(),
+                    space(),
+                    condition.format(),
+                    soft_line_break_or_space(),
+                    then_token.format()
+                ]),
                 FormatPlBranchStatements::new(&statements),
             ]
         )
