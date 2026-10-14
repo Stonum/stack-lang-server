@@ -147,6 +147,12 @@ fn parse_join_clause(p: &mut SqlParser) -> ParsedSyntax {
     p.eat(T![outer]);
     p.expect(T![join]);
     parse_from_expression(p).or_add_diagnostic(p, expected_from_expression);
+    // `a JOIN b JOIN c ON x ON y`: `c` joins `b` before `b` joins `a`.
+    if !is_cross && is_at_join_clause(p) {
+        parse_join_clause_list(p);
+    } else {
+        p.start().complete(p, SQL_JOIN_CLAUSE_LIST);
+    }
     // `CROSS JOIN` has no `ON`/`USING` clause -- unlike every other join kind.
     if !is_cross {
         if p.at(T![using]) {

@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use biome_formatter::write;
+use biome_formatter::{format_args, write};
 use sql_syntax::SqlJoinClause;
 use sql_syntax::SqlJoinClauseFields;
 #[derive(Debug, Clone, Default)]
@@ -11,6 +11,7 @@ impl FormatNodeRule<SqlJoinClause> for FormatSqlJoinClause {
             outer_token,
             join_token,
             source,
+            nested_joins,
             on_token,
             condition,
             using_clause,
@@ -24,14 +25,32 @@ impl FormatNodeRule<SqlJoinClause> for FormatSqlJoinClause {
         }
         write!(f, [join_token.format(), space(), source.format()])?;
 
-        if let Some(on_token) = on_token {
-            write!(f, [space(), on_token.format()])?;
+        let constraint = format_with(|f| {
+            if let Some(on_token) = &on_token {
+                write!(f, [on_token.format()])?;
+            }
+            if let Some(condition) = &condition {
+                write!(f, [space(), condition.format()])?;
+            }
+            if let Some(using_clause) = &using_clause {
+                write!(f, [using_clause.format()])?;
+            }
+            Ok(())
+        });
+
+        // Nested joins and the outer join's own `ON` go on their own lines.
+        if !nested_joins.is_empty() {
+            return write!(
+                f,
+                [indent(&format_args![
+                    nested_joins.format(),
+                    hard_line_break(),
+                    constraint
+                ])]
+            );
         }
-        if let Some(condition) = condition {
-            write!(f, [space(), condition.format()])?;
-        }
-        if let Some(using_clause) = using_clause {
-            write!(f, [space(), using_clause.format()])?;
+        if on_token.is_some() || using_clause.is_some() {
+            write!(f, [space(), constraint])?;
         }
         Ok(())
     }

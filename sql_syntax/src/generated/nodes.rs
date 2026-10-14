@@ -6695,6 +6695,39 @@ pub struct PsqlTildeArraySuffixFields {
     pub close_tilde_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlTildeNameExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlTildeNameExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlTildeNameExpressionFields {
+        PsqlTildeNameExpressionFields { name: self.name() }
+    }
+    pub fn name(&self) -> SyntaxResult<SqlTildeName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlTildeNameExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlTildeNameExpressionFields {
+    pub name: SyntaxResult<SqlTildeName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlTriggerEvent {
     pub(crate) syntax: SyntaxNode,
 }
@@ -11412,6 +11445,7 @@ impl SqlJoinClause {
             outer_token: self.outer_token(),
             join_token: self.join_token(),
             source: self.source(),
+            nested_joins: self.nested_joins(),
             on_token: self.on_token(),
             condition: self.condition(),
             using_clause: self.using_clause(),
@@ -11429,14 +11463,17 @@ impl SqlJoinClause {
     pub fn source(&self) -> SyntaxResult<AnySqlFromExpression> {
         support::required_node(&self.syntax, 3usize)
     }
+    pub fn nested_joins(&self) -> SqlJoinClauseList {
+        support::list(&self.syntax, 4usize)
+    }
     pub fn on_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 4usize)
+        support::token(&self.syntax, 5usize)
     }
     pub fn condition(&self) -> Option<AnySqlExpression> {
-        support::node(&self.syntax, 5usize)
+        support::node(&self.syntax, 6usize)
     }
     pub fn using_clause(&self) -> Option<PsqlJoinUsingClause> {
-        support::node(&self.syntax, 6usize)
+        support::node(&self.syntax, 7usize)
     }
 }
 impl Serialize for SqlJoinClause {
@@ -11453,6 +11490,7 @@ pub struct SqlJoinClauseFields {
     pub outer_token: Option<SyntaxToken>,
     pub join_token: SyntaxResult<SyntaxToken>,
     pub source: SyntaxResult<AnySqlFromExpression>,
+    pub nested_joins: SqlJoinClauseList,
     pub on_token: Option<SyntaxToken>,
     pub condition: Option<AnySqlExpression>,
     pub using_clause: Option<PsqlJoinUsingClause>,
@@ -11476,6 +11514,7 @@ impl SqlLikeExpression {
             expression: self.expression(),
             not_token: self.not_token(),
             operator_token: self.operator_token(),
+            to_token: self.to_token(),
             pattern: self.pattern(),
         }
     }
@@ -11488,8 +11527,11 @@ impl SqlLikeExpression {
     pub fn operator_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 2usize)
     }
+    pub fn to_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 3usize)
+    }
     pub fn pattern(&self) -> SyntaxResult<AnySqlExpression> {
-        support::required_node(&self.syntax, 3usize)
+        support::required_node(&self.syntax, 4usize)
     }
 }
 impl Serialize for SqlLikeExpression {
@@ -11505,6 +11547,7 @@ pub struct SqlLikeExpressionFields {
     pub expression: SyntaxResult<AnySqlExpression>,
     pub not_token: Option<SyntaxToken>,
     pub operator_token: SyntaxResult<SyntaxToken>,
+    pub to_token: Option<SyntaxToken>,
     pub pattern: SyntaxResult<AnySqlExpression>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -15456,6 +15499,7 @@ pub enum AnySqlExpression {
     PsqlSubstringExpression(PsqlSubstringExpression),
     PsqlTildeArrayExpression(PsqlTildeArrayExpression),
     PsqlTildeArraySubscriptExpression(PsqlTildeArraySubscriptExpression),
+    PsqlTildeNameExpression(PsqlTildeNameExpression),
     PsqlTrimExpression(PsqlTrimExpression),
     PsqlXmlExistsExpression(PsqlXmlExistsExpression),
 }
@@ -15683,6 +15727,12 @@ impl AnySqlExpression {
     ) -> Option<&PsqlTildeArraySubscriptExpression> {
         match &self {
             Self::PsqlTildeArraySubscriptExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_tilde_name_expression(&self) -> Option<&PsqlTildeNameExpression> {
+        match &self {
+            Self::PsqlTildeNameExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -23901,6 +23951,53 @@ impl From<PsqlTildeArraySuffix> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlTildeNameExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_TILDE_NAME_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_TILDE_NAME_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlTildeNameExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlTildeNameExpression")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlTildeNameExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlTildeNameExpression> for SyntaxNode {
+    fn from(n: PsqlTildeNameExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlTildeNameExpression> for SyntaxElement {
+    fn from(n: PsqlTildeNameExpression) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlTriggerEvent {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -29050,6 +29147,7 @@ impl std::fmt::Debug for SqlJoinClause {
                 )
                 .field("join_token", &support::DebugSyntaxResult(self.join_token()))
                 .field("source", &support::DebugSyntaxResult(self.source()))
+                .field("nested_joins", &self.nested_joins())
                 .field("on_token", &support::DebugOptionalElement(self.on_token()))
                 .field(
                     "condition",
@@ -29114,6 +29212,7 @@ impl std::fmt::Debug for SqlLikeExpression {
                     "operator_token",
                     &support::DebugSyntaxResult(self.operator_token()),
                 )
+                .field("to_token", &support::DebugOptionalElement(self.to_token()))
                 .field("pattern", &support::DebugSyntaxResult(self.pattern()))
                 .finish()
         } else {
@@ -34968,6 +35067,11 @@ impl From<PsqlTildeArraySubscriptExpression> for AnySqlExpression {
         Self::PsqlTildeArraySubscriptExpression(node)
     }
 }
+impl From<PsqlTildeNameExpression> for AnySqlExpression {
+    fn from(node: PsqlTildeNameExpression) -> Self {
+        Self::PsqlTildeNameExpression(node)
+    }
+}
 impl From<PsqlTrimExpression> for AnySqlExpression {
     fn from(node: PsqlTrimExpression) -> Self {
         Self::PsqlTrimExpression(node)
@@ -35017,6 +35121,7 @@ impl AstNode for AnySqlExpression {
         .union(PsqlSubstringExpression::KIND_SET)
         .union(PsqlTildeArrayExpression::KIND_SET)
         .union(PsqlTildeArraySubscriptExpression::KIND_SET)
+        .union(PsqlTildeNameExpression::KIND_SET)
         .union(PsqlTrimExpression::KIND_SET)
         .union(PsqlXmlExistsExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
@@ -35057,6 +35162,7 @@ impl AstNode for AnySqlExpression {
             | PSQL_SUBSTRING_EXPRESSION
             | PSQL_TILDE_ARRAY_EXPRESSION
             | PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION
+            | PSQL_TILDE_NAME_EXPRESSION
             | PSQL_TRIM_EXPRESSION
             | PSQL_XML_EXISTS_EXPRESSION => true,
             k if AnySqlLiteralExpression::can_cast(k) => true,
@@ -35139,6 +35245,9 @@ impl AstNode for AnySqlExpression {
                     syntax,
                 })
             }
+            PSQL_TILDE_NAME_EXPRESSION => {
+                Self::PsqlTildeNameExpression(PsqlTildeNameExpression { syntax })
+            }
             PSQL_TRIM_EXPRESSION => Self::PsqlTrimExpression(PsqlTrimExpression { syntax }),
             PSQL_XML_EXISTS_EXPRESSION => {
                 Self::PsqlXmlExistsExpression(PsqlXmlExistsExpression { syntax })
@@ -35190,6 +35299,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlSubstringExpression(it) => &it.syntax,
             Self::PsqlTildeArrayExpression(it) => &it.syntax,
             Self::PsqlTildeArraySubscriptExpression(it) => &it.syntax,
+            Self::PsqlTildeNameExpression(it) => &it.syntax,
             Self::PsqlTrimExpression(it) => &it.syntax,
             Self::PsqlXmlExistsExpression(it) => &it.syntax,
             Self::AnySqlLiteralExpression(it) => it.syntax(),
@@ -35233,6 +35343,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlSubstringExpression(it) => it.syntax,
             Self::PsqlTildeArrayExpression(it) => it.syntax,
             Self::PsqlTildeArraySubscriptExpression(it) => it.syntax,
+            Self::PsqlTildeNameExpression(it) => it.syntax,
             Self::PsqlTrimExpression(it) => it.syntax,
             Self::PsqlXmlExistsExpression(it) => it.syntax,
             Self::AnySqlLiteralExpression(it) => it.into_syntax(),
@@ -35279,6 +35390,7 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::PsqlSubstringExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArraySubscriptExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlTildeNameExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTrimExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlXmlExistsExpression(it) => std::fmt::Debug::fmt(it, f),
         }
@@ -35324,6 +35436,7 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::PsqlSubstringExpression(it) => it.into(),
             AnySqlExpression::PsqlTildeArrayExpression(it) => it.into(),
             AnySqlExpression::PsqlTildeArraySubscriptExpression(it) => it.into(),
+            AnySqlExpression::PsqlTildeNameExpression(it) => it.into(),
             AnySqlExpression::PsqlTrimExpression(it) => it.into(),
             AnySqlExpression::PsqlXmlExistsExpression(it) => it.into(),
         }
@@ -38295,6 +38408,11 @@ impl std::fmt::Display for PsqlTildeArraySubscriptExpression {
     }
 }
 impl std::fmt::Display for PsqlTildeArraySuffix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlTildeNameExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

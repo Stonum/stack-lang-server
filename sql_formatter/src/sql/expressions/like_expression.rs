@@ -11,6 +11,7 @@ impl FormatNodeRule<SqlLikeExpression> for FormatSqlLikeExpression {
             expression,
             not_token,
             operator_token,
+            to_token,
             pattern,
         } = node.as_fields();
 
@@ -18,7 +19,11 @@ impl FormatNodeRule<SqlLikeExpression> for FormatSqlLikeExpression {
         if let Some(not_token) = not_token {
             write!(f, [not_token.format(), space()])?;
         }
-        write!(f, [operator_token.format(), space(), pattern.format()])
+        write!(f, [operator_token.format(), space()])?;
+        if let Some(to_token) = to_token {
+            write!(f, [to_token.format(), space()])?;
+        }
+        write!(f, [pattern.format()])
     }
 
     fn needs_parentheses(&self, item: &SqlLikeExpression) -> bool {

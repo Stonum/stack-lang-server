@@ -88,6 +88,9 @@ AnySqlLimitValue =
 // valid in table/function-name position, never for columns/aliases/CTEs.
 SqlTildeName = value: 'Sql_tilde_name_literal'
 
+// `~$#name~` as a value -- a (temp) table name passed around in mlang.
+PsqlTildeNameExpression = name: SqlTildeName
+
 AnySqlName =
    SqlName
    | SqlTildeName
@@ -277,6 +280,8 @@ SqlJoinClause =
    'outer'?
    'join'
    source: AnySqlFromExpression
+   // `a JOIN b JOIN c ON x ON y` -- joins nested inside this one.
+   nested_joins: SqlJoinClauseList
    ('on' condition: AnySqlExpression)?
    using_clause: PsqlJoinUsingClause?
 
@@ -1756,6 +1761,7 @@ AnySqlExpression =
    | PsqlTildeArraySubscriptExpression
    | PsqlXmlExistsExpression
    | PsqlPositionalParameterExpression
+   | PsqlTildeNameExpression
    | PsqlCastExpression
    | PsqlFieldSelectionExpression
    | PsqlSubstringExpression
@@ -1833,7 +1839,8 @@ SqlSubqueryExpression =
    ')'
 
 SqlUnaryExpression =
-   operator_token: ('not' | '-' | '+')
+   // `@` -- Postgres absolute value.
+   operator_token: ('not' | '-' | '+' | '@')
    expression: AnySqlExpression
 
 // `x IS [NOT] NULL | TRUE | FALSE | UNKNOWN`
@@ -1889,7 +1896,9 @@ SqlInValueList =
 SqlLikeExpression =
    expression: AnySqlExpression
    'not'?
-   operator_token: ('like' | 'ilike')
+   operator_token: ('like' | 'ilike' | 'similar')
+   // `SIMILAR TO`
+   'to'?
    pattern: AnySqlExpression
 
 SqlCaseExpression =
@@ -1986,7 +1995,7 @@ SqlBinaryExpression =
    | '+' | '-' | '*' | '/' | '%' | '~'  | '!~'
    | '&' | '|' | '^' | '>>' | '<<' | '~*' | '!~*'
    | '~~' | '~~*' | '!~~' | '!~~*' | '||' | '->' | '->>' | '?'
-   | '?|' | '?&' | '@>' | '<@' | '&&' | '#>' | '#>>' | '#-'
+   | '?|' | '?&' | '@>' | '<@' | '&&' | '#>' | '#>>' | '#-' | '#'
    )
    right: AnySqlExpression
 
