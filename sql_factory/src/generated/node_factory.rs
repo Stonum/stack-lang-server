@@ -3239,6 +3239,14 @@ pub fn psql_position_expression(
         ],
     ))
 }
+pub fn psql_positional_parameter_expression(
+    value_token: SyntaxToken,
+) -> PsqlPositionalParameterExpression {
+    PsqlPositionalParameterExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_POSITIONAL_PARAMETER_EXPRESSION,
+        [Some(SyntaxElement::Token(value_token))],
+    ))
+}
 pub fn psql_refresh_materialized_view_statement(
     refresh_token: SyntaxToken,
     materialized_token: SyntaxToken,

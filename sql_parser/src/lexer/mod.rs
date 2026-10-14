@@ -467,6 +467,15 @@ impl<'src> SqlLexer<'src> {
                     self.advance(1);
                     continue;
                 }
+                // `'a'` <newline> `'b'` is one string in Postgres: a constant
+                // continues past whitespace that contains a line break.
+                if quote == b'\'' && self.at_string_continuation() {
+                    while self.current_byte() != Some(quote) {
+                        self.advance(1);
+                    }
+                    self.advance(1);
+                    continue;
+                }
                 return true;
             } else if escapes && b == b'\\' {
                 self.consume_escape_sequence();
@@ -490,6 +499,21 @@ impl<'src> SqlLexer<'src> {
         false
     }
 
+    /// Whitespace with at least one line break, then `'`.
+    fn at_string_continuation(&self) -> bool {
+        let mut offset = 0;
+        let mut newline = false;
+        loop {
+            match self.byte_at(offset) {
+                Some(b'\n') => newline = true,
+                Some(b' ' | b'\t' | b'\r') => {}
+                Some(b'\'') => return newline,
+                _ => return false,
+            }
+            offset += 1;
+        }
+    }
+
     /// Postgres dollar-quoted string: `$$...$$` or `$tag$...$tag$`, where
     /// `tag` is an alphanumeric/underscore identifier chosen per-string (no
     /// nesting, no escape processing -- the body is everything up to the
@@ -508,10 +532,19 @@ impl<'src> SqlLexer<'src> {
             self.advance(1);
         }
 
+        // `$1` -- a positional parameter, not a dollar-quote tag.
+        if self.position > tag_start
+            && self.source().as_bytes()[tag_start..self.position]
+                .iter()
+                .all(u8::is_ascii_digit)
+            && self.current_byte() != Some(b'$')
+        {
+            return SQL_POSITIONAL_PARAMETER_LITERAL;
+        }
+
         if self.current_byte() != Some(b'$') {
-            // Not a valid dollar-quote opener (e.g. a bare `$`, or a `$1`
-            // positional parameter -- not supported yet). Back off to just
-            // the `$` itself so the following bytes still lex normally.
+            // Not a valid dollar-quote opener (e.g. a bare `$`). Back off to
+            // just the `$` itself so the following bytes still lex normally.
             self.position = tag_start;
             self.push_diagnostic(ParseDiagnostic::new(
                 "unexpected token `$`",
@@ -860,6 +893,15 @@ impl<'src> SqlLexer<'src> {
                     ERROR_TOKEN
                 }
             }
+            // `X'...'`/`B'...'` -- Postgres hex/binary bit-string constants.
+            IDT if matches!(byte, b'x' | b'X' | b'b' | b'B') && self.byte_at(1) == Some(b'\'') => {
+                self.advance(1);
+                if self.consume_quoted_literal(false) {
+                    SQL_STRING_LITERAL
+                } else {
+                    ERROR_TOKEN
+                }
+            }
             // `E'...'` -- a Postgres escape string constant.
             IDT if matches!(byte, b'e' | b'E') && self.byte_at(1) == Some(b'\'') => {
                 self.advance(1);
@@ -919,6 +961,10 @@ impl<'src> SqlLexer<'src> {
             MOR => self.resolve_more_than(),
             TLD => self.resolve_tilde(),
             PIP => self.resolve_pipe(),
+            Dispatch::AMP if self.byte_at(1) == Some(b'&') => {
+                self.advance(2);
+                T![&&]
+            }
             Dispatch::AMP => self.eat_byte(T![&]),
             CRT => self.eat_byte(T![^]),
             PLS => self.eat_byte(T![+]),

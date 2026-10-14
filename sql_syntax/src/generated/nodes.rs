@@ -5695,6 +5695,41 @@ pub struct PsqlPositionExpressionFields {
     pub r_paren_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlPositionalParameterExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlPositionalParameterExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlPositionalParameterExpressionFields {
+        PsqlPositionalParameterExpressionFields {
+            value_token: self.value_token(),
+        }
+    }
+    pub fn value_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlPositionalParameterExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlPositionalParameterExpressionFields {
+    pub value_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlRefreshMaterializedViewStatement {
     pub(crate) syntax: SyntaxNode,
 }
@@ -15417,6 +15452,7 @@ pub enum AnySqlExpression {
     PsqlFieldSelectionExpression(PsqlFieldSelectionExpression),
     PsqlIntervalExpression(PsqlIntervalExpression),
     PsqlPositionExpression(PsqlPositionExpression),
+    PsqlPositionalParameterExpression(PsqlPositionalParameterExpression),
     PsqlSubstringExpression(PsqlSubstringExpression),
     PsqlTildeArrayExpression(PsqlTildeArrayExpression),
     PsqlTildeArraySubscriptExpression(PsqlTildeArraySubscriptExpression),
@@ -15619,6 +15655,14 @@ impl AnySqlExpression {
     pub fn as_psql_position_expression(&self) -> Option<&PsqlPositionExpression> {
         match &self {
             Self::PsqlPositionExpression(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_positional_parameter_expression(
+        &self,
+    ) -> Option<&PsqlPositionalParameterExpression> {
+        match &self {
+            Self::PsqlPositionalParameterExpression(item) => Some(item),
             _ => None,
         }
     }
@@ -22652,6 +22696,56 @@ impl From<PsqlPositionExpression> for SyntaxNode {
 }
 impl From<PsqlPositionExpression> for SyntaxElement {
     fn from(n: PsqlPositionExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlPositionalParameterExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_POSITIONAL_PARAMETER_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_POSITIONAL_PARAMETER_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlPositionalParameterExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlPositionalParameterExpression")
+                .field(
+                    "value_token",
+                    &support::DebugSyntaxResult(self.value_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlPositionalParameterExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlPositionalParameterExpression> for SyntaxNode {
+    fn from(n: PsqlPositionalParameterExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlPositionalParameterExpression> for SyntaxElement {
+    fn from(n: PsqlPositionalParameterExpression) -> Self {
         n.syntax.into()
     }
 }
@@ -34854,6 +34948,11 @@ impl From<PsqlPositionExpression> for AnySqlExpression {
         Self::PsqlPositionExpression(node)
     }
 }
+impl From<PsqlPositionalParameterExpression> for AnySqlExpression {
+    fn from(node: PsqlPositionalParameterExpression) -> Self {
+        Self::PsqlPositionalParameterExpression(node)
+    }
+}
 impl From<PsqlSubstringExpression> for AnySqlExpression {
     fn from(node: PsqlSubstringExpression) -> Self {
         Self::PsqlSubstringExpression(node)
@@ -34914,6 +35013,7 @@ impl AstNode for AnySqlExpression {
         .union(PsqlFieldSelectionExpression::KIND_SET)
         .union(PsqlIntervalExpression::KIND_SET)
         .union(PsqlPositionExpression::KIND_SET)
+        .union(PsqlPositionalParameterExpression::KIND_SET)
         .union(PsqlSubstringExpression::KIND_SET)
         .union(PsqlTildeArrayExpression::KIND_SET)
         .union(PsqlTildeArraySubscriptExpression::KIND_SET)
@@ -34953,6 +35053,7 @@ impl AstNode for AnySqlExpression {
             | PSQL_FIELD_SELECTION_EXPRESSION
             | PSQL_INTERVAL_EXPRESSION
             | PSQL_POSITION_EXPRESSION
+            | PSQL_POSITIONAL_PARAMETER_EXPRESSION
             | PSQL_SUBSTRING_EXPRESSION
             | PSQL_TILDE_ARRAY_EXPRESSION
             | PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION
@@ -35022,6 +35123,11 @@ impl AstNode for AnySqlExpression {
             PSQL_POSITION_EXPRESSION => {
                 Self::PsqlPositionExpression(PsqlPositionExpression { syntax })
             }
+            PSQL_POSITIONAL_PARAMETER_EXPRESSION => {
+                Self::PsqlPositionalParameterExpression(PsqlPositionalParameterExpression {
+                    syntax,
+                })
+            }
             PSQL_SUBSTRING_EXPRESSION => {
                 Self::PsqlSubstringExpression(PsqlSubstringExpression { syntax })
             }
@@ -35080,6 +35186,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlFieldSelectionExpression(it) => &it.syntax,
             Self::PsqlIntervalExpression(it) => &it.syntax,
             Self::PsqlPositionExpression(it) => &it.syntax,
+            Self::PsqlPositionalParameterExpression(it) => &it.syntax,
             Self::PsqlSubstringExpression(it) => &it.syntax,
             Self::PsqlTildeArrayExpression(it) => &it.syntax,
             Self::PsqlTildeArraySubscriptExpression(it) => &it.syntax,
@@ -35122,6 +35229,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlFieldSelectionExpression(it) => it.syntax,
             Self::PsqlIntervalExpression(it) => it.syntax,
             Self::PsqlPositionExpression(it) => it.syntax,
+            Self::PsqlPositionalParameterExpression(it) => it.syntax,
             Self::PsqlSubstringExpression(it) => it.syntax,
             Self::PsqlTildeArrayExpression(it) => it.syntax,
             Self::PsqlTildeArraySubscriptExpression(it) => it.syntax,
@@ -35167,6 +35275,7 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::PsqlFieldSelectionExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlIntervalExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPositionExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlPositionalParameterExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlSubstringExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArraySubscriptExpression(it) => std::fmt::Debug::fmt(it, f),
@@ -35211,6 +35320,7 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::PsqlFieldSelectionExpression(it) => it.into(),
             AnySqlExpression::PsqlIntervalExpression(it) => it.into(),
             AnySqlExpression::PsqlPositionExpression(it) => it.into(),
+            AnySqlExpression::PsqlPositionalParameterExpression(it) => it.into(),
             AnySqlExpression::PsqlSubstringExpression(it) => it.into(),
             AnySqlExpression::PsqlTildeArrayExpression(it) => it.into(),
             AnySqlExpression::PsqlTildeArraySubscriptExpression(it) => it.into(),
@@ -38075,6 +38185,11 @@ impl std::fmt::Display for PsqlPolicyWithCheckClause {
     }
 }
 impl std::fmt::Display for PsqlPositionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlPositionalParameterExpression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

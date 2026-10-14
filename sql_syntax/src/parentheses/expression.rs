@@ -46,6 +46,7 @@ impl NeedsParentheses for AnySqlExpression {
             | Self::PsqlArraySubscriptExpression(_)
             | Self::PsqlTildeArraySubscriptExpression(_)
             | Self::PsqlXmlExistsExpression(_)
+            | Self::PsqlPositionalParameterExpression(_)
             | Self::PsqlCastExpression(_)
             | Self::SqlCollateExpression(_)
             | Self::PsqlFieldSelectionExpression(_)

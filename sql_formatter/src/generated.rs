@@ -3875,6 +3875,19 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPositionExpression {
         )
     }
 }
+impl FormatRule < sql_syntax :: PsqlPositionalParameterExpression > for crate :: psql :: expressions :: positional_parameter_expression :: FormatPsqlPositionalParameterExpression { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlPositionalParameterExpression , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlPositionalParameterExpression > :: fmt (self , node , f) } }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPositionalParameterExpression {
+    type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlPositionalParameterExpression , crate :: psql :: expressions :: positional_parameter_expression :: FormatPsqlPositionalParameterExpression > ;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: positional_parameter_expression :: FormatPsqlPositionalParameterExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPositionalParameterExpression {
+    type Format = FormatOwnedWithRule < sql_syntax :: PsqlPositionalParameterExpression , crate :: psql :: expressions :: positional_parameter_expression :: FormatPsqlPositionalParameterExpression > ;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: positional_parameter_expression :: FormatPsqlPositionalParameterExpression :: default ())
+    }
+}
 impl FormatRule < sql_syntax :: PsqlRefreshMaterializedViewStatement > for crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlRefreshMaterializedViewStatement , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlRefreshMaterializedViewStatement > :: fmt (self , node , f) } }
 impl AsFormat<SqlFormatContext> for sql_syntax::PsqlRefreshMaterializedViewStatement {
     type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlRefreshMaterializedViewStatement , crate :: psql :: statements :: refresh_materialized_view_statement :: FormatPsqlRefreshMaterializedViewStatement > ;
