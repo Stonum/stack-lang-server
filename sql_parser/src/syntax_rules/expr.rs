@@ -10,6 +10,7 @@ use super::postgres::expr::{
     parse_named_argument, parse_position_expression, parse_substring_expression,
     parse_trim_expression, parse_type_array_suffix,
 };
+use super::postgres::xml::parse_xml_exists_expression;
 use super::select::{is_at_parenthesized_set_operand, parse_order_by_clause};
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{
@@ -293,6 +294,9 @@ fn parse_primary_expression(p: &mut SqlParser) -> ParsedSyntax {
             parse_position_expression(p)
         }
         T![ident] if is_at_keyword_argument_form(p, "trim", T![from]) => parse_trim_expression(p),
+        T![ident] if is_at_keyword_argument_form(p, "xmlexists", T![passing]) => {
+            parse_xml_exists_expression(p)
+        }
         T![ident] => parse_ident_expression(p),
         // A bare mlang-dialect `[bracket name]` column reference, e.g.
         // `where [Col-Name] = :1` -- everywhere else `[` only ever appears

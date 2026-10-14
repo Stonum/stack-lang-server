@@ -626,6 +626,47 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlWithDataClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_XML_BY_MECHANISM => {
+                    let $pattern = unsafe { $crate::PsqlXmlByMechanism::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_COLUMN_DEFAULT => {
+                    let $pattern = unsafe { $crate::PsqlXmlColumnDefault::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_COLUMN_PATH => {
+                    let $pattern = unsafe { $crate::PsqlXmlColumnPath::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_EXISTS_EXPRESSION => {
+                    let $pattern = unsafe { $crate::PsqlXmlExistsExpression::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_NAMESPACE => {
+                    let $pattern = unsafe { $crate::PsqlXmlNamespace::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_NAMESPACES_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlXmlNamespacesClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_PASSING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlXmlPassingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_TABLE_BINDING => {
+                    let $pattern = unsafe { $crate::PsqlXmlTableBinding::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_TABLE_ORDINALITY_COLUMN => {
+                    let $pattern =
+                        unsafe { $crate::PsqlXmlTableOrdinalityColumn::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_TABLE_VALUE_COLUMN => {
+                    let $pattern = unsafe { $crate::PsqlXmlTableValueColumn::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::SQL_ADD_COLUMN_ACTION => {
                     let $pattern = unsafe { $crate::SqlAddColumnAction::new_unchecked(node) };
                     $body
@@ -1312,6 +1353,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_VIEW_OPTION_LIST => {
                     let $pattern = unsafe { $crate::PsqlViewOptionList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_NAMESPACE_LIST => {
+                    let $pattern = unsafe { $crate::PsqlXmlNamespaceList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_XML_TABLE_COLUMN_LIST => {
+                    let $pattern = unsafe { $crate::PsqlXmlTableColumnList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::SQL_ALIAS_COLUMN_DEFINITION_LIST => {

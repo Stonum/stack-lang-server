@@ -5089,6 +5089,372 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlWithDataClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlXmlByMechanism>
+    for crate::psql::auxiliary::xml_by_mechanism::FormatPsqlXmlByMechanism
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlXmlByMechanism, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlByMechanism>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlByMechanism {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlByMechanism,
+        crate::psql::auxiliary::xml_by_mechanism::FormatPsqlXmlByMechanism,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_by_mechanism::FormatPsqlXmlByMechanism::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlByMechanism {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlByMechanism,
+        crate::psql::auxiliary::xml_by_mechanism::FormatPsqlXmlByMechanism,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_by_mechanism::FormatPsqlXmlByMechanism::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlColumnDefault>
+    for crate::psql::auxiliary::xml_column_default::FormatPsqlXmlColumnDefault
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlColumnDefault,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlColumnDefault>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlColumnDefault {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlColumnDefault,
+        crate::psql::auxiliary::xml_column_default::FormatPsqlXmlColumnDefault,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_column_default::FormatPsqlXmlColumnDefault::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlColumnDefault {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlColumnDefault,
+        crate::psql::auxiliary::xml_column_default::FormatPsqlXmlColumnDefault,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_column_default::FormatPsqlXmlColumnDefault::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlColumnPath>
+    for crate::psql::auxiliary::xml_column_path::FormatPsqlXmlColumnPath
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlXmlColumnPath, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlColumnPath>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlColumnPath {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlColumnPath,
+        crate::psql::auxiliary::xml_column_path::FormatPsqlXmlColumnPath,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_column_path::FormatPsqlXmlColumnPath::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlColumnPath {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlColumnPath,
+        crate::psql::auxiliary::xml_column_path::FormatPsqlXmlColumnPath,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_column_path::FormatPsqlXmlColumnPath::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlExistsExpression>
+    for crate::psql::expressions::xml_exists_expression::FormatPsqlXmlExistsExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlExistsExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlExistsExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlExistsExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlExistsExpression,
+        crate::psql::expressions::xml_exists_expression::FormatPsqlXmlExistsExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::expressions::xml_exists_expression::FormatPsqlXmlExistsExpression::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlExistsExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlExistsExpression,
+        crate::psql::expressions::xml_exists_expression::FormatPsqlXmlExistsExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::expressions::xml_exists_expression::FormatPsqlXmlExistsExpression::default(
+            ),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlNamespace>
+    for crate::psql::auxiliary::xml_namespace::FormatPsqlXmlNamespace
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlXmlNamespace, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlNamespace>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlNamespace {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlNamespace,
+        crate::psql::auxiliary::xml_namespace::FormatPsqlXmlNamespace,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_namespace::FormatPsqlXmlNamespace::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlNamespace {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlNamespace,
+        crate::psql::auxiliary::xml_namespace::FormatPsqlXmlNamespace,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_namespace::FormatPsqlXmlNamespace::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlNamespacesClause>
+    for crate::psql::clauses::xml_namespaces_clause::FormatPsqlXmlNamespacesClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlNamespacesClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlNamespacesClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlNamespacesClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlNamespacesClause,
+        crate::psql::clauses::xml_namespaces_clause::FormatPsqlXmlNamespacesClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::xml_namespaces_clause::FormatPsqlXmlNamespacesClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlNamespacesClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlNamespacesClause,
+        crate::psql::clauses::xml_namespaces_clause::FormatPsqlXmlNamespacesClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::xml_namespaces_clause::FormatPsqlXmlNamespacesClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlPassingClause>
+    for crate::psql::clauses::xml_passing_clause::FormatPsqlXmlPassingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlPassingClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlPassingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlPassingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlPassingClause,
+        crate::psql::clauses::xml_passing_clause::FormatPsqlXmlPassingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::xml_passing_clause::FormatPsqlXmlPassingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlPassingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlPassingClause,
+        crate::psql::clauses::xml_passing_clause::FormatPsqlXmlPassingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::xml_passing_clause::FormatPsqlXmlPassingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlTableBinding>
+    for crate::psql::bindings::xml_table_binding::FormatPsqlXmlTableBinding
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlTableBinding,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlTableBinding>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableBinding {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlTableBinding,
+        crate::psql::bindings::xml_table_binding::FormatPsqlXmlTableBinding,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::bindings::xml_table_binding::FormatPsqlXmlTableBinding::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableBinding {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlTableBinding,
+        crate::psql::bindings::xml_table_binding::FormatPsqlXmlTableBinding,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::bindings::xml_table_binding::FormatPsqlXmlTableBinding::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlTableOrdinalityColumn>
+    for crate::psql::auxiliary::xml_table_ordinality_column::FormatPsqlXmlTableOrdinalityColumn
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlTableOrdinalityColumn,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlTableOrdinalityColumn>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableOrdinalityColumn {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlTableOrdinalityColumn,
+        crate::psql::auxiliary::xml_table_ordinality_column::FormatPsqlXmlTableOrdinalityColumn,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: auxiliary :: xml_table_ordinality_column :: FormatPsqlXmlTableOrdinalityColumn :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableOrdinalityColumn {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlTableOrdinalityColumn,
+        crate::psql::auxiliary::xml_table_ordinality_column::FormatPsqlXmlTableOrdinalityColumn,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: auxiliary :: xml_table_ordinality_column :: FormatPsqlXmlTableOrdinalityColumn :: default ())
+    }
+}
+impl FormatRule<sql_syntax::PsqlXmlTableValueColumn>
+    for crate::psql::auxiliary::xml_table_value_column::FormatPsqlXmlTableValueColumn
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlXmlTableValueColumn,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlXmlTableValueColumn>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableValueColumn {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlTableValueColumn,
+        crate::psql::auxiliary::xml_table_value_column::FormatPsqlXmlTableValueColumn,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_table_value_column::FormatPsqlXmlTableValueColumn::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableValueColumn {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlTableValueColumn,
+        crate::psql::auxiliary::xml_table_value_column::FormatPsqlXmlTableValueColumn,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::xml_table_value_column::FormatPsqlXmlTableValueColumn::default(
+            ),
+        )
+    }
+}
 impl FormatRule<sql_syntax::SqlAddColumnAction>
     for crate::sql::auxiliary::add_column_action::FormatSqlAddColumnAction
 {
@@ -10422,6 +10788,56 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlViewOptionList {
         )
     }
 }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlNamespaceList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlNamespaceList,
+        crate::psql::lists::xml_namespace_list::FormatPsqlXmlNamespaceList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::xml_namespace_list::FormatPsqlXmlNamespaceList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlNamespaceList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlNamespaceList,
+        crate::psql::lists::xml_namespace_list::FormatPsqlXmlNamespaceList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::xml_namespace_list::FormatPsqlXmlNamespaceList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableColumnList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlXmlTableColumnList,
+        crate::psql::lists::xml_table_column_list::FormatPsqlXmlTableColumnList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::xml_table_column_list::FormatPsqlXmlTableColumnList::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlXmlTableColumnList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlXmlTableColumnList,
+        crate::psql::lists::xml_table_column_list::FormatPsqlXmlTableColumnList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::xml_table_column_list::FormatPsqlXmlTableColumnList::default(),
+        )
+    }
+}
 impl AsFormat<SqlFormatContext> for sql_syntax::SqlAliasColumnDefinitionList {
     type Format<'a> = FormatRefWithRule<
         'a,
@@ -11507,6 +11923,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlRoutineBody {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::routine_body::FormatAnyPsqlRoutineBody::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnyPsqlXmlTableColumn {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnyPsqlXmlTableColumn,
+        crate::psql::any::xml_table_column::FormatAnyPsqlXmlTableColumn,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::xml_table_column::FormatAnyPsqlXmlTableColumn::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlXmlTableColumn {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnyPsqlXmlTableColumn,
+        crate::psql::any::xml_table_column::FormatAnyPsqlXmlTableColumn,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::xml_table_column::FormatAnyPsqlXmlTableColumn::default(),
         )
     }
 }

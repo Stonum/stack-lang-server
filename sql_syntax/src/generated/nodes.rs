@@ -7315,6 +7315,506 @@ pub struct PsqlWithDataClauseFields {
     pub data_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlByMechanism {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlByMechanism {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlByMechanismFields {
+        PsqlXmlByMechanismFields {
+            by_token: self.by_token(),
+            kind: self.kind(),
+        }
+    }
+    pub fn by_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn kind(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlXmlByMechanism {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlByMechanismFields {
+    pub by_token: SyntaxResult<SyntaxToken>,
+    pub kind: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlColumnDefault {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlColumnDefault {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlColumnDefaultFields {
+        PsqlXmlColumnDefaultFields {
+            default_token: self.default_token(),
+            value: self.value(),
+        }
+    }
+    pub fn default_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlXmlColumnDefault {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlColumnDefaultFields {
+    pub default_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlColumnPath {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlColumnPath {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlColumnPathFields {
+        PsqlXmlColumnPathFields {
+            path_token: self.path_token(),
+            value: self.value(),
+        }
+    }
+    pub fn path_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlXmlColumnPath {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlColumnPathFields {
+    pub path_token: SyntaxResult<SyntaxToken>,
+    pub value: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlExistsExpression {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlExistsExpression {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlExistsExpressionFields {
+        PsqlXmlExistsExpressionFields {
+            name_token: self.name_token(),
+            l_paren_token: self.l_paren_token(),
+            xpath: self.xpath(),
+            passing: self.passing(),
+            r_paren_token: self.r_paren_token(),
+        }
+    }
+    pub fn name_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn xpath(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn passing(&self) -> SyntaxResult<PsqlXmlPassingClause> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlXmlExistsExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlExistsExpressionFields {
+    pub name_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub xpath: SyntaxResult<AnySqlExpression>,
+    pub passing: SyntaxResult<PsqlXmlPassingClause>,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlNamespace {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlNamespace {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlNamespaceFields {
+        PsqlXmlNamespaceFields {
+            uri: self.uri(),
+            as_token: self.as_token(),
+            name: self.name(),
+        }
+    }
+    pub fn uri(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlXmlNamespace {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlNamespaceFields {
+    pub uri: SyntaxResult<AnySqlExpression>,
+    pub as_token: SyntaxResult<SyntaxToken>,
+    pub name: SyntaxResult<SqlName>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlNamespacesClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlNamespacesClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlNamespacesClauseFields {
+        PsqlXmlNamespacesClauseFields {
+            name_token: self.name_token(),
+            l_paren_token: self.l_paren_token(),
+            items: self.items(),
+            r_paren_token: self.r_paren_token(),
+            comma_token: self.comma_token(),
+        }
+    }
+    pub fn name_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn items(&self) -> PsqlXmlNamespaceList {
+        support::list(&self.syntax, 2usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn comma_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlXmlNamespacesClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlNamespacesClauseFields {
+    pub name_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub items: PsqlXmlNamespaceList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub comma_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlPassingClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlPassingClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlPassingClauseFields {
+        PsqlXmlPassingClauseFields {
+            passing_token: self.passing_token(),
+            leading_by: self.leading_by(),
+            value: self.value(),
+            trailing_by: self.trailing_by(),
+        }
+    }
+    pub fn passing_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn leading_by(&self) -> Option<PsqlXmlByMechanism> {
+        support::node(&self.syntax, 1usize)
+    }
+    pub fn value(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 2usize)
+    }
+    pub fn trailing_by(&self) -> Option<PsqlXmlByMechanism> {
+        support::node(&self.syntax, 3usize)
+    }
+}
+impl Serialize for PsqlXmlPassingClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlPassingClauseFields {
+    pub passing_token: SyntaxResult<SyntaxToken>,
+    pub leading_by: Option<PsqlXmlByMechanism>,
+    pub value: SyntaxResult<AnySqlExpression>,
+    pub trailing_by: Option<PsqlXmlByMechanism>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlTableBinding {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlTableBinding {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlTableBindingFields {
+        PsqlXmlTableBindingFields {
+            name_token: self.name_token(),
+            l_paren_token: self.l_paren_token(),
+            namespaces: self.namespaces(),
+            row: self.row(),
+            passing: self.passing(),
+            columns_token: self.columns_token(),
+            columns: self.columns(),
+            r_paren_token: self.r_paren_token(),
+            alias: self.alias(),
+        }
+    }
+    pub fn name_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn l_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn namespaces(&self) -> Option<PsqlXmlNamespacesClause> {
+        support::node(&self.syntax, 2usize)
+    }
+    pub fn row(&self) -> SyntaxResult<AnySqlExpression> {
+        support::required_node(&self.syntax, 3usize)
+    }
+    pub fn passing(&self) -> SyntaxResult<PsqlXmlPassingClause> {
+        support::required_node(&self.syntax, 4usize)
+    }
+    pub fn columns_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 5usize)
+    }
+    pub fn columns(&self) -> PsqlXmlTableColumnList {
+        support::list(&self.syntax, 6usize)
+    }
+    pub fn r_paren_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 7usize)
+    }
+    pub fn alias(&self) -> Option<SqlAlias> {
+        support::node(&self.syntax, 8usize)
+    }
+}
+impl Serialize for PsqlXmlTableBinding {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlTableBindingFields {
+    pub name_token: SyntaxResult<SyntaxToken>,
+    pub l_paren_token: SyntaxResult<SyntaxToken>,
+    pub namespaces: Option<PsqlXmlNamespacesClause>,
+    pub row: SyntaxResult<AnySqlExpression>,
+    pub passing: SyntaxResult<PsqlXmlPassingClause>,
+    pub columns_token: SyntaxResult<SyntaxToken>,
+    pub columns: PsqlXmlTableColumnList,
+    pub r_paren_token: SyntaxResult<SyntaxToken>,
+    pub alias: Option<SqlAlias>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlTableOrdinalityColumn {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlTableOrdinalityColumn {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlTableOrdinalityColumnFields {
+        PsqlXmlTableOrdinalityColumnFields {
+            name: self.name(),
+            for_token: self.for_token(),
+            ordinality_token: self.ordinality_token(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+    pub fn ordinality_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlXmlTableOrdinalityColumn {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlTableOrdinalityColumnFields {
+    pub name: SyntaxResult<SqlName>,
+    pub for_token: SyntaxResult<SyntaxToken>,
+    pub ordinality_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlXmlTableValueColumn {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlXmlTableValueColumn {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlXmlTableValueColumnFields {
+        PsqlXmlTableValueColumnFields {
+            name: self.name(),
+            ty: self.ty(),
+            path: self.path(),
+            default: self.default(),
+            not_null: self.not_null(),
+        }
+    }
+    pub fn name(&self) -> SyntaxResult<SqlName> {
+        support::required_node(&self.syntax, 0usize)
+    }
+    pub fn ty(&self) -> SyntaxResult<SqlTypeName> {
+        support::required_node(&self.syntax, 1usize)
+    }
+    pub fn path(&self) -> Option<PsqlXmlColumnPath> {
+        support::node(&self.syntax, 2usize)
+    }
+    pub fn default(&self) -> Option<PsqlXmlColumnDefault> {
+        support::node(&self.syntax, 3usize)
+    }
+    pub fn not_null(&self) -> Option<SqlNotNullConstraint> {
+        support::node(&self.syntax, 4usize)
+    }
+}
+impl Serialize for PsqlXmlTableValueColumn {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlXmlTableValueColumnFields {
+    pub name: SyntaxResult<SqlName>,
+    pub ty: SyntaxResult<SqlTypeName>,
+    pub path: Option<PsqlXmlColumnPath>,
+    pub default: Option<PsqlXmlColumnDefault>,
+    pub not_null: Option<SqlNotNullConstraint>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SqlAddColumnAction {
     pub(crate) syntax: SyntaxNode,
 }
@@ -14546,6 +15046,25 @@ impl AnyPsqlRoutineBody {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlXmlTableColumn {
+    PsqlXmlTableOrdinalityColumn(PsqlXmlTableOrdinalityColumn),
+    PsqlXmlTableValueColumn(PsqlXmlTableValueColumn),
+}
+impl AnyPsqlXmlTableColumn {
+    pub fn as_psql_xml_table_ordinality_column(&self) -> Option<&PsqlXmlTableOrdinalityColumn> {
+        match &self {
+            Self::PsqlXmlTableOrdinalityColumn(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_xml_table_value_column(&self) -> Option<&PsqlXmlTableValueColumn> {
+        match &self {
+            Self::PsqlXmlTableValueColumn(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlAlterColumnOperation {
     SqlAlterColumnType(SqlAlterColumnType),
     SqlDropColumnDefault(SqlDropColumnDefault),
@@ -14897,6 +15416,7 @@ pub enum AnySqlExpression {
     PsqlTildeArrayExpression(PsqlTildeArrayExpression),
     PsqlTildeArraySubscriptExpression(PsqlTildeArraySubscriptExpression),
     PsqlTrimExpression(PsqlTrimExpression),
+    PsqlXmlExistsExpression(PsqlXmlExistsExpression),
 }
 impl AnySqlExpression {
     pub fn as_any_sql_literal_expression(&self) -> Option<&AnySqlLiteralExpression> {
@@ -15123,6 +15643,12 @@ impl AnySqlExpression {
             _ => None,
         }
     }
+    pub fn as_psql_xml_exists_expression(&self) -> Option<&PsqlXmlExistsExpression> {
+        match &self {
+            Self::PsqlXmlExistsExpression(item) => Some(item),
+            _ => None,
+        }
+    }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnySqlFetchTail {
@@ -15149,6 +15675,7 @@ pub enum AnySqlFromExpression {
     SqlParenthesizedJoinBinding(SqlParenthesizedJoinBinding),
     SqlSubqueryBinding(SqlSubqueryBinding),
     SqlTableBinding(SqlTableBinding),
+    PsqlXmlTableBinding(PsqlXmlTableBinding),
 }
 impl AnySqlFromExpression {
     pub fn as_sql_function_binding(&self) -> Option<&SqlFunctionBinding> {
@@ -15172,6 +15699,12 @@ impl AnySqlFromExpression {
     pub fn as_sql_table_binding(&self) -> Option<&SqlTableBinding> {
         match &self {
             Self::SqlTableBinding(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_xml_table_binding(&self) -> Option<&PsqlXmlTableBinding> {
+        match &self {
+            Self::PsqlXmlTableBinding(item) => Some(item),
             _ => None,
         }
     }
@@ -24020,6 +24553,548 @@ impl From<PsqlWithDataClause> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlXmlByMechanism {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_BY_MECHANISM as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_BY_MECHANISM
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlByMechanism {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlByMechanism")
+                .field("by_token", &support::DebugSyntaxResult(self.by_token()))
+                .field("kind", &support::DebugSyntaxResult(self.kind()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlByMechanism").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlByMechanism> for SyntaxNode {
+    fn from(n: PsqlXmlByMechanism) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlByMechanism> for SyntaxElement {
+    fn from(n: PsqlXmlByMechanism) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlColumnDefault {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_COLUMN_DEFAULT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_COLUMN_DEFAULT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlColumnDefault {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlColumnDefault")
+                .field(
+                    "default_token",
+                    &support::DebugSyntaxResult(self.default_token()),
+                )
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlColumnDefault").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlColumnDefault> for SyntaxNode {
+    fn from(n: PsqlXmlColumnDefault) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlColumnDefault> for SyntaxElement {
+    fn from(n: PsqlXmlColumnDefault) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlColumnPath {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_COLUMN_PATH as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_COLUMN_PATH
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlColumnPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlColumnPath")
+                .field("path_token", &support::DebugSyntaxResult(self.path_token()))
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlColumnPath").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlColumnPath> for SyntaxNode {
+    fn from(n: PsqlXmlColumnPath) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlColumnPath> for SyntaxElement {
+    fn from(n: PsqlXmlColumnPath) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlExistsExpression {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_EXISTS_EXPRESSION as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_EXISTS_EXPRESSION
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlExistsExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlExistsExpression")
+                .field("name_token", &support::DebugSyntaxResult(self.name_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("xpath", &support::DebugSyntaxResult(self.xpath()))
+                .field("passing", &support::DebugSyntaxResult(self.passing()))
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlExistsExpression").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlExistsExpression> for SyntaxNode {
+    fn from(n: PsqlXmlExistsExpression) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlExistsExpression> for SyntaxElement {
+    fn from(n: PsqlXmlExistsExpression) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlNamespace {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_NAMESPACE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_NAMESPACE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlNamespace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlNamespace")
+                .field("uri", &support::DebugSyntaxResult(self.uri()))
+                .field("as_token", &support::DebugSyntaxResult(self.as_token()))
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlNamespace").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlNamespace> for SyntaxNode {
+    fn from(n: PsqlXmlNamespace) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlNamespace> for SyntaxElement {
+    fn from(n: PsqlXmlNamespace) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlNamespacesClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_NAMESPACES_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_NAMESPACES_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlNamespacesClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlNamespacesClause")
+                .field("name_token", &support::DebugSyntaxResult(self.name_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field("items", &self.items())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field(
+                    "comma_token",
+                    &support::DebugSyntaxResult(self.comma_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlNamespacesClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlNamespacesClause> for SyntaxNode {
+    fn from(n: PsqlXmlNamespacesClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlNamespacesClause> for SyntaxElement {
+    fn from(n: PsqlXmlNamespacesClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlPassingClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_PASSING_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_PASSING_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlPassingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlPassingClause")
+                .field(
+                    "passing_token",
+                    &support::DebugSyntaxResult(self.passing_token()),
+                )
+                .field(
+                    "leading_by",
+                    &support::DebugOptionalElement(self.leading_by()),
+                )
+                .field("value", &support::DebugSyntaxResult(self.value()))
+                .field(
+                    "trailing_by",
+                    &support::DebugOptionalElement(self.trailing_by()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlPassingClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlPassingClause> for SyntaxNode {
+    fn from(n: PsqlXmlPassingClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlPassingClause> for SyntaxElement {
+    fn from(n: PsqlXmlPassingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlTableBinding {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_TABLE_BINDING as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_TABLE_BINDING
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlTableBinding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlTableBinding")
+                .field("name_token", &support::DebugSyntaxResult(self.name_token()))
+                .field(
+                    "l_paren_token",
+                    &support::DebugSyntaxResult(self.l_paren_token()),
+                )
+                .field(
+                    "namespaces",
+                    &support::DebugOptionalElement(self.namespaces()),
+                )
+                .field("row", &support::DebugSyntaxResult(self.row()))
+                .field("passing", &support::DebugSyntaxResult(self.passing()))
+                .field(
+                    "columns_token",
+                    &support::DebugSyntaxResult(self.columns_token()),
+                )
+                .field("columns", &self.columns())
+                .field(
+                    "r_paren_token",
+                    &support::DebugSyntaxResult(self.r_paren_token()),
+                )
+                .field("alias", &support::DebugOptionalElement(self.alias()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlTableBinding").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlTableBinding> for SyntaxNode {
+    fn from(n: PsqlXmlTableBinding) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlTableBinding> for SyntaxElement {
+    fn from(n: PsqlXmlTableBinding) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlTableOrdinalityColumn {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_TABLE_ORDINALITY_COLUMN as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_TABLE_ORDINALITY_COLUMN
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlTableOrdinalityColumn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlTableOrdinalityColumn")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field(
+                    "ordinality_token",
+                    &support::DebugSyntaxResult(self.ordinality_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlTableOrdinalityColumn").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlTableOrdinalityColumn> for SyntaxNode {
+    fn from(n: PsqlXmlTableOrdinalityColumn) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlTableOrdinalityColumn> for SyntaxElement {
+    fn from(n: PsqlXmlTableOrdinalityColumn) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlXmlTableValueColumn {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_TABLE_VALUE_COLUMN as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_TABLE_VALUE_COLUMN
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlXmlTableValueColumn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlXmlTableValueColumn")
+                .field("name", &support::DebugSyntaxResult(self.name()))
+                .field("ty", &support::DebugSyntaxResult(self.ty()))
+                .field("path", &support::DebugOptionalElement(self.path()))
+                .field("default", &support::DebugOptionalElement(self.default()))
+                .field("not_null", &support::DebugOptionalElement(self.not_null()))
+                .finish()
+        } else {
+            f.debug_struct("PsqlXmlTableValueColumn").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlXmlTableValueColumn> for SyntaxNode {
+    fn from(n: PsqlXmlTableValueColumn) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlXmlTableValueColumn> for SyntaxElement {
+    fn from(n: PsqlXmlTableValueColumn) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for SqlAddColumnAction {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -32740,6 +33815,73 @@ impl From<AnyPsqlRoutineBody> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlXmlTableOrdinalityColumn> for AnyPsqlXmlTableColumn {
+    fn from(node: PsqlXmlTableOrdinalityColumn) -> Self {
+        Self::PsqlXmlTableOrdinalityColumn(node)
+    }
+}
+impl From<PsqlXmlTableValueColumn> for AnyPsqlXmlTableColumn {
+    fn from(node: PsqlXmlTableValueColumn) -> Self {
+        Self::PsqlXmlTableValueColumn(node)
+    }
+}
+impl AstNode for AnyPsqlXmlTableColumn {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlXmlTableOrdinalityColumn::KIND_SET.union(PsqlXmlTableValueColumn::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            PSQL_XML_TABLE_ORDINALITY_COLUMN | PSQL_XML_TABLE_VALUE_COLUMN
+        )
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_XML_TABLE_ORDINALITY_COLUMN => {
+                Self::PsqlXmlTableOrdinalityColumn(PsqlXmlTableOrdinalityColumn { syntax })
+            }
+            PSQL_XML_TABLE_VALUE_COLUMN => {
+                Self::PsqlXmlTableValueColumn(PsqlXmlTableValueColumn { syntax })
+            }
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlXmlTableOrdinalityColumn(it) => &it.syntax,
+            Self::PsqlXmlTableValueColumn(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlXmlTableOrdinalityColumn(it) => it.syntax,
+            Self::PsqlXmlTableValueColumn(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlXmlTableColumn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlXmlTableOrdinalityColumn(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlXmlTableValueColumn(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlXmlTableColumn> for SyntaxNode {
+    fn from(n: AnyPsqlXmlTableColumn) -> Self {
+        match n {
+            AnyPsqlXmlTableColumn::PsqlXmlTableOrdinalityColumn(it) => it.into(),
+            AnyPsqlXmlTableColumn::PsqlXmlTableValueColumn(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlXmlTableColumn> for SyntaxElement {
+    fn from(n: AnyPsqlXmlTableColumn) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<SqlAlterColumnType> for AnySqlAlterColumnOperation {
     fn from(node: SqlAlterColumnType) -> Self {
         Self::SqlAlterColumnType(node)
@@ -33723,6 +34865,11 @@ impl From<PsqlTrimExpression> for AnySqlExpression {
         Self::PsqlTrimExpression(node)
     }
 }
+impl From<PsqlXmlExistsExpression> for AnySqlExpression {
+    fn from(node: PsqlXmlExistsExpression) -> Self {
+        Self::PsqlXmlExistsExpression(node)
+    }
+}
 impl AstNode for AnySqlExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = AnySqlLiteralExpression::KIND_SET
@@ -33761,7 +34908,8 @@ impl AstNode for AnySqlExpression {
         .union(PsqlSubstringExpression::KIND_SET)
         .union(PsqlTildeArrayExpression::KIND_SET)
         .union(PsqlTildeArraySubscriptExpression::KIND_SET)
-        .union(PsqlTrimExpression::KIND_SET);
+        .union(PsqlTrimExpression::KIND_SET)
+        .union(PsqlXmlExistsExpression::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         match kind {
             SQL_ANY_ALL_EXPRESSION
@@ -33799,7 +34947,8 @@ impl AstNode for AnySqlExpression {
             | PSQL_SUBSTRING_EXPRESSION
             | PSQL_TILDE_ARRAY_EXPRESSION
             | PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION
-            | PSQL_TRIM_EXPRESSION => true,
+            | PSQL_TRIM_EXPRESSION
+            | PSQL_XML_EXISTS_EXPRESSION => true,
             k if AnySqlLiteralExpression::can_cast(k) => true,
             _ => false,
         }
@@ -33876,6 +35025,9 @@ impl AstNode for AnySqlExpression {
                 })
             }
             PSQL_TRIM_EXPRESSION => Self::PsqlTrimExpression(PsqlTrimExpression { syntax }),
+            PSQL_XML_EXISTS_EXPRESSION => {
+                Self::PsqlXmlExistsExpression(PsqlXmlExistsExpression { syntax })
+            }
             _ => {
                 if let Some(any_sql_literal_expression) = AnySqlLiteralExpression::cast(syntax) {
                     return Some(Self::AnySqlLiteralExpression(any_sql_literal_expression));
@@ -33923,6 +35075,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlTildeArrayExpression(it) => &it.syntax,
             Self::PsqlTildeArraySubscriptExpression(it) => &it.syntax,
             Self::PsqlTrimExpression(it) => &it.syntax,
+            Self::PsqlXmlExistsExpression(it) => &it.syntax,
             Self::AnySqlLiteralExpression(it) => it.syntax(),
         }
     }
@@ -33964,6 +35117,7 @@ impl AstNode for AnySqlExpression {
             Self::PsqlTildeArrayExpression(it) => it.syntax,
             Self::PsqlTildeArraySubscriptExpression(it) => it.syntax,
             Self::PsqlTrimExpression(it) => it.syntax,
+            Self::PsqlXmlExistsExpression(it) => it.syntax,
             Self::AnySqlLiteralExpression(it) => it.into_syntax(),
         }
     }
@@ -34008,6 +35162,7 @@ impl std::fmt::Debug for AnySqlExpression {
             Self::PsqlTildeArrayExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTildeArraySubscriptExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlTrimExpression(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlXmlExistsExpression(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -34051,6 +35206,7 @@ impl From<AnySqlExpression> for SyntaxNode {
             AnySqlExpression::PsqlTildeArrayExpression(it) => it.into(),
             AnySqlExpression::PsqlTildeArraySubscriptExpression(it) => it.into(),
             AnySqlExpression::PsqlTrimExpression(it) => it.into(),
+            AnySqlExpression::PsqlXmlExistsExpression(it) => it.into(),
         }
     }
 }
@@ -34140,12 +35296,18 @@ impl From<SqlTableBinding> for AnySqlFromExpression {
         Self::SqlTableBinding(node)
     }
 }
+impl From<PsqlXmlTableBinding> for AnySqlFromExpression {
+    fn from(node: PsqlXmlTableBinding) -> Self {
+        Self::PsqlXmlTableBinding(node)
+    }
+}
 impl AstNode for AnySqlFromExpression {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> = SqlFunctionBinding::KIND_SET
         .union(SqlParenthesizedJoinBinding::KIND_SET)
         .union(SqlSubqueryBinding::KIND_SET)
-        .union(SqlTableBinding::KIND_SET);
+        .union(SqlTableBinding::KIND_SET)
+        .union(PsqlXmlTableBinding::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
@@ -34153,6 +35315,7 @@ impl AstNode for AnySqlFromExpression {
                 | SQL_PARENTHESIZED_JOIN_BINDING
                 | SQL_SUBQUERY_BINDING
                 | SQL_TABLE_BINDING
+                | PSQL_XML_TABLE_BINDING
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
@@ -34163,6 +35326,7 @@ impl AstNode for AnySqlFromExpression {
             }
             SQL_SUBQUERY_BINDING => Self::SqlSubqueryBinding(SqlSubqueryBinding { syntax }),
             SQL_TABLE_BINDING => Self::SqlTableBinding(SqlTableBinding { syntax }),
+            PSQL_XML_TABLE_BINDING => Self::PsqlXmlTableBinding(PsqlXmlTableBinding { syntax }),
             _ => return None,
         };
         Some(res)
@@ -34173,6 +35337,7 @@ impl AstNode for AnySqlFromExpression {
             Self::SqlParenthesizedJoinBinding(it) => &it.syntax,
             Self::SqlSubqueryBinding(it) => &it.syntax,
             Self::SqlTableBinding(it) => &it.syntax,
+            Self::PsqlXmlTableBinding(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
@@ -34181,6 +35346,7 @@ impl AstNode for AnySqlFromExpression {
             Self::SqlParenthesizedJoinBinding(it) => it.syntax,
             Self::SqlSubqueryBinding(it) => it.syntax,
             Self::SqlTableBinding(it) => it.syntax,
+            Self::PsqlXmlTableBinding(it) => it.syntax,
         }
     }
 }
@@ -34191,6 +35357,7 @@ impl std::fmt::Debug for AnySqlFromExpression {
             Self::SqlParenthesizedJoinBinding(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlSubqueryBinding(it) => std::fmt::Debug::fmt(it, f),
             Self::SqlTableBinding(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlXmlTableBinding(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -34201,6 +35368,7 @@ impl From<AnySqlFromExpression> for SyntaxNode {
             AnySqlFromExpression::SqlParenthesizedJoinBinding(it) => it.into(),
             AnySqlFromExpression::SqlSubqueryBinding(it) => it.into(),
             AnySqlFromExpression::SqlTableBinding(it) => it.into(),
+            AnySqlFromExpression::PsqlXmlTableBinding(it) => it.into(),
         }
     }
 }
@@ -36197,6 +37365,11 @@ impl std::fmt::Display for AnyPsqlRoutineBody {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlXmlTableColumn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnySqlAlterColumnOperation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -37068,6 +38241,56 @@ impl std::fmt::Display for PsqlVolatilityOption {
     }
 }
 impl std::fmt::Display for PsqlWithDataClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlByMechanism {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlColumnDefault {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlColumnPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlExistsExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlNamespace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlNamespacesClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlPassingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlTableBinding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlTableOrdinalityColumn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlXmlTableValueColumn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -39719,6 +40942,170 @@ impl IntoIterator for PsqlViewOptionList {
 impl IntoIterator for &PsqlViewOptionList {
     type Item = SyntaxResult<PsqlViewOption>;
     type IntoIter = AstSeparatedListNodesIterator<Language, PsqlViewOption>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlXmlNamespaceList {
+    syntax_list: SyntaxList,
+}
+impl PsqlXmlNamespaceList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlXmlNamespaceList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_NAMESPACE_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_NAMESPACE_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlXmlNamespaceList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlXmlNamespaceList {
+    type Language = Language;
+    type Node = PsqlXmlNamespace;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlXmlNamespaceList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlXmlNamespaceList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlXmlNamespaceList {
+    type Item = SyntaxResult<PsqlXmlNamespace>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlXmlNamespace>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlXmlNamespaceList {
+    type Item = SyntaxResult<PsqlXmlNamespace>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, PsqlXmlNamespace>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct PsqlXmlTableColumnList {
+    syntax_list: SyntaxList,
+}
+impl PsqlXmlTableColumnList {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self {
+            syntax_list: syntax.into_list(),
+        }
+    }
+}
+impl AstNode for PsqlXmlTableColumnList {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_XML_TABLE_COLUMN_LIST as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_XML_TABLE_COLUMN_LIST
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self {
+                syntax_list: syntax.into_list(),
+            })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        self.syntax_list.node()
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax_list.into_node()
+    }
+}
+impl Serialize for PsqlXmlTableColumnList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for e in self.iter() {
+            seq.serialize_element(&e)?;
+        }
+        seq.end()
+    }
+}
+impl AstSeparatedList for PsqlXmlTableColumnList {
+    type Language = Language;
+    type Node = AnyPsqlXmlTableColumn;
+    fn syntax_list(&self) -> &SyntaxList {
+        &self.syntax_list
+    }
+    fn into_syntax_list(self) -> SyntaxList {
+        self.syntax_list
+    }
+}
+impl Debug for PsqlXmlTableColumnList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PsqlXmlTableColumnList ")?;
+        f.debug_list().entries(self.elements()).finish()
+    }
+}
+impl IntoIterator for PsqlXmlTableColumnList {
+    type Item = SyntaxResult<AnyPsqlXmlTableColumn>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyPsqlXmlTableColumn>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+impl IntoIterator for &PsqlXmlTableColumnList {
+    type Item = SyntaxResult<AnyPsqlXmlTableColumn>;
+    type IntoIter = AstSeparatedListNodesIterator<Language, AnyPsqlXmlTableColumn>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }

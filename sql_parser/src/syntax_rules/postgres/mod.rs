@@ -26,3 +26,4 @@ pub(crate) mod plpgsql;
 pub(crate) mod returning_clause;
 pub(crate) mod select;
 pub(crate) mod with_clause;
+pub(crate) mod xml;

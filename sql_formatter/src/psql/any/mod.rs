@@ -11,3 +11,4 @@ pub(crate) mod pl_for_source;
 pub(crate) mod pl_open_source;
 pub(crate) mod pl_statement;
 pub(crate) mod routine_body;
+pub(crate) mod xml_table_column;

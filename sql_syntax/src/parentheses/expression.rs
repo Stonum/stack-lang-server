@@ -45,6 +45,7 @@ impl NeedsParentheses for AnySqlExpression {
             | Self::PsqlTildeArrayExpression(_)
             | Self::PsqlArraySubscriptExpression(_)
             | Self::PsqlTildeArraySubscriptExpression(_)
+            | Self::PsqlXmlExistsExpression(_)
             | Self::PsqlCastExpression(_)
             | Self::SqlCollateExpression(_)
             | Self::PsqlFieldSelectionExpression(_)
@@ -237,7 +238,8 @@ fn precedence_needs_parens(node: &SqlSyntaxNode, precedence: OperatorPrecedence)
 /// Operands of `extract(... from ...)`, `position(... in ...)`, `trim(...)`,
 /// `substring(...)` and `cast(... as ...)` are delimited by the call's own
 /// keywords and parentheses, so they never need extra parentheses -- except
-/// `position`'s first operand, which is parsed above `IN`'s precedence.
+/// `position`'s first operand, which is parsed above `IN`'s precedence, and
+/// the XML functions' `c_expr` operands.
 fn keyword_delimited_needs_parens(
     node: &SqlSyntaxNode,
     parent: &SqlSyntaxNode,
@@ -257,6 +259,11 @@ fn keyword_delimited_needs_parens(
         | SqlSyntaxKind::PSQL_SUBSTRING_FROM_CLAUSE
         | SqlSyntaxKind::PSQL_SUBSTRING_FOR_CLAUSE
         | SqlSyntaxKind::SQL_CAST_FUNCTION_EXPRESSION => Some(false),
+        // `xmlexists`'s xpath, the `PASSING` value and `xmltable`'s row
+        // expression are Postgres `c_expr`s: an operator needs parentheses.
+        SqlSyntaxKind::PSQL_XML_EXISTS_EXPRESSION
+        | SqlSyntaxKind::PSQL_XML_PASSING_CLAUSE
+        | SqlSyntaxKind::PSQL_XML_TABLE_BINDING => Some(true),
         _ => None,
     }
 }

@@ -12,6 +12,7 @@ impl FormatRule<AnySqlFromExpression> for FormatAnySqlFromExpression {
             AnySqlFromExpression::SqlParenthesizedJoinBinding(node) => node.format().fmt(f),
             AnySqlFromExpression::SqlSubqueryBinding(node) => node.format().fmt(f),
             AnySqlFromExpression::SqlTableBinding(node) => node.format().fmt(f),
+            AnySqlFromExpression::PsqlXmlTableBinding(node) => node.format().fmt(f),
         }
     }
 }

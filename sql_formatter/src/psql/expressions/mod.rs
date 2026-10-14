@@ -12,3 +12,4 @@ pub(crate) mod substring_expression;
 pub(crate) mod tilde_array_expression;
 pub(crate) mod tilde_array_subscript_expression;
 pub(crate) mod trim_expression;
+pub(crate) mod xml_exists_expression;
