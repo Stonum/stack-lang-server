@@ -63,7 +63,9 @@ select replace(replace(name, 'a', 'b'), 'c', 'd') from t
 fn format_create_or_replace_function_still_works() {
     assert_fmt!(
         r#"--
-create or replace function f() returns int as $$ select 1 $$ language sql
+create or replace function f() returns int as $$
+select 1
+$$ language sql
 "#
     );
 }

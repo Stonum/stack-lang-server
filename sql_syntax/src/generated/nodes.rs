@@ -2555,6 +2555,106 @@ pub struct PsqlLockStatementFields {
     pub semicolon_token: Option<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlLockingClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlLockingClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlLockingClauseFields {
+        PsqlLockingClauseFields {
+            for_token: self.for_token(),
+            no_token: self.no_token(),
+            key_token: self.key_token(),
+            strength: self.strength(),
+            of_clause: self.of_clause(),
+            wait_policy: self.wait_policy(),
+        }
+    }
+    pub fn for_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn no_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 1usize)
+    }
+    pub fn key_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, 2usize)
+    }
+    pub fn strength(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 3usize)
+    }
+    pub fn of_clause(&self) -> Option<PsqlLockingOfClause> {
+        support::node(&self.syntax, 4usize)
+    }
+    pub fn wait_policy(&self) -> Option<AnyPsqlLockingWaitPolicy> {
+        support::node(&self.syntax, 5usize)
+    }
+}
+impl Serialize for PsqlLockingClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlLockingClauseFields {
+    pub for_token: SyntaxResult<SyntaxToken>,
+    pub no_token: Option<SyntaxToken>,
+    pub key_token: Option<SyntaxToken>,
+    pub strength: SyntaxResult<SyntaxToken>,
+    pub of_clause: Option<PsqlLockingOfClause>,
+    pub wait_policy: Option<AnyPsqlLockingWaitPolicy>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlLockingOfClause {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlLockingOfClause {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlLockingOfClauseFields {
+        PsqlLockingOfClauseFields {
+            of_token: self.of_token(),
+            tables: self.tables(),
+        }
+    }
+    pub fn of_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn tables(&self) -> SqlTableNameList {
+        support::list(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlLockingOfClause {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlLockingOfClauseFields {
+    pub of_token: SyntaxResult<SyntaxToken>,
+    pub tables: SqlTableNameList,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlMultiColumnSetItem {
     pub(crate) syntax: SyntaxNode,
 }
@@ -2643,6 +2743,41 @@ pub struct PsqlNamedArgumentFields {
     pub name: SyntaxResult<SqlName>,
     pub fat_arrow_token: SyntaxResult<SyntaxToken>,
     pub value: SyntaxResult<AnySqlExpression>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlNowaitPolicy {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlNowaitPolicy {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlNowaitPolicyFields {
+        PsqlNowaitPolicyFields {
+            nowait_token: self.nowait_token(),
+        }
+    }
+    pub fn nowait_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+}
+impl Serialize for PsqlNowaitPolicy {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlNowaitPolicyFields {
+    pub nowait_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlOnCommitClause {
@@ -6228,6 +6363,91 @@ pub struct PsqlSequenceOptionsFields {
     pub l_paren_token: SyntaxResult<SyntaxToken>,
     pub items: PsqlSequenceOptionList,
     pub r_paren_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlSkipLockedPolicy {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlSkipLockedPolicy {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlSkipLockedPolicyFields {
+        PsqlSkipLockedPolicyFields {
+            skip_token: self.skip_token(),
+            locked_token: self.locked_token(),
+        }
+    }
+    pub fn skip_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn locked_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 1usize)
+    }
+}
+impl Serialize for PsqlSkipLockedPolicy {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlSkipLockedPolicyFields {
+    pub skip_token: SyntaxResult<SyntaxToken>,
+    pub locked_token: SyntaxResult<SyntaxToken>,
+}
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PsqlSqlBody {
+    pub(crate) syntax: SyntaxNode,
+}
+impl PsqlSqlBody {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn as_fields(&self) -> PsqlSqlBodyFields {
+        PsqlSqlBodyFields {
+            l_quote_token: self.l_quote_token(),
+            statements: self.statements(),
+            r_quote_token: self.r_quote_token(),
+        }
+    }
+    pub fn l_quote_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 0usize)
+    }
+    pub fn statements(&self) -> SqlStatementList {
+        support::list(&self.syntax, 1usize)
+    }
+    pub fn r_quote_token(&self) -> SyntaxResult<SyntaxToken> {
+        support::required_token(&self.syntax, 2usize)
+    }
+}
+impl Serialize for PsqlSqlBody {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_fields().serialize(serializer)
+    }
+}
+#[derive(Serialize)]
+pub struct PsqlSqlBodyFields {
+    pub l_quote_token: SyntaxResult<SyntaxToken>,
+    pub statements: SqlStatementList,
+    pub r_quote_token: SyntaxResult<SyntaxToken>,
 }
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct PsqlStrictOption {
@@ -12947,6 +13167,7 @@ impl SqlSelectStatement {
             limit_clause: self.limit_clause(),
             offset_clause: self.offset_clause(),
             fetch_clause: self.fetch_clause(),
+            locking_clause: self.locking_clause(),
             trailing_into_clause: self.trailing_into_clause(),
             semicolon_token: self.semicolon_token(),
         }
@@ -12984,11 +13205,14 @@ impl SqlSelectStatement {
     pub fn fetch_clause(&self) -> Option<SqlFetchClause> {
         support::node(&self.syntax, 10usize)
     }
-    pub fn trailing_into_clause(&self) -> Option<PsqlIntoClause> {
+    pub fn locking_clause(&self) -> Option<PsqlLockingClause> {
         support::node(&self.syntax, 11usize)
     }
+    pub fn trailing_into_clause(&self) -> Option<PsqlIntoClause> {
+        support::node(&self.syntax, 12usize)
+    }
     pub fn semicolon_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, 12usize)
+        support::token(&self.syntax, 13usize)
     }
 }
 impl Serialize for SqlSelectStatement {
@@ -13012,6 +13236,7 @@ pub struct SqlSelectStatementFields {
     pub limit_clause: Option<PsqlLimitClause>,
     pub offset_clause: Option<SqlOffsetClause>,
     pub fetch_clause: Option<SqlFetchClause>,
+    pub locking_clause: Option<PsqlLockingClause>,
     pub trailing_into_clause: Option<PsqlIntoClause>,
     pub semicolon_token: Option<SyntaxToken>,
 }
@@ -14823,6 +15048,25 @@ impl AnyPsqlLanguageName {
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub enum AnyPsqlLockingWaitPolicy {
+    PsqlNowaitPolicy(PsqlNowaitPolicy),
+    PsqlSkipLockedPolicy(PsqlSkipLockedPolicy),
+}
+impl AnyPsqlLockingWaitPolicy {
+    pub fn as_psql_nowait_policy(&self) -> Option<&PsqlNowaitPolicy> {
+        match &self {
+            Self::PsqlNowaitPolicy(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_skip_locked_policy(&self) -> Option<&PsqlSkipLockedPolicy> {
+        match &self {
+            Self::PsqlSkipLockedPolicy(item) => Some(item),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyPsqlPartitionBound {
     PsqlPartitionDefaultBound(PsqlPartitionDefaultBound),
     PsqlPartitionForValuesBound(PsqlPartitionForValuesBound),
@@ -15113,6 +15357,7 @@ impl AnyPsqlPlStatement {
 pub enum AnyPsqlRoutineBody {
     SqlStringLiteralExpression(SqlStringLiteralExpression),
     PsqlPlBody(PsqlPlBody),
+    PsqlSqlBody(PsqlSqlBody),
 }
 impl AnyPsqlRoutineBody {
     pub fn as_sql_string_literal_expression(&self) -> Option<&SqlStringLiteralExpression> {
@@ -15124,6 +15369,12 @@ impl AnyPsqlRoutineBody {
     pub fn as_psql_pl_body(&self) -> Option<&PsqlPlBody> {
         match &self {
             Self::PsqlPlBody(item) => Some(item),
+            _ => None,
+        }
+    }
+    pub fn as_psql_sql_body(&self) -> Option<&PsqlSqlBody> {
+        match &self {
+            Self::PsqlSqlBody(item) => Some(item),
             _ => None,
         }
     }
@@ -19261,6 +19512,115 @@ impl From<PsqlLockStatement> for SyntaxElement {
         n.syntax.into()
     }
 }
+impl AstNode for PsqlLockingClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_LOCKING_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_LOCKING_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlLockingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlLockingClause")
+                .field("for_token", &support::DebugSyntaxResult(self.for_token()))
+                .field("no_token", &support::DebugOptionalElement(self.no_token()))
+                .field(
+                    "key_token",
+                    &support::DebugOptionalElement(self.key_token()),
+                )
+                .field("strength", &support::DebugSyntaxResult(self.strength()))
+                .field(
+                    "of_clause",
+                    &support::DebugOptionalElement(self.of_clause()),
+                )
+                .field(
+                    "wait_policy",
+                    &support::DebugOptionalElement(self.wait_policy()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlLockingClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlLockingClause> for SyntaxNode {
+    fn from(n: PsqlLockingClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlLockingClause> for SyntaxElement {
+    fn from(n: PsqlLockingClause) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlLockingOfClause {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_LOCKING_OF_CLAUSE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_LOCKING_OF_CLAUSE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlLockingOfClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlLockingOfClause")
+                .field("of_token", &support::DebugSyntaxResult(self.of_token()))
+                .field("tables", &self.tables())
+                .finish()
+        } else {
+            f.debug_struct("PsqlLockingOfClause").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlLockingOfClause> for SyntaxNode {
+    fn from(n: PsqlLockingOfClause) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlLockingOfClause> for SyntaxElement {
+    fn from(n: PsqlLockingOfClause) -> Self {
+        n.syntax.into()
+    }
+}
 impl AstNode for PsqlMultiColumnSetItem {
     type Language = Language;
     const KIND_SET: SyntaxKindSet<Language> =
@@ -19359,6 +19719,56 @@ impl From<PsqlNamedArgument> for SyntaxNode {
 }
 impl From<PsqlNamedArgument> for SyntaxElement {
     fn from(n: PsqlNamedArgument) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlNowaitPolicy {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_NOWAIT_POLICY as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_NOWAIT_POLICY
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlNowaitPolicy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlNowaitPolicy")
+                .field(
+                    "nowait_token",
+                    &support::DebugSyntaxResult(self.nowait_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlNowaitPolicy").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlNowaitPolicy> for SyntaxNode {
+    fn from(n: PsqlNowaitPolicy) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlNowaitPolicy> for SyntaxElement {
+    fn from(n: PsqlNowaitPolicy) -> Self {
         n.syntax.into()
     }
 }
@@ -23398,6 +23808,112 @@ impl From<PsqlSequenceOptions> for SyntaxNode {
 }
 impl From<PsqlSequenceOptions> for SyntaxElement {
     fn from(n: PsqlSequenceOptions) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlSkipLockedPolicy {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_SKIP_LOCKED_POLICY as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_SKIP_LOCKED_POLICY
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlSkipLockedPolicy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlSkipLockedPolicy")
+                .field("skip_token", &support::DebugSyntaxResult(self.skip_token()))
+                .field(
+                    "locked_token",
+                    &support::DebugSyntaxResult(self.locked_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlSkipLockedPolicy").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlSkipLockedPolicy> for SyntaxNode {
+    fn from(n: PsqlSkipLockedPolicy) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlSkipLockedPolicy> for SyntaxElement {
+    fn from(n: PsqlSkipLockedPolicy) -> Self {
+        n.syntax.into()
+    }
+}
+impl AstNode for PsqlSqlBody {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(PSQL_SQL_BODY as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == PSQL_SQL_BODY
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for PsqlSqlBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        thread_local! { static DEPTH : std :: cell :: Cell < u8 > = const { std :: cell :: Cell :: new (0) } };
+        let current_depth = DEPTH.get();
+        let result = if current_depth < 16 {
+            DEPTH.set(current_depth + 1);
+            f.debug_struct("PsqlSqlBody")
+                .field(
+                    "l_quote_token",
+                    &support::DebugSyntaxResult(self.l_quote_token()),
+                )
+                .field("statements", &self.statements())
+                .field(
+                    "r_quote_token",
+                    &support::DebugSyntaxResult(self.r_quote_token()),
+                )
+                .finish()
+        } else {
+            f.debug_struct("PsqlSqlBody").finish()
+        };
+        DEPTH.set(current_depth);
+        result
+    }
+}
+impl From<PsqlSqlBody> for SyntaxNode {
+    fn from(n: PsqlSqlBody) -> Self {
+        n.syntax
+    }
+}
+impl From<PsqlSqlBody> for SyntaxElement {
+    fn from(n: PsqlSqlBody) -> Self {
         n.syntax.into()
     }
 }
@@ -30936,6 +31452,10 @@ impl std::fmt::Debug for SqlSelectStatement {
                     &support::DebugOptionalElement(self.fetch_clause()),
                 )
                 .field(
+                    "locking_clause",
+                    &support::DebugOptionalElement(self.locking_clause()),
+                )
+                .field(
                     "trailing_into_clause",
                     &support::DebugOptionalElement(self.trailing_into_clause()),
                 )
@@ -33219,6 +33739,66 @@ impl From<AnyPsqlLanguageName> for SyntaxElement {
         node.into()
     }
 }
+impl From<PsqlNowaitPolicy> for AnyPsqlLockingWaitPolicy {
+    fn from(node: PsqlNowaitPolicy) -> Self {
+        Self::PsqlNowaitPolicy(node)
+    }
+}
+impl From<PsqlSkipLockedPolicy> for AnyPsqlLockingWaitPolicy {
+    fn from(node: PsqlSkipLockedPolicy) -> Self {
+        Self::PsqlSkipLockedPolicy(node)
+    }
+}
+impl AstNode for AnyPsqlLockingWaitPolicy {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        PsqlNowaitPolicy::KIND_SET.union(PsqlSkipLockedPolicy::KIND_SET);
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, PSQL_NOWAIT_POLICY | PSQL_SKIP_LOCKED_POLICY)
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            PSQL_NOWAIT_POLICY => Self::PsqlNowaitPolicy(PsqlNowaitPolicy { syntax }),
+            PSQL_SKIP_LOCKED_POLICY => Self::PsqlSkipLockedPolicy(PsqlSkipLockedPolicy { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Self::PsqlNowaitPolicy(it) => &it.syntax,
+            Self::PsqlSkipLockedPolicy(it) => &it.syntax,
+        }
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        match self {
+            Self::PsqlNowaitPolicy(it) => it.syntax,
+            Self::PsqlSkipLockedPolicy(it) => it.syntax,
+        }
+    }
+}
+impl std::fmt::Debug for AnyPsqlLockingWaitPolicy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::PsqlNowaitPolicy(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlSkipLockedPolicy(it) => std::fmt::Debug::fmt(it, f),
+        }
+    }
+}
+impl From<AnyPsqlLockingWaitPolicy> for SyntaxNode {
+    fn from(n: AnyPsqlLockingWaitPolicy) -> Self {
+        match n {
+            AnyPsqlLockingWaitPolicy::PsqlNowaitPolicy(it) => it.into(),
+            AnyPsqlLockingWaitPolicy::PsqlSkipLockedPolicy(it) => it.into(),
+        }
+    }
+}
+impl From<AnyPsqlLockingWaitPolicy> for SyntaxElement {
+    fn from(n: AnyPsqlLockingWaitPolicy) -> Self {
+        let node: SyntaxNode = n.into();
+        node.into()
+    }
+}
 impl From<PsqlPartitionDefaultBound> for AnyPsqlPartitionBound {
     fn from(node: PsqlPartitionDefaultBound) -> Self {
         Self::PsqlPartitionDefaultBound(node)
@@ -33965,12 +34545,21 @@ impl From<PsqlPlBody> for AnyPsqlRoutineBody {
         Self::PsqlPlBody(node)
     }
 }
+impl From<PsqlSqlBody> for AnyPsqlRoutineBody {
+    fn from(node: PsqlSqlBody) -> Self {
+        Self::PsqlSqlBody(node)
+    }
+}
 impl AstNode for AnyPsqlRoutineBody {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        SqlStringLiteralExpression::KIND_SET.union(PsqlPlBody::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = SqlStringLiteralExpression::KIND_SET
+        .union(PsqlPlBody::KIND_SET)
+        .union(PsqlSqlBody::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, SQL_STRING_LITERAL_EXPRESSION | PSQL_PL_BODY)
+        matches!(
+            kind,
+            SQL_STRING_LITERAL_EXPRESSION | PSQL_PL_BODY | PSQL_SQL_BODY
+        )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
@@ -33978,6 +34567,7 @@ impl AstNode for AnyPsqlRoutineBody {
                 Self::SqlStringLiteralExpression(SqlStringLiteralExpression { syntax })
             }
             PSQL_PL_BODY => Self::PsqlPlBody(PsqlPlBody { syntax }),
+            PSQL_SQL_BODY => Self::PsqlSqlBody(PsqlSqlBody { syntax }),
             _ => return None,
         };
         Some(res)
@@ -33986,12 +34576,14 @@ impl AstNode for AnyPsqlRoutineBody {
         match self {
             Self::SqlStringLiteralExpression(it) => &it.syntax,
             Self::PsqlPlBody(it) => &it.syntax,
+            Self::PsqlSqlBody(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
             Self::SqlStringLiteralExpression(it) => it.syntax,
             Self::PsqlPlBody(it) => it.syntax,
+            Self::PsqlSqlBody(it) => it.syntax,
         }
     }
 }
@@ -34000,6 +34592,7 @@ impl std::fmt::Debug for AnyPsqlRoutineBody {
         match self {
             Self::SqlStringLiteralExpression(it) => std::fmt::Debug::fmt(it, f),
             Self::PsqlPlBody(it) => std::fmt::Debug::fmt(it, f),
+            Self::PsqlSqlBody(it) => std::fmt::Debug::fmt(it, f),
         }
     }
 }
@@ -34008,6 +34601,7 @@ impl From<AnyPsqlRoutineBody> for SyntaxNode {
         match n {
             AnyPsqlRoutineBody::SqlStringLiteralExpression(it) => it.into(),
             AnyPsqlRoutineBody::PsqlPlBody(it) => it.into(),
+            AnyPsqlRoutineBody::PsqlSqlBody(it) => it.into(),
         }
     }
 }
@@ -37557,6 +38151,11 @@ impl std::fmt::Display for AnyPsqlLanguageName {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for AnyPsqlLockingWaitPolicy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for AnyPsqlPartitionBound {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -37982,12 +38581,27 @@ impl std::fmt::Display for PsqlLockStatement {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for PsqlLockingClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlLockingOfClause {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for PsqlMultiColumnSetItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
 impl std::fmt::Display for PsqlNamedArgument {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlNowaitPolicy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -38358,6 +38972,16 @@ impl std::fmt::Display for PsqlSequenceOption {
     }
 }
 impl std::fmt::Display for PsqlSequenceOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlSkipLockedPolicy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for PsqlSqlBody {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

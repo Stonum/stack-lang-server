@@ -10,6 +10,7 @@ impl FormatRule<AnyPsqlRoutineBody> for FormatAnyPsqlRoutineBody {
         match node {
             AnyPsqlRoutineBody::SqlStringLiteralExpression(node) => node.format().fmt(f),
             AnyPsqlRoutineBody::PsqlPlBody(node) => node.format().fmt(f),
+            AnyPsqlRoutineBody::PsqlSqlBody(node) => node.format().fmt(f),
         }
     }
 }

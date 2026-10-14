@@ -4,7 +4,7 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::parse_error::postgres_only_syntax_error;
-use super::plpgsql::{is_plpgsql_language, parse_pl_body};
+use super::plpgsql::{is_plpgsql_language, parse_pl_body, parse_sql_body};
 use crate::syntax_rules::ddl::parse_table_name_for_ddl;
 use crate::syntax_rules::expr::{
     TYPE_NAME_TOKEN_SET, count_dotted_name_segments, is_at_name_start, is_at_tilde_name_start,
@@ -273,10 +273,12 @@ fn parse_create_function_statement_body(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![as]);
     // Unlike `DO`, a function has no default language: only an explicit
     // `LANGUAGE plpgsql` body is parsed as code.
-    if language.is_none()
-        || !is_plpgsql_language(language.as_deref())
-        || parse_pl_body(p).is_absent()
-    {
+    let body = match language.as_deref() {
+        Some(language) if is_plpgsql_language(Some(language)) => parse_pl_body(p),
+        Some(language) if is_sql_language(language) => parse_sql_body(p),
+        _ => Absent,
+    };
+    if body.is_absent() {
         parse_string_literal_expression(p).or_add_diagnostic(p, expected_expression);
     }
 
@@ -285,6 +287,12 @@ fn parse_create_function_statement_body(p: &mut SqlParser) -> ParsedSyntax {
     p.eat(T![;]);
 
     Present(m.complete(p, PSQL_CREATE_FUNCTION_STATEMENT))
+}
+
+fn is_sql_language(language: &str) -> bool {
+    language
+        .trim_matches(|c| c == '\'' || c == '"')
+        .eq_ignore_ascii_case("sql")
 }
 
 /// The `LANGUAGE` of a function whose options are ahead: looks through the

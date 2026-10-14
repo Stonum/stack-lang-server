@@ -1549,6 +1549,78 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLockStatement {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlLockingClause>
+    for crate::psql::clauses::locking_clause::FormatPsqlLockingClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlLockingClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlLockingClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlLockingClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlLockingClause,
+        crate::psql::clauses::locking_clause::FormatPsqlLockingClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::locking_clause::FormatPsqlLockingClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLockingClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlLockingClause,
+        crate::psql::clauses::locking_clause::FormatPsqlLockingClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::locking_clause::FormatPsqlLockingClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlLockingOfClause>
+    for crate::psql::clauses::locking_of_clause::FormatPsqlLockingOfClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlLockingOfClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlLockingOfClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlLockingOfClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlLockingOfClause,
+        crate::psql::clauses::locking_of_clause::FormatPsqlLockingOfClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::locking_of_clause::FormatPsqlLockingOfClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlLockingOfClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlLockingOfClause,
+        crate::psql::clauses::locking_of_clause::FormatPsqlLockingOfClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::locking_of_clause::FormatPsqlLockingOfClause::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlMultiColumnSetItem>
     for crate::psql::auxiliary::multi_column_set_item::FormatPsqlMultiColumnSetItem
 {
@@ -1618,6 +1690,40 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlNamedArgument {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::named_argument::FormatPsqlNamedArgument::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlNowaitPolicy>
+    for crate::psql::auxiliary::nowait_policy::FormatPsqlNowaitPolicy
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlNowaitPolicy, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlNowaitPolicy>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlNowaitPolicy {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlNowaitPolicy,
+        crate::psql::auxiliary::nowait_policy::FormatPsqlNowaitPolicy,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::nowait_policy::FormatPsqlNowaitPolicy::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlNowaitPolicy {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlNowaitPolicy,
+        crate::psql::auxiliary::nowait_policy::FormatPsqlNowaitPolicy,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::nowait_policy::FormatPsqlNowaitPolicy::default(),
         )
     }
 }
@@ -4266,6 +4372,76 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSequenceOptions {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::sequence_options::FormatPsqlSequenceOptions::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSkipLockedPolicy>
+    for crate::psql::auxiliary::skip_locked_policy::FormatPsqlSkipLockedPolicy
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlSkipLockedPolicy,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSkipLockedPolicy>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSkipLockedPolicy {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSkipLockedPolicy,
+        crate::psql::auxiliary::skip_locked_policy::FormatPsqlSkipLockedPolicy,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::skip_locked_policy::FormatPsqlSkipLockedPolicy::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSkipLockedPolicy {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSkipLockedPolicy,
+        crate::psql::auxiliary::skip_locked_policy::FormatPsqlSkipLockedPolicy,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::skip_locked_policy::FormatPsqlSkipLockedPolicy::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlSqlBody> for crate::psql::auxiliary::sql_body::FormatPsqlSqlBody {
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlSqlBody, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlSqlBody>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlSqlBody {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlSqlBody,
+        crate::psql::auxiliary::sql_body::FormatPsqlSqlBody,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::sql_body::FormatPsqlSqlBody::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlSqlBody {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlSqlBody,
+        crate::psql::auxiliary::sql_body::FormatPsqlSqlBody,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::sql_body::FormatPsqlSqlBody::default(),
         )
     }
 }
@@ -11776,6 +11952,31 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlLanguageName {
         FormatOwnedWithRule::new(
             self,
             crate::psql::any::language_name::FormatAnyPsqlLanguageName::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::AnyPsqlLockingWaitPolicy {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::AnyPsqlLockingWaitPolicy,
+        crate::psql::any::locking_wait_policy::FormatAnyPsqlLockingWaitPolicy,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::any::locking_wait_policy::FormatAnyPsqlLockingWaitPolicy::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::AnyPsqlLockingWaitPolicy {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::AnyPsqlLockingWaitPolicy,
+        crate::psql::any::locking_wait_policy::FormatAnyPsqlLockingWaitPolicy,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::any::locking_wait_policy::FormatAnyPsqlLockingWaitPolicy::default(),
         )
     }
 }

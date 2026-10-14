@@ -3,6 +3,7 @@ use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
+use super::ddl::SqlTableNameList;
 use super::expr::at_subquery;
 use super::expr::{
     EXPR_RECOVERY_SET, is_at_table_star, parse_alias, parse_expression, parse_limit_offset_value,
@@ -35,6 +36,7 @@ pub(crate) fn parse_select_statement_body(p: &mut SqlParser, select_stmt: Marker
     let _ = parse_limit_clause(p);
     let _ = parse_offset_clause(p);
     let _ = parse_fetch_clause(p);
+    let _ = parse_locking_clause(p);
     let _ = parse_into_clause(p);
     p.eat(T![;]);
 
@@ -131,6 +133,46 @@ fn parse_leading_into_clause(p: &mut SqlParser) -> ParsedSyntax {
     }
     targets.complete(p, SQL_EXPRESSION_LIST);
     Present(m.complete(p, PSQL_INTO_CLAUSE))
+}
+
+/// `FOR [NO KEY] UPDATE | FOR [KEY] SHARE [OF table, ...] [NOWAIT | SKIP LOCKED]`
+fn parse_locking_clause(p: &mut SqlParser) -> ParsedSyntax {
+    let is_locking = p.at(T![for])
+        && (p.nth_at(1, T![update])
+            || p.nth_at(1, T![share])
+            || p.nth_at(1, T![no])
+            || p.nth_at(1, T![key]));
+    if !is_locking {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(T![for]);
+    if p.eat(T![no]) {
+        p.expect(T![key]);
+        p.expect(T![update]);
+    } else if p.eat(T![key]) {
+        p.expect(T![share]);
+    } else {
+        p.bump_any(); // `update` | `share`
+    }
+    if p.at(T![of]) {
+        let of = p.start();
+        p.bump(T![of]);
+        SqlTableNameList.parse_list(p);
+        of.complete(p, PSQL_LOCKING_OF_CLAUSE);
+    }
+    if p.at(T![nowait]) {
+        let wait = p.start();
+        p.bump(T![nowait]);
+        wait.complete(p, PSQL_NOWAIT_POLICY);
+    } else if p.at(T![skip]) {
+        let wait = p.start();
+        p.bump(T![skip]);
+        p.expect(T![locked]);
+        wait.complete(p, PSQL_SKIP_LOCKED_POLICY);
+    }
+    Present(m.complete(p, PSQL_LOCKING_CLAUSE))
 }
 
 /// `INTO [STRICT] target, ...` after a select list or `RETURNING` items.
@@ -280,6 +322,7 @@ impl ParseSeparatedList for SqlGroupByItemList {
             || is_at_next_statement(p)
             || p.at(T![;])
             || p.at(T![into])
+            || p.at(T![for])
             || p.at(T![having])
             || p.at(T![union])
             || p.at(T![intersect])
@@ -357,6 +400,7 @@ impl ParseSeparatedList for SqlOrderByExpressionList {
             || is_at_next_statement(p)
             || p.at(T![;])
             || p.at(T![into])
+            || p.at(T![for])
             || p.at(T![limit])
             || p.at(T![offset])
             || p.at(T![fetch])
