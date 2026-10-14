@@ -43,6 +43,7 @@ impl FormatRule<AnySqlExpression> for FormatAnySqlExpression {
             AnySqlExpression::PsqlPositionExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlSubstringExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlTildeArrayExpression(node) => node.format().fmt(f),
+            AnySqlExpression::PsqlTildeArraySubscriptExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlTrimExpression(node) => node.format().fmt(f),
         }
     }

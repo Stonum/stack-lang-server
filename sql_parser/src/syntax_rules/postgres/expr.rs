@@ -72,6 +72,34 @@ fn parse_array_expression_body(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_ARRAY_EXPRESSION))
 }
 
+/// `~[ ... ]~` with a matching `]` right before the closing `~` -- anything
+/// else (`a ~ [~1]`, the regex operator against a bracket-quoted name) is
+/// left to the binary-operator parser.
+fn is_at_tilde_subscript(p: &mut SqlParser) -> bool {
+    if !p.source_type().has_mlang_extension() || !p.at(T![~]) || !p.nth_at(1, T!['[']) {
+        return false;
+    }
+    p.lookahead(|p| {
+        p.bump(T![~]);
+        let mut depth = 0usize;
+        loop {
+            match p.cur() {
+                T!['['] => depth += 1,
+                T![']'] => {
+                    depth -= 1;
+                    if depth == 0 {
+                        p.bump_any();
+                        return p.at(T![~]);
+                    }
+                }
+                EOF => return false,
+                _ => {}
+            }
+            p.bump_any();
+        }
+    })
+}
+
 /// Wraps `expression` in zero or more `[index]` subscripts (e.g. `a[0]`,
 /// `matrix[0][1]`). Array subscripting binds tighter than every other
 /// operator, so it's applied directly around the primary expression rather
@@ -96,6 +124,7 @@ pub(crate) fn parse_array_subscript_tail(
                 completed.kind(p),
                 SQL_PARENTHESIZED_EXPRESSION
                     | PSQL_ARRAY_SUBSCRIPT_EXPRESSION
+                    | PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION
                     | PSQL_FIELD_SELECTION_EXPRESSION
             ) {
                 break;
@@ -106,6 +135,21 @@ pub(crate) fn parse_array_subscript_tail(
             let completed = m.complete(p, PSQL_FIELD_SELECTION_EXPRESSION);
             expression = SqlSyntaxFeature::Postgres.exclusive_syntax(p, completed, |p, marker| {
                 postgres_only_syntax_error(p, "Field selection", marker.range(p))
+            });
+            continue;
+        }
+
+        // `arr~[i]~` -- mlang escapes the subscript brackets.
+        if is_at_tilde_subscript(p) {
+            let m = expression.precede(p);
+            p.bump(T![~]);
+            p.bump(T!['[']);
+            parse_expression(p).or_add_diagnostic(p, expected_expression);
+            p.expect(T![']']);
+            p.expect(T![~]);
+            let completed = m.complete(p, PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION);
+            expression = SqlSyntaxFeature::Postgres.exclusive_syntax(p, completed, |p, marker| {
+                postgres_only_syntax_error(p, "Array subscripting", marker.range(p))
             });
             continue;
         }

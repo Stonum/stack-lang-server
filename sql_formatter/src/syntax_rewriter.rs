@@ -90,9 +90,15 @@ impl SqlFormatSyntaxRewriter {
                     // An index element that isn't a column or a call must be
                     // parenthesized: `create index i on t ((a * 2))`.
                     || is_index_element(parenthesized.syntax())
-                    // `(expr).field` needs its parens: `f(x).field` isn't valid.
+                    // `(expr).field` and `(expr)[i]` need their parens:
+                    // `f(x).field` and `f(x)[i]` aren't valid.
                     || parenthesized.syntax().parent().is_some_and(|parent| {
                         parent.kind() == SqlSyntaxKind::PSQL_FIELD_SELECTION_EXPRESSION
+                            || (matches!(
+                                parent.kind(),
+                                SqlSyntaxKind::PSQL_ARRAY_SUBSCRIPT_EXPRESSION
+                                    | SqlSyntaxKind::PSQL_TILDE_ARRAY_SUBSCRIPT_EXPRESSION
+                            ) && parent.first_child().as_ref() == Some(parenthesized.syntax()))
                     })
                 {
                     return VisitNodeSignal::Traverse(parenthesized.into_syntax());

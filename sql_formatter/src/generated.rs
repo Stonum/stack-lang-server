@@ -4548,6 +4548,19 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTildeArrayExpression {
         FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: tilde_array_expression :: FormatPsqlTildeArrayExpression :: default ())
     }
 }
+impl FormatRule < sql_syntax :: PsqlTildeArraySubscriptExpression > for crate :: psql :: expressions :: tilde_array_subscript_expression :: FormatPsqlTildeArraySubscriptExpression { type Context = SqlFormatContext ; # [inline (always)] fn fmt (& self , node : & sql_syntax :: PsqlTildeArraySubscriptExpression , f : & mut SqlFormatter) -> FormatResult < () > { FormatNodeRule :: < sql_syntax :: PsqlTildeArraySubscriptExpression > :: fmt (self , node , f) } }
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlTildeArraySubscriptExpression {
+    type Format < 'a > = FormatRefWithRule < 'a , sql_syntax :: PsqlTildeArraySubscriptExpression , crate :: psql :: expressions :: tilde_array_subscript_expression :: FormatPsqlTildeArraySubscriptExpression > ;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: tilde_array_subscript_expression :: FormatPsqlTildeArraySubscriptExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlTildeArraySubscriptExpression {
+    type Format = FormatOwnedWithRule < sql_syntax :: PsqlTildeArraySubscriptExpression , crate :: psql :: expressions :: tilde_array_subscript_expression :: FormatPsqlTildeArraySubscriptExpression > ;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: tilde_array_subscript_expression :: FormatPsqlTildeArraySubscriptExpression :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlTildeArraySuffix>
     for crate::psql::auxiliary::tilde_array_suffix::FormatPsqlTildeArraySuffix
 {
