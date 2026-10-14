@@ -78,6 +78,48 @@ pub(crate) fn parse_pl_body(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, PSQL_PL_BODY))
 }
 
+/// `$tag$ statement; ... $tag$` -- re-lexes a dollar-quoted `LANGUAGE sql`
+/// body as plain SQL statements. Absent (the token stays a string) for any
+/// other literal.
+pub(crate) fn parse_sql_body(p: &mut SqlParser) -> ParsedSyntax {
+    if !p.at(SQL_STRING_LITERAL) || !p.text(p.cur_range()).starts_with('$') {
+        return Absent;
+    }
+    if p.re_lex(SqlReLexContext::DollarQuotedBody) != DOLLAR_QUOTE {
+        return Absent;
+    }
+
+    let m = p.start();
+    p.bump(DOLLAR_QUOTE);
+    let statements = p.start();
+    let mut progress = ParserProgress::default();
+    while !p.at(DOLLAR_QUOTE) && !p.at(EOF) {
+        progress.assert_progressing(p);
+
+        if parse_statement(p)
+            .or_recover_with_token_set(
+                p,
+                &ParseRecoveryTokenSet::new(
+                    SQL_BOGUS_STATEMENT,
+                    STMT_RECOVERY_SET.union(token_set![DOLLAR_QUOTE]),
+                ),
+                expected_statement,
+            )
+            .is_err()
+        {
+            break;
+        }
+    }
+    statements.complete(p, SQL_STATEMENT_LIST);
+    if !p.at(DOLLAR_QUOTE) {
+        let range = p.cur_range();
+        let err = p.err_builder("Expected the end of the function body", range);
+        p.error(err);
+    }
+    p.eat(DOLLAR_QUOTE);
+    Present(m.complete(p, PSQL_SQL_BODY))
+}
+
 /// `[<<label>>] [DECLARE declaration; ...] BEGIN statement; ... END [label] [;]`
 fn parse_pl_block(p: &mut SqlParser) -> ParsedSyntax {
     if !p.at(T![begin]) && !p.at(T![declare]) && !p.at(T![<<]) {

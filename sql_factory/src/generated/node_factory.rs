@@ -1642,6 +1642,72 @@ impl PsqlLockStatementBuilder {
         ))
     }
 }
+pub fn psql_locking_clause(
+    for_token: SyntaxToken,
+    strength_token: SyntaxToken,
+) -> PsqlLockingClauseBuilder {
+    PsqlLockingClauseBuilder {
+        for_token,
+        strength_token,
+        no_token: None,
+        key_token: None,
+        of_clause: None,
+        wait_policy: None,
+    }
+}
+pub struct PsqlLockingClauseBuilder {
+    for_token: SyntaxToken,
+    strength_token: SyntaxToken,
+    no_token: Option<SyntaxToken>,
+    key_token: Option<SyntaxToken>,
+    of_clause: Option<PsqlLockingOfClause>,
+    wait_policy: Option<AnyPsqlLockingWaitPolicy>,
+}
+impl PsqlLockingClauseBuilder {
+    pub fn with_no_token(mut self, no_token: SyntaxToken) -> Self {
+        self.no_token = Some(no_token);
+        self
+    }
+    pub fn with_key_token(mut self, key_token: SyntaxToken) -> Self {
+        self.key_token = Some(key_token);
+        self
+    }
+    pub fn with_of_clause(mut self, of_clause: PsqlLockingOfClause) -> Self {
+        self.of_clause = Some(of_clause);
+        self
+    }
+    pub fn with_wait_policy(mut self, wait_policy: AnyPsqlLockingWaitPolicy) -> Self {
+        self.wait_policy = Some(wait_policy);
+        self
+    }
+    pub fn build(self) -> PsqlLockingClause {
+        PsqlLockingClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_LOCKING_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.for_token)),
+                self.no_token.map(|token| SyntaxElement::Token(token)),
+                self.key_token.map(|token| SyntaxElement::Token(token)),
+                Some(SyntaxElement::Token(self.strength_token)),
+                self.of_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.wait_policy
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_locking_of_clause(
+    of_token: SyntaxToken,
+    tables: SqlTableNameList,
+) -> PsqlLockingOfClause {
+    PsqlLockingOfClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_LOCKING_OF_CLAUSE,
+        [
+            Some(SyntaxElement::Token(of_token)),
+            Some(SyntaxElement::Node(tables.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_multi_column_set_item(
     columns: SqlColumnList,
     eq_token: SyntaxToken,
@@ -1668,6 +1734,12 @@ pub fn psql_named_argument(
             Some(SyntaxElement::Token(fat_arrow_token)),
             Some(SyntaxElement::Node(value.into_syntax())),
         ],
+    ))
+}
+pub fn psql_nowait_policy(nowait_token: SyntaxToken) -> PsqlNowaitPolicy {
+    PsqlNowaitPolicy::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_NOWAIT_POLICY,
+        [Some(SyntaxElement::Token(nowait_token))],
     ))
 }
 pub fn psql_on_commit_clause(
@@ -3459,6 +3531,32 @@ pub fn psql_sequence_options(
             Some(SyntaxElement::Token(l_paren_token)),
             Some(SyntaxElement::Node(items.into_syntax())),
             Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_skip_locked_policy(
+    skip_token: SyntaxToken,
+    locked_token: SyntaxToken,
+) -> PsqlSkipLockedPolicy {
+    PsqlSkipLockedPolicy::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SKIP_LOCKED_POLICY,
+        [
+            Some(SyntaxElement::Token(skip_token)),
+            Some(SyntaxElement::Token(locked_token)),
+        ],
+    ))
+}
+pub fn psql_sql_body(
+    l_quote_token: SyntaxToken,
+    statements: SqlStatementList,
+    r_quote_token: SyntaxToken,
+) -> PsqlSqlBody {
+    PsqlSqlBody::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_SQL_BODY,
+        [
+            Some(SyntaxElement::Token(l_quote_token)),
+            Some(SyntaxElement::Node(statements.into_syntax())),
+            Some(SyntaxElement::Token(r_quote_token)),
         ],
     ))
 }
@@ -7214,6 +7312,7 @@ pub fn sql_select_statement(
         limit_clause: None,
         offset_clause: None,
         fetch_clause: None,
+        locking_clause: None,
         trailing_into_clause: None,
         semicolon_token: None,
     }
@@ -7230,6 +7329,7 @@ pub struct SqlSelectStatementBuilder {
     limit_clause: Option<PsqlLimitClause>,
     offset_clause: Option<SqlOffsetClause>,
     fetch_clause: Option<SqlFetchClause>,
+    locking_clause: Option<PsqlLockingClause>,
     trailing_into_clause: Option<PsqlIntoClause>,
     semicolon_token: Option<SyntaxToken>,
 }
@@ -7270,6 +7370,10 @@ impl SqlSelectStatementBuilder {
         self.fetch_clause = Some(fetch_clause);
         self
     }
+    pub fn with_locking_clause(mut self, locking_clause: PsqlLockingClause) -> Self {
+        self.locking_clause = Some(locking_clause);
+        self
+    }
     pub fn with_trailing_into_clause(mut self, trailing_into_clause: PsqlIntoClause) -> Self {
         self.trailing_into_clause = Some(trailing_into_clause);
         self
@@ -7301,6 +7405,8 @@ impl SqlSelectStatementBuilder {
                 self.offset_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.fetch_clause
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.locking_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 self.trailing_into_clause
                     .map(|token| SyntaxElement::Node(token.into_syntax())),

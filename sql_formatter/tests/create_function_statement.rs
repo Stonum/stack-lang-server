@@ -53,8 +53,8 @@ fn format_create_function_non_plpgsql_body_is_preserved_verbatim() {
     assert_fmt!(
         r#"--
 create function foo(a int) returns boolean as $$
-  select   a > 0
-$$ language sql;
+  return a > 0
+$$ language plpythonu;
 "#
     );
 }
@@ -429,6 +429,27 @@ begin
 	return 1;
 end
 $$;
+"#
+    );
+}
+
+#[test]
+fn format_create_function_sql_body_is_formatted() {
+    assert_fmt_eq!(
+        r#"--
+CREATE FUNCTION f(a int) RETURNS int AS $$ SELECT a+1 ; $$ LANGUAGE sql;
+create function g() returns setof accounts language sql as $f$ select accounts.owner, accounts.amount from accounts where accounts.owner = 1 and accounts.kind = 2 order by accounts.amount desc; $f$;
+"#,
+        r#"--
+create function f(a int) returns int as $$
+select a + 1;
+$$ language sql;
+create function g() returns setof accounts language sql as $f$
+select accounts.owner, accounts.amount
+from accounts
+where accounts.owner = 1 and accounts.kind = 2
+order by accounts.amount desc;
+$f$;
 "#
     );
 }

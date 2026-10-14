@@ -3,6 +3,7 @@
 pub(crate) mod copy_source;
 pub(crate) mod copy_target;
 pub(crate) mod language_name;
+pub(crate) mod locking_wait_policy;
 pub(crate) mod partition_bound;
 pub(crate) mod partition_values;
 pub(crate) mod pl_declaration;

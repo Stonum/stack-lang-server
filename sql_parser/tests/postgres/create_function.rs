@@ -606,7 +606,7 @@ fn test_create_function_plpgsql_body_is_parsed() {
 #[test]
 fn test_create_function_other_bodies_stay_strings() {
     for src in [
-        "create function f() returns int language sql as $$ select 1 $$;",
+        "create function f() returns int language plpythonu as $$ return 1 $$;",
         "create function f() returns int as $$ select 1 $$;",
         "create function f() returns int as 'begin return 1; end' language plpgsql;",
     ] {
@@ -626,4 +626,17 @@ fn test_create_function_invalid_plpgsql_body_reports_errors() {
     );
 
     assert!(res.has_errors());
+}
+
+#[test]
+fn test_create_function_sql_body_is_parsed() {
+    let res = parse(
+        "create function f(a int) returns int as $$ select $1 + 1; select 2 $$ language sql;",
+        postgres(),
+    );
+
+    assert_parser!(res);
+    let tree = format!("{:#?}", res.syntax());
+    assert!(tree.contains("PSQL_SQL_BODY@"));
+    assert_eq!(tree.matches("SQL_SELECT_STATEMENT@").count(), 2);
 }

@@ -17,7 +17,8 @@ use sql_syntax::{SqlDialect, SqlFileSource};
 /// harmless).
 #[test]
 fn format_crlf_dollar_quoted_body_does_not_panic() {
-    let src = "create function foo() returns int as $$\r\nselect\r\n  1;\r\n$$ language sql;\n";
+    let src =
+        "create function foo() returns int as $$\r\nreturn\r\n  1\r\n$$ language plpythonu;\n";
     let syntax = SqlFileSource::query()
         .with_dialect(SqlDialect::Postgres)
         .with_mlang_extension(true);
@@ -37,7 +38,7 @@ fn format_crlf_dollar_quoted_body_does_not_panic() {
     );
     assert_eq!(
         result,
-        "create function foo() returns int as $$\nselect\n  1;\n$$ language sql;\n"
+        "create function foo() returns int as $$\nreturn\n  1\n$$ language plpythonu;\n"
     );
 }
 

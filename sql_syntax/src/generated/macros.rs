@@ -216,12 +216,24 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlLockStatement::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_LOCKING_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlLockingClause::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_LOCKING_OF_CLAUSE => {
+                    let $pattern = unsafe { $crate::PsqlLockingOfClause::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_MULTI_COLUMN_SET_ITEM => {
                     let $pattern = unsafe { $crate::PsqlMultiColumnSetItem::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_NAMED_ARGUMENT => {
                     let $pattern = unsafe { $crate::PsqlNamedArgument::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_NOWAIT_POLICY => {
+                    let $pattern = unsafe { $crate::PsqlNowaitPolicy::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_ON_COMMIT_CLAUSE => {
@@ -528,6 +540,14 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_SEQUENCE_OPTIONS => {
                     let $pattern = unsafe { $crate::PsqlSequenceOptions::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SKIP_LOCKED_POLICY => {
+                    let $pattern = unsafe { $crate::PsqlSkipLockedPolicy::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_SQL_BODY => {
+                    let $pattern = unsafe { $crate::PsqlSqlBody::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_STRICT_OPTION => {

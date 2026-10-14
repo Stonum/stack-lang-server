@@ -186,11 +186,35 @@ SqlSelectStatement =
    limit_clause: PsqlLimitClause?
    offset_clause: SqlOffsetClause?
    fetch_clause: SqlFetchClause?
+   locking_clause: PsqlLockingClause?
    // PL/pgSQL also accepts `INTO` at the end of the query.
    trailing_into_clause: PsqlIntoClause?
    ';'?
 
 SqlSetOperationList = SqlSetOperation*
+
+// `FOR [NO KEY] UPDATE | FOR [KEY] SHARE [OF table, ...] [NOWAIT | SKIP LOCKED]`
+PsqlLockingClause =
+   'for'
+   'no'?
+   'key'?
+   strength: ('update' | 'share')
+   of_clause: PsqlLockingOfClause?
+   wait_policy: AnyPsqlLockingWaitPolicy?
+
+PsqlLockingOfClause =
+   'of'
+   tables: SqlTableNameList
+
+AnyPsqlLockingWaitPolicy =
+   PsqlNowaitPolicy
+   | PsqlSkipLockedPolicy
+
+PsqlNowaitPolicy = 'nowait'
+
+PsqlSkipLockedPolicy =
+   'skip'
+   'locked'
 
 // The right operand is either a bare `select ...` core or a parenthesized
 // query (`union all (select ... limit 1)`).
@@ -1009,6 +1033,13 @@ PsqlDoStatement =
 AnyPsqlRoutineBody =
    SqlStringLiteralExpression
    | PsqlPlBody
+   | PsqlSqlBody
+
+// `$tag$ statement; ... $tag$` -- a `LANGUAGE sql` function body.
+PsqlSqlBody =
+   l_quote: 'dollar_quote'
+   statements: SqlStatementList
+   r_quote: 'dollar_quote'
 
 PsqlPlBody =
    l_quote: 'dollar_quote'

@@ -510,6 +510,10 @@ impl ParseSeparatedList for SqlTableNameList {
             || p.at(T![continue])
             || p.at(T![in])
             || p.at(T![nowait])
+            // `select ... for update of t skip locked`, inside a CTE
+            || p.at(T![skip])
+            || p.at(T![for])
+            || p.at(T![')'])
     }
 
     fn recover(

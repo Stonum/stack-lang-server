@@ -10,6 +10,8 @@ pub(crate) mod index_method_clause;
 pub(crate) mod into_clause;
 pub(crate) mod join_using_clause;
 pub(crate) mod limit_clause;
+pub(crate) mod locking_clause;
+pub(crate) mod locking_of_clause;
 pub(crate) mod on_commit_clause;
 pub(crate) mod on_conflict_clause;
 pub(crate) mod on_constraint_clause;
