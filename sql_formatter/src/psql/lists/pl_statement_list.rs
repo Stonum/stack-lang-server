@@ -1,13 +1,17 @@
 use crate::prelude::*;
+use biome_rowan::AstNode;
 use sql_syntax::PsqlPlStatementList;
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatPsqlPlStatementList;
 impl FormatRule<PsqlPlStatementList> for FormatPsqlPlStatementList {
     type Context = SqlFormatContext;
     fn fmt(&self, node: &PsqlPlStatementList, f: &mut SqlFormatter) -> FormatResult<()> {
-        f.join_with(hard_line_break())
-            .entries(node.iter().formatted())
-            .finish()
+        // Keeps (at most) one blank line where the source has one.
+        let mut join = f.join_nodes_with_hardline();
+        for item in node.iter() {
+            join.entry(item.syntax(), &item.format());
+        }
+        join.finish()
     }
 }
 
