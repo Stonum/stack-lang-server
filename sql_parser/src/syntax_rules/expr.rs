@@ -1436,7 +1436,7 @@ pub(crate) fn parse_column_name_list(p: &mut SqlParser) -> ParsedSyntax {
     Present(m.complete(p, SQL_COLUMN_LIST))
 }
 
-struct SqlColumnNameList;
+pub(crate) struct SqlColumnNameList;
 
 impl ParseSeparatedList for SqlColumnNameList {
     type Kind = SqlSyntaxKind;
@@ -1448,7 +1448,8 @@ impl ParseSeparatedList for SqlColumnNameList {
     }
 
     fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
-        p.at(EOF) || p.at(T![')'])
+        // `)` closes `(a, b)`; `set` ends a CTE's `SEARCH`/`CYCLE` columns.
+        p.at(EOF) || p.at(T![')']) || p.at(T![set])
     }
 
     fn recover(

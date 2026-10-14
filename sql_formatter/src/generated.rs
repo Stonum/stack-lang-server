@@ -612,6 +612,78 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCreateTriggerStatement {
         FormatOwnedWithRule :: new (self , crate :: psql :: statements :: create_trigger_statement :: FormatPsqlCreateTriggerStatement :: default ())
     }
 }
+impl FormatRule<sql_syntax::PsqlCteCycleClause>
+    for crate::psql::clauses::cte_cycle_clause::FormatPsqlCteCycleClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(&self, node: &sql_syntax::PsqlCteCycleClause, f: &mut SqlFormatter) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCteCycleClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCteCycleClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCteCycleClause,
+        crate::psql::clauses::cte_cycle_clause::FormatPsqlCteCycleClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::cte_cycle_clause::FormatPsqlCteCycleClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCteCycleClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCteCycleClause,
+        crate::psql::clauses::cte_cycle_clause::FormatPsqlCteCycleClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::cte_cycle_clause::FormatPsqlCteCycleClause::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCteCycleMarkValues>
+    for crate::psql::auxiliary::cte_cycle_mark_values::FormatPsqlCteCycleMarkValues
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCteCycleMarkValues,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCteCycleMarkValues>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCteCycleMarkValues {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCteCycleMarkValues,
+        crate::psql::auxiliary::cte_cycle_mark_values::FormatPsqlCteCycleMarkValues,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::cte_cycle_mark_values::FormatPsqlCteCycleMarkValues::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCteCycleMarkValues {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCteCycleMarkValues,
+        crate::psql::auxiliary::cte_cycle_mark_values::FormatPsqlCteCycleMarkValues,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::cte_cycle_mark_values::FormatPsqlCteCycleMarkValues::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlCteMaterializedHint>
     for crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint
 {
@@ -647,6 +719,44 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCteMaterializedHint {
         FormatOwnedWithRule::new(
             self,
             crate::psql::auxiliary::cte_materialized_hint::FormatPsqlCteMaterializedHint::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlCteSearchClause>
+    for crate::psql::clauses::cte_search_clause::FormatPsqlCteSearchClause
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlCteSearchClause,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlCteSearchClause>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlCteSearchClause {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlCteSearchClause,
+        crate::psql::clauses::cte_search_clause::FormatPsqlCteSearchClause,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::clauses::cte_search_clause::FormatPsqlCteSearchClause::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlCteSearchClause {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlCteSearchClause,
+        crate::psql::clauses::cte_search_clause::FormatPsqlCteSearchClause,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::clauses::cte_search_clause::FormatPsqlCteSearchClause::default(),
         )
     }
 }

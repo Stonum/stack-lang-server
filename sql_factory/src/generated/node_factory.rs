@@ -801,6 +801,70 @@ impl PsqlCreateTriggerStatementBuilder {
         ))
     }
 }
+pub fn psql_cte_cycle_clause(
+    cycle_token: SyntaxToken,
+    columns: SqlColumnNameList,
+    set_token: SyntaxToken,
+    mark: SqlName,
+    using_token: SyntaxToken,
+    path: SqlName,
+) -> PsqlCteCycleClauseBuilder {
+    PsqlCteCycleClauseBuilder {
+        cycle_token,
+        columns,
+        set_token,
+        mark,
+        using_token,
+        path,
+        mark_values: None,
+    }
+}
+pub struct PsqlCteCycleClauseBuilder {
+    cycle_token: SyntaxToken,
+    columns: SqlColumnNameList,
+    set_token: SyntaxToken,
+    mark: SqlName,
+    using_token: SyntaxToken,
+    path: SqlName,
+    mark_values: Option<PsqlCteCycleMarkValues>,
+}
+impl PsqlCteCycleClauseBuilder {
+    pub fn with_mark_values(mut self, mark_values: PsqlCteCycleMarkValues) -> Self {
+        self.mark_values = Some(mark_values);
+        self
+    }
+    pub fn build(self) -> PsqlCteCycleClause {
+        PsqlCteCycleClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_CTE_CYCLE_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.cycle_token)),
+                Some(SyntaxElement::Node(self.columns.into_syntax())),
+                Some(SyntaxElement::Token(self.set_token)),
+                Some(SyntaxElement::Node(self.mark.into_syntax())),
+                self.mark_values
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Token(self.using_token)),
+                Some(SyntaxElement::Node(self.path.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_cte_cycle_mark_values(
+    to_token: SyntaxToken,
+    value: AnySqlExpression,
+    default_token: SyntaxToken,
+    default: AnySqlExpression,
+) -> PsqlCteCycleMarkValues {
+    PsqlCteCycleMarkValues::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_CTE_CYCLE_MARK_VALUES,
+        [
+            Some(SyntaxElement::Token(to_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+            Some(SyntaxElement::Token(default_token)),
+            Some(SyntaxElement::Node(default.into_syntax())),
+        ],
+    ))
+}
 pub fn psql_cte_materialized_hint(
     materialized_token: SyntaxToken,
 ) -> PsqlCteMaterializedHintBuilder {
@@ -827,6 +891,28 @@ impl PsqlCteMaterializedHintBuilder {
             ],
         ))
     }
+}
+pub fn psql_cte_search_clause(
+    search_token: SyntaxToken,
+    order_token: SyntaxToken,
+    first_token: SyntaxToken,
+    by_token: SyntaxToken,
+    columns: SqlColumnNameList,
+    set_token: SyntaxToken,
+    column: SqlName,
+) -> PsqlCteSearchClause {
+    PsqlCteSearchClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_CTE_SEARCH_CLAUSE,
+        [
+            Some(SyntaxElement::Token(search_token)),
+            Some(SyntaxElement::Token(order_token)),
+            Some(SyntaxElement::Token(first_token)),
+            Some(SyntaxElement::Token(by_token)),
+            Some(SyntaxElement::Node(columns.into_syntax())),
+            Some(SyntaxElement::Token(set_token)),
+            Some(SyntaxElement::Node(column.into_syntax())),
+        ],
+    ))
 }
 pub fn psql_delete_using_clause(
     using_token: SyntaxToken,
@@ -5538,6 +5624,8 @@ pub fn sql_cte_definition(
         r_paren_token,
         columns: None,
         materialized: None,
+        search: None,
+        cycle: None,
     }
 }
 pub struct SqlCteDefinitionBuilder {
@@ -5548,6 +5636,8 @@ pub struct SqlCteDefinitionBuilder {
     r_paren_token: SyntaxToken,
     columns: Option<SqlColumnList>,
     materialized: Option<PsqlCteMaterializedHint>,
+    search: Option<PsqlCteSearchClause>,
+    cycle: Option<PsqlCteCycleClause>,
 }
 impl SqlCteDefinitionBuilder {
     pub fn with_columns(mut self, columns: SqlColumnList) -> Self {
@@ -5556,6 +5646,14 @@ impl SqlCteDefinitionBuilder {
     }
     pub fn with_materialized(mut self, materialized: PsqlCteMaterializedHint) -> Self {
         self.materialized = Some(materialized);
+        self
+    }
+    pub fn with_search(mut self, search: PsqlCteSearchClause) -> Self {
+        self.search = Some(search);
+        self
+    }
+    pub fn with_cycle(mut self, cycle: PsqlCteCycleClause) -> Self {
+        self.cycle = Some(cycle);
         self
     }
     pub fn build(self) -> SqlCteDefinition {
@@ -5571,6 +5669,10 @@ impl SqlCteDefinitionBuilder {
                 Some(SyntaxElement::Token(self.l_paren_token)),
                 Some(SyntaxElement::Node(self.query.into_syntax())),
                 Some(SyntaxElement::Token(self.r_paren_token)),
+                self.search
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.cycle
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
         ))
     }

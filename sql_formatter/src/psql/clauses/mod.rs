@@ -1,5 +1,7 @@
 //! This is a generated file. Don't modify it by hand! Run 'cargo codegen formatter' to re-generate the file.
 
+pub(crate) mod cte_cycle_clause;
+pub(crate) mod cte_search_clause;
 pub(crate) mod delete_using_clause;
 pub(crate) mod distinct_on_clause;
 pub(crate) mod do_nothing_clause;

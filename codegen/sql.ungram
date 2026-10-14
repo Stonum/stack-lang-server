@@ -173,6 +173,34 @@ SqlCteDefinition =
    '('
    query: AnySqlStatement
    ')'
+   search: PsqlCteSearchClause?
+   cycle: PsqlCteCycleClause?
+
+// `SEARCH {DEPTH | BREADTH} FIRST BY column, ... SET column`
+PsqlCteSearchClause =
+   'search'
+   order: ('depth' | 'breadth')
+   'first'
+   'by'
+   columns: SqlColumnNameList
+   'set'
+   column: SqlName
+
+// `CYCLE column, ... SET mark [TO value DEFAULT value] USING path`
+PsqlCteCycleClause =
+   'cycle'
+   columns: SqlColumnNameList
+   'set'
+   mark: SqlName
+   mark_values: PsqlCteCycleMarkValues?
+   'using'
+   path: SqlName
+
+PsqlCteCycleMarkValues =
+   'to'
+   value: AnySqlExpression
+   'default'
+   default: AnySqlExpression
 
 SqlSelectStatement =
    with_clause: SqlWithClause?
