@@ -749,7 +749,7 @@ impl PsqlCreateFunctionStatement {
     pub fn as_token(&self) -> SyntaxResult<SyntaxToken> {
         support::required_token(&self.syntax, 10usize)
     }
-    pub fn body(&self) -> SyntaxResult<SqlStringLiteralExpression> {
+    pub fn body(&self) -> SyntaxResult<AnyPsqlRoutineBody> {
         support::required_node(&self.syntax, 11usize)
     }
     pub fn trailing_options(&self) -> PsqlFunctionOptionList {
@@ -780,7 +780,7 @@ pub struct PsqlCreateFunctionStatementFields {
     pub returns_clause: Option<PsqlReturnsClause>,
     pub leading_options: PsqlFunctionOptionList,
     pub as_token: SyntaxResult<SyntaxToken>,
-    pub body: SyntaxResult<SqlStringLiteralExpression>,
+    pub body: SyntaxResult<AnyPsqlRoutineBody>,
     pub trailing_options: PsqlFunctionOptionList,
     pub semicolon_token: Option<SyntaxToken>,
 }

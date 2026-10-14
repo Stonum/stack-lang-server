@@ -611,7 +611,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlStringLiteralExpression::can_cast(element.kind())
+                    && AnyPsqlRoutineBody::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();

@@ -392,7 +392,7 @@ impl PsqlCreateFunctionStatement {
                 .splice_slots(10usize..=10usize, once(Some(element.into()))),
         )
     }
-    pub fn with_body(self, element: SqlStringLiteralExpression) -> Self {
+    pub fn with_body(self, element: AnyPsqlRoutineBody) -> Self {
         Self::unwrap_cast(
             self.syntax
                 .splice_slots(11usize..=11usize, once(Some(element.into_syntax().into()))),

@@ -4,6 +4,7 @@ use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
 use super::parse_error::postgres_only_syntax_error;
+use super::plpgsql::{is_plpgsql_language, parse_pl_body};
 use crate::syntax_rules::ddl::parse_table_name_for_ddl;
 use crate::syntax_rules::expr::{
     TYPE_NAME_TOKEN_SET, count_dotted_name_segments, is_at_name_start, is_at_tilde_name_start,
@@ -266,10 +267,18 @@ fn parse_create_function_statement_body(p: &mut SqlParser) -> ParsedSyntax {
     p.expect(T![')']);
 
     let _ = parse_returns_clause(p);
+    let language = function_language(p);
     parse_function_option_list(p);
 
     p.expect(T![as]);
-    parse_string_literal_expression(p).or_add_diagnostic(p, expected_expression);
+    // Unlike `DO`, a function has no default language: only an explicit
+    // `LANGUAGE plpgsql` body is parsed as code.
+    if language.is_none()
+        || !is_plpgsql_language(language.as_deref())
+        || parse_pl_body(p).is_absent()
+    {
+        parse_string_literal_expression(p).or_add_diagnostic(p, expected_expression);
+    }
 
     parse_function_option_list(p);
 
@@ -277,6 +286,51 @@ fn parse_create_function_statement_body(p: &mut SqlParser) -> ParsedSyntax {
 
     Present(m.complete(p, PSQL_CREATE_FUNCTION_STATEMENT))
 }
+
+/// The `LANGUAGE` of a function whose options are ahead: looks through the
+/// options before `AS`, then past the body through the trailing ones.
+fn function_language(p: &mut SqlParser) -> Option<String> {
+    p.lookahead(|p| {
+        let mut past_body = false;
+        loop {
+            if p.at(EOF) || p.at(T![;]) {
+                return None;
+            }
+            if p.at(T![language]) {
+                p.bump(T![language]);
+                return Some(p.text(p.cur_range()).to_string());
+            }
+            if p.at(T![as]) {
+                if past_body {
+                    return None;
+                }
+                p.bump(T![as]);
+                past_body = true;
+                // The body itself (one string token).
+                if p.at(EOF) {
+                    return None;
+                }
+                p.bump_any();
+                continue;
+            }
+            if past_body && !is_at_function_option(p) && !p.at_ts(FUNCTION_OPTION_TAIL_SET) {
+                return None;
+            }
+            p.bump_any();
+        }
+    })
+}
+
+/// Tokens that may follow an option keyword inside the option list.
+const FUNCTION_OPTION_TAIL_SET: TokenSet<SqlSyntaxKind> = token_set![
+    T![ident],
+    SQL_STRING_LITERAL,
+    T![definer],
+    T![invoker],
+    T![null],
+    T![on],
+    T![input]
+];
 
 /// Zero or more options (`LANGUAGE`, volatility, `SECURITY DEFINER`/
 /// `INVOKER`, `STRICT`) in any order -- real scripts scatter these both

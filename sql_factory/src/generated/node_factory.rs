@@ -376,7 +376,7 @@ pub fn psql_create_function_statement(
     r_paren_token: SyntaxToken,
     leading_options: PsqlFunctionOptionList,
     as_token: SyntaxToken,
-    body: SqlStringLiteralExpression,
+    body: AnyPsqlRoutineBody,
     trailing_options: PsqlFunctionOptionList,
 ) -> PsqlCreateFunctionStatementBuilder {
     PsqlCreateFunctionStatementBuilder {
@@ -405,7 +405,7 @@ pub struct PsqlCreateFunctionStatementBuilder {
     r_paren_token: SyntaxToken,
     leading_options: PsqlFunctionOptionList,
     as_token: SyntaxToken,
-    body: SqlStringLiteralExpression,
+    body: AnyPsqlRoutineBody,
     trailing_options: PsqlFunctionOptionList,
     or_token: Option<SyntaxToken>,
     replace_token: Option<SyntaxToken>,
