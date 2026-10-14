@@ -2,6 +2,7 @@
 
 pub(crate) mod any;
 pub(crate) mod auxiliary;
+pub(crate) mod bindings;
 pub(crate) mod clauses;
 pub(crate) mod expressions;
 pub(crate) mod lists;

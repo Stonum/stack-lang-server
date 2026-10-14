@@ -280,6 +280,7 @@ AnySqlFromExpression =
    | SqlFunctionBinding
    | SqlSubqueryBinding
    | SqlParenthesizedJoinBinding
+   | PsqlXmlTableBinding
 
 // `(a JOIN b ON ...)` -- a parenthesized join used as a from-item,
 // distinct from a subquery `(select ...)` despite sharing the same leading
@@ -1748,6 +1749,7 @@ AnySqlExpression =
    | PsqlTildeArrayExpression
    | PsqlArraySubscriptExpression
    | PsqlTildeArraySubscriptExpression
+   | PsqlXmlExistsExpression
    | PsqlCastExpression
    | PsqlFieldSelectionExpression
    | PsqlSubstringExpression
@@ -2329,6 +2331,79 @@ PsqlSubstringExpression =
 
 // `extract(field from source)` -- `extract` stays a plain `ident`, like
 // `substring`.
+// `xmlexists(xpath PASSING [BY {REF | VALUE}] xml [BY ...])`
+PsqlXmlExistsExpression =
+   name: 'ident'
+   '('
+   xpath: AnySqlExpression
+   passing: PsqlXmlPassingClause
+   ')'
+
+PsqlXmlPassingClause =
+   'passing'
+   leading_by: PsqlXmlByMechanism?
+   value: AnySqlExpression
+   trailing_by: PsqlXmlByMechanism?
+
+PsqlXmlByMechanism =
+   'by'
+   kind: ('ref' | 'value')
+
+// `xmltable([xmlnamespaces(...),] row PASSING xml COLUMNS column, ...) [alias]`
+PsqlXmlTableBinding =
+   name: 'ident'
+   '('
+   namespaces: PsqlXmlNamespacesClause?
+   row: AnySqlExpression
+   passing: PsqlXmlPassingClause
+   'columns'
+   columns: PsqlXmlTableColumnList
+   ')'
+   alias: SqlAlias?
+
+// `xmlnamespaces('uri' AS name, ...),`
+PsqlXmlNamespacesClause =
+   name: 'ident'
+   '('
+   items: PsqlXmlNamespaceList
+   ')'
+   ','
+
+PsqlXmlNamespaceList = (PsqlXmlNamespace (',' PsqlXmlNamespace)*)
+
+PsqlXmlNamespace =
+   uri: AnySqlExpression
+   'as'
+   name: SqlName
+
+PsqlXmlTableColumnList = (AnyPsqlXmlTableColumn (',' AnyPsqlXmlTableColumn)*)
+
+AnyPsqlXmlTableColumn =
+   PsqlXmlTableValueColumn
+   | PsqlXmlTableOrdinalityColumn
+
+// `name type [PATH expr] [DEFAULT expr] [NOT NULL]`
+PsqlXmlTableValueColumn =
+   name: SqlName
+   type: SqlTypeName
+   path: PsqlXmlColumnPath?
+   default: PsqlXmlColumnDefault?
+   not_null: SqlNotNullConstraint?
+
+PsqlXmlColumnPath =
+   'path'
+   value: AnySqlExpression
+
+PsqlXmlColumnDefault =
+   'default'
+   value: AnySqlExpression
+
+// `name FOR ORDINALITY`
+PsqlXmlTableOrdinalityColumn =
+   name: SqlName
+   'for'
+   'ordinality'
+
 PsqlExtractExpression =
    name: 'ident'
    '('

@@ -3940,6 +3940,248 @@ impl PsqlWithDataClauseBuilder {
         ))
     }
 }
+pub fn psql_xml_by_mechanism(by_token: SyntaxToken, kind_token: SyntaxToken) -> PsqlXmlByMechanism {
+    PsqlXmlByMechanism::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_BY_MECHANISM,
+        [
+            Some(SyntaxElement::Token(by_token)),
+            Some(SyntaxElement::Token(kind_token)),
+        ],
+    ))
+}
+pub fn psql_xml_column_default(
+    default_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlXmlColumnDefault {
+    PsqlXmlColumnDefault::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_COLUMN_DEFAULT,
+        [
+            Some(SyntaxElement::Token(default_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_xml_column_path(path_token: SyntaxToken, value: AnySqlExpression) -> PsqlXmlColumnPath {
+    PsqlXmlColumnPath::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_COLUMN_PATH,
+        [
+            Some(SyntaxElement::Token(path_token)),
+            Some(SyntaxElement::Node(value.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_xml_exists_expression(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    xpath: AnySqlExpression,
+    passing: PsqlXmlPassingClause,
+    r_paren_token: SyntaxToken,
+) -> PsqlXmlExistsExpression {
+    PsqlXmlExistsExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_EXISTS_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(name_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(xpath.into_syntax())),
+            Some(SyntaxElement::Node(passing.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
+pub fn psql_xml_namespace(
+    uri: AnySqlExpression,
+    as_token: SyntaxToken,
+    name: SqlName,
+) -> PsqlXmlNamespace {
+    PsqlXmlNamespace::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_NAMESPACE,
+        [
+            Some(SyntaxElement::Node(uri.into_syntax())),
+            Some(SyntaxElement::Token(as_token)),
+            Some(SyntaxElement::Node(name.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_xml_namespaces_clause(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    items: PsqlXmlNamespaceList,
+    r_paren_token: SyntaxToken,
+    comma_token: SyntaxToken,
+) -> PsqlXmlNamespacesClause {
+    PsqlXmlNamespacesClause::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_NAMESPACES_CLAUSE,
+        [
+            Some(SyntaxElement::Token(name_token)),
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+            Some(SyntaxElement::Token(comma_token)),
+        ],
+    ))
+}
+pub fn psql_xml_passing_clause(
+    passing_token: SyntaxToken,
+    value: AnySqlExpression,
+) -> PsqlXmlPassingClauseBuilder {
+    PsqlXmlPassingClauseBuilder {
+        passing_token,
+        value,
+        leading_by: None,
+        trailing_by: None,
+    }
+}
+pub struct PsqlXmlPassingClauseBuilder {
+    passing_token: SyntaxToken,
+    value: AnySqlExpression,
+    leading_by: Option<PsqlXmlByMechanism>,
+    trailing_by: Option<PsqlXmlByMechanism>,
+}
+impl PsqlXmlPassingClauseBuilder {
+    pub fn with_leading_by(mut self, leading_by: PsqlXmlByMechanism) -> Self {
+        self.leading_by = Some(leading_by);
+        self
+    }
+    pub fn with_trailing_by(mut self, trailing_by: PsqlXmlByMechanism) -> Self {
+        self.trailing_by = Some(trailing_by);
+        self
+    }
+    pub fn build(self) -> PsqlXmlPassingClause {
+        PsqlXmlPassingClause::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_XML_PASSING_CLAUSE,
+            [
+                Some(SyntaxElement::Token(self.passing_token)),
+                self.leading_by
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.value.into_syntax())),
+                self.trailing_by
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_xml_table_binding(
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    row: AnySqlExpression,
+    passing: PsqlXmlPassingClause,
+    columns_token: SyntaxToken,
+    columns: PsqlXmlTableColumnList,
+    r_paren_token: SyntaxToken,
+) -> PsqlXmlTableBindingBuilder {
+    PsqlXmlTableBindingBuilder {
+        name_token,
+        l_paren_token,
+        row,
+        passing,
+        columns_token,
+        columns,
+        r_paren_token,
+        namespaces: None,
+        alias: None,
+    }
+}
+pub struct PsqlXmlTableBindingBuilder {
+    name_token: SyntaxToken,
+    l_paren_token: SyntaxToken,
+    row: AnySqlExpression,
+    passing: PsqlXmlPassingClause,
+    columns_token: SyntaxToken,
+    columns: PsqlXmlTableColumnList,
+    r_paren_token: SyntaxToken,
+    namespaces: Option<PsqlXmlNamespacesClause>,
+    alias: Option<SqlAlias>,
+}
+impl PsqlXmlTableBindingBuilder {
+    pub fn with_namespaces(mut self, namespaces: PsqlXmlNamespacesClause) -> Self {
+        self.namespaces = Some(namespaces);
+        self
+    }
+    pub fn with_alias(mut self, alias: SqlAlias) -> Self {
+        self.alias = Some(alias);
+        self
+    }
+    pub fn build(self) -> PsqlXmlTableBinding {
+        PsqlXmlTableBinding::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_XML_TABLE_BINDING,
+            [
+                Some(SyntaxElement::Token(self.name_token)),
+                Some(SyntaxElement::Token(self.l_paren_token)),
+                self.namespaces
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                Some(SyntaxElement::Node(self.row.into_syntax())),
+                Some(SyntaxElement::Node(self.passing.into_syntax())),
+                Some(SyntaxElement::Token(self.columns_token)),
+                Some(SyntaxElement::Node(self.columns.into_syntax())),
+                Some(SyntaxElement::Token(self.r_paren_token)),
+                self.alias
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
+pub fn psql_xml_table_ordinality_column(
+    name: SqlName,
+    for_token: SyntaxToken,
+    ordinality_token: SyntaxToken,
+) -> PsqlXmlTableOrdinalityColumn {
+    PsqlXmlTableOrdinalityColumn::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_TABLE_ORDINALITY_COLUMN,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Token(for_token)),
+            Some(SyntaxElement::Token(ordinality_token)),
+        ],
+    ))
+}
+pub fn psql_xml_table_value_column(
+    name: SqlName,
+    ty: SqlTypeName,
+) -> PsqlXmlTableValueColumnBuilder {
+    PsqlXmlTableValueColumnBuilder {
+        name,
+        ty,
+        path: None,
+        default: None,
+        not_null: None,
+    }
+}
+pub struct PsqlXmlTableValueColumnBuilder {
+    name: SqlName,
+    ty: SqlTypeName,
+    path: Option<PsqlXmlColumnPath>,
+    default: Option<PsqlXmlColumnDefault>,
+    not_null: Option<SqlNotNullConstraint>,
+}
+impl PsqlXmlTableValueColumnBuilder {
+    pub fn with_path(mut self, path: PsqlXmlColumnPath) -> Self {
+        self.path = Some(path);
+        self
+    }
+    pub fn with_default(mut self, default: PsqlXmlColumnDefault) -> Self {
+        self.default = Some(default);
+        self
+    }
+    pub fn with_not_null(mut self, not_null: SqlNotNullConstraint) -> Self {
+        self.not_null = Some(not_null);
+        self
+    }
+    pub fn build(self) -> PsqlXmlTableValueColumn {
+        PsqlXmlTableValueColumn::unwrap_cast(SyntaxNode::new_detached(
+            SqlSyntaxKind::PSQL_XML_TABLE_VALUE_COLUMN,
+            [
+                Some(SyntaxElement::Node(self.name.into_syntax())),
+                Some(SyntaxElement::Node(self.ty.into_syntax())),
+                self.path
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.default
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+                self.not_null
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
+            ],
+        ))
+    }
+}
 pub fn sql_add_column_action(
     add_token: SyntaxToken,
     column: SqlColumnDefinition,
@@ -8191,6 +8433,48 @@ where
     let length = items.len() + separators.len();
     PsqlViewOptionList::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::PSQL_VIEW_OPTION_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_xml_namespace_list<I, S>(items: I, separators: S) -> PsqlXmlNamespaceList
+where
+    I: IntoIterator<Item = PsqlXmlNamespace>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlXmlNamespaceList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_NAMESPACE_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
+    ))
+}
+pub fn psql_xml_table_column_list<I, S>(items: I, separators: S) -> PsqlXmlTableColumnList
+where
+    I: IntoIterator<Item = AnyPsqlXmlTableColumn>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlXmlTableColumnList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_XML_TABLE_COLUMN_LIST,
         (0..length).map(|index| {
             if index % 2 == 0 {
                 Some(items.next()?.into_syntax().into())

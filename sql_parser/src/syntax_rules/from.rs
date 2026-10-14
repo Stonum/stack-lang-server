@@ -14,6 +14,7 @@ use super::parse_error::*;
 use super::postgres::from::{
     is_at_lateral_source, parse_join_using_clause, parse_lateral_from_expression,
 };
+use super::postgres::xml::{is_at_xml_table, parse_xml_table_binding};
 use super::with_clause::parse_with_prefixed_select_statement;
 use crate::{SqlParser, lexer::SqlReLexContext};
 use sql_syntax::{SqlSyntaxKind::*, T, *};
@@ -201,6 +202,10 @@ pub(crate) fn parse_from_expression(p: &mut SqlParser) -> ParsedSyntax {
         } else {
             build_table_binding(p, 0)
         };
+    }
+
+    if is_at_xml_table(p) {
+        return parse_xml_table_binding(p);
     }
 
     if !is_at_name_segment_start(p) {

@@ -38,3 +38,5 @@ pub(crate) mod trigger_update_of_clause;
 pub(crate) mod trigger_when_clause;
 pub(crate) mod truncate_identity_clause;
 pub(crate) mod with_data_clause;
+pub(crate) mod xml_namespaces_clause;
+pub(crate) mod xml_passing_clause;
