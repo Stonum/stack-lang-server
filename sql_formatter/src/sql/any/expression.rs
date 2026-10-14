@@ -41,6 +41,7 @@ impl FormatRule<AnySqlExpression> for FormatAnySqlExpression {
             AnySqlExpression::PsqlFieldSelectionExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlIntervalExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlPositionExpression(node) => node.format().fmt(f),
+            AnySqlExpression::PsqlPositionalParameterExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlSubstringExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlTildeArrayExpression(node) => node.format().fmt(f),
             AnySqlExpression::PsqlTildeArraySubscriptExpression(node) => node.format().fmt(f),

@@ -790,6 +790,7 @@ fn parse_literal_expression(p: &mut SqlParser) -> ParsedSyntax {
     let literal_kind = match p.cur() {
         SQL_NUMBER_LITERAL => SQL_NUMBER_LITERAL_EXPRESSION,
         SQL_STRING_LITERAL => SQL_STRING_LITERAL_EXPRESSION,
+        SQL_POSITIONAL_PARAMETER_LITERAL => PSQL_POSITIONAL_PARAMETER_EXPRESSION,
         T![true] | T![false] => SQL_BOOLEAN_LITERAL_EXPRESSION,
         T![null] => SQL_NULL_LITERAL_EXPRESSION,
         _ => return Absent,

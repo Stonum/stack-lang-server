@@ -310,11 +310,19 @@ fn unterminated_dollar_quoted_string() {
 
 #[test]
 fn dollar_not_followed_by_a_valid_tag_backs_off_to_a_single_error_token() {
-    // `$1` (a Postgres positional parameter) isn't a dollar-quote opener --
-    // not supported yet, but must not swallow the `1` as part of a failed
-    // dollar-quote attempt.
-    assert_lex! { "$1", ERROR_TOKEN:1, SQL_NUMBER_LITERAL:1 }
     assert_lex! { "$ 1", ERROR_TOKEN:1, WHITESPACE:1, SQL_NUMBER_LITERAL:1 }
+    assert_lex! { "$a", ERROR_TOKEN:1, IDENT:1 }
+}
+
+#[test]
+fn positional_parameters() {
+    assert_lex! { "$1", SQL_POSITIONAL_PARAMETER_LITERAL:2 }
+    assert_lex! { "$12::int", SQL_POSITIONAL_PARAMETER_LITERAL:3, COLONCOLON:2, IDENT:3 }
+    assert_lex! { "a&&b", IDENT:1, AMP2:2, IDENT:1 }
+    assert_lex! { "X'ff'", SQL_STRING_LITERAL:5 }
+    assert_lex! { "'a'
+    'b'", SQL_STRING_LITERAL:11 }
+    assert_lex! { "'a' 'b'", SQL_STRING_LITERAL:3, WHITESPACE:1, SQL_STRING_LITERAL:3 }
 }
 
 #[test]

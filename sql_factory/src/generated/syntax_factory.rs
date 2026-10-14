@@ -4683,6 +4683,25 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.into_node(PSQL_POSITION_EXPRESSION, children)
             }
+            PSQL_POSITIONAL_PARAMETER_EXPRESSION => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == SQL_POSITIONAL_PARAMETER_LITERAL
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_POSITIONAL_PARAMETER_EXPRESSION.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_POSITIONAL_PARAMETER_EXPRESSION, children)
+            }
             PSQL_REFRESH_MATERIALIZED_VIEW_STATEMENT => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<7usize> = RawNodeSlots::default();
@@ -6904,6 +6923,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                             | T ! [?&]
                             | T ! [@>]
                             | T ! [<@]
+                            | T ! [&&]
                             | T ! [#>]
                             | T ! [#>>]
                             | T ! [#-]

@@ -479,6 +479,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPositionExpression::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_POSITIONAL_PARAMETER_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPositionalParameterExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_REFRESH_MATERIALIZED_VIEW_STATEMENT => {
                     let $pattern = unsafe {
                         $crate::PsqlRefreshMaterializedViewStatement::new_unchecked(node)

@@ -516,6 +516,7 @@ pub(crate) fn is_postgres_only_binary_operator(op: SqlSyntaxKind) -> bool {
             | T![?&]
             | T![@>]
             | T![<@]
+            | T![&&]
             | T![#>]
             | T![#>>]
             | T![#-]

@@ -70,6 +70,9 @@ SqlStar = value: '*'
 // so no lexer disambiguation is needed, unlike `~name~`.
 SqlParameterExpression = ':' name: ( 'ident' | 'Sql_number_literal' )
 
+// `$1` -- a Postgres positional parameter (function arguments, `EXECUTE ... USING`).
+PsqlPositionalParameterExpression = value: 'Sql_positional_parameter_literal'
+
 // A `LIMIT`/`OFFSET` value: a bare number literal, or a bind parameter
 // (`LIMIT :n`) -- real Postgres itself accepts any expression here, but
 // this grammar deliberately narrows it to just these two, the only forms
@@ -1752,6 +1755,7 @@ AnySqlExpression =
    | PsqlArraySubscriptExpression
    | PsqlTildeArraySubscriptExpression
    | PsqlXmlExistsExpression
+   | PsqlPositionalParameterExpression
    | PsqlCastExpression
    | PsqlFieldSelectionExpression
    | PsqlSubstringExpression
@@ -1982,7 +1986,7 @@ SqlBinaryExpression =
    | '+' | '-' | '*' | '/' | '%' | '~'  | '!~'
    | '&' | '|' | '^' | '>>' | '<<' | '~*' | '!~*'
    | '~~' | '~~*' | '!~~' | '!~~*' | '||' | '->' | '->>' | '?'
-   | '?|' | '?&' | '@>' | '<@' | '#>' | '#>>' | '#-'
+   | '?|' | '?&' | '@>' | '<@' | '&&' | '#>' | '#>>' | '#-'
    )
    right: AnySqlExpression
 

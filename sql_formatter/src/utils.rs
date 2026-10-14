@@ -175,6 +175,7 @@ pub(crate) fn is_simple_expression(expr: &AnySqlExpression, depth: u8) -> bool {
         | AnySqlExpression::SqlColReference(_)
         | AnySqlExpression::SqlTableColReference(_)
         | AnySqlExpression::SqlParameterExpression(_)
+        | AnySqlExpression::PsqlPositionalParameterExpression(_)
         | AnySqlExpression::SqlStar(_) => true,
         AnySqlExpression::SqlUnaryExpression(unary) => unary
             .expression()
