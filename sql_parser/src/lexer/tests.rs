@@ -284,6 +284,9 @@ fn comparison_operators() {
     assert_lex! { r"E'\''", SQL_STRING_LITERAL:5 }
     assert_lex! { "1.5", SQL_NUMBER_LITERAL:3 }
     assert_lex! { "a.b", IDENT:1, DOT:1, IDENT:1 }
+    assert_lex! { ".5", SQL_NUMBER_LITERAL:2 }
+    assert_lex! { "(.25e3)", L_PAREN:1, SQL_NUMBER_LITERAL:5, R_PAREN:1 }
+    assert_lex! { "t.5", IDENT:1, DOT:1, SQL_NUMBER_LITERAL:1 }
     assert_lex! { "a>>b", IDENT:1, SHR:2, IDENT:1 }
     assert_lex! { "-", MINUS:1 }
     assert_lex! { "-1", MINUS:1, SQL_NUMBER_LITERAL:1 }
@@ -350,7 +353,7 @@ fn numbers() {
     assert_lex! { "0", SQL_NUMBER_LITERAL:1 }
     assert_lex! { "3.14", SQL_NUMBER_LITERAL:4 }
     assert_lex! { "2.5e10", SQL_NUMBER_LITERAL:6 }
-    assert_lex! { ".5", DOT:1, SQL_NUMBER_LITERAL:1 }
+    assert_lex! { ".5e2", SQL_NUMBER_LITERAL:4 }
     assert_lex! { "1.", SQL_NUMBER_LITERAL:2 }
     assert_lex! { "1e+5", SQL_NUMBER_LITERAL:4 }
     assert_lex! { "1e-5", SQL_NUMBER_LITERAL:4 }

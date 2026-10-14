@@ -617,6 +617,18 @@ impl<'src> SqlLexer<'src> {
     /// identifier instead of being silently swallowed into an incomplete
     /// exponent (e.g. `1e` lexes as the number `1` followed by the
     /// identifier `e`, not as a single malformed number token).
+    /// Whether the previous byte ends an operand (a name, `)`, `]` or a
+    /// quoted token), so a `.` here is a member access, not a number.
+    fn follows_operand(&self) -> bool {
+        let Some(previous) = self.position.checked_sub(1) else {
+            return false;
+        };
+        let b = self.source().as_bytes()[previous];
+        b.is_ascii_alphanumeric()
+            || b >= 0x80
+            || matches!(b, b'_' | b')' | b']' | b'"' | b'~' | b'\'')
+    }
+
     fn consume_exponent(&mut self) {
         let start = self.position;
         self.advance(1); // 'e'/'E'
@@ -960,6 +972,17 @@ impl<'src> SqlLexer<'src> {
                 if self.peek_byte() == Some(b'.') {
                     self.advance(2);
                     T![..]
+                } else if self.peek_byte().is_some_and(|b| b.is_ascii_digit())
+                    && !self.follows_operand()
+                {
+                    // `.5` -- a number without a leading digit; `t.5` stays
+                    // a qualified name.
+                    self.advance(1);
+                    self.consume_digits();
+                    if matches!(self.current_byte(), Some(b'e' | b'E')) {
+                        self.consume_exponent();
+                    }
+                    SQL_NUMBER_LITERAL
                 } else {
                     self.eat_byte(T![.])
                 }
