@@ -114,24 +114,46 @@ where
             ],
             format_args![
                 keyword,
-                group(&soft_line_indent_or_space(&format_with(
-                    |f: &mut SqlFormatter| write_balanced_fill_entries(
-                        &entries,
-                        &balanced_breaks,
-                        f
-                    )
-                )))
-                .should_expand(true),
-            ],
-            format_args![
-                keyword,
-                group(&soft_line_indent_or_space(&format_with(
-                    |f: &mut SqlFormatter| write_fill_expression_entries(&entries, f)
-                )))
+                group(&soft_line_indent_or_space(&FormatBalancedOrFill {
+                    entries: &entries,
+                    breaks: &balanced_breaks,
+                }))
                 .should_expand(true),
             ]
         )]
     )
+}
+
+/// The wrapped list on its own indented lines: the balanced layout if its
+/// first line fits at the real indentation, the plain fill otherwise.
+///
+/// The choice must be made *after* the line break into the indented block:
+/// `best_fitting!` measures a variant only up to its first line break, so
+/// deciding before it would only ever measure the keyword or bracket.
+/// Greedy packing fills the first balanced line the most, so it is the one
+/// that best predicts whether the rest fits too.
+struct FormatBalancedOrFill<'a, T> {
+    entries: &'a [(bool, usize, T)],
+    breaks: &'a [bool],
+}
+
+impl<T> Format<SqlFormatContext> for FormatBalancedOrFill<'_, T>
+where
+    T: Format<SqlFormatContext>,
+{
+    fn fmt(&self, f: &mut SqlFormatter) -> FormatResult<()> {
+        write!(
+            f,
+            [best_fitting!(
+                format_with(|f: &mut SqlFormatter| write_balanced_fill_entries(
+                    self.entries,
+                    self.breaks,
+                    f
+                )),
+                format_with(|f: &mut SqlFormatter| write_fill_expression_entries(self.entries, f))
+            )]
+        )
+    }
 }
 
 /// Prints a comma-separated list's items joined by `soft_line_break_or_space`.
@@ -364,19 +386,23 @@ where
             format_args![
                 l_paren,
                 group(&soft_block_indent(&format_with(|f: &mut SqlFormatter| {
-                    write_prefix(f)?;
-                    write_balanced_fill_entries(&entries, &balanced_breaks, f)?;
-                    write_suffix(f, &hard_line_break())
-                })))
-                .should_expand(true),
-                r_paren,
-            ],
-            format_args![
-                l_paren,
-                group(&soft_block_indent(&format_with(|f: &mut SqlFormatter| {
-                    write_prefix(f)?;
-                    write_fill_expression_entries(&entries, f)?;
-                    write_suffix(f, &hard_line_break())
+                    // Chosen inside the indented block, as in
+                    // [FormatBalancedOrFill].
+                    write!(
+                        f,
+                        [best_fitting!(
+                            format_with(|f: &mut SqlFormatter| {
+                                write_prefix(f)?;
+                                write_balanced_fill_entries(&entries, &balanced_breaks, f)?;
+                                write_suffix(f, &hard_line_break())
+                            }),
+                            format_with(|f: &mut SqlFormatter| {
+                                write_prefix(f)?;
+                                write_fill_expression_entries(&entries, f)?;
+                                write_suffix(f, &hard_line_break())
+                            })
+                        )]
+                    )
                 })))
                 .should_expand(true),
                 r_paren,

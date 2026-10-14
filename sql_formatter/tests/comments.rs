@@ -103,3 +103,42 @@ select b from t2 where y = 2
 "#
     );
 }
+
+#[test]
+fn format_end_of_line_comments_after_statements_stay_in_place() {
+    assert_fmt_eq!(
+        r#"--
+do $$
+declare
+	a text; -- first
+	b text = ''; -- last
+begin
+	x := 1; -- set
+	case x
+		when 1 then
+			y := 2; -- branch
+		else -- other
+			return 0;
+	end case;
+end
+$$;
+"#,
+        r#"--
+do $$
+declare
+	a text; -- first
+	b text = ''; -- last
+begin
+	x := 1; -- set
+	case x
+		when 1 then
+			y := 2; -- branch
+		else
+			-- other
+			return 0;
+	end case;
+end
+$$;
+"#
+    );
+}
