@@ -4379,6 +4379,38 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlReturnsTriggerClause {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlRowConstructorExpression>
+    for crate::psql::expressions::row_constructor_expression::FormatPsqlRowConstructorExpression
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlRowConstructorExpression,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlRowConstructorExpression>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlRowConstructorExpression {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlRowConstructorExpression,
+        crate::psql::expressions::row_constructor_expression::FormatPsqlRowConstructorExpression,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule :: new (self , crate :: psql :: expressions :: row_constructor_expression :: FormatPsqlRowConstructorExpression :: default ())
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlRowConstructorExpression {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlRowConstructorExpression,
+        crate::psql::expressions::row_constructor_expression::FormatPsqlRowConstructorExpression,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule :: new (self , crate :: psql :: expressions :: row_constructor_expression :: FormatPsqlRowConstructorExpression :: default ())
+    }
+}
 impl FormatRule<sql_syntax::PsqlSecurityOption>
     for crate::psql::auxiliary::security_option::FormatPsqlSecurityOption
 {

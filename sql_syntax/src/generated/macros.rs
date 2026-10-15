@@ -542,6 +542,11 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlReturnsTriggerClause::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_ROW_CONSTRUCTOR_EXPRESSION => {
+                    let $pattern =
+                        unsafe { $crate::PsqlRowConstructorExpression::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_SECURITY_OPTION => {
                     let $pattern = unsafe { $crate::PsqlSecurityOption::new_unchecked(node) };
                     $body
