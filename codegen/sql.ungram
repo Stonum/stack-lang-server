@@ -1828,6 +1828,7 @@ AnySqlExpression =
    | PsqlPositionExpression
    | PsqlTrimExpression
    | PsqlIntervalExpression
+   | PsqlRowConstructorExpression
    | AnySqlLiteralExpression
 
 // `ANY (subquery|expr)` / `ALL (subquery|expr)` / `SOME (subquery|expr)` --
@@ -2065,6 +2066,13 @@ SqlLogicalExpression =
 
 SqlParenthesizedExpression =
 	'(' expression: AnySqlExpression ')'
+
+// `(a, b, ...)` -- an implicit row constructor (two or more items), e.g.
+// `where (a, b) in (select x, y from t)`.
+PsqlRowConstructorExpression =
+   '('
+   items: SqlExpressionList
+   ')'
 
 ///////////////////////////////
 // Postgres-only constructs

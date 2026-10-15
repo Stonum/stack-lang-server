@@ -3563,6 +3563,20 @@ pub fn psql_returns_trigger_clause(trigger_token: SyntaxToken) -> PsqlReturnsTri
         [Some(SyntaxElement::Token(trigger_token))],
     ))
 }
+pub fn psql_row_constructor_expression(
+    l_paren_token: SyntaxToken,
+    items: SqlExpressionList,
+    r_paren_token: SyntaxToken,
+) -> PsqlRowConstructorExpression {
+    PsqlRowConstructorExpression::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_ROW_CONSTRUCTOR_EXPRESSION,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(items.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
+}
 pub fn psql_security_option(
     security_token: SyntaxToken,
     value_token: SyntaxToken,

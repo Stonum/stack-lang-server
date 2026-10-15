@@ -866,7 +866,21 @@ fn parse_parenthesized_expression(p: &mut SqlParser) -> ParsedSyntax {
             .with_hint("Expected an expression here"),
         );
     } else {
-        parse_expression(p).or_add_diagnostic(p, expected_expression);
+        match parse_expression(p) {
+            Present(first) if p.at(T![,]) => {
+                // `(a, b, ...)`: a row constructor.
+                let list = first.precede(p);
+                while p.eat(T![,]) {
+                    parse_expression(p).or_add_diagnostic(p, expected_expression);
+                }
+                list.complete(p, SQL_EXPRESSION_LIST);
+                p.expect(T![')']);
+                return Present(m.complete(p, PSQL_ROW_CONSTRUCTOR_EXPRESSION));
+            }
+            parsed => {
+                parsed.or_add_diagnostic(p, expected_expression);
+            }
+        }
     }
 
     p.expect(T![')']);

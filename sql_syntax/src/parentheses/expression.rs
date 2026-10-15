@@ -58,7 +58,8 @@ impl NeedsParentheses for AnySqlExpression {
             | Self::SqlAnyAllExpression(_)
             | Self::SqlExistsExpression(_)
             | Self::PsqlSubstringExpression(_)
-            | Self::PsqlIntervalExpression(_) => false,
+            | Self::PsqlIntervalExpression(_)
+            | Self::PsqlRowConstructorExpression(_) => false,
         }
     }
 }
