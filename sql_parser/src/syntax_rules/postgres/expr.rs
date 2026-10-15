@@ -13,15 +13,15 @@ use crate::syntax_rules::parse_error::{
 use crate::{SqlParser, SqlSyntaxFeature};
 use sql_syntax::{OperatorPrecedence, SqlSyntaxKind, SqlSyntaxKind::*, T};
 
-/// `name => value` -- a named function argument. The caller has already
-/// checked that `name =>` is ahead.
+/// `name => value` (or legacy `name := value`) -- a named function
+/// argument. The caller has already checked that `name =>`/`:=` is ahead.
 pub(crate) fn parse_named_argument(p: &mut SqlParser) -> ParsedSyntax {
     SqlSyntaxFeature::Postgres.parse_exclusive_syntax(
         p,
         |p| {
             let m = p.start();
             parse_name(p).or_add_diagnostic(p, expected_identifier);
-            p.bump(T![=>]);
+            p.bump_any();
             parse_expression(p).or_add_diagnostic(p, expected_expression);
             Present(m.complete(p, PSQL_NAMED_ARGUMENT))
         },

@@ -8,7 +8,7 @@ impl FormatNodeRule<PsqlNamedArgument> for FormatPsqlNamedArgument {
     fn fmt_fields(&self, node: &PsqlNamedArgument, f: &mut SqlFormatter) -> FormatResult<()> {
         let PsqlNamedArgumentFields {
             name,
-            fat_arrow_token,
+            operator,
             value,
         } = node.as_fields();
 
@@ -17,7 +17,7 @@ impl FormatNodeRule<PsqlNamedArgument> for FormatPsqlNamedArgument {
             [
                 name.format(),
                 space(),
-                fat_arrow_token.format(),
+                operator.format(),
                 space(),
                 value.format()
             ]

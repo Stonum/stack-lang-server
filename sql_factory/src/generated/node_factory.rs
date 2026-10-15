@@ -1810,14 +1810,14 @@ pub fn psql_multi_column_set_item(
 }
 pub fn psql_named_argument(
     name: SqlName,
-    fat_arrow_token: SyntaxToken,
+    operator_token: SyntaxToken,
     value: AnySqlExpression,
 ) -> PsqlNamedArgument {
     PsqlNamedArgument::unwrap_cast(SyntaxNode::new_detached(
         SqlSyntaxKind::PSQL_NAMED_ARGUMENT,
         [
             Some(SyntaxElement::Node(name.into_syntax())),
-            Some(SyntaxElement::Token(fat_arrow_token)),
+            Some(SyntaxElement::Token(operator_token)),
             Some(SyntaxElement::Node(value.into_syntax())),
         ],
     ))
@@ -2239,6 +2239,7 @@ pub fn psql_pl_cursor_declaration(
         keyword_token,
         query,
         scroll: None,
+        parameters: None,
     }
 }
 pub struct PsqlPlCursorDeclarationBuilder {
@@ -2247,10 +2248,15 @@ pub struct PsqlPlCursorDeclarationBuilder {
     keyword_token: SyntaxToken,
     query: AnySqlStatement,
     scroll: Option<PsqlPlScrollOption>,
+    parameters: Option<PsqlPlCursorParameters>,
 }
 impl PsqlPlCursorDeclarationBuilder {
     pub fn with_scroll(mut self, scroll: PsqlPlScrollOption) -> Self {
         self.scroll = Some(scroll);
+        self
+    }
+    pub fn with_parameters(mut self, parameters: PsqlPlCursorParameters) -> Self {
+        self.parameters = Some(parameters);
         self
     }
     pub fn build(self) -> PsqlPlCursorDeclaration {
@@ -2261,11 +2267,36 @@ impl PsqlPlCursorDeclarationBuilder {
                 self.scroll
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.cursor_token)),
+                self.parameters
+                    .map(|token| SyntaxElement::Node(token.into_syntax())),
                 Some(SyntaxElement::Token(self.keyword_token)),
                 Some(SyntaxElement::Node(self.query.into_syntax())),
             ],
         ))
     }
+}
+pub fn psql_pl_cursor_parameter(name: SqlName, ty: SqlTypeName) -> PsqlPlCursorParameter {
+    PsqlPlCursorParameter::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_CURSOR_PARAMETER,
+        [
+            Some(SyntaxElement::Node(name.into_syntax())),
+            Some(SyntaxElement::Node(ty.into_syntax())),
+        ],
+    ))
+}
+pub fn psql_pl_cursor_parameters(
+    l_paren_token: SyntaxToken,
+    parameters: PsqlPlCursorParameterList,
+    r_paren_token: SyntaxToken,
+) -> PsqlPlCursorParameters {
+    PsqlPlCursorParameters::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_CURSOR_PARAMETERS,
+        [
+            Some(SyntaxElement::Token(l_paren_token)),
+            Some(SyntaxElement::Node(parameters.into_syntax())),
+            Some(SyntaxElement::Token(r_paren_token)),
+        ],
+    ))
 }
 pub fn psql_pl_declare_section(
     declare_token: SyntaxToken,
@@ -2448,16 +2479,22 @@ pub fn psql_pl_exit_when_clause(
 pub fn psql_pl_fetch_direction() -> PsqlPlFetchDirectionBuilder {
     PsqlPlFetchDirectionBuilder {
         kind_token: None,
+        all_token: None,
         count: None,
     }
 }
 pub struct PsqlPlFetchDirectionBuilder {
     kind_token: Option<SyntaxToken>,
+    all_token: Option<SyntaxToken>,
     count: Option<AnySqlExpression>,
 }
 impl PsqlPlFetchDirectionBuilder {
     pub fn with_kind_token(mut self, kind_token: SyntaxToken) -> Self {
         self.kind_token = Some(kind_token);
+        self
+    }
+    pub fn with_all_token(mut self, all_token: SyntaxToken) -> Self {
+        self.all_token = Some(all_token);
         self
     }
     pub fn with_count(mut self, count: AnySqlExpression) -> Self {
@@ -2469,6 +2506,7 @@ impl PsqlPlFetchDirectionBuilder {
             SqlSyntaxKind::PSQL_PL_FETCH_DIRECTION,
             [
                 self.kind_token.map(|token| SyntaxElement::Token(token)),
+                self.all_token.map(|token| SyntaxElement::Token(token)),
                 self.count
                     .map(|token| SyntaxElement::Node(token.into_syntax())),
             ],
@@ -2916,7 +2954,7 @@ pub fn psql_pl_null_statement(
 }
 pub fn psql_pl_open_arguments(
     l_paren_token: SyntaxToken,
-    arguments: SqlExpressionList,
+    arguments: SqlCallArgumentList,
     r_paren_token: SyntaxToken,
 ) -> PsqlPlOpenArguments {
     PsqlPlOpenArguments::unwrap_cast(SyntaxNode::new_detached(
@@ -8440,6 +8478,27 @@ where
         items
             .into_iter()
             .map(|item| Some(item.into_syntax().into())),
+    ))
+}
+pub fn psql_pl_cursor_parameter_list<I, S>(items: I, separators: S) -> PsqlPlCursorParameterList
+where
+    I: IntoIterator<Item = PsqlPlCursorParameter>,
+    I::IntoIter: ExactSizeIterator,
+    S: IntoIterator<Item = SqlSyntaxToken>,
+    S::IntoIter: ExactSizeIterator,
+{
+    let mut items = items.into_iter();
+    let mut separators = separators.into_iter();
+    let length = items.len() + separators.len();
+    PsqlPlCursorParameterList::unwrap_cast(SyntaxNode::new_detached(
+        SqlSyntaxKind::PSQL_PL_CURSOR_PARAMETER_LIST,
+        (0..length).map(|index| {
+            if index % 2 == 0 {
+                Some(items.next()?.into_syntax().into())
+            } else {
+                Some(separators.next()?.into())
+            }
+        }),
     ))
 }
 pub fn psql_pl_declaration_list<I>(items: I) -> PsqlPlDeclarationList

@@ -1137,8 +1137,21 @@ PsqlPlCursorDeclaration =
    name: SqlName
    scroll: PsqlPlScrollOption?
    'cursor'
+   parameters: PsqlPlCursorParameters?
    keyword: ('for' | 'is')
    query: AnySqlStatement
+
+// `(name type, ...)`
+PsqlPlCursorParameters =
+   '('
+   parameters: PsqlPlCursorParameterList
+   ')'
+
+PsqlPlCursorParameterList = (PsqlPlCursorParameter (',' PsqlPlCursorParameter)*)
+
+PsqlPlCursorParameter =
+   name: SqlName
+   type: SqlTypeName
 
 // `[NO] SCROLL`
 PsqlPlScrollOption =
@@ -1362,7 +1375,7 @@ PsqlPlOpenStatement =
 
 PsqlPlOpenArguments =
    '('
-   arguments: SqlExpressionList
+   arguments: SqlCallArgumentList
    ')'
 
 PsqlPlOpenForClause =
@@ -1385,6 +1398,8 @@ PsqlPlFetchStatement =
 // `NEXT`, `PRIOR`, `FIRST`, `LAST`, `ABSOLUTE n`, `RELATIVE n`, `FORWARD [n | ALL]`, ...
 PsqlPlFetchDirection =
    kind: ('next' | 'prior' | 'first' | 'last' | 'absolute' | 'relative' | 'forward' | 'backward' | 'all')?
+   // `FORWARD ALL` / `BACKWARD ALL`
+   'all'?
    count: AnySqlExpression?
 
 // `CLOSE cursor;`
@@ -1999,9 +2014,10 @@ AnySqlCallArgument =
    | PsqlNamedArgument
 
 // `name => value` -- Postgres named notation, e.g. `make_interval(hours => 1)`.
+// `name => value`, or the legacy `name := value`.
 PsqlNamedArgument =
    name: SqlName
-   '=>'
+   operator: ('=>' | ':=')
    value: AnySqlExpression
 
 SqlWindowFunctionExpression =
