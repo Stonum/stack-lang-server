@@ -93,3 +93,49 @@ fn test_broken_cursors_report_errors() {
         assert!(res.has_errors(), "{src}");
     }
 }
+
+#[test]
+fn test_cursor_parameters_and_named_open_arguments() {
+    let src = r#"do $$
+declare
+    c1 cursor (key integer, "Поле" text) for select * from ~Таблица~ where row_id = key;
+    c2 scroll cursor (n int) is select n;
+begin
+    open c1(1, 'a');
+    open c1(key := 1, "Поле" => 'a');
+    open c2(n := 5);
+end $$;"#;
+
+    assert_eq!(count(src, "PSQL_PL_CURSOR_PARAMETERS"), 2);
+    assert_eq!(count(src, "PSQL_PL_CURSOR_PARAMETER"), 3);
+    assert_eq!(count(src, "PSQL_NAMED_ARGUMENT"), 3);
+}
+
+#[test]
+fn test_fetch_forward_backward_all() {
+    let src = r#"do $$
+begin
+    move forward all from c;
+    move backward all in c;
+    move forward 2 from c;
+    fetch forward from c into x;
+    fetch all from c;
+end $$;"#;
+
+    assert_eq!(count(src, "PSQL_PL_FETCH_STATEMENT"), 5);
+    assert_eq!(count(src, "PSQL_PL_FETCH_DIRECTION"), 5);
+}
+
+#[test]
+fn test_broken_cursor_parameters_report_errors() {
+    for src in [
+        "do $$ declare c cursor (a) for select 1; begin end $$",
+        "do $$ declare c cursor (a int for select 1; begin end $$",
+        "do $$ declare c cursor (a int,) for select 1; begin end $$",
+        "do $$ begin open c(a :=); end $$",
+    ] {
+        let res = parse(src, postgres());
+
+        assert!(res.has_errors(), "{src}");
+    }
+}

@@ -10,6 +10,7 @@ impl FormatNodeRule<PsqlPlCursorDeclaration> for FormatPsqlPlCursorDeclaration {
             name,
             scroll,
             cursor_token,
+            parameters,
             keyword,
             query,
         } = node.as_fields();
@@ -18,12 +19,14 @@ impl FormatNodeRule<PsqlPlCursorDeclaration> for FormatPsqlPlCursorDeclaration {
         if let Some(scroll) = scroll {
             write!(f, [space(), scroll.format()])?;
         }
+        write!(f, [space(), cursor_token.format()])?;
+        if let Some(parameters) = parameters {
+            write!(f, [space(), parameters.format()])?;
+        }
         // A query that does not fit moves under the header, indented.
         write!(
             f,
             [
-                space(),
-                cursor_token.format(),
                 space(),
                 keyword.format(),
                 group(&soft_line_indent_or_space(&query.format()))

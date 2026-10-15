@@ -2,7 +2,7 @@
 
 use biome_parser::ParserProgress;
 use biome_parser::parse_lists::ParseSeparatedList;
-use biome_parser::parse_recovery::ParseRecoveryTokenSet;
+use biome_parser::parse_recovery::{ParseRecoveryTokenSet, RecoveryResult};
 use biome_parser::parsed_syntax::ParsedSyntax::{Absent, Present};
 use biome_parser::prelude::*;
 
@@ -10,7 +10,7 @@ use crate::SqlParser;
 use crate::lexer::SqlReLexContext;
 use crate::syntax_rules::expr::parse_string_literal_expression;
 use crate::syntax_rules::expr::{
-    SqlExpressionList, is_at_name_start, parse_binary_or_logical_expression, parse_expression,
+    SqlCallArgumentList, is_at_name_start, parse_binary_or_logical_expression, parse_expression,
     parse_label, parse_name, parse_type_name,
 };
 use crate::syntax_rules::expr::{at_subquery, parse_subquery_expression};
@@ -463,12 +463,19 @@ fn is_at_pl_cursor_declaration(p: &mut SqlParser) -> bool {
             || (p.nth_at(1, T![no]) && p.nth_at(2, T![scroll])))
 }
 
-/// `name [[NO] SCROLL] CURSOR {FOR | IS} query;`
+/// `name [[NO] SCROLL] CURSOR [(name type, ...)] {FOR | IS} query;`
 fn parse_pl_cursor_declaration(p: &mut SqlParser) -> ParsedSyntax {
     let m = p.start();
     parse_name(p).or_add_diagnostic(p, expected_identifier);
     let _ = parse_pl_scroll_option(p);
     p.expect(T![cursor]);
+    if p.at(T!['(']) {
+        let parameters = p.start();
+        p.bump(T!['(']);
+        PsqlPlCursorParameterList.parse_list(p);
+        p.expect(T![')']);
+        parameters.complete(p, PSQL_PL_CURSOR_PARAMETERS);
+    }
     if p.at(T![for]) || p.at(T![is]) {
         p.bump_any();
     } else {
@@ -488,6 +495,45 @@ fn parse_pl_query(p: &mut SqlParser) {
         p.bump(T![;]);
     } else {
         parse_statement(p).or_add_diagnostic(p, expected_statement);
+    }
+}
+
+/// `name type, ...` inside a cursor declaration's parentheses.
+struct PsqlPlCursorParameterList;
+
+impl ParseSeparatedList for PsqlPlCursorParameterList {
+    type Kind = SqlSyntaxKind;
+    type Parser<'source> = SqlParser<'source>;
+    const LIST_KIND: Self::Kind = PSQL_PL_CURSOR_PARAMETER_LIST;
+
+    fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
+        if !is_at_name_start(p) {
+            return Absent;
+        }
+        let m = p.start();
+        parse_name(p).or_add_diagnostic(p, expected_identifier);
+        parse_type_name(p).or_add_diagnostic(p, expected_type_name);
+        Present(m.complete(p, PSQL_PL_CURSOR_PARAMETER))
+    }
+
+    fn is_at_list_end(&self, p: &mut Self::Parser<'_>) -> bool {
+        p.at(EOF) || p.at(T![')'])
+    }
+
+    fn recover(
+        &mut self,
+        p: &mut Self::Parser<'_>,
+        parsed_element: ParsedSyntax,
+    ) -> RecoveryResult {
+        parsed_element.or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(SQL_BOGUS, token_set![T![,], T![')'], T![for], T![is]]),
+            expected_identifier,
+        )
+    }
+
+    fn separating_element_kind(&mut self) -> Self::Kind {
+        T![,]
     }
 }
 
@@ -761,7 +807,7 @@ fn parse_pl_open_statement(p: &mut SqlParser) -> ParsedSyntax {
     if p.at(T!['(']) {
         let arguments = p.start();
         p.bump(T!['(']);
-        SqlExpressionList.parse_list(p);
+        SqlCallArgumentList.parse_list(p);
         p.expect(T![')']);
         arguments.complete(p, PSQL_PL_OPEN_ARGUMENTS);
     }
@@ -812,8 +858,12 @@ fn parse_pl_fetch_statement(p: &mut SqlParser) -> ParsedSyntax {
         && !p.at(T![in]);
     if has_direction {
         let direction = p.start();
+        // `FORWARD ALL` / `BACKWARD ALL`
+        let all_follows = (p.at(T![forward]) || p.at(T![backward])) && p.nth_at(1, T![all]);
         let keyword = p.eat_ts(FETCH_DIRECTION_SET);
-        if !p.at(T![from]) && !p.at(T![in]) {
+        if all_follows {
+            p.bump(T![all]);
+        } else if !p.at(T![from]) && !p.at(T![in]) {
             parse_binary_or_logical_expression(p, OperatorPrecedence::Predicate)
                 .or_add_diagnostic(p, expected_expression);
         } else if !keyword {

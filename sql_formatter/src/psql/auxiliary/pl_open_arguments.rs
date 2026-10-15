@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use crate::utils::{is_simple_expression, write_bracketed_fill_list};
-use sql_syntax::AnySqlExpression;
+use crate::utils::{is_simple_call_argument, write_bracketed_fill_list};
+use sql_syntax::AnySqlCallArgument;
 use sql_syntax::PsqlPlOpenArguments;
 use sql_syntax::PsqlPlOpenArgumentsFields;
 #[derive(Debug, Clone, Default)]
@@ -17,7 +17,7 @@ impl FormatNodeRule<PsqlPlOpenArguments> for FormatPsqlPlOpenArguments {
             l_paren_token,
             &arguments,
             r_paren_token,
-            |argument: &AnySqlExpression| !is_simple_expression(argument, 0),
+            |argument: &AnySqlCallArgument| !is_simple_call_argument(argument, 0),
             f,
         )
     }

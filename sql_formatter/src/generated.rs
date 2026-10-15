@@ -2527,6 +2527,82 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorDeclaration {
         )
     }
 }
+impl FormatRule<sql_syntax::PsqlPlCursorParameter>
+    for crate::psql::auxiliary::pl_cursor_parameter::FormatPsqlPlCursorParameter
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlCursorParameter,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlCursorParameter>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorParameter {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlCursorParameter,
+        crate::psql::auxiliary::pl_cursor_parameter::FormatPsqlPlCursorParameter,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_cursor_parameter::FormatPsqlPlCursorParameter::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorParameter {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlCursorParameter,
+        crate::psql::auxiliary::pl_cursor_parameter::FormatPsqlPlCursorParameter,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_cursor_parameter::FormatPsqlPlCursorParameter::default(),
+        )
+    }
+}
+impl FormatRule<sql_syntax::PsqlPlCursorParameters>
+    for crate::psql::auxiliary::pl_cursor_parameters::FormatPsqlPlCursorParameters
+{
+    type Context = SqlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &sql_syntax::PsqlPlCursorParameters,
+        f: &mut SqlFormatter,
+    ) -> FormatResult<()> {
+        FormatNodeRule::<sql_syntax::PsqlPlCursorParameters>::fmt(self, node, f)
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorParameters {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlCursorParameters,
+        crate::psql::auxiliary::pl_cursor_parameters::FormatPsqlPlCursorParameters,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_cursor_parameters::FormatPsqlPlCursorParameters::default(),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorParameters {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlCursorParameters,
+        crate::psql::auxiliary::pl_cursor_parameters::FormatPsqlPlCursorParameters,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::auxiliary::pl_cursor_parameters::FormatPsqlPlCursorParameters::default(),
+        )
+    }
+}
 impl FormatRule<sql_syntax::PsqlPlDeclareSection>
     for crate::psql::auxiliary::pl_declare_section::FormatPsqlPlDeclareSection
 {
@@ -10803,6 +10879,33 @@ impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCaseWhenClauseList {
         FormatOwnedWithRule::new(
             self,
             crate::psql::lists::pl_case_when_clause_list::FormatPsqlPlCaseWhenClauseList::default(),
+        )
+    }
+}
+impl AsFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorParameterList {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        sql_syntax::PsqlPlCursorParameterList,
+        crate::psql::lists::pl_cursor_parameter_list::FormatPsqlPlCursorParameterList,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::psql::lists::pl_cursor_parameter_list::FormatPsqlPlCursorParameterList::default(
+            ),
+        )
+    }
+}
+impl IntoFormat<SqlFormatContext> for sql_syntax::PsqlPlCursorParameterList {
+    type Format = FormatOwnedWithRule<
+        sql_syntax::PsqlPlCursorParameterList,
+        crate::psql::lists::pl_cursor_parameter_list::FormatPsqlPlCursorParameterList,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::psql::lists::pl_cursor_parameter_list::FormatPsqlPlCursorParameterList::default(
+            ),
         )
     }
 }

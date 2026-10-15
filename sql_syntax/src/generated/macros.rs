@@ -327,6 +327,14 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::PsqlPlCursorDeclaration::new_unchecked(node) };
                     $body
                 }
+                $crate::SqlSyntaxKind::PSQL_PL_CURSOR_PARAMETER => {
+                    let $pattern = unsafe { $crate::PsqlPlCursorParameter::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_CURSOR_PARAMETERS => {
+                    let $pattern = unsafe { $crate::PsqlPlCursorParameters::new_unchecked(node) };
+                    $body
+                }
                 $crate::SqlSyntaxKind::PSQL_PL_DECLARE_SECTION => {
                     let $pattern = unsafe { $crate::PsqlPlDeclareSection::new_unchecked(node) };
                     $body
@@ -1334,6 +1342,11 @@ macro_rules! map_syntax_node {
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_CASE_WHEN_CLAUSE_LIST => {
                     let $pattern = unsafe { $crate::PsqlPlCaseWhenClauseList::new_unchecked(node) };
+                    $body
+                }
+                $crate::SqlSyntaxKind::PSQL_PL_CURSOR_PARAMETER_LIST => {
+                    let $pattern =
+                        unsafe { $crate::PsqlPlCursorParameterList::new_unchecked(node) };
                     $body
                 }
                 $crate::SqlSyntaxKind::PSQL_PL_DECLARATION_LIST => {

@@ -68,3 +68,47 @@ $$;
 "#
     );
 }
+
+#[test]
+fn format_cursor_parameters_and_fetch_all() {
+    assert_fmt_eq!(
+        r#"--
+DO $$ DECLARE c CURSOR ( Key INT,n TEXT ) FOR SELECT a FROM t WHERE b = Key; BEGIN OPEN c( Key:=1 , n=>'a' ); MOVE FORWARD ALL FROM c; MOVE BACKWARD ALL IN c; END $$;
+"#,
+        r#"--
+do $$
+declare
+	c cursor (Key int, n text) for select a from t where b = Key;
+begin
+	open c(Key := 1, n => 'a');
+	move forward all from c;
+	move backward all in c;
+end
+$$;
+"#
+    );
+}
+
+#[test]
+fn format_long_cursor_parameters_wrap() {
+    assert_fmt_eq!(
+        r#"--
+do $$ declare accounts_cursor cursor (first_parameter_name integer, second_parameter_name text, third_parameter_name timestamptz, fourth_parameter_name boolean) for select 1; begin open accounts_cursor(first_parameter_name := 1, second_parameter_name := 'some text value', third_parameter_name := now(), fourth_parameter_name := true); end $$;
+"#,
+        r#"--
+do $$
+declare
+	accounts_cursor cursor (
+		first_parameter_name integer, second_parameter_name text,
+		third_parameter_name timestamptz, fourth_parameter_name boolean
+	) for select 1;
+begin
+	open accounts_cursor(
+		first_parameter_name := 1, second_parameter_name := 'some text value',
+		third_parameter_name := now(), fourth_parameter_name := true
+	);
+end
+$$;
+"#
+    );
+}

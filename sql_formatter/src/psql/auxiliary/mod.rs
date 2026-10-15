@@ -29,6 +29,8 @@ pub(crate) mod partition_value_list;
 pub(crate) mod pl_block;
 pub(crate) mod pl_body;
 pub(crate) mod pl_cursor_declaration;
+pub(crate) mod pl_cursor_parameter;
+pub(crate) mod pl_cursor_parameters;
 pub(crate) mod pl_declare_section;
 pub(crate) mod pl_diagnostics_item;
 pub(crate) mod pl_exception_handler;

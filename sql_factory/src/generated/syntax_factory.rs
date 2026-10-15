@@ -2477,7 +2477,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && element.kind() == T ! [=>]
+                    && matches!(element.kind(), T ! [=>] | T ! [:=])
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -3246,7 +3246,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             PSQL_PL_CURSOR_DECLARATION => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<5usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<6usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && SqlName::can_cast(element.kind())
@@ -3264,6 +3264,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 slots.next_slot();
                 if let Some(element) = &current_element
                     && element.kind() == T![cursor]
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlCursorParameters::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -3290,6 +3297,65 @@ impl SyntaxFactory for SqlSyntaxFactory {
                     );
                 }
                 slots.into_node(PSQL_PL_CURSOR_DECLARATION, children)
+            }
+            PSQL_PL_CURSOR_PARAMETER => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && SqlName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && SqlTypeName::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_CURSOR_PARAMETER.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_CURSOR_PARAMETER, children)
+            }
+            PSQL_PL_CURSOR_PARAMETERS => {
+                let mut elements = (&children).into_iter();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
+                let mut current_element = elements.next();
+                if let Some(element) = &current_element
+                    && element.kind() == T!['(']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && PsqlPlCursorParameterList::can_cast(element.kind())
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![')']
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if current_element.is_some() {
+                    return RawSyntaxNode::new(
+                        PSQL_PL_CURSOR_PARAMETERS.to_bogus(),
+                        children.into_iter().map(Some),
+                    );
+                }
+                slots.into_node(PSQL_PL_CURSOR_PARAMETERS, children)
             }
             PSQL_PL_DECLARE_SECTION => {
                 let mut elements = (&children).into_iter();
@@ -3597,7 +3663,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
             }
             PSQL_PL_FETCH_DIRECTION => {
                 let mut elements = (&children).into_iter();
-                let mut slots: RawNodeSlots<2usize> = RawNodeSlots::default();
+                let mut slots: RawNodeSlots<3usize> = RawNodeSlots::default();
                 let mut current_element = elements.next();
                 if let Some(element) = &current_element
                     && matches!(
@@ -3612,6 +3678,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
                             | T![backward]
                             | T![all]
                     )
+                {
+                    slots.mark_present();
+                    current_element = elements.next();
+                }
+                slots.next_slot();
+                if let Some(element) = &current_element
+                    && element.kind() == T![all]
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -4213,7 +4286,7 @@ impl SyntaxFactory for SqlSyntaxFactory {
                 }
                 slots.next_slot();
                 if let Some(element) = &current_element
-                    && SqlExpressionList::can_cast(element.kind())
+                    && SqlCallArgumentList::can_cast(element.kind())
                 {
                     slots.mark_present();
                     current_element = elements.next();
@@ -12265,6 +12338,13 @@ impl SyntaxFactory for SqlSyntaxFactory {
             PSQL_PL_CASE_WHEN_CLAUSE_LIST => {
                 Self::make_node_list_syntax(kind, children, PsqlPlCaseWhenClause::can_cast)
             }
+            PSQL_PL_CURSOR_PARAMETER_LIST => Self::make_separated_list_syntax(
+                kind,
+                children,
+                PsqlPlCursorParameter::can_cast,
+                T ! [,],
+                false,
+            ),
             PSQL_PL_DECLARATION_LIST => {
                 Self::make_node_list_syntax(kind, children, AnyPsqlPlDeclaration::can_cast)
             }

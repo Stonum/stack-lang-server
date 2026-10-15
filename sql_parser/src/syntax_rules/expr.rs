@@ -1400,7 +1400,7 @@ impl ParseSeparatedList for SqlExpressionList {
 }
 
 /// Function call arguments: expressions or Postgres named arguments.
-struct SqlCallArgumentList;
+pub(crate) struct SqlCallArgumentList;
 
 impl ParseSeparatedList for SqlCallArgumentList {
     type Kind = SqlSyntaxKind;
@@ -1408,7 +1408,7 @@ impl ParseSeparatedList for SqlCallArgumentList {
     const LIST_KIND: Self::Kind = SQL_CALL_ARGUMENT_LIST;
 
     fn parse_element(&mut self, p: &mut Self::Parser<'_>) -> ParsedSyntax {
-        if is_at_name_start(p) && p.nth_at(1, T![=>]) {
+        if is_at_name_start(p) && (p.nth_at(1, T![=>]) || p.nth_at(1, T![:=])) {
             return parse_named_argument(p);
         }
         parse_expression(p)
