@@ -13,13 +13,35 @@ fn format_two_conditions_stays_flat() {
 }
 
 #[test]
-fn format_two_conditions_stays_flat_even_when_long() {
-    // Style rule 5: only condition *count* matters, not line width -- two
-    // conditions never wrap, no matter how long.
+fn format_two_conditions_stays_flat_while_it_fits() {
     assert_fmt_node!(
         "select a from t where really_long_column_name_one > 1 and really_long_column_name_two < 2",
         SqlSyntaxKind::SQL_LOGICAL_EXPRESSION,
         "really_long_column_name_one > 1 and really_long_column_name_two < 2"
+    );
+}
+
+#[test]
+fn format_two_conditions_wrap_before_operator_instead_of_call_arguments() {
+    assert_fmt_eq!(
+        r#"select a from t where some_very_long_column_name_here = :some_long_parameter_name and (other_long_column = any(t.ids) or array_length(t.ids, 1) is null)"#,
+        r#"select a
+from t
+where some_very_long_column_name_here = :some_long_parameter_name
+	and (other_long_column = any(t.ids) or array_length(t.ids, 1) is null)
+"#
+    );
+}
+
+#[test]
+fn format_two_conditions_wrapped_round_trip() {
+    assert_fmt!(
+        r#"--
+select a
+from t
+where some_very_long_column_name_here = :some_long_parameter_name
+	and (other_long_column = any(t.ids) or array_length(t.ids, 1) is null)
+"#
     );
 }
 

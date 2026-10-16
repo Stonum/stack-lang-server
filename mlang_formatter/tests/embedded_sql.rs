@@ -543,3 +543,23 @@ fn multiline_string_as_non_first_argument_does_not_grow_indent_each_pass() {
         "formatting is not idempotent:\nfirst pass:\n======\n{pass1}\n======\nsecond pass:\n======\n{pass2}\n======\n"
     );
 }
+
+#[test]
+fn embedded_sql_two_conditions_wrap_before_operator_instead_of_call_arguments() {
+    assert_fmt_eq!(
+        r#"#
+var q = Query(`
+   select t."Код"
+   from ~Таблица~ t
+   where t."Владелец" = :owner and (t."Элемент" = any(ids.id) or array_length(ids.id, 1) is null)
+`, 100, "owner,S");
+"#,
+        r#"#
+var q = Query(`
+   select t."Код"
+   from ~Таблица~ t
+   where t."Владелец" = :owner
+      and (t."Элемент" = any(ids.id) or array_length(ids.id, 1) is null)
+`, 100, "owner,S");"#
+    );
+}

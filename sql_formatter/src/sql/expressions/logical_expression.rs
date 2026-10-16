@@ -60,22 +60,41 @@ impl FormatNodeRule<SqlLogicalExpression> for FormatSqlLogicalExpression {
         operands.push((Some(node.operator_token()?), node.right()?));
 
         let (_, first) = &operands[0];
-        write!(f, [first.format()])?;
 
         if operands.len() <= 2 && operands.iter().all(|(_, expr)| !is_complex_condition(expr)) {
-            // Style rule 5: a chain of at most two conditions never wraps,
-            // no matter how long the line ends up being -- unless one of the
-            // two is itself a nested and/or group (see [is_complex_condition]),
-            // which can hide arbitrary further nesting behind what looks
-            // like a single operand here.
-            for (operator, expr) in &operands[1..] {
-                let operator = operator
-                    .as_ref()
-                    .expect("non-first operand has an operator");
-                write!(f, [space(), operator.format(), space(), expr.format()])?;
-            }
-            Ok(())
+            // Style rule 5: a chain of at most two conditions stays on one
+            // line while it fits -- unless one of the two is itself a nested
+            // and/or group (see [is_complex_condition]). When it doesn't fit,
+            // it breaks before the operator, ahead of any group inside an
+            // operand (e.g. call arguments).
+            write!(
+                f,
+                [group(&format_once(|f| {
+                    write!(f, [first.format()])?;
+                    write!(
+                        f,
+                        [indent(&format_once(|f| {
+                            for (operator, expr) in &operands[1..] {
+                                let operator = operator
+                                    .as_ref()
+                                    .expect("non-first operand has an operator");
+                                write!(
+                                    f,
+                                    [
+                                        soft_line_break_or_space(),
+                                        operator.format(),
+                                        space(),
+                                        expr.format()
+                                    ]
+                                )?;
+                            }
+                            Ok(())
+                        }))]
+                    )
+                }))]
+            )
         } else {
+            write!(f, [first.format()])?;
             // More than two conditions: every condition after the first
             // always gets its own line, indented one level deeper than the
             // line being continued, with the operator leading (not
