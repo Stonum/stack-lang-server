@@ -48,4 +48,4 @@ biome_rowan = { workspace = true }
 tokio = { workspace = true, features = ["time"] }
 # drive `Backend` through `LspService` and play the client side of its socket
 futures = "0.3"
-tower = { version = "0.4", features = ["util"] }
+tower = { version = "0.5", features = ["util"] }
