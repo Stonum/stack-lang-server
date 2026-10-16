@@ -1527,6 +1527,7 @@ dependencies = [
 name = "sql_formatter"
 version = "0.0.1"
 dependencies = [
+ "biome_diagnostics",
  "biome_formatter",
  "biome_rowan",
  "biome_unicode_table",

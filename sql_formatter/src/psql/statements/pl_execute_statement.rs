@@ -1,3 +1,4 @@
+use crate::embedded_sql::FormatExecuteCommand;
 use crate::prelude::*;
 use biome_formatter::write;
 use sql_syntax::PsqlPlExecuteStatement;
@@ -17,7 +18,14 @@ impl FormatNodeRule<PsqlPlExecuteStatement> for FormatPsqlPlExecuteStatement {
         write!(
             f,
             [group(&format_once(|f| {
-                write!(f, [execute_token.format(), space(), command.format()])?;
+                write!(
+                    f,
+                    [
+                        execute_token.format(),
+                        space(),
+                        FormatExecuteCommand(&command)
+                    ]
+                )?;
                 if let Some(into_clause) = into_clause {
                     write!(f, [soft_line_break_or_space(), into_clause.format()])?;
                 }

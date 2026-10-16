@@ -54,6 +54,10 @@ impl CommentStyle for SqlCommentStyle {
         &self,
         comment: DecoratedComment<Self::Language>,
     ) -> CommentPlacement<Self::Language> {
+        let comment = match handle_hole_comment(comment) {
+            CommentPlacement::Default(comment) => comment,
+            placed => return placed,
+        };
         let comment = match handle_create_function_body_comment(comment) {
             CommentPlacement::Default(comment) => comment,
             placed => return placed,
@@ -64,6 +68,37 @@ impl CommentStyle for SqlCommentStyle {
         };
         handle_sibling_boundary_comment(comment)
     }
+}
+
+/// A hole placeholder of dynamic SQL (see `embedded_sql.rs`) stays between
+/// the same two tokens: it sticks to the node it touches.
+fn handle_hole_comment(comment: DecoratedComment<SqlLanguage>) -> CommentPlacement<SqlLanguage> {
+    if !crate::embedded_sql::is_hole_comment(comment.piece().text()) {
+        return CommentPlacement::Default(comment);
+    }
+
+    let piece = comment.piece().as_piece();
+    let token = piece.token();
+    let next = if token.text_trimmed_range().start() >= piece.text_range().end() {
+        Some(token)
+    } else {
+        token.next_token()
+    };
+    let previous = next.as_ref().and_then(|next| next.prev_token());
+
+    if let Some(following) = comment.following_node()
+        && following.first_token() == next
+    {
+        let following = following.clone();
+        return CommentPlacement::leading(following, comment);
+    }
+    if let Some(preceding) = comment.preceding_node()
+        && preceding.last_token() == previous
+    {
+        let preceding = preceding.clone();
+        return CommentPlacement::trailing(preceding, comment);
+    }
+    CommentPlacement::Default(comment)
 }
 
 /// A comment between two bare-token-separated clauses of `CREATE FUNCTION`

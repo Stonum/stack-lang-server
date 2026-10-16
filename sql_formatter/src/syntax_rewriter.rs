@@ -90,6 +90,8 @@ impl SqlFormatSyntaxRewriter {
                     // An index element that isn't a column or a call must be
                     // parenthesized: `create index i on t ((a * 2))`.
                     || is_index_element(parenthesized.syntax())
+                    // A hole of dynamic SQL may hold any expression at runtime.
+                    || crate::embedded_sql::contains_hole_placeholder(inner.syntax())
                     // `(expr).field` and `(expr)[i]` need their parens:
                     // `f(x).field` and `f(x)[i]` aren't valid.
                     || parenthesized.syntax().parent().is_some_and(|parent| {
