@@ -9,6 +9,7 @@ mod syntax_rewriter;
 
 pub(crate) mod comments;
 pub(crate) mod context;
+pub(crate) mod embedded_sql;
 
 pub(crate) mod separated;
 pub(crate) mod utils;
