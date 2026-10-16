@@ -59,7 +59,14 @@ pub fn format(
                 .ok()?
         }
         DocumentKind::Sql => {
-            let format_options = sql_formatter::SqlFormatOptions::new(SqlFileSource::script())
+            // The document's own source (Postgres + mlang): the formatter also
+            // parses SQL itself, e.g. the query inside an `EXECUTE` string.
+            let file_source = document
+                .kind()
+                .sql_file_source()
+                .unwrap_or_else(SqlFileSource::script);
+
+            let format_options = sql_formatter::SqlFormatOptions::new(file_source)
                 .with_indent_style(indent_style)
                 .with_line_width(line_width)
                 .with_indent_width(indent_width);
@@ -142,6 +149,26 @@ mod tests {
 
         assert_eq!(edits.len(), 1);
         assert_eq!(edits[0].new_text, "select a, b from t");
+    }
+
+    #[test]
+    fn formats_the_query_inside_execute() {
+        let uri = Url::parse("file:///test.sql").unwrap();
+        let text = "do $$ begin execute 'SELECT * FROM ~$Таблица~ WHERE a = ' || x; end $$;
+";
+        let document =
+            CurrentDocument::new_sql(uri, text, DocumentKind::Sql.sql_file_source().unwrap());
+
+        let edits = format(&document, formatting_options(), whole_document_range(text))
+            .expect("sql document should format");
+
+        assert!(
+            edits[0]
+                .new_text
+                .contains("execute 'select * from ~$Таблица~ where a = ' || x;"),
+            "{}",
+            edits[0].new_text
+        );
     }
 
     #[test]
