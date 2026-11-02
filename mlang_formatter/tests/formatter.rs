@@ -195,6 +195,29 @@ class foo
 }
 
 #[test]
+fn format_constructor_parameters_keep_space_after_comma() {
+    assert_fmt_eq!(
+        r#"#
+class foo
+{
+   constructor(param1,param2)
+   {
+      this._bar = null;
+   }
+}
+"#,
+        r#"#
+class foo
+{
+   constructor(param1, param2)
+   {
+      this._bar = null;
+   }
+}"#
+    );
+}
+
+#[test]
 fn format_class_with_annotations() {
     assert_fmt!(
         r#"#

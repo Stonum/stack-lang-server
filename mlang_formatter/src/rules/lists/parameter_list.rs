@@ -108,7 +108,7 @@ where
                 .with_trailing_separator(trailing_separator);
 
             for format_entry in entries {
-                joiner.entry(&soft_line_break(), &format_entry);
+                joiner.entry(&soft_line_break_or_space(), &format_entry);
             }
         }
     }
