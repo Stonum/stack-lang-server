@@ -310,3 +310,29 @@ pub(crate) fn write_with_custom_line_width(
 
     Ok(())
 }
+
+/// Whether `node`'s subtree contains a multi-line string literal token
+/// anywhere (a plain `M_STRING_LITERAL`/`M_LONG_STRING_LITERAL` token with an
+/// embedded newline -- the token an embedded SQL literal's
+/// `MSqlStringLiteralExpression`/`MSqlLongStringLiteralExpression` still
+/// carries is one of these, so SQL classified literals are detected here too).
+///
+/// `write_with_custom_line_width` (the compact-fill layout used for long
+/// call-argument / array-element / member lists) reformats the whole list in
+/// an isolated pass at a narrower width and re-splices the result back into
+/// the real document line by line via `hard_line_break()`, so the *real*
+/// ambient indent applies to each line. A multi-line string literal's own
+/// embedded newlines get swept up in that same per-line splice -- baking the
+/// ambient indent *inside* the literal's text, which then becomes the token's
+/// new raw content, permanently, so every subsequent reformat pass adds
+/// another layer on top of the last. Callers must route any list containing
+/// one of these through an ordinary (non-splicing) formatting path instead.
+pub(crate) fn contains_multi_line_string_token(node: &SyntaxNode<MLanguage>) -> bool {
+    node.descendants_tokens(biome_rowan::Direction::Next)
+        .any(|token| {
+            matches!(
+                token.kind(),
+                MSyntaxKind::M_STRING_LITERAL | MSyntaxKind::M_LONG_STRING_LITERAL
+            ) && token.text_trimmed().contains('\n')
+        })
+}

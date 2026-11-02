@@ -563,3 +563,73 @@ var q = Query(`
 `, 100, "owner,S");"#
     );
 }
+
+#[test]
+fn embedded_sql_as_later_array_element_does_not_gain_extra_indent() {
+    // Regression test (issue #20): an embedded SQL query that is a *later*
+    // element of a multi-line `@[...]` array literal used to pick up a large
+    // amount of spurious indentation. The array has >= `COMPACT_FILL_THRESHOLD`
+    // elements and every element is a plain expression, so the list took the
+    // `ArrayLayout::CompactFill` path, which routes through
+    // `write_with_custom_line_width`: that reformats the whole list in an
+    // isolated pass and re-splices it back line by line, baking the ambient
+    // indent *inside* the SQL literal's own embedded newlines. The fix routes
+    // any array containing a multi-line string element through
+    // `ArrayLayout::OnePerLine` instead, so the literal prints through the
+    // ordinary (non-splicing) path and its interior indentation stays put.
+    //
+    // `assert_fmt!` checks both round-trip and idempotency: before the fix,
+    // the first pass already mangles the SQL literal's indent (baking the
+    // array's ambient indent inside the string), so this same assertion failed.
+    assert_fmt!(
+        r#"#
+class Foo
+{
+   get items()
+   {
+      return @[
+         `t1."col_a"`,
+         `t1."col_b"`,
+         `t1."col_c"`,
+         `t1."col_d"`,
+         `t1."col_e"`,
+         `t1."col_f"`,
+         `t1."col_g"`,
+         `t1."col_h"`,
+         `t2."col_i"`,
+         `(
+            select
+               coalesce(array_agg(t3."col_j"), array~[]~::int~[]~)
+            from ~table_three~ t3
+            where t3."col_k" = t1."col_a"
+         ) "col_l"
+         `
+      ];
+   }
+}
+"#
+    );
+}
+
+#[test]
+fn embedded_sql_in_array_actually_reformats_sql_content() {
+    // Companion to `embedded_sql_as_later_array_element_does_not_gain_extra_indent`:
+    // that test covers a parenthesized subquery (which the SQL classifier
+    // rejects, so only its *indentation* is managed, not its interior). This
+    // one shows the contrasting case -- a plain, un-parenthesized query in the
+    // same `@[...]` array IS recognized as embedded SQL, so `sql_formatter`
+    // genuinely rewrites its content (collapsing the run of spaces and
+    // canonicalizing `[bracket]` -> `"..."` identifiers), not merely
+    // re-indenting it.
+    assert_fmt_eq!(
+        r#"#
+var qq = @[
+   `select   *   from   t   where   a   =   1`,
+   `other_a`,
+   `other_b`
+];
+"#,
+        r#"#
+var qq = @[`select * from t where a = 1`, `other_a`, `other_b`];"#
+    );
+}

@@ -5,7 +5,10 @@ use crate::utils::array::write_array_node;
 
 use crate::context::trailing_commas::FormatTrailingCommas;
 use crate::utils::member_chain::SimpleArgument;
-use crate::utils::{COMPACT_FILL_THRESHOLD, write_compact_fill, write_with_custom_line_width};
+use crate::utils::{
+    COMPACT_FILL_THRESHOLD, contains_multi_line_string_token, write_compact_fill,
+    write_with_custom_line_width,
+};
 use biome_rowan::{AstNode, AstSeparatedList};
 use mlang_syntax::{AnyMArrayElement, MArrayElementList};
 
@@ -30,7 +33,10 @@ impl FormatRule<MArrayElementList> for FormatMArrayElementList {
     fn fmt(&self, node: &MArrayElementList, f: &mut MFormatter) -> FormatResult<()> {
         let layout = if can_concisely_print_array_list(node, f.context().comments()) {
             ArrayLayout::Fill
-        } else if node.len() >= COMPACT_FILL_THRESHOLD && has_only_expression_elements(node) {
+        } else if node.len() >= COMPACT_FILL_THRESHOLD
+            && has_only_expression_elements(node)
+            && !has_multi_line_string_element(node)
+        {
             ArrayLayout::CompactFill
         } else {
             ArrayLayout::OnePerLine
@@ -148,6 +154,22 @@ enum ArrayLayout {
 fn has_only_expression_elements(list: &MArrayElementList) -> bool {
     list.iter()
         .all(|element| matches!(element, Ok(AnyMArrayElement::AnyMExpression(_))))
+}
+
+/// Whether any array element's subtree contains a multi-line string literal
+/// (including embedded-SQL literals, which carry a `M_STRING_LITERAL` /
+/// `M_LONG_STRING_LITERAL` token). Such an element must not go through
+/// [ArrayLayout::CompactFill]'s `write_with_custom_line_width`: that path
+/// re-splices the reformatted list back into the real document line by line,
+/// baking the ambient indent *inside* the string's own embedded newlines (see
+/// [contains_multi_line_string_token]). Routing the list through
+/// [ArrayLayout::OnePerLine] instead lets each element print through the
+/// ordinary, non-splicing formatting path, keeping the literal's interior
+/// indentation intact.
+fn has_multi_line_string_element(list: &MArrayElementList) -> bool {
+    list.iter()
+        .filter_map(|element| element.ok())
+        .any(|element| contains_multi_line_string_token(element.syntax()))
 }
 
 /// Returns true if the provided MArrayElementList could

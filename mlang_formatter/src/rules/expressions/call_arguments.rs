@@ -7,8 +7,8 @@ use crate::rules::lists::array_element_list::can_concisely_print_array_list;
 use crate::utils::function_body::FunctionBodyCacheMode;
 use crate::utils::member_chain::SimpleArgument;
 use crate::utils::{
-    ConcatenatedQuery, is_long_curried_call, write_arguments_multi_line,
-    write_with_custom_line_width,
+    ConcatenatedQuery, contains_multi_line_string_token, is_long_curried_call,
+    write_arguments_multi_line, write_with_custom_line_width,
 };
 use biome_formatter::{Buffer, LineWidth, VecBuffer, format_args, format_element, write};
 use biome_rowan::{AstSeparatedElement, AstSeparatedList, SyntaxResult};
@@ -1347,30 +1347,6 @@ fn should_hug_first_call_argument(argument: &AnyMCallArgument, f: &MFormatter) -
         // call-argument layout.
         _ => contains_multi_line_string_token(expression.syntax()),
     }
-}
-
-/// Whether `node`'s subtree contains a multi-line string literal token
-/// anywhere. `write_with_custom_line_width` (the ordinary, non-hugging
-/// call-argument layout used whenever this returns `false` for the first
-/// argument) reformats the whole argument list in an isolated pass at a
-/// narrower width and re-splices the result back into the real document
-/// line by line via `hard_line_break()`, so the *real* ambient indent
-/// applies to each line. Ordinary string-literal formatting never rewrites
-/// a multi-line literal's own interior content, so ANY embedded newline
-/// anywhere in the argument gets swept up in that same per-line splice --
-/// baking the ambient indent *inside* the literal's text, which then
-/// becomes the token's new raw content, permanently, so every subsequent
-/// reformat pass adds another layer on top of the last. Hugging sidesteps
-/// `write_with_custom_line_width` entirely, letting the string print
-/// through the ordinary (non-splicing) formatting path instead.
-fn contains_multi_line_string_token(node: &mlang_syntax::MSyntaxNode) -> bool {
-    node.descendants_tokens(biome_rowan::Direction::Next)
-        .any(|token| {
-            matches!(
-                token.kind(),
-                MSyntaxKind::M_STRING_LITERAL | MSyntaxKind::M_LONG_STRING_LITERAL
-            ) && token.text_trimmed().contains('\n')
-        })
 }
 
 fn is_chained_call_callee(call: &MCallExpression) -> bool {
