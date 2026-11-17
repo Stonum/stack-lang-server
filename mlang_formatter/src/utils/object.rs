@@ -80,7 +80,7 @@ pub(crate) fn write_member_name(
         }
         name => {
             write!(f, [&name])?;
-            Ok(name.text().len())
+            Ok(name.syntax().text_trimmed().to_string().len())
         }
     }
 }

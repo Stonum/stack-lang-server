@@ -24,7 +24,7 @@ fn kind_to_type(token: MSyntaxKind) -> Option<(u32, u32)> {
 
 /// Text of the whole lines `range` spans, clamped to the document.
 fn lines_range(syntax: &SyntaxNode<MLanguage>, line_index: &LineIndex, range: Range) -> TextRange {
-    let document = syntax.text_range();
+    let document = syntax.text_range_with_trivia();
     let line_start = |line: u32| line_index.offset(LineCol { line, col: 0 });
     let start = line_start(range.start.line).unwrap_or(document.end());
     let end = range
@@ -43,7 +43,7 @@ pub fn semantic_tokens(
 ) -> Vec<SemanticToken> {
     let range = match tokens_range {
         Some(range) => lines_range(&syntax, line_index, range),
-        None => syntax.text_range(),
+        None => syntax.text_range_with_trivia(),
     };
 
     let mut result = vec![];

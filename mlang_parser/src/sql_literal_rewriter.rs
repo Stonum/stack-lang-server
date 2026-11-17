@@ -164,7 +164,7 @@ impl SyntaxRewriter for SqlLiteralRewriter<'_> {
     type Language = MLanguage;
 
     fn visit_node(&mut self, node: MSyntaxNode) -> VisitNodeSignal<MLanguage> {
-        if !self.has_hint(node.text_range()) {
+        if !self.has_hint(node.text_range_with_trivia()) {
             // Replacing a node with itself stops the descent without a splice.
             return VisitNodeSignal::Replace(node);
         }

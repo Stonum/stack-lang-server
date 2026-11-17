@@ -10,7 +10,7 @@ use mlang_syntax::{
 use std::collections::BTreeSet;
 
 pub(super) fn transform(root: MSyntaxNode) -> (MSyntaxNode, TransformSourceMap) {
-    let mut rewriter = MFormatSyntaxRewriter::with_offset(root.text_range().start());
+    let mut rewriter = MFormatSyntaxRewriter::with_offset(root.text_range_with_trivia().start());
     let transformed = rewriter.transform(root);
     (transformed, rewriter.finish())
 }
@@ -159,9 +159,9 @@ impl MFormatSyntaxRewriter {
 
         let inner_trimmed_range = inner.text_trimmed_range();
         // Store away the inner offset because the new returned inner might be a detached node
-        let original_inner_offset = inner.text_range().start();
+        let original_inner_offset = inner.text_range_with_trivia().start();
         let inner = self.transform(inner);
-        let inner_offset = original_inner_offset - inner.text_range().start();
+        let inner_offset = original_inner_offset - inner.text_range_with_trivia().start();
 
         match inner.first_token() {
             // This can only happen if we have `()` which is highly unlikely to ever be the case.
@@ -480,7 +480,7 @@ mod tests {
         assert_ne!(&transformed, &root);
 
         // Removes parentheses
-        assert_eq!(&transformed.text().to_string(), "a && b && c");
+        assert_eq!(&transformed.text_with_trivia().to_string(), "a && b && c");
 
         let mut logical_expressions: Vec<_> = transformed
             .descendants()
@@ -493,10 +493,19 @@ mod tests {
         let top = logical_expressions.pop().unwrap();
 
         assert_eq!(top.left().unwrap().syntax(), left.syntax());
-        assert_eq!(&top.right().unwrap().text(), "c");
+        assert_eq!(
+            &top.right().unwrap().syntax().text_trimmed().to_string(),
+            "c"
+        );
 
-        assert_eq!(left.left().unwrap().text(), "a");
-        assert_eq!(left.right().unwrap().text(), "b");
+        assert_eq!(
+            left.left().unwrap().syntax().text_trimmed().to_string(),
+            "a"
+        );
+        assert_eq!(
+            left.right().unwrap().syntax().text_trimmed().to_string(),
+            "b"
+        );
     }
 
     #[test]
@@ -512,7 +521,10 @@ mod tests {
         let root = parse("a && (b && c && d)", MFileSource::script()).syntax();
         let transformed = MFormatSyntaxRewriter::default().transform(root);
 
-        assert_eq!(&transformed.text().to_string(), "a && b && c && d");
+        assert_eq!(
+            &transformed.text_with_trivia().to_string(),
+            "a && b && c && d"
+        );
 
         let mut logical_expressions: Vec<_> = transformed
             .descendants()
@@ -524,14 +536,20 @@ mod tests {
         let abc = logical_expressions.pop().unwrap();
         let abcd = logical_expressions.pop().unwrap();
 
-        assert_eq!(ab.left().unwrap().text(), "a");
-        assert_eq!(ab.right().unwrap().text(), "b");
+        assert_eq!(ab.left().unwrap().syntax().text_trimmed().to_string(), "a");
+        assert_eq!(ab.right().unwrap().syntax().text_trimmed().to_string(), "b");
 
         assert_eq!(abc.left().unwrap().syntax(), ab.syntax());
-        assert_eq!(abc.right().unwrap().text(), "c");
+        assert_eq!(
+            abc.right().unwrap().syntax().text_trimmed().to_string(),
+            "c"
+        );
 
         assert_eq!(abcd.left().unwrap().syntax(), abc.syntax());
-        assert_eq!(abcd.right().unwrap().text(), "d");
+        assert_eq!(
+            abcd.right().unwrap().syntax().text_trimmed().to_string(),
+            "d"
+        );
     }
 
     #[test]
@@ -540,7 +558,7 @@ mod tests {
         let transformed = MFormatSyntaxRewriter::default().transform(root);
 
         // Removes parentheses
-        assert_eq!(&transformed.text().to_string(), "a && b || c");
+        assert_eq!(&transformed.text_with_trivia().to_string(), "a && b || c");
 
         let logical_expressions: Vec<_> = transformed
             .descendants()
@@ -552,17 +570,23 @@ mod tests {
         let top = logical_expressions.first().unwrap();
         let right = logical_expressions.last().unwrap();
 
-        assert_eq!(top.left().unwrap().text(), "a");
+        assert_eq!(top.left().unwrap().syntax().text_trimmed().to_string(), "a");
         assert_eq!(top.right().unwrap().syntax(), right.syntax());
-        assert_eq!(right.left().unwrap().text(), "b");
-        assert_eq!(right.right().unwrap().text(), "c");
+        assert_eq!(
+            right.left().unwrap().syntax().text_trimmed().to_string(),
+            "b"
+        );
+        assert_eq!(
+            right.right().unwrap().syntax().text_trimmed().to_string(),
+            "c"
+        );
     }
 
     #[test]
     fn single_parentheses() {
         let (transformed, source_map) = source_map_test("(a)");
 
-        assert_eq!(&transformed.text(), "a");
+        assert_eq!(&transformed.text_with_trivia(), "a");
 
         let identifier = transformed
             .descendants()
@@ -576,7 +600,7 @@ mod tests {
     fn nested_parentheses() {
         let (transformed, source_map) = source_map_test("((a))");
 
-        assert_eq!(&transformed.text(), "a");
+        assert_eq!(&transformed.text_with_trivia(), "a");
 
         let identifier = transformed
             .descendants()
@@ -612,7 +636,7 @@ mod tests {
     fn adjacent_nodes() {
         let (transformed, source_map) = source_map_test("(a + b)");
 
-        assert_eq!(&transformed.text(), "a + b");
+        assert_eq!(&transformed.text_with_trivia(), "a + b");
 
         let identifiers: Vec<_> = transformed
             .descendants()
@@ -662,7 +686,7 @@ mod tests {
     fn enclosing_node() {
         let (transformed, source_map) = source_map_test("(a + b);");
 
-        assert_eq!(&transformed.text(), "a + b;");
+        assert_eq!(&transformed.text_with_trivia(), "a + b;");
 
         let expression_statement = transformed
             .descendants()
@@ -679,7 +703,7 @@ mod tests {
     fn trailing_whitespace() {
         let (transformed, source_map) = source_map_test("(a + b   );");
 
-        assert_eq!(&transformed.text(), "a + b   ;");
+        assert_eq!(&transformed.text_with_trivia(), "a + b   ;");
 
         let binary = transformed
             .descendants()
@@ -697,7 +721,7 @@ mod tests {
         let (transformed, _) = source_map_test("a;\n(\n a + b);");
 
         // Trims the leading whitespace in front of the expression's first token.
-        assert_eq!(&transformed.text(), "a;\na + b;");
+        assert_eq!(&transformed.text_with_trivia(), "a;\na + b;");
     }
 
     #[test]
@@ -738,7 +762,7 @@ mod tests {
         );
 
         assert_eq!(
-            source_map.source_range(unary_expressions[1].syntax().text_range()),
+            source_map.source_range(unary_expressions[1].syntax().text_range_with_trivia()),
             TextRange::new(TextSize::from(22), TextSize::from(38))
         );
 

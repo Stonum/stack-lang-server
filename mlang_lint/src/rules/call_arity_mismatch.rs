@@ -11,7 +11,7 @@ pub fn check(call: &MCallExpression, index: &SemanticIndex) -> Option<Diagnostic
     let AnyMExpression::MIdentifierExpression(ident) = call.callee().ok()? else {
         return None;
     };
-    let name = ident.name().ok()?.text();
+    let name = ident.name().ok()?.syntax().text_trimmed().to_string();
     let arguments = call.arguments().ok()?;
     // A spread expands to an unknown number of arguments.
     if arguments

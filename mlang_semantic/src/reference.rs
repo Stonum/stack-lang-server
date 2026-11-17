@@ -31,7 +31,7 @@ pub(crate) fn get_reference(
             let object = static_member.object().ok()?;
             let member = static_member.member().ok()?;
 
-            let name = member.text();
+            let name = member.syntax().text_trimmed().to_string();
             let range = index.line_col_range(member.range())?;
 
             let class_id = {
@@ -42,7 +42,7 @@ pub(crate) fn get_reference(
                         .find(|p| p.kind() == MSyntaxKind::M_CLASS_DECLARATION)
                         .and_then(|class_node| {
                             let class = MClassDeclaration::cast(class_node)?;
-                            let id = class.id().ok()?.text();
+                            let id = class.id().ok()?.syntax().text_trimmed().to_string();
                             Some(id)
                         }),
                     _ => None,
@@ -61,7 +61,7 @@ pub(crate) fn get_reference(
         }
 
         if let AnyMExpression::MIdentifierExpression(ident) = callee {
-            let name = ident.name().ok()?.text();
+            let name = ident.name().ok()?.syntax().text_trimmed().to_string();
             let range = index.line_col_range(ident.range())?;
             return Some((
                 SemanticInfo::new(Symbol::Function(name), Usage::Call(args_count)),
@@ -78,7 +78,7 @@ pub(crate) fn get_reference(
         }
         .unwrap_or_default();
         if let AnyMExpression::MIdentifierExpression(ident) = class {
-            let name = ident.name().ok()?.text();
+            let name = ident.name().ok()?.syntax().text_trimmed().to_string();
             let range = index.line_col_range(ident.range())?;
             return Some((
                 SemanticInfo::new(Symbol::Class(name), Usage::New(args_count)),

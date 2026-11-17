@@ -614,7 +614,8 @@ fn function_definition(
 
     let description = format_description(
         func.syntax().first_leading_trivia(),
-        func.doc_string().map(|s| s.text()),
+        func.doc_string()
+            .map(|s| s.syntax().text_trimmed().to_string()),
     );
 
     let params = AnyMFunction::MFunctionDeclaration(func)
@@ -625,7 +626,7 @@ fn function_definition(
     let func = MFunctionDefinition {
         keyword: func_token.text_trimmed().to_string(),
         id: DefinitionId {
-            name: func_id.text(),
+            name: func_id.syntax().text_trimmed().to_string(),
             range: func_id_range,
         },
         params,
@@ -652,7 +653,7 @@ fn handler_definition(
     let hdlr = Arc::new(MHandlerDefinition {
         keyword: func_token.text_trimmed().to_string(),
         id: DefinitionId {
-            name: func_id.text(),
+            name: func_id.syntax().text_trimmed().to_string(),
             range: func_id_range,
         },
         params,
@@ -728,13 +729,15 @@ fn class_definition(
 
     let description = format_description(
         class.syntax().first_leading_trivia(),
-        class.doc_string().map(|s| s.text()),
+        class
+            .doc_string()
+            .map(|s| s.syntax().text_trimmed().to_string()),
     );
 
     let class_def = Arc::new(MClassDefinition {
         keyword: class_token.text_trimmed().to_string(),
         id: DefinitionId {
-            name: class_id.text(),
+            name: class_id.syntax().text_trimmed().to_string(),
             range: class_id_range,
         },
         methods: vec![],
@@ -743,7 +746,7 @@ fn class_definition(
         range: class_range,
         extends: class
             .extends_clause()
-            .and_then(|ext| Some(ext.super_class().ok()?.text())),
+            .and_then(|ext| Some(ext.super_class().ok()?.syntax().text_trimmed().to_string())),
     });
 
     let mut members = class
@@ -768,13 +771,15 @@ fn class_member_definition(
     let member_range = index.line_col_range(member.range())?;
     let description = format_description(
         member.leading_trivia(),
-        member.doc_string().map(|s| s.text()),
+        member
+            .doc_string()
+            .map(|s| s.syntax().text_trimmed().to_string()),
     );
 
     Some(MClassMemberDefinition {
         keyword: member_token.map(|s| s.text_trimmed().to_string()),
         id: DefinitionId {
-            name: member_id.text(),
+            name: member_id.syntax().text_trimmed().to_string(),
             range: member_id_range,
         },
         class,
@@ -828,15 +833,18 @@ fn add_props_to_class_members(
                 static_member.member().ok().iter().next().cloned()
             })
             .collect::<Vec<_>>();
-        static_members.dedup_by_key(|m| m.text().to_lowercase());
+        static_members.dedup_by_key(|m| m.syntax().text_trimmed().to_string().to_lowercase());
 
         let mut variables = static_members
             .iter()
             .filter(|variable_name| {
                 !members.iter().any(|m| {
-                    m.id.name
+                    m.id.name.to_lowercase().eq(variable_name
+                        .syntax()
+                        .text_trimmed()
+                        .to_string()
                         .to_lowercase()
-                        .eq(variable_name.text().to_lowercase().as_str())
+                        .as_str())
                 })
             })
             .filter_map(|variable_name| {
@@ -857,7 +865,7 @@ fn class_property_definition(
     Some(MClassMemberDefinition {
         keyword: None,
         id: DefinitionId {
-            name: variable_name.text().to_string(),
+            name: variable_name.syntax().text_trimmed().to_string(),
             range: member_range,
         },
         class,
@@ -885,7 +893,7 @@ fn report_definition(
 
     let report_def = Arc::new(MReportDefinition {
         id: DefinitionId {
-            name: report_id.text(),
+            name: report_id.syntax().text_trimmed().to_string(),
             range: report_id_range,
         },
         sections: vec![],
@@ -914,7 +922,7 @@ fn report_section_definition(
 
     Some(MReportSectionDefinition {
         id: DefinitionId {
-            name: section_id.text(),
+            name: section_id.syntax().text_trimmed().to_string(),
             range: section_id_range,
         },
         report,

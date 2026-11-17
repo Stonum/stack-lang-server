@@ -294,7 +294,7 @@ pub(crate) fn write_with_custom_line_width(
         biome_formatter::write!(f, [format_removed(&token)])?;
     }
 
-    let start = node.text_range().start();
+    let start = node.text_range_with_trivia().start();
     let code = formatted.print()?.as_code().to_string();
 
     // Write each line with hard_line_break() so the outer indentation context

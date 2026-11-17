@@ -193,10 +193,10 @@ impl ConcatenatedQuery {
 /// wrapper) carries a leading comment -- biome attaches it there, not to
 /// the chain's first literal piece, so [chain_has_comments] alone misses it.
 fn wrapper_has_comments(node: &mlang_syntax::MSyntaxNode, comments: &MComments) -> bool {
-    let start = node.text_range().start();
+    let start = node.text_range_with_trivia().start();
     let mut ancestor = node.parent();
     while let Some(current) = ancestor {
-        if current.text_range().start() != start {
+        if current.text_range_with_trivia().start() != start {
             break;
         }
         if comments.has_comments(&current) {

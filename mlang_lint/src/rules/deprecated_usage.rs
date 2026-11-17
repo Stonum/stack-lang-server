@@ -60,7 +60,7 @@ pub fn check_call(call: &MCallExpression, index: &SemanticIndex) -> Option<Diagn
 
     match call.callee().ok()? {
         AnyMExpression::MIdentifierExpression(ident) => {
-            let name = ident.name().ok()?.text();
+            let name = ident.name().ok()?.syntax().text_trimmed().to_string();
             let deprecation = deprecation(callable(index.functions(&name), count))?;
             Some(diagnostic(&name, deprecation, ident.range()))
         }
@@ -74,10 +74,21 @@ pub fn check_call(call: &MCallExpression, index: &SemanticIndex) -> Option<Diagn
                 .find_map(MClassDeclaration::cast)?
                 .id()
                 .ok()?
-                .text();
+                .syntax()
+                .text_trimmed()
+                .to_string();
             let name = member.member().ok()?;
-            let deprecation = method(index, &class, &name.text(), count)?;
-            Some(diagnostic(&name.text(), deprecation, name.range()))
+            let deprecation = method(
+                index,
+                &class,
+                &name.syntax().text_trimmed().to_string(),
+                count,
+            )?;
+            Some(diagnostic(
+                &name.syntax().text_trimmed().to_string(),
+                deprecation,
+                name.range(),
+            ))
         }
         _ => None,
     }
@@ -87,7 +98,7 @@ pub fn check_new(new: &MNewExpression, index: &SemanticIndex) -> Option<Diagnost
     let AnyMExpression::MIdentifierExpression(ident) = new.callee().ok()? else {
         return None;
     };
-    let name = ident.name().ok()?.text();
+    let name = ident.name().ok()?.syntax().text_trimmed().to_string();
 
     if let Some(deprecation) = deprecation(index.classes(&name)) {
         return Some(diagnostic(&name, deprecation, ident.range()));

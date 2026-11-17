@@ -317,7 +317,7 @@ impl AnyMAssignmentLike {
         }
 
         if let Some(AnyMExpression::MCallExpression(call_expression)) = &right_expression
-            && call_expression.callee()?.syntax().text() == "require"
+            && call_expression.callee()?.syntax().text_with_trivia() == "require"
         {
             return Ok(AssignmentLikeLayout::NeverBreakAfterOperator);
         }

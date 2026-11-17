@@ -24,7 +24,7 @@ pub fn identifier_for_offset(
 
     for offset in offsets {
         let range = TextRange::new(offset, offset);
-        if !root.text_range().contains_range(range) {
+        if !root.text_range_with_trivia().contains_range(range) {
             continue;
         }
         let node = root.covering_element(range);
@@ -47,7 +47,7 @@ pub fn identifier_for_completion(
     offset: TextSize,
 ) -> Option<SemanticInfo> {
     let range = TextRange::new(offset, offset);
-    if !root.text_range().contains_range(range) {
+    if !root.text_range_with_trivia().contains_range(range) {
         return None;
     }
     let node = root.covering_element(range);
@@ -62,7 +62,7 @@ pub fn identifier_for_signature_help(
     offset: TextSize,
 ) -> Option<(SemanticInfo, u32)> {
     let range = TextRange::new(offset, offset);
-    if !root.text_range().contains_range(range) {
+    if !root.text_range_with_trivia().contains_range(range) {
         return None;
     }
     let node = root.covering_element(range);
@@ -87,7 +87,7 @@ fn identifier_for_token(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> 
 fn handler_declaration(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
     let function = token.ancestors().find_map(MFunctionDeclaration::cast)?;
     let id = function.id().ok()?;
-    let handler = id.text();
+    let handler = id.syntax().text_trimmed().to_string();
 
     if id.range().contains_range(token.text_trimmed_range()) {
         return Some(SemanticInfo::new(
@@ -164,7 +164,7 @@ fn declaration_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
                 let class_node = class_member_list_node.parent()?;
 
                 let class = MClassDeclaration::cast(class_node)?;
-                let class_id = class.id().ok()?.text();
+                let class_id = class.id().ok()?.syntax().text_trimmed().to_string();
 
                 return Some(SemanticInfo::new(
                     Symbol::Member {
@@ -231,7 +231,13 @@ fn super_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticIn
 
     let class_id = {
         let class = get_nearest_class_declaration(token)?;
-        let id = class.extends_clause()?.super_class().ok()?.text();
+        let id = class
+            .extends_clause()?
+            .super_class()
+            .ok()?
+            .syntax()
+            .text_trimmed()
+            .to_string();
         Some(id)
     }?; // return None if class is not founded
 
@@ -260,7 +266,7 @@ fn this_expression_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInf
 
     let class_id = {
         let class = get_nearest_class_declaration(token)?;
-        let id = class.id().ok()?.text();
+        let id = class.id().ok()?.syntax().text_trimmed().to_string();
         Some(id)
     }?; // return None if class is not founded
 
@@ -295,7 +301,13 @@ fn call_handler(token: &SyntaxToken<MLanguage>) -> Option<SemanticInfo> {
             let super_token = expr.super_token().ok()?;
             let class_id = {
                 let class = get_nearest_class_declaration(&super_token)?;
-                let id = class.extends_clause()?.super_class().ok()?.text();
+                let id = class
+                    .extends_clause()?
+                    .super_class()
+                    .ok()?
+                    .syntax()
+                    .text_trimmed()
+                    .to_string();
                 Some(id)
             };
             return Some(method_call(identifier, args_count, class_id));
@@ -370,7 +382,13 @@ fn get_nearest_class_declaration(token: &SyntaxToken<MLanguage>) -> Option<MClas
 
 fn get_nearest_variable_declaration(variable: &AnyMExpression) -> Option<SemanticInfo> {
     let name = match variable {
-        AnyMExpression::MIdentifierExpression(ident) => ident.name().ok()?.text().to_lowercase(),
+        AnyMExpression::MIdentifierExpression(ident) => ident
+            .name()
+            .ok()?
+            .syntax()
+            .text_trimmed()
+            .to_string()
+            .to_lowercase(),
         AnyMExpression::MThisExpression(this) if this.this_token().is_ok() => {
             return this_expression_handler(&this.this_token().unwrap());
         }
@@ -380,7 +398,7 @@ fn get_nearest_variable_declaration(variable: &AnyMExpression) -> Option<Semanti
         _ => return None,
     };
 
-    let usage = variable.syntax().text_range();
+    let usage = variable.syntax().text_range_with_trivia();
     variable
         .syntax()
         .ancestors()
@@ -402,7 +420,7 @@ fn get_first_assignment_or_declaration(
             MSyntaxKind::M_VARIABLE_STATEMENT => find_variable_statement(n, ident),
             _ => None,
         })
-        .find(|right| !right.text_range().contains_range(usage))
+        .find(|right| !right.text_range_with_trivia().contains_range(usage))
 }
 
 fn find_expression_statement(

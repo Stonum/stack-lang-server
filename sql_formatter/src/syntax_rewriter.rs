@@ -11,7 +11,7 @@ use std::collections::BTreeSet;
 use biome_rowan::SyntaxRewriter;
 
 pub(super) fn transform(root: SqlSyntaxNode) -> (SqlSyntaxNode, TransformSourceMap) {
-    let mut rewriter = SqlFormatSyntaxRewriter::with_offset(root.text_range().start());
+    let mut rewriter = SqlFormatSyntaxRewriter::with_offset(root.text_range_with_trivia().start());
     let transformed = rewriter.transform(root);
     (transformed, rewriter.finish())
 }
@@ -117,9 +117,9 @@ impl SqlFormatSyntaxRewriter {
         self.source_map.push_source_text(l_paren.text());
 
         let inner_trimmed_range = inner.text_trimmed_range();
-        let original_inner_offset = inner.text_range().start();
+        let original_inner_offset = inner.text_range_with_trivia().start();
         let inner = self.transform(inner);
-        let inner_offset = original_inner_offset - inner.text_range().start();
+        let inner_offset = original_inner_offset - inner.text_range_with_trivia().start();
 
         match inner.first_token() {
             // Can only happen for `()`, which is never valid syntax here
@@ -424,7 +424,7 @@ mod tests {
         let transformed = SqlFormatSyntaxRewriter::default().transform(root);
 
         assert_eq!(
-            &transformed.text().to_string(),
+            &transformed.text_with_trivia().to_string(),
             "select a and b and c and d"
         );
 
@@ -438,14 +438,20 @@ mod tests {
         let abc = logical_expressions.pop().unwrap();
         let abcd = logical_expressions.pop().unwrap();
 
-        assert_eq!(ab.left().unwrap().text(), "a");
-        assert_eq!(ab.right().unwrap().text(), "b");
+        assert_eq!(ab.left().unwrap().syntax().text_trimmed().to_string(), "a");
+        assert_eq!(ab.right().unwrap().syntax().text_trimmed().to_string(), "b");
 
         assert_eq!(abc.left().unwrap().syntax(), ab.syntax());
-        assert_eq!(abc.right().unwrap().text(), "c");
+        assert_eq!(
+            abc.right().unwrap().syntax().text_trimmed().to_string(),
+            "c"
+        );
 
         assert_eq!(abcd.left().unwrap().syntax(), abc.syntax());
-        assert_eq!(abcd.right().unwrap().text(), "d");
+        assert_eq!(
+            abcd.right().unwrap().syntax().text_trimmed().to_string(),
+            "d"
+        );
     }
 
     #[test]
@@ -455,7 +461,10 @@ mod tests {
         let transformed = SqlFormatSyntaxRewriter::default().transform(root.clone());
 
         assert_ne!(&transformed, &root);
-        assert_eq!(&transformed.text().to_string(), "select a and b and c");
+        assert_eq!(
+            &transformed.text_with_trivia().to_string(),
+            "select a and b and c"
+        );
 
         let mut logical_expressions: Vec<_> = transformed
             .descendants()
@@ -468,10 +477,19 @@ mod tests {
         let top = logical_expressions.pop().unwrap();
 
         assert_eq!(top.left().unwrap().syntax(), left.syntax());
-        assert_eq!(&top.right().unwrap().text(), "c");
+        assert_eq!(
+            &top.right().unwrap().syntax().text_trimmed().to_string(),
+            "c"
+        );
 
-        assert_eq!(left.left().unwrap().text(), "a");
-        assert_eq!(left.right().unwrap().text(), "b");
+        assert_eq!(
+            left.left().unwrap().syntax().text_trimmed().to_string(),
+            "a"
+        );
+        assert_eq!(
+            left.right().unwrap().syntax().text_trimmed().to_string(),
+            "b"
+        );
     }
 
     #[test]
@@ -479,7 +497,10 @@ mod tests {
         let root = parse("select a and (b or c)", SqlFileSource::script()).syntax();
         let transformed = SqlFormatSyntaxRewriter::default().transform(root);
 
-        assert_eq!(&transformed.text().to_string(), "select a and b or c");
+        assert_eq!(
+            &transformed.text_with_trivia().to_string(),
+            "select a and b or c"
+        );
 
         let logical_expressions: Vec<_> = transformed
             .descendants()
@@ -491,21 +512,27 @@ mod tests {
         let top = logical_expressions.first().unwrap();
         let right = logical_expressions.last().unwrap();
 
-        assert_eq!(top.left().unwrap().text(), "a");
+        assert_eq!(top.left().unwrap().syntax().text_trimmed().to_string(), "a");
         assert_eq!(top.right().unwrap().syntax(), right.syntax());
-        assert_eq!(right.left().unwrap().text(), "b");
-        assert_eq!(right.right().unwrap().text(), "c");
+        assert_eq!(
+            right.left().unwrap().syntax().text_trimmed().to_string(),
+            "b"
+        );
+        assert_eq!(
+            right.right().unwrap().syntax().text_trimmed().to_string(),
+            "c"
+        );
     }
 
     #[test]
     fn single_parentheses() {
         let (transformed, source_map) = source_map_test("select (a)");
 
-        assert_eq!(&transformed.text(), "select a");
+        assert_eq!(&transformed.text_with_trivia(), "select a");
 
         let binary = transformed
             .descendants()
-            .find(|node| node.text() == "(a)" || node.text() == "a")
+            .find(|node| node.text_with_trivia() == "(a)" || node.text_with_trivia() == "a")
             .unwrap();
 
         assert_eq!(source_map.trimmed_source_text(&binary), "(a)");
@@ -515,11 +542,11 @@ mod tests {
     fn nested_parentheses() {
         let (transformed, source_map) = source_map_test("select ((a))");
 
-        assert_eq!(&transformed.text(), "select a");
+        assert_eq!(&transformed.text_with_trivia(), "select a");
 
         let node = transformed
             .descendants()
-            .find(|node| node.text() == "a")
+            .find(|node| node.text_with_trivia() == "a")
             .unwrap();
 
         assert_eq!(source_map.trimmed_source_text(&node), "((a))");
@@ -529,11 +556,11 @@ mod tests {
     fn adjacent_nodes() {
         let (transformed, source_map) = source_map_test("select (a + b)");
 
-        assert_eq!(&transformed.text(), "select a + b");
+        assert_eq!(&transformed.text_with_trivia(), "select a + b");
 
         let binary = transformed
             .descendants()
-            .find(|node| node.text() == "a + b")
+            .find(|node| node.text_with_trivia() == "a + b")
             .unwrap();
         assert_eq!(source_map.trimmed_source_text(&binary), "(a + b)");
     }

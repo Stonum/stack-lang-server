@@ -105,7 +105,7 @@ fn refine_missing_close(
         return;
     };
     let own_opener = curly_token(&unclosed, L_CURLY).map(|t| t.text_trimmed_range());
-    let region = unclosed.text_range();
+    let region = unclosed.text_range_with_trivia();
 
     // The culprit: an inner `{` whose `}` is dedented past it (so it stole an
     // outer `}`), else the flagged block itself.
