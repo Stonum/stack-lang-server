@@ -78,7 +78,7 @@ biome_text_size = "0.7.0"
 biome_rowan = { version = "0.7.0", features = ["serde"] }
 biome_parser = "0.5.8"
 biome_formatter = { git = "https://github.com/Stonum/biome_formatter.git", rev = "978ba3d16c54e9141d7cfb6d1e6024df8b422792" }
-biome_unicode_table = "0.5.9"
+biome_unicode_table = "0.7.0"
 biome_diagnostics = "0.7.0"
 
 # Parser fork widens `TokenSet` to 512 token kinds.
